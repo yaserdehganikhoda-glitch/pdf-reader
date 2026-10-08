@@ -16,20 +16,35 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - run: mkdir -p www && cp index.html www/index.html
-      - run: npm install --legacy-peer-deps
+      - name: Prepare web files
+        run: mkdir -p www && cp index.html www/index.html
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
       - name: Bundle Piper (optional)
         continue-on-error: true
         run: |
+          npm install --no-save --legacy-peer-deps @diffusionstudio/vits-web esbuild
           echo "import * as tts from '@diffusionstudio/vits-web'; window.PiperTTS = tts;" > piper-entry.js
           npx esbuild piper-entry.js --bundle --format=iife --minify --platform=browser --external:fs --external:path --external:os --external:worker_threads --external:perf_hooks --outfile=www/piper.js
-      - run: npx cap add android
-      - run: |
+      - name: Add Android platform
+        run: npx cap add android
+      - name: Allow TTS service queries
+        run: |
           sed -i 's#<application#<queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>\n    <application#' android/app/src/main/AndroidManifest.xml
-      - run: npx cap sync android
-      - run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
-      - run: cp android/app/build/outputs/apk/debug/app-debug.apk PdfVoiceReader.apk
-      - uses: softprops/action-gh-release@v2
+      - name: Sync
+        run: npx cap sync android
+      - name: Build debug APK
+        run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Copy APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk PdfVoiceReader.apk
+      - name: Upload APK (run page)
+        uses: actions/upload-artifact@v4
+        with:
+          name: PdfVoiceReader-apk
+          path: PdfVoiceReader.apk
+      - name: Publish release
+        continue-on-error: true
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
           name: Latest APK
