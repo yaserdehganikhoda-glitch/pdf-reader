@@ -283,6 +283,9 @@ input[type=range]{accent-color:var(--accent)}
     btn.disabled = true;
     PiperTTS.download(v.id, function(pr){
       if (pr && pr.total) st.textContent = 'در حال دانلود: ' + nf.format(Math.round(pr.loaded * 100 / pr.total)) + '٪';
+    }).then(function(){
+      st.textContent = 'در حال آزمایش صدا…';
+      return withTimeout(Promise.resolve(PiperTTS.predict({ text: 'سلام', voiceId: v.id })), 120000, PIPER_TO);
     }).then(function(){ updatePiperStatus(); warmPiper(); }).catch(function(e){
       st.textContent = 'دانلود ناموفق بود: ' + (e && e.message ? e.message : e) + ' (ممکن است به VPN نیاز باشد)';
     }).then(function(){ btn.disabled = false; });
@@ -421,6 +424,13 @@ input[type=range]{accent-color:var(--accent)}
     return pr;
   }
   var piperQ = Promise.resolve();
+  function withTimeout(pr, ms, msg){
+    return new Promise(function(res, rej){
+      var t = setTimeout(function(){ rej(new Error(msg)); }, ms);
+      pr.then(function(v){ clearTimeout(t); res(v); }, function(e){ clearTimeout(t); rej(e); });
+    });
+  }
+  var PIPER_TO = 'ساخت صدا بیش از حد طول کشید. موتور Piper برای اجرا فایل‌های کمکی (ONNX/WASM) را از cdnjs می‌گیرد؛ اینترنت یا VPN را روشن کنید و دوباره امتحان کنید.';
   function chunkAt(i, first){
     var e = i, len = sents[i].text.length;
     if (!first) {
@@ -440,7 +450,7 @@ input[type=range]{accent-color:var(--accent)}
     var g = gen;
     var pr = piperQ.then(function(){
       if (g !== gen) throw new Error('cancelled');
-      return PiperTTS.predict({ text: c.text, voiceId: v.id });
+      return withTimeout(Promise.resolve(PiperTTS.predict({ text: c.text, voiceId: v.id })), 120000, PIPER_TO);
     }).then(function(b){ return URL.createObjectURL(b); });
     piperQ = pr.catch(function(){});
     pr.catch(function(){ delete cache[ck]; });
