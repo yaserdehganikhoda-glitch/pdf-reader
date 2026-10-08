@@ -13,6 +13,7 @@ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:en
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14130f;--card:#1e1d18;--ink:#f1efe8;--muted:#a09e94;--line:#34322b;--accent:#2dd4bf;--accent-ink:#06201c;--hl:#5b4a0a;--hl-ink:#fff7d6;--warn:#3a2c0a;--warn-ink:#f6d98b}}
 :root[data-theme="dark"]{--bg:#14130f;--card:#1e1d18;--ink:#f1efe8;--muted:#a09e94;--line:#34322b;--accent:#2dd4bf;--accent-ink:#06201c;--hl:#5b4a0a;--hl-ink:#fff7d6;--warn:#3a2c0a;--warn-ink:#f6d98b}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{background:var(--bg);color:var(--ink);font-family:"Vazirmatn",Tahoma,"Segoe UI",system-ui,sans-serif;line-height:1.9;padding:16px 14px 150px}
@@ -239,8 +240,20 @@ input[type=range]{accent-color:var(--accent)}
   loadNative();
   setTimeout(loadNative, 1500);
 
+  var piperLoading = null, piperVoicesLoaded = false;
+  function ensurePiper(){
+    if (window.PiperTTS) return Promise.resolve(true);
+    if (!piperLoading) {
+      piperLoading = import('https://esm.sh/@diffusionstudio/vits-web').then(function(m){
+        window.PiperTTS = m;
+        return true;
+      }).catch(function(){ piperLoading = null; return false; });
+    }
+    return piperLoading;
+  }
   function loadPiper(){
-    if (!window.PiperTTS) return;
+    if (!window.PiperTTS || piperVoicesLoaded) return;
+    piperVoicesLoaded = true;
     PiperTTS.voices().then(function(vs){
       var fa = (vs || []).filter(function(v){
         return (v.language && v.language.family === 'fa') || /^fa_/.test(v.key || '');
@@ -252,12 +265,16 @@ input[type=range]{accent-color:var(--accent)}
   }
   function updatePiperStatus(){
     var st = $('#pstat'), btn = $('#pdl');
-    if (!window.PiperTTS) { st.textContent = 'موتور Piper در این نسخه ساخته نشده است.'; btn.hidden = true; return; }
-    PiperTTS.stored().then(function(a){
-      var v = currentVoice();
-      var ok = !!v && (a || []).indexOf(v.id) >= 0;
-      st.textContent = ok ? 'صدا دانلود شده و آفلاین کار می‌کند.' : 'این صدا هنوز دانلود نشده است (حدود ۶۰ مگابایت؛ فقط بار اول اینترنت لازم است).';
-      btn.hidden = ok;
+    if (!window.PiperTTS) st.textContent = 'در حال بارگذاری موتور Piper…';
+    ensurePiper().then(function(ok){
+      if (!ok) { st.textContent = 'موتور Piper بارگذاری نشد. اینترنت یا VPN را بررسی کنید.'; btn.hidden = true; return; }
+      loadPiper();
+      return PiperTTS.stored().then(function(a){
+        var v = currentVoice();
+        var done = !!v && (a || []).indexOf(v.id) >= 0;
+        st.textContent = done ? 'صدا دانلود شده و آفلاین کار می‌کند.' : 'این صدا هنوز دانلود نشده است (حدود ۶۰ مگابایت؛ فقط بار اول اینترنت لازم است).';
+        btn.hidden = done;
+      });
     }).catch(function(){ st.textContent = ''; });
   }
   $('#pdl').onclick = function(){
@@ -270,7 +287,6 @@ input[type=range]{accent-color:var(--accent)}
       st.textContent = 'دانلود ناموفق بود: ' + (e && e.message ? e.message : e) + ' (ممکن است به VPN نیاز باشد)';
     }).then(function(){ btn.disabled = false; });
   };
-  loadPiper();
   if (synth && !isNative) { synth.onvoiceschanged = loadVoices; }
   loadVoices();
   setTimeout(loadVoices, 600);
@@ -440,10 +456,10 @@ input[type=range]{accent-color:var(--accent)}
     }
   }
   function warmPiper(){
-    if (engine() !== 'piper' || !window.PiperTTS || !sents.length) return;
+    if (engine() !== 'piper' || !sents.length) return;
     var v = currentVoice();
     if (!v) return;
-    PiperTTS.stored().then(function(a){
+    ensurePiper().then(function(ok){ return ok ? PiperTTS.stored() : []; }).then(function(a){
       if ((a || []).indexOf(v.id) >= 0) piperFetch(chunkAt(0, true)).catch(function(){});
     }).catch(function(){});
   }
@@ -492,7 +508,7 @@ input[type=range]{accent-color:var(--accent)}
       var c = chunkAt(idx, firstChunk);
       firstChunk = false;
       status('در حال آماده‌سازی صدا…');
-      piperFetch(c).then(function(url){
+      ensurePiper().then(function(){ return piperFetch(c); }).then(function(url){
         if (my !== token || !playing) return;
         status('');
         var sp = +$('#rate').value;
