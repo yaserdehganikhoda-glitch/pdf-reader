@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>خوانندهٔ صوتی PDF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f7f6f2;--card:#fff;--ink:#1c1b18;--muted:#6b6a64;--line:#e4e2da;--accent:#0f766e;--accent-ink:#fff;--hl:#fde68a;--hl-ink:#1c1b18;--warn:#fff4d6;--warn-ink:#7a4b00;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14130f;--card:#1e1d18;--ink:#f1efe8;--muted:#a09e94;--line:#34322b;--accent:#2dd4bf;--accent-ink:#06201c;--hl:#5b4a0a;--hl-ink:#fff7d6;--warn:#3a2c0a;--warn-ink:#f6d98b}}
+:root[data-theme="dark"]{--bg:#14130f;--card:#1e1d18;--ink:#f1efe8;--muted:#a09e94;--line:#34322b;--accent:#2dd4bf;--accent-ink:#06201c;--hl:#5b4a0a;--hl-ink:#fff7d6;--warn:#3a2c0a;--warn-ink:#f6d98b}
+*{box-sizing:border-box}
+html,body{margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font-family:"Vazirmatn",Tahoma,"Segoe UI",system-ui,sans-serif;line-height:1.9;padding:16px 14px 150px}
+.wrap{max-width:760px;margin:0 auto;display:grid;gap:14px}
+h1{font-size:1.25rem;margin:4px 0 0}
+.sub{color:var(--muted);font-size:.85rem;margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.btn{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 14px;cursor:pointer;min-height:44px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:22px 14px;text-align:center;cursor:pointer}
+.drop.over{border-color:var(--accent)}
+.drop b{display:block;margin-bottom:4px}
+.row{display:grid;gap:6px;margin-bottom:12px}
+.row:last-child{margin-bottom:0}
+.row label{font-size:.85rem;color:var(--muted);display:flex;justify-content:space-between}
+select,input[type=range]{width:100%;font:inherit}
+select{padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:44px}
+input[type=range]{accent-color:var(--accent)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chk{display:flex;gap:8px;align-items:center;font-size:.85rem;color:var(--muted)}
+.warn{background:var(--warn);color:var(--warn-ink);border-radius:10px;padding:10px 12px;font-size:.85rem}
+.hint{font-size:.78rem;color:var(--muted);margin:0}
+#status{font-size:.85rem;color:var(--muted);min-height:1.4em}
+#reader{font-size:1.15rem;line-height:2.2}
+#reader p{margin:0 0 .8em}
+#reader span{cursor:pointer;border-radius:5px;padding:1px 0;transition:background .15s}
+#reader span:hover{background:color-mix(in srgb,var(--hl) 40%,transparent)}
+#reader span.cur{background:var(--hl);color:var(--hl-ink)}
+.pg{font-size:.78rem;color:var(--accent);border-bottom:1px solid var(--line);margin:1.2em 0 .6em;padding-bottom:2px;font-weight:600}
+.pg:first-child{margin-top:0}
+.bar{position:fixed;inset-inline:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px))}
+.bar-in{max-width:760px;margin:0 auto;display:grid;gap:8px}
+.prog{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}
+.bar .btns{display:grid;grid-template-columns:1fr 1.6fr 1fr 1fr;gap:8px}
+.empty{color:var(--muted);text-align:center;padding:20px 0}
+.row input[type=text],.row input[type=password]{width:100%;font:inherit;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:44px;direction:ltr;text-align:left}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1>خوانندهٔ صوتی PDF</h1>
+    <p class="sub">فایل PDF را انتخاب کنید تا متنش با صدای دستگاه خوانده شود.</p>
+  </div>
+
+  <div class="card">
+    <div class="drop" id="drop" tabindex="0" role="button">
+      <b>انتخاب فایل PDF</b>
+      <span class="sub">یا فایل را اینجا رها کنید</span>
+    </div>
+    <input type="file" id="file" accept="application/pdf,.pdf" hidden>
+    <div id="status" aria-live="polite"></div>
+  </div>
+
+  <div class="card">
+    <div id="nosupport" class="warn" hidden>مرورگر شما از تبدیل متن به گفتار پشتیبانی نمی‌کند. از Chrome یا Edge یا Safari استفاده کنید.</div>
+    <div id="novoice" class="warn" hidden style="margin-bottom:12px">هیچ صدای فارسی روی این دستگاه پیدا نشد. صداهای سایر زبان‌ها نمایش داده شده‌اند، ولی فارسی را درست نمی‌خوانند. در تنظیمات سیستم‌عامل (Text-to-speech) می‌توانید صدای فارسی نصب کنید.</div>
+    <div class="row">
+      <label for="engine"><span>موتور صدا</span></label>
+      <select id="engine">
+        <option value="device">صدای دستگاه (رایگان)</option>
+        <option value="azure">صدای ابری Azure (کیفیت بالا)</option>
+        <option value="piper">صدای آفلاین Piper (رایگان)</option>
+      </select>
+    </div>
+    <div id="azurebox" class="row" hidden>
+      <input id="akey" type="password" placeholder="Azure Speech key" autocomplete="off">
+      <input id="aregion" type="text" placeholder="Region (e.g. westeurope)" autocomplete="off">
+      <p class="hint">صداهای فارسی: Dilara (زن) و Farid (مرد). کلید را از منبع Speech در پورتال Azure بگیرید. کلید فقط روی همین دستگاه ذخیره می‌شود و مستقیم به Azure می‌رود. این حالت به اینترنت نیاز دارد و هزینه بر اساس مصرف است.</p>
+    </div>
+    <div id="piperbox" class="row" hidden>
+      <button class="btn" id="pdl" type="button">دانلود صدای فارسی</button>
+      <p class="hint" id="pstat"></p>
+      <p class="hint">کاملاً رایگان و بدون سقف است و بعد از دانلود بدون اینترنت کار می‌کند. سرعت اعمال می‌شود ولی زیر و بمی در این حالت اثر ندارد. ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
+    </div>
+    <div class="two row">
+      <div>
+        <label for="gender"><span>نوع صدا</span></label>
+        <select id="gender">
+          <option value="all">همه</option>
+          <option value="f">زن</option>
+          <option value="m">مرد</option>
+        </select>
+      </div>
+      <div>
+        <label for="voice"><span>گوینده</span></label>
+        <select id="voice"></select>
+      </div>
+    </div>
+    <p class="hint" style="margin-bottom:12px">مرورگر جنسیت صدا را اعلام نمی‌کند؛ تشخیص زن/مرد بر اساس نام صداست و ممکن است برای بعضی صداها «نامشخص» باشد.</p>
+    <div class="row">
+      <label for="rate"><span>سرعت</span><span id="rateV"></span></label>
+      <input type="range" id="rate" min="0.5" max="2" step="0.1" value="1">
+    </div>
+    <div class="row">
+      <label for="pitch"><span>زیر و بمی</span><span id="pitchV"></span></label>
+      <input type="range" id="pitch" min="0.5" max="1.5" step="0.1" value="1">
+    </div>
+    <label class="chk"><input type="checkbox" id="allLangs"> نمایش صداهای همهٔ زبان‌ها</label>
+  </div>
+
+  <div class="card">
+    <div id="reader"><div class="empty">هنوز فایلی باز نشده است.</div></div>
+  </div>
+</div>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="prog"><span id="pos">—</span><span id="pageInfo"></span></div>
+    <div class="btns">
+      <button class="btn" id="prev" disabled>جملهٔ قبل</button>
+      <button class="btn primary" id="play" disabled>پخش</button>
+      <button class="btn" id="next" disabled>جملهٔ بعد</button>
+      <button class="btn" id="stop" disabled>توقف</button>
+    </div>
+  </div>
+</div>
+
+<script src="piper.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+(function(){
+  var $ = function(s){ return document.querySelector(s); };
+  var nf = new Intl.NumberFormat('fa-IR');
+  var synth = window.speechSynthesis;
+  var sents = [], idx = 0, playing = false, token = 0, voices = [], curEl = null;
+
+  if (window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  /* ---------- settings (best-effort) ---------- */
+  function sget(k, d){ try { var v = localStorage.getItem(k); return v === null ? d : v; } catch(e){ return d; } }
+  function sset(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
+  $('#rate').value = sget('rate', '1');
+  $('#pitch').value = sget('pitch', '1');
+  $('#gender').value = sget('gender', 'all');
+  function showVals(){
+    $('#rateV').textContent = nf.format(+$('#rate').value) + '×';
+    $('#pitchV').textContent = nf.format(+$('#pitch').value);
+  }
+  showVals();
+
+  function status(t){ $('#status').textContent = t || ''; }
+
+  /* ---------- voices ---------- */
+  var TTSP = null, nativeVoices = [];
+  try {
+    if (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) TTSP = Capacitor.registerPlugin('TextToSpeech');
+  } catch (e) {}
+  var isNative = !!TTSP;
+  var AZ = [
+    { id: 'fa-IR-DilaraNeural', name: 'Dilara', lang: 'fa-IR', gender: 'f', fa: true },
+    { id: 'fa-IR-FaridNeural', name: 'Farid', lang: 'fa-IR', gender: 'm', fa: true }
+  ];
+  var piperVoices = [
+    { id: 'fa_IR-amir-medium', name: 'amir (medium)', lang: 'fa-IR', gender: '?', fa: true },
+    { id: 'fa_IR-gyro-medium', name: 'gyro (medium)', lang: 'fa-IR', gender: '?', fa: true }
+  ];
+  var FEM = /female|woman|dilara|zira|hazel|samantha|victoria|karen|moira|tessa|fiona|susan|heera|aria|jenny|sara|zuzana|elena|katya|milena|ava/i;
+  var MALE = /\bmale\b|farid|david|mark|george|daniel|alex|fred|ravi|guy|ryan|thomas|jorge|diego|yuri|pavel/i;
+  function genderOf(name){
+    if (FEM.test(name)) return 'f';
+    if (MALE.test(name)) return 'm';
+    return '?';
+  }
+  function engine(){ return $('#engine').value; }
+  function canSpeak(){ return engine() !== 'device' || isNative || !!synth; }
+  var se = sget('engine', 'device'); if (se === 'azure' || se === 'piper') $('#engine').value = se;
+  $('#akey').value = sget('akey', '');
+  $('#aregion').value = sget('aregion', '');
+
+  function deviceVoices(){
+    var raw = [];
+    if (isNative) {
+      raw = nativeVoices.map(function(v, i){ return { id: String(i), name: v.name || v.voiceURI || ('voice ' + i), lang: v.lang || '' }; });
+    } else if (synth) {
+      raw = (synth.getVoices() || []).map(function(v){ return { id: v.voiceURI, name: v.name, lang: v.lang }; });
+    }
+    return raw.map(function(v){
+      return { id: v.id, name: v.name, lang: v.lang, gender: genderOf(v.name), fa: /^fa/i.test(v.lang) };
+    });
+  }
+  function allVoices(){ var e = engine(); return e === 'azure' ? AZ : e === 'piper' ? piperVoices : deviceVoices(); }
+  function renderVoices(){
+    var az = engine() === 'azure', pp = engine() === 'piper', cloud = az || pp;
+    $('#azurebox').hidden = !az;
+    $('#piperbox').hidden = !pp;
+    $('#allLangs').parentNode.hidden = cloud;
+    $('#nosupport').hidden = cloud || isNative || !!synth;
+    var sel = $('#voice');
+    var prev = sel.value || sget('voice', '');
+    var all = allVoices();
+    var fa = all.filter(function(v){ return v.fa; });
+    var useAll = $('#allLangs').checked || fa.length === 0;
+    $('#novoice').hidden = cloud || !(fa.length === 0 && all.length > 0);
+    var list = useAll ? all : fa;
+    var g = $('#gender').value;
+    if (g !== 'all') {
+      list = list.filter(function(v){ return v.gender === g || v.gender === '?'; });
+    }
+    sel.textContent = '';
+    list.forEach(function(v){
+      var o = document.createElement('option');
+      o.value = v.id;
+      o.textContent = v.name + ' (' + v.lang + ') — ' + (v.gender === 'f' ? 'زن' : v.gender === 'm' ? 'مرد' : 'نامشخص');
+      sel.appendChild(o);
+    });
+    if (prev && list.some(function(v){ return v.id === prev; })) sel.value = prev;
+    if (pp) updatePiperStatus();
+  }
+  function currentVoice(){
+    var id = $('#voice').value, all = allVoices();
+    for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
+    return null;
+  }
+  function loadVoices(){ renderVoices(); }
+  function loadNative(){
+    if (!TTSP) return;
+    TTSP.getSupportedVoices().then(function(r){ nativeVoices = (r && r.voices) || []; renderVoices(); }).catch(function(){});
+  }
+  loadNative();
+  setTimeout(loadNative, 1500);
+
+  function loadPiper(){
+    if (!window.PiperTTS) return;
+    PiperTTS.voices().then(function(vs){
+      var fa = (vs || []).filter(function(v){
+        return (v.language && v.language.family === 'fa') || /^fa_/.test(v.key || '');
+      }).map(function(v){
+        return { id: v.key, name: (v.name || v.key) + ' (' + (v.quality || '') + ')', lang: 'fa-IR', gender: '?', fa: true };
+      });
+      if (fa.length) { piperVoices = fa; renderVoices(); }
+    }).catch(function(){});
+  }
+  function updatePiperStatus(){
+    var st = $('#pstat'), btn = $('#pdl');
+    if (!window.PiperTTS) { st.textContent = 'موتور Piper در این نسخه ساخته نشده است.'; btn.hidden = true; return; }
+    PiperTTS.stored().then(function(a){
+      var v = currentVoice();
+      var ok = !!v && (a || []).indexOf(v.id) >= 0;
+      st.textContent = ok ? 'صدا دانلود شده و آفلاین کار می‌کند.' : 'این صدا هنوز دانلود نشده است (حدود ۶۰ مگابایت؛ فقط بار اول اینترنت لازم است).';
+      btn.hidden = ok;
+    }).catch(function(){ st.textContent = ''; });
+  }
+  $('#pdl').onclick = function(){
+    var v = currentVoice(), btn = $('#pdl'), st = $('#pstat');
+    if (!v || !window.PiperTTS) return;
+    btn.disabled = true;
+    PiperTTS.download(v.id, function(pr){
+      if (pr && pr.total) st.textContent = 'در حال دانلود: ' + nf.format(Math.round(pr.loaded * 100 / pr.total)) + '٪';
+    }).then(function(){ updatePiperStatus(); warmPiper(); }).catch(function(e){
+      st.textContent = 'دانلود ناموفق بود: ' + (e && e.message ? e.message : e) + ' (ممکن است به VPN نیاز باشد)';
+    }).then(function(){ btn.disabled = false; });
+  };
+  loadPiper();
+  if (synth && !isNative) { synth.onvoiceschanged = loadVoices; }
+  loadVoices();
+  setTimeout(loadVoices, 600);
+
+  /* ---------- PDF -> text ---------- */
+  function clean(t){
+    t = t.normalize('NFKC');
+    t = t.replace(/[ \t\u00a0]+/g, ' ');
+    t = t.replace(/ *\n */g, '\n');
+    // join lines that do not end a sentence
+    t = t.replace(/([^.!?؟…؛:\n])\n(?!\n)/g, '$1 ');
+    return t.trim();
+  }
+  function splitSentences(par){
+    var out = [];
+    var parts = par.split(/(?<=[.!?؟…؛])\s+/);
+    parts.forEach(function(s){
+      s = s.trim();
+      if (!s || !/[\p{L}\p{N}]/u.test(s)) return;
+      while (s.length > 240) {
+        var c = s.lastIndexOf('،', 240);
+        if (c < 80) c = s.lastIndexOf(' ', 240);
+        if (c < 80) c = 240;
+        out.push(s.slice(0, c + 1).trim());
+        s = s.slice(c + 1).trim();
+      }
+      if (s) out.push(s);
+    });
+    return out;
+  }
+  async function loadFile(file){
+    if (!window.pdfjsLib) { status('کتابخانهٔ PDF بارگذاری نشد. اتصال اینترنت را بررسی کنید.'); return; }
+    stopAll();
+    status('در حال باز کردن فایل…');
+    try {
+      var buf = await file.arrayBuffer();
+      var pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+      var pages = [];
+      for (var p = 1; p <= pdf.numPages; p++) {
+        status('استخراج متن: صفحهٔ ' + nf.format(p) + ' از ' + nf.format(pdf.numPages));
+        var page = await pdf.getPage(p);
+        var tc = await page.getTextContent();
+        var t = '';
+        tc.items.forEach(function(it){ t += it.str + (it.hasEOL ? '\n' : ' '); });
+        pages.push(clean(t));
+      }
+      build(pages); warmPiper();
+      if (sents.length) status(file.name + ' — ' + nf.format(pdf.numPages) + ' صفحه، ' + nf.format(sents.length) + ' جمله');
+    } catch (e) {
+      status('خواندن فایل ناموفق بود: ' + (e && e.message ? e.message : e));
+    }
+  }
+  function build(pages){
+    sents = []; idx = 0; curEl = null;
+    var box = $('#reader');
+    box.textContent = '';
+    pages.forEach(function(txt, pi){
+      var made = false;
+      txt.split(/\n+/).forEach(function(par){
+        var ss = splitSentences(par);
+        if (!ss.length) return;
+        if (!made) {
+          var h = document.createElement('div');
+          h.className = 'pg';
+          h.textContent = 'صفحهٔ ' + nf.format(pi + 1);
+          box.appendChild(h);
+          made = true;
+        }
+        var el = document.createElement('p');
+        ss.forEach(function(s){
+          var sp = document.createElement('span');
+          sp.textContent = s + ' ';
+          sp.dataset.i = sents.length;
+          sents.push({ text: s, page: pi + 1, el: sp });
+          el.appendChild(sp);
+        });
+        box.appendChild(el);
+      });
+    });
+    if (!sents.length) {
+      var d = document.createElement('div');
+      d.className = 'empty';
+      d.textContent = 'متنی در این PDF پیدا نشد. احتمالاً فایل اسکن‌شده (تصویری) است و به OCR نیاز دارد.';
+      box.appendChild(d);
+      status('');
+    }
+    ui(); mark(false);
+  }
+
+  /* ---------- playback ---------- */
+  var audio = new Audio();
+  var cache = {}, nid = 0, curNid = '', gen = 0, firstChunk = false, LIM = 300;
+  var SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+  function cancelAll(){
+    gen++;
+    if (synth) synth.cancel();
+    if (isNative) { try { TTSP.stop().catch(function(){}); } catch (e) {} }
+    try { audio.onended = null; audio.onerror = null; audio.ontimeupdate = null; audio.pause(); } catch (e) {}
+  }
+  function clearCache(){
+    gen++;
+    Object.keys(cache).forEach(function(k){
+      cache[k].then(function(u){ URL.revokeObjectURL(u); }).catch(function(){});
+      delete cache[k];
+    });
+  }
+  function esc(t){ return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function azureFetch(i){
+    var v = currentVoice();
+    var key = $('#akey').value.trim(), reg = $('#aregion').value.trim();
+    if (!v || !key || !reg) return Promise.reject(new Error('کلید و منطقهٔ Azure را وارد کنید.'));
+    if (!/^[a-z0-9-]+$/i.test(reg)) return Promise.reject(new Error('نام منطقه نادرست است.'));
+    var ck = [v.id, $('#rate').value, $('#pitch').value, i].join('|');
+    if (cache[ck]) return cache[ck];
+    var r = Math.round((+$('#rate').value - 1) * 100), pt = Math.round((+$('#pitch').value - 1) * 100);
+    var ssml = '<speak version="1.0" xml:lang="fa-IR" xmlns="http://www.w3.org/2001/10/synthesis"><voice name="' + v.id +
+      '"><prosody rate="' + (r >= 0 ? '+' : '') + r + '%" pitch="' + (pt >= 0 ? '+' : '') + pt + '%">' + esc(sents[i].text) + '</prosody></voice></speak>';
+    var pr = fetch('https://' + reg + '.tts.speech.microsoft.com/cognitiveservices/v1', {
+      method: 'POST',
+      headers: {
+        'Ocp-Apim-Subscription-Key': key,
+        'Content-Type': 'application/ssml+xml',
+        'X-Microsoft-OutputFormat': 'audio-24khz-48kbitrate-mono-mp3'
+      },
+      body: ssml
+    }).then(function(res){
+      if (!res.ok) throw new Error('Azure ' + res.status + (res.status === 401 || res.status === 403 ? ' (کلید یا منطقه نادرست است)' : ''));
+      return res.blob();
+    }).then(function(b){ return URL.createObjectURL(b); });
+    pr.catch(function(){ delete cache[ck]; });
+    cache[ck] = pr;
+    return pr;
+  }
+  var piperQ = Promise.resolve();
+  function chunkAt(i, first){
+    var e = i, len = sents[i].text.length;
+    if (!first) {
+      while (e + 1 < sents.length && sents[e + 1].page === sents[i].page && len + 1 + sents[e + 1].text.length <= LIM) {
+        e++; len += 1 + sents[e].text.length;
+      }
+    }
+    var t = [];
+    for (var k = i; k <= e; k++) t.push(sents[k].text);
+    return { start: i, end: e, text: t.join(' ') };
+  }
+  function piperFetch(c){
+    var v = currentVoice();
+    if (!window.PiperTTS || !v) return Promise.reject(new Error('موتور Piper در این نسخه موجود نیست.'));
+    var ck = ['piper', v.id, c.start, c.end].join('|');
+    if (cache[ck]) return cache[ck];
+    var g = gen;
+    var pr = piperQ.then(function(){
+      if (g !== gen) throw new Error('cancelled');
+      return PiperTTS.predict({ text: c.text, voiceId: v.id });
+    }).then(function(b){ return URL.createObjectURL(b); });
+    piperQ = pr.catch(function(){});
+    pr.catch(function(){ delete cache[ck]; });
+    cache[ck] = pr;
+    return pr;
+  }
+  function prefetchPiper(from, n){
+    var i = from;
+    while (n-- > 0 && i < sents.length) {
+      var c = chunkAt(i, false);
+      piperFetch(c).catch(function(){});
+      i = c.end + 1;
+    }
+  }
+  function warmPiper(){
+    if (engine() !== 'piper' || !window.PiperTTS || !sents.length) return;
+    var v = currentVoice();
+    if (!v) return;
+    PiperTTS.stored().then(function(a){
+      if ((a || []).indexOf(v.id) >= 0) piperFetch(chunkAt(0, true)).catch(function(){});
+    }).catch(function(){});
+  }
+  function followChunk(c){
+    var d = audio.duration;
+    if (!d || !isFinite(d) || c.end === c.start) return;
+    var total = 0, k;
+    for (k = c.start; k <= c.end; k++) total += sents[k].text.length;
+    var pos = (audio.currentTime / d) * total, acc = 0, t = c.end;
+    for (k = c.start; k <= c.end; k++) {
+      acc += sents[k].text.length;
+      if (pos < acc) { t = k; break; }
+    }
+    if (t !== idx) { idx = t; mark(true); }
+  }
+  function advance(my){
+    if (my !== token || !playing) return;
+    idx++;
+    if (idx >= sents.length) { idx = 0; playing = false; ui(); mark(false); status('خواندن تمام شد.'); return; }
+    mark(true);
+    speakNow();
+  }
+  function fail(my, msg){
+    if (my !== token) return;
+    playing = false; ui(); status(msg);
+  }
+  function speakNow(){
+    var my = token, eng = engine(), v = currentVoice();
+    if (eng === 'azure') {
+      azureFetch(idx).then(function(url){
+        if (my !== token || !playing) return;
+        audio.onended = function(){ advance(my); };
+        audio.onerror = function(){ fail(my, 'پخش صدا ناموفق بود.'); };
+        audio.src = url;
+        audio.defaultPlaybackRate = 1; audio.playbackRate = 1;
+        audio.play().catch(function(e){ fail(my, 'پخش صدا ناموفق بود: ' + e.message); });
+        if (idx + 1 < sents.length) azureFetch(idx + 1).catch(function(){});
+      }).catch(function(e){
+        var m = e && e.message ? e.message : String(e);
+        if (m === 'Failed to fetch') m = 'اتصال به Azure ممکن نیست. اینترنت را بررسی کنید.';
+        fail(my, 'خطا در صدای ابری: ' + m);
+      });
+      return;
+    }
+    if (eng === 'piper') {
+      var c = chunkAt(idx, firstChunk);
+      firstChunk = false;
+      status('در حال آماده‌سازی صدا…');
+      piperFetch(c).then(function(url){
+        if (my !== token || !playing) return;
+        status('');
+        var sp = +$('#rate').value;
+        audio.onended = function(){ audio.ontimeupdate = null; idx = c.end; advance(my); };
+        audio.onerror = function(){ fail(my, 'پخش صدا ناموفق بود.'); };
+        audio.ontimeupdate = function(){ followChunk(c); };
+        audio.src = url;
+        audio.defaultPlaybackRate = sp; audio.playbackRate = sp;
+        audio.play().catch(function(e){ fail(my, 'پخش صدا ناموفق بود: ' + e.message); });
+        prefetchPiper(c.end + 1, 2);
+      }).catch(function(e){
+        fail(my, 'خطا در صدای Piper: ' + (e && e.message ? e.message : e));
+      });
+      return;
+    }
+    if (isNative) {
+      var vi = v ? parseInt(v.id, 10) : -1;
+      var opts = { text: sents[idx].text, lang: v && v.lang ? v.lang : 'fa-IR', rate: +$('#rate').value, pitch: +$('#pitch').value, volume: 1.0, queueStrategy: 0 };
+      if (vi >= 0) opts.voice = vi;
+      TTSP.speak(opts).then(function(){ advance(my); }).catch(function(e){
+        fail(my, 'خطا در صدای دستگاه: ' + (e && e.message ? e.message : ''));
+      });
+      return;
+    }
+    var u = new SpeechSynthesisUtterance(sents[idx].text);
+    if (v) {
+      var all = synth.getVoices() || [];
+      for (var k = 0; k < all.length; k++) if (all[k].voiceURI === v.id) { u.voice = all[k]; break; }
+      u.lang = v.lang;
+    } else { u.lang = 'fa-IR'; }
+    u.rate = +$('#rate').value;
+    u.pitch = +$('#pitch').value;
+    u.onend = function(){ advance(my); };
+    u.onerror = function(e){
+      if (my !== token) return;
+      if (e.error === 'canceled' || e.error === 'interrupted') return;
+      fail(my, 'خطا در پخش صدا: ' + e.error);
+    };
+    synth.speak(u);
+  }
+  function start(i){
+    if (!sents.length || !canSpeak()) return;
+    if (typeof i === 'number') idx = Math.max(0, Math.min(sents.length - 1, i));
+    playing = true;
+    token++;
+    var my = token;
+    firstChunk = true;
+    cancelAll();
+    if (engine() !== 'device') { audio.src = SILENT; audio.play().catch(function(){}); }
+    ui(); mark(true); status('');
+    setTimeout(function(){ if (my === token && playing) speakNow(); }, 80);
+  }
+  function pause(){
+    playing = false; token++;
+    cancelAll();
+    ui();
+  }
+  function stopAll(){
+    pause(); idx = 0; mark(false);
+  }
+  function mark(scroll){
+    if (curEl) curEl.classList.remove('cur');
+    curEl = null;
+    if (sents.length && sents[idx]) {
+      curEl = sents[idx].el;
+      curEl.classList.add('cur');
+      if (scroll) curEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      $('#pos').textContent = 'جملهٔ ' + nf.format(idx + 1) + ' از ' + nf.format(sents.length);
+      $('#pageInfo').textContent = 'صفحهٔ ' + nf.format(sents[idx].page);
+    } else {
+      $('#pos').textContent = '—';
+      $('#pageInfo').textContent = '';
+    }
+  }
+  function ui(){
+    var has = sents.length > 0 && canSpeak();
+    $('#play').disabled = !has;
+    $('#prev').disabled = !has;
+    $('#next').disabled = !has;
+    $('#stop').disabled = !has;
+    $('#play').textContent = playing ? 'توقف موقت' : 'پخش';
+  }
+
+  /* ---------- events ---------- */
+  $('#play').onclick = function(){ playing ? pause() : start(); };
+  $('#prev').onclick = function(){ var was = playing; idx = Math.max(0, idx - 1); mark(true); if (was) start(); };
+  $('#next').onclick = function(){ var was = playing; idx = Math.min(sents.length - 1, idx + 1); mark(true); if (was) start(); };
+  $('#stop').onclick = stopAll;
+  $('#reader').addEventListener('click', function(e){
+    var t = e.target.closest('span[data-i]');
+    if (t) start(+t.dataset.i);
+  });
+
+  function restartIfPlaying(){ if (playing) start(); }
+  function changed(){ clearCache(); restartIfPlaying(); }
+  $('#rate').oninput = function(){ showVals(); sset('rate', this.value); };
+  $('#rate').onchange = function(){
+    if (engine() === 'piper') { audio.defaultPlaybackRate = +this.value; audio.playbackRate = +this.value; return; }
+    changed();
+  };
+  $('#pitch').oninput = function(){ showVals(); sset('pitch', this.value); };
+  $('#pitch').onchange = function(){ if (engine() === 'piper') return; changed(); };
+  $('#voice').onchange = function(){ sset('voice', this.value); if (engine() === 'piper') updatePiperStatus(); changed(); warmPiper(); };
+  $('#gender').onchange = function(){ sset('gender', this.value); renderVoices(); changed(); };
+  $('#allLangs').onchange = renderVoices;
+  $('#engine').onchange = function(){
+    var was = playing;
+    pause(); clearCache();
+    sset('engine', this.value);
+    renderVoices(); ui(); warmPiper();
+    if (was) start();
+  };
+  $('#akey').onchange = function(){ sset('akey', this.value.trim()); clearCache(); };
+  $('#aregion').onchange = function(){ sset('aregion', this.value.trim()); clearCache(); };
+
+  var drop = $('#drop'), fin = $('#file');
+  drop.onclick = function(){ fin.click(); };
+  drop.onkeydown = function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fin.click(); } };
+  fin.onchange = function(){ if (fin.files[0]) loadFile(fin.files[0]); fin.value = ''; };
+  ['dragenter','dragover'].forEach(function(n){ drop.addEventListener(n, function(e){ e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave','drop'].forEach(function(n){ drop.addEventListener(n, function(e){ e.preventDefault(); drop.classList.remove('over'); }); });
+  drop.addEventListener('drop', function(e){
+    var f = e.dataTransfer && e.dataTransfer.files[0];
+    if (f) loadFile(f);
+  });
+
+  document.addEventListener('keydown', function(e){
+    var tag = (e.target.tagName || '').toLowerCase();
+    if (e.code === 'Space' && tag !== 'input' && tag !== 'select' && tag !== 'button' && !$('#play').disabled) {
+      e.preventDefault();
+      playing ? pause() : start();
+    }
+  });
+  window.addEventListener('pagehide', function(){ cancelAll(); });
+})();
+</script>
+</body>
+</html>

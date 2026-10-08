@@ -1,0 +1,15 @@
+{
+  "name": "pdf-voice-reader",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor-community/text-to-speech": "^5.0.0",
+    "@diffusionstudio/vits-web": "latest"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.5"
+  }
+}
