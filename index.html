@@ -114,6 +114,10 @@ input[type=range]{accent-color:var(--accent)}
       <label for="pitch"><span>زیر و بمی</span><span id="pitchV"></span></label>
       <input type="range" id="pitch" min="0.5" max="1.5" step="0.1" value="1">
     </div>
+    <div class="row">
+      <label for="pause"><span>میزان مکث بین جمله‌ها</span><span id="pauseV"></span></label>
+      <input type="range" id="pause" min="0.5" max="2" step="0.1" value="1">
+    </div>
     <label class="chk"><input type="checkbox" id="allLangs"> نمایش صداهای همهٔ زبان‌ها</label>
   </div>
 
@@ -142,6 +146,8 @@ input[type=range]{accent-color:var(--accent)}
   var nf = new Intl.NumberFormat('fa-IR');
   var synth = window.speechSynthesis;
   var sents = [], idx = 0, playing = false, token = 0, voices = [], curEl = null;
+  var curUtt = null, utTimer = 0, gapTimer = 0, MAINPIPER = window.PiperTTS || null;
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
 
   if (window.pdfjsLib) {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -152,10 +158,12 @@ input[type=range]{accent-color:var(--accent)}
   function sset(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
   $('#rate').value = sget('rate', '1');
   $('#pitch').value = sget('pitch', '1');
+  $('#pause').value = sget('pause', '1');
   $('#gender').value = sget('gender', 'all');
   function showVals(){
     $('#rateV').textContent = nf.format(+$('#rate').value) + '×';
     $('#pitchV').textContent = nf.format(+$('#pitch').value);
+    $('#pauseV').textContent = nf.format(+$('#pause').value) + '×';
   }
   showVals();
 
@@ -241,15 +249,82 @@ input[type=range]{accent-color:var(--accent)}
   setTimeout(loadNative, 1500);
 
   var piperLoading = null, piperVoicesLoaded = false;
+  var WSRC = `var T=null;self.window=self;
+self.onmessage=async function(e){var d=e.data,id=d.id;
+try{if(!T){try{if(d.a&&d.a.local)importScripts(d.a.local);}catch(_){}
+T=self.PiperTTS||await import('https://esm.sh/@diffusionstudio/vits-web');}
+var r;if(d.op==='init')r=true;
+else if(d.op==='predict')r=await T.predict(d.a);
+else if(d.op==='download')r=await T.download(d.a.voiceId,function(p){self.postMessage({id:id,prog:{loaded:p.loaded,total:p.total}});});
+else r=await T[d.op]();
+self.postMessage({id:id,r:r});}catch(x){self.postMessage({id:id,err:String(x&&x.message||x)});}};`;
+  function makeWorkerPiper(){
+    var w = new Worker(URL.createObjectURL(new Blob([WSRC], { type: 'text/javascript' }))), n = 0, pend = {};
+    function failAll(m){ Object.keys(pend).forEach(function(k){ pend[k].rej(new Error(m)); delete pend[k]; }); }
+    w.onmessage = function(e){
+      var d = e.data, q = pend[d.id]; if (!q) return;
+      if (d.prog) { if (q.cb) q.cb(d.prog); return; }
+      delete pend[d.id]; d.err ? q.rej(new Error(d.err)) : q.res(d.r);
+    };
+    w.onerror = function(){ failAll('worker error'); };
+    function call(op, a, cb){ return new Promise(function(res, rej){ var id = ++n; pend[id] = { res: res, rej: rej, cb: cb }; w.postMessage({ id: id, op: op, a: a }); }); }
+    return {
+      init: function(){ return call('init', { local: new URL('piper.js', location.href).href }); },
+      voices: function(){ return call('voices'); }, stored: function(){ return call('stored'); },
+      download: function(v, cb){ return call('download', { voiceId: v }, cb); },
+      predict: function(o){ return call('predict', o); }
+    };
+  }
   function ensurePiper(){
-    if (window.PiperTTS) return Promise.resolve(true);
     if (!piperLoading) {
-      piperLoading = import('https://esm.sh/@diffusionstudio/vits-web').then(function(m){
-        window.PiperTTS = m;
-        return true;
-      }).catch(function(){ piperLoading = null; return false; });
+      piperLoading = withTimeout((function(){ var p = makeWorkerPiper(); return p.init().then(function(){ window.PiperTTS = p; return true; }); })(), 60000, 'init timeout')
+        .catch(function(){
+          if (MAINPIPER) { window.PiperTTS = MAINPIPER; return true; }
+          return import('https://esm.sh/@diffusionstudio/vits-web').then(function(m){ window.PiperTTS = m; return true; });
+        }).catch(function(){ piperLoading = null; return false; });
     }
     return piperLoading;
+  }
+  /* ---- backup of downloaded voices to a fixed folder (needs @capacitor/filesystem) ---- */
+  try { if (isNative) FS = Capacitor.registerPlugin('Filesystem'); } catch (e) {}
+  var FSDIR = 'EXTERNAL', FSROOT = 'PdfReader/voices', restored = false;
+  async function walkOpfs(d, b, out){ for await (var en of d.entries()) { if (en[1].kind === 'file') out.push({ h: en[1], p: b + en[0] }); else await walkOpfs(en[1], b + en[0] + '/', out); } }
+  function b64of(blob){ return new Promise(function(r){ var fr = new FileReader(); fr.onload = function(){ r(String(fr.result).split(',')[1] || ''); }; fr.readAsDataURL(blob); }); }
+  var FS;
+  async function backupVoices(){
+    if (!FS || !navigator.storage || !navigator.storage.getDirectory) return;
+    var files = []; await walkOpfs(await navigator.storage.getDirectory(), '', files);
+    for (var f of files) {
+      var path = FSROOT + '/' + f.p, file = await f.h.getFile();
+      try { var st = await FS.stat({ path: path, directory: FSDIR }); if (+st.size === file.size) continue; } catch (e) {}
+      for (var o = 0; o < file.size; o += 2097152) {
+        var b = await b64of(file.slice(o, o + 2097152));
+        if (o === 0) await FS.writeFile({ path: path, directory: FSDIR, data: b, recursive: true });
+        else await FS.appendFile({ path: path, directory: FSDIR, data: b });
+      }
+    }
+    var u = await FS.getUri({ path: FSROOT, directory: FSDIR });
+    $('#pstat').textContent = 'نسخهٔ ذخیره‌شدهٔ صدا: ' + decodeURIComponent(u.uri.replace(/^file:\/\//, ''));
+  }
+  async function restoreVoices(){
+    if (!FS || restored || !navigator.storage || !navigator.storage.getDirectory) return;
+    restored = true;
+    var root = await navigator.storage.getDirectory();
+    async function go(rel){
+      var r; try { r = await FS.readdir({ path: FSROOT + (rel ? '/' + rel : ''), directory: FSDIR }); } catch (e) { return; }
+      for (var it of (r.files || [])) {
+        var rp = (rel ? rel + '/' : '') + it.name;
+        if (it.type === 'directory') { await go(rp); continue; }
+        var d = root, parts = rp.split('/'), nm = parts.pop();
+        for (var q of parts) d = await d.getDirectoryHandle(q, { create: true });
+        try { var ex = await (await d.getFileHandle(nm)).getFile(); if (ex.size === +it.size) continue; } catch (e) {}
+        var uri = (await FS.getUri({ path: FSROOT + '/' + rp, directory: FSDIR })).uri;
+        var res = await fetch(Capacitor.convertFileSrc(uri));
+        var wr = await (await d.getFileHandle(nm, { create: true })).createWritable();
+        await res.body.pipeTo(wr);
+      }
+    }
+    await go('');
   }
   function loadPiper(){
     if (!window.PiperTTS || piperVoicesLoaded) return;
@@ -269,7 +344,7 @@ input[type=range]{accent-color:var(--accent)}
     ensurePiper().then(function(ok){
       if (!ok) { st.textContent = 'موتور Piper بارگذاری نشد. اینترنت یا VPN را بررسی کنید.'; btn.hidden = true; return; }
       loadPiper();
-      return PiperTTS.stored().then(function(a){
+      return restoreVoices().catch(function(){}).then(function(){ return PiperTTS.stored(); }).then(function(a){
         var v = currentVoice();
         var done = !!v && (a || []).indexOf(v.id) >= 0;
         st.textContent = done ? 'صدا دانلود شده و آفلاین کار می‌کند.' : 'این صدا هنوز دانلود نشده است (حدود ۶۰ مگابایت؛ فقط بار اول اینترنت لازم است).';
@@ -286,7 +361,7 @@ input[type=range]{accent-color:var(--accent)}
     }).then(function(){
       st.textContent = 'در حال آزمایش صدا…';
       return withTimeout(Promise.resolve(PiperTTS.predict({ text: 'سلام', voiceId: v.id })), 120000, PIPER_TO);
-    }).then(function(){ updatePiperStatus(); warmPiper(); }).catch(function(e){
+    }).then(function(){ updatePiperStatus(); warmPiper(); return backupVoices().catch(function(){}); }).catch(function(e){
       st.textContent = 'دانلود ناموفق بود: ' + (e && e.message ? e.message : e) + ' (ممکن است به VPN نیاز باشد)';
     }).then(function(){ btn.disabled = false; });
   };
@@ -294,10 +369,65 @@ input[type=range]{accent-color:var(--accent)}
   loadVoices();
   setTimeout(loadVoices, 600);
 
+  /* ---------- speech text preparation ---------- */
+  var ONES = ['صفر','یک','دو','سه','چهار','پنج','شش','هفت','هشت','نه','ده','یازده','دوازده','سیزده','چهارده','پانزده','شانزده','هفده','هجده','نوزده'];
+  var TENS = ['','','بیست','سی','چهل','پنجاه','شصت','هفتاد','هشتاد','نود'];
+  var HUND = ['','صد','دویست','سیصد','چهارصد','پانصد','ششصد','هفتصد','هشتصد','نهصد'];
+  var SCALE = ['','هزار','میلیون','میلیارد','تریلیون'];
+  function w3(n){
+    var p = [], h = Math.floor(n / 100), r = n % 100;
+    if (h) p.push(HUND[h]);
+    if (r) { if (r < 20) p.push(ONES[r]); else { p.push(TENS[Math.floor(r / 10)]); if (r % 10) p.push(ONES[r % 10]); } }
+    return p.join(' و ');
+  }
+  function n2w(s){
+    s = s.replace(/^0+(?=\d)/, '');
+    if (s.length > 15) return s.split('').map(function(d){ return ONES[+d]; }).join(' ');
+    if (+s === 0) return 'صفر';
+    var g = [], parts = [], i;
+    while (s.length) { g.push(s.slice(-3)); s = s.slice(0, -3); }
+    for (i = g.length - 1; i >= 0; i--) {
+      var v = +g[i]; if (!v) continue;
+      parts.push(i === 1 && v === 1 ? 'هزار' : w3(v) + (SCALE[i] ? ' ' + SCALE[i] : ''));
+    }
+    return parts.join(' و ');
+  }
+  function prep(t, eng){
+    t = t.replace(/[\u064B-\u065F\u0670\u0640]/g, '').replace(/ي/g, 'ی').replace(/ك/g, 'ک')
+      .replace(/https?:\/\/\S+/g, ' پیوند ')
+      .replace(/\[\s*[\d۰-۹]+(?:\s*[,،\-–]\s*[\d۰-۹]+)*\s*\]/g, ' ')
+      .replace(/[«»"“”•*#_~|<>]/g, ' ')
+      .replace(/\s*[()\[\]{}–—―]\s*/g, ' ، ')
+      .replace(/٪|%/g, ' درصد ')
+      .replace(/[۰-۹٠-٩]/g, function(c){ var k = '۰۱۲۳۴۵۶۷۸۹'.indexOf(c); return k >= 0 ? k : '٠١٢٣٤٥٦٧٨٩'.indexOf(c); })
+      .replace(/(\d)٫(?=\d)/g, '$1.').replace(/(\d)[٬,](?=\d{3}(?!\d))/g, '$1');
+    if (eng === 'piper') {
+      t = t.replace(/(\d+)\.(\d+)/g, function(_, a, b){ return n2w(a) + ' ممیز ' + n2w(b); }).replace(/\d+/g, n2w).replace(/\u200c/g, ' ');
+    }
+    t = t.replace(/(\s*[،,]\s*){2,}/g, ' ، ').replace(/[\s،,]+([.!?؟؛…])/g, '$1').replace(/^[\s،,]+/, '').replace(/\s+/g, ' ').trim();
+    if (eng === 'piper') t = t.replace(/،/g, ',').replace(/؛/g, ';').replace(/؟/g, '?');
+    return t;
+  }
+  var NOEND = /^(از|به|در|با|بر|برای|تا|روی|زیر|بین|درباره|مانند|همچون|چون|که|و|یا|اما|ولی|اگر|زیرا|بلکه|پس|این|آن|یک|هر|همه|بی|بدون|طی|توسط)$/;
+  var STARTOK = /^(و|اما|ولی|که|زیرا|چون|اگر|بلکه|یا|سپس|بنابراین|همچنین|وقتی|هنگامی|تا)$/;
+  function cutAt(s, max){
+    var re = /\s+/g, m, bi = 0, bv = -1;
+    while ((m = re.exec(s)) && m.index <= max) {
+      if (m.index < 40) continue;
+      var pw = s.slice(0, m.index).split(/\s+/).pop(), nw = s.slice(m.index + m[0].length).split(/\s+/)[0];
+      var sc = /[،؛:,;]$/.test(pw) ? 3 : STARTOK.test(nw) ? 2 : NOEND.test(pw) ? 0 : 1;
+      if (sc && sc * 100 + m.index / 2 > bv) { bv = sc * 100 + m.index / 2; bi = m.index; }
+    }
+    if (bi) return bi;
+    var l = s.lastIndexOf(' ', max);
+    return l > 20 ? l : max;
+  }
+
   /* ---------- PDF -> text ---------- */
   function clean(t){
     t = t.normalize('NFKC');
     t = t.replace(/[ \t\u00a0]+/g, ' ');
+    t = t.replace(/^[ \-–]*[\d۰-۹]+[ \-–]*$/gm, '');
     t = t.replace(/ *\n */g, '\n');
     // join lines that do not end a sentence
     t = t.replace(/([^.!?؟…؛:\n])\n(?!\n)/g, '$1 ');
@@ -305,17 +435,10 @@ input[type=range]{accent-color:var(--accent)}
   }
   function splitSentences(par){
     var out = [];
-    var parts = par.split(/(?<=[.!?؟…؛])\s+/);
-    parts.forEach(function(s){
+    par.split(/(?<=[.!?؟…؛])\s+/).forEach(function(s){
       s = s.trim();
       if (!s || !/[\p{L}\p{N}]/u.test(s)) return;
-      while (s.length > 240) {
-        var c = s.lastIndexOf('،', 240);
-        if (c < 80) c = s.lastIndexOf(' ', 240);
-        if (c < 80) c = 240;
-        out.push(s.slice(0, c + 1).trim());
-        s = s.slice(c + 1).trim();
-      }
+      while (s.length > 240) { var c = cutAt(s, 240); out.push(s.slice(0, c).trim()); s = s.slice(c).trim(); }
       if (s) out.push(s);
     });
     return out;
@@ -332,8 +455,13 @@ input[type=range]{accent-color:var(--accent)}
         status('استخراج متن: صفحهٔ ' + nf.format(p) + ' از ' + nf.format(pdf.numPages));
         var page = await pdf.getPage(p);
         var tc = await page.getTextContent();
-        var t = '';
-        tc.items.forEach(function(it){ t += it.str + (it.hasEOL ? '\n' : ' '); });
+        var t = '', py = null, ph = 0, eol = false;
+        tc.items.forEach(function(it){
+          if (it.str === '') { eol = eol || !!it.hasEOL; return; }
+          var y = it.transform ? it.transform[5] : 0, h = it.height || ph || 10;
+          if (py !== null) t += eol ? ((py - y > h * 1.8) ? '\n\n' : '\n') : ' ';
+          t += it.str; py = y; ph = h; eol = !!it.hasEOL;
+        });
         pages.push(clean(t));
       }
       build(pages); warmPiper();
@@ -344,30 +472,36 @@ input[type=range]{accent-color:var(--accent)}
   }
   function build(pages){
     sents = []; idx = 0; curEl = null;
-    var box = $('#reader');
+    var box = $('#reader'), paras = [], shown = 0;
     box.textContent = '';
     pages.forEach(function(txt, pi){
-      var made = false;
-      txt.split(/\n+/).forEach(function(par){
-        var ss = splitSentences(par);
-        if (!ss.length) return;
-        if (!made) {
-          var h = document.createElement('div');
-          h.className = 'pg';
-          h.textContent = 'صفحهٔ ' + nf.format(pi + 1);
-          box.appendChild(h);
-          made = true;
-        }
-        var el = document.createElement('p');
-        ss.forEach(function(s){
-          var sp = document.createElement('span');
-          sp.textContent = s + ' ';
-          sp.dataset.i = sents.length;
-          sents.push({ text: s, page: pi + 1, el: sp });
-          el.appendChild(sp);
-        });
-        box.appendChild(el);
+      txt.split(/\n+/).forEach(function(par, k){
+        par = par.trim(); if (!par) return;
+        var last = paras[paras.length - 1];
+        // a sentence that runs over a page break is kept whole
+        if (k === 0 && last && last.page < pi + 1 && last.text.length > 40 && !/[.!?؟…؛:]["»”)]*$/.test(last.text)) last.text += ' ' + par;
+        else paras.push({ text: par, page: pi + 1 });
       });
+    });
+    paras.forEach(function(pa){
+      var ss = splitSentences(pa.text);
+      if (!ss.length) return;
+      if (pa.page !== shown) {
+        var h = document.createElement('div');
+        h.className = 'pg';
+        h.textContent = 'صفحهٔ ' + nf.format(pa.page);
+        box.appendChild(h);
+        shown = pa.page;
+      }
+      var el = document.createElement('p');
+      ss.forEach(function(s, k){
+        var sp = document.createElement('span');
+        sp.textContent = s + ' ';
+        sp.dataset.i = sents.length;
+        sents.push({ text: s, page: pa.page, el: sp, para: k === ss.length - 1 });
+        el.appendChild(sp);
+      });
+      box.appendChild(el);
     });
     if (!sents.length) {
       var d = document.createElement('div');
@@ -385,6 +519,7 @@ input[type=range]{accent-color:var(--accent)}
   var SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
   function cancelAll(){
     gen++;
+    clearTimeout(gapTimer); clearTimeout(utTimer); curUtt = null;
     if (synth) synth.cancel();
     if (isNative) { try { TTSP.stop().catch(function(){}); } catch (e) {} }
     try { audio.onended = null; audio.onerror = null; audio.ontimeupdate = null; audio.pause(); } catch (e) {}
@@ -406,7 +541,7 @@ input[type=range]{accent-color:var(--accent)}
     if (cache[ck]) return cache[ck];
     var r = Math.round((+$('#rate').value - 1) * 100), pt = Math.round((+$('#pitch').value - 1) * 100);
     var ssml = '<speak version="1.0" xml:lang="fa-IR" xmlns="http://www.w3.org/2001/10/synthesis"><voice name="' + v.id +
-      '"><prosody rate="' + (r >= 0 ? '+' : '') + r + '%" pitch="' + (pt >= 0 ? '+' : '') + pt + '%">' + esc(sents[i].text) + '</prosody></voice></speak>';
+      '"><prosody rate="' + (r >= 0 ? '+' : '') + r + '%" pitch="' + (pt >= 0 ? '+' : '') + pt + '%">' + esc(prep(sents[i].text, 'azure')) + '</prosody></voice></speak>';
     var pr = fetch('https://' + reg + '.tts.speech.microsoft.com/cognitiveservices/v1', {
       method: 'POST',
       headers: {
@@ -434,7 +569,7 @@ input[type=range]{accent-color:var(--accent)}
   function chunkAt(i, first){
     var e = i, len = sents[i].text.length;
     if (!first) {
-      while (e + 1 < sents.length && sents[e + 1].page === sents[i].page && len + 1 + sents[e + 1].text.length <= LIM) {
+      while (e + 1 < sents.length && !sents[e].para && len + 1 + sents[e + 1].text.length <= LIM) {
         e++; len += 1 + sents[e].text.length;
       }
     }
@@ -450,7 +585,7 @@ input[type=range]{accent-color:var(--accent)}
     var g = gen;
     var pr = piperQ.then(function(){
       if (g !== gen) throw new Error('cancelled');
-      return withTimeout(Promise.resolve(PiperTTS.predict({ text: c.text, voiceId: v.id })), 120000, PIPER_TO);
+      return withTimeout(Promise.resolve(PiperTTS.predict({ text: prep(c.text, 'piper'), voiceId: v.id })), 120000, PIPER_TO);
     }).then(function(b){ return URL.createObjectURL(b); });
     piperQ = pr.catch(function(){});
     pr.catch(function(){ delete cache[ck]; });
@@ -485,12 +620,20 @@ input[type=range]{accent-color:var(--accent)}
     }
     if (t !== idx) { idx = t; mark(true); }
   }
+  function gapMs(i){
+    var s = sents[i], e = s.text.slice(-1);
+    var b = /[.…]/.test(e) ? 380 : /[؟?!]/.test(e) ? 430 : /[؛;]/.test(e) ? 300 : e === ':' ? 260 : /[،,]/.test(e) ? 170 : 300;
+    if (s.para) b += 380;
+    return Math.round(b * (+$('#pause').value || 1) * (engine() === 'device' ? 0.6 : 1));
+  }
   function advance(my){
     if (my !== token || !playing) return;
+    var ms = gapMs(idx);
     idx++;
     if (idx >= sents.length) { idx = 0; playing = false; ui(); mark(false); status('خواندن تمام شد.'); return; }
     mark(true);
-    speakNow();
+    clearTimeout(gapTimer);
+    gapTimer = setTimeout(function(){ if (my === token && playing) speakNow(); }, ms);
   }
   function fail(my, msg){
     if (my !== token) return;
@@ -536,14 +679,14 @@ input[type=range]{accent-color:var(--accent)}
     }
     if (isNative) {
       var vi = v ? parseInt(v.id, 10) : -1;
-      var opts = { text: sents[idx].text, lang: v && v.lang ? v.lang : 'fa-IR', rate: +$('#rate').value, pitch: +$('#pitch').value, volume: 1.0, queueStrategy: 0 };
+      var opts = { text: prep(sents[idx].text, 'device'), lang: v && v.lang ? v.lang : 'fa-IR', rate: +$('#rate').value, pitch: +$('#pitch').value, volume: 1.0, queueStrategy: 0 };
       if (vi >= 0) opts.voice = vi;
       TTSP.speak(opts).then(function(){ advance(my); }).catch(function(e){
         fail(my, 'خطا در صدای دستگاه: ' + (e && e.message ? e.message : ''));
       });
       return;
     }
-    var u = new SpeechSynthesisUtterance(sents[idx].text);
+    var u = new SpeechSynthesisUtterance(prep(sents[idx].text, 'device')); curUtt = u;
     if (v) {
       var all = synth.getVoices() || [];
       for (var k = 0; k < all.length; k++) if (all[k].voiceURI === v.id) { u.voice = all[k]; break; }
@@ -551,12 +694,16 @@ input[type=range]{accent-color:var(--accent)}
     } else { u.lang = 'fa-IR'; }
     u.rate = +$('#rate').value;
     u.pitch = +$('#pitch').value;
-    u.onend = function(){ advance(my); };
+    u.onend = function(){ clearTimeout(utTimer); advance(my); };
     u.onerror = function(e){
+      clearTimeout(utTimer);
       if (my !== token) return;
       if (e.error === 'canceled' || e.error === 'interrupted') return;
       fail(my, 'خطا در پخش صدا: ' + e.error);
     };
+    clearTimeout(utTimer);
+    utTimer = setTimeout(function(){ if (my === token && playing && curUtt === u) { try { synth.cancel(); } catch (e) {} advance(my); } }, Math.max(8000, u.text.length * 150 / (u.rate || 1) + 5000));
+    try { synth.resume(); } catch (e) {}
     synth.speak(u);
   }
   function start(i){
@@ -619,6 +766,7 @@ input[type=range]{accent-color:var(--accent)}
     if (engine() === 'piper') { audio.defaultPlaybackRate = +this.value; audio.playbackRate = +this.value; return; }
     changed();
   };
+  $('#pause').oninput = function(){ showVals(); sset('pause', this.value); };
   $('#pitch').oninput = function(){ showVals(); sset('pitch', this.value); };
   $('#pitch').onchange = function(){ if (engine() === 'piper') return; changed(); };
   $('#voice').onchange = function(){ sset('voice', this.value); if (engine() === 'piper') updatePiperStatus(); changed(); warmPiper(); };
