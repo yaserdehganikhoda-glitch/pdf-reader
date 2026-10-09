@@ -29,7 +29,10 @@ cp /tmp/sherpa-src/sherpa-onnx/kotlin-api/*.kt android/app/src/main/java/com/k2f
 sed "s/^package .*/package $APP_ID/" "$HERE/PiperNativePlugin.kt" > "$PKG_PATH/PiperNativePlugin.kt"
 sed "s/^package .*/package $APP_ID;/" "$HERE/MainActivity.java"   > "$PKG_PATH/MainActivity.java"
 
-# 4) تنظیمات Gradle
+# 4) امضای ثابت (تا هر نسخه روی قبلی نصب شود)
+cp "$HERE/debug.keystore" android/app/debug.keystore
+
+# 5) تنظیمات Gradle
 python3 - <<'PY'
 import re
 p='android/build.gradle'; s=open(p).read()
@@ -43,6 +46,8 @@ if "kotlin-android" not in s:
     s=re.sub(r"(apply plugin: ['\"]com\.android\.application['\"])", r"\1\napply plugin: 'kotlin-android'", s, count=1)
 if 'kotlinOptions' not in s:
     s=re.sub(r"(android\s*\{)", r"\1\n    kotlinOptions { jvmTarget = '17' }\n    packagingOptions { jniLibs { useLegacyPackaging = true } }", s, count=1)
+if 'signingConfigs' not in s:
+    s=re.sub(r"(android\s*\{)", r"\1\n    signingConfigs {\n        debug {\n            storeFile file('debug.keystore')\n            storePassword 'android'\n            keyAlias 'androiddebugkey'\n            keyPassword 'android'\n        }\n    }", s, count=1)
 if 'commons-compress' not in s:
     s=re.sub(r"(dependencies\s*\{)", r"\1\n    implementation 'org.apache.commons:commons-compress:1.26.2'", s, count=1)
 open(p,'w').write(s)
