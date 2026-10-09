@@ -1,5 +1,6 @@
 {
-  "appId": "com.example.pdfvoice",
+  "appId": "ir.pdfvoice.reader",
   "appName": "خوانندهٔ صوتی PDF",
-  "webDir": "www"
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
 }
