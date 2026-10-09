@@ -249,9 +249,52 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   loadNative();
   setTimeout(loadNative, 1500);
+  setTimeout(function(){ if (NP) ensurePiper(); }, 0);
+
+  /* ---------- Piper native (sherpa-onnx via Capacitor plugin "PiperNative") ---------- */
+  var NP = null, npOK = false, npTry = null;
+  try { if (isNative) NP = Capacitor.registerPlugin('PiperNative'); } catch (e) {}
+  var NP_MODEL_URLS = function(id){
+    var f = 'vits-piper-' + id + '.tar.bz2';
+    return [
+      'https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/' + f,
+      'https://ghfast.top/https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/' + f
+    ];
+  };
+  function b64Blob(b64, type){
+    var bin = atob(b64), n = bin.length, u = new Uint8Array(n);
+    for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
+    return new Blob([u], { type: type });
+  }
+  var NATIVE_PIPER = {
+    voices: function(){
+      return Promise.resolve([
+        { key: 'fa_IR-amir-medium', name: 'amir', quality: 'medium', language: { family: 'fa' } },
+        { key: 'fa_IR-gyro-medium', name: 'gyro', quality: 'medium', language: { family: 'fa' } }
+      ]);
+    },
+    stored: function(){ return NP.stored().then(function(r){ return (r && r.ids) || []; }); },
+    download: function(id, cb){
+      var h = null, done = function(){ try { if (h && h.remove) h.remove(); } catch (e) {} };
+      return Promise.resolve(NP.addListener('progress', function(e){ if (cb) cb({ loaded: e.loaded, total: e.total }); }))
+        .then(function(x){ h = x; return NP.download({ id: id, urls: NP_MODEL_URLS(id) }); })
+        .then(function(r){ done(); return r; }, function(e){ done(); throw e; });
+    },
+    predict: function(o){
+      return NP.synthesize({ id: o.voiceId, text: o.text }).then(function(r){ return b64Blob(r.wav, 'audio/wav'); });
+    }
+  };
 
   var piperLoading = null, piperVoicesLoaded = false;
   function ensurePiper(){
+    if (npOK) return Promise.resolve(true);
+    if (NP) {
+      if (!npTry) npTry = NP.ping().then(function(){ npOK = true; window.PiperTTS = NATIVE_PIPER; return true; }, function(){ NP = null; return false; });
+      return npTry.then(function(ok){ return ok ? true : ensurePiperWeb(); });
+    }
+    return ensurePiperWeb();
+  }
+  function ensurePiperWeb(){
     if (window.PiperTTS) return Promise.resolve(true);
     if (!piperLoading) {
       piperLoading = import('https://esm.sh/@diffusionstudio/vits-web').then(function(m){
@@ -290,11 +333,11 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   $('#pdl').onclick = function(){
     var v = currentVoice(), btn = $('#pdl'), st = $('#pstat');
-    if (!v || !window.PiperTTS) return;
+    if (!v) return;
     btn.disabled = true;
-    PiperTTS.download(v.id, function(pr){
+    ensurePiper().then(function(ok){ if (!ok) throw new Error('موتور Piper بارگذاری نشد.'); return PiperTTS.download(v.id, function(pr){
       if (pr && pr.total) st.textContent = 'در حال دانلود: ' + nf.format(Math.round(pr.loaded * 100 / pr.total)) + '٪';
-    }).then(function(){
+    }); }).then(function(){
       st.textContent = 'در حال آزمایش صدا…';
       return piperPredict('سلام.', v.id);
     }).then(function(){ updatePiperStatus(); warmPiper(); }).catch(function(e){
@@ -639,6 +682,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   var mainKit = null;
   function piperPredict(text, id, l){
+    if (npOK) return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: text, voiceId: id })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.');
     var w = getWorker(l || 0), n = ++pwId;
     var main = function(){
       mainKit = mainKit || piperKit();
@@ -663,7 +707,8 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   function perf(){
     var el = $('#pperf'); if (!el) return;
     var a = [], r = 0;
-    if (pwBad) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
+    if (npOK) a.push('موتور بومی (sherpa-onnx)');
+    if (pwBad && !npOK) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
     if (pPatched) a.push(pPatched === 1 ? 'بهینه‌سازی: فعال' : 'بهینه‌سازی: غیرفعال');
     if (pBoot) a.push('بارگذاری موتور: ' + nf.format(Math.round(pBoot / 1000)) + ' ثانیه');
     if (pFirst) a.push('اولین ساخت: ' + nf.format(Math.round(pFirst)) + ' ثانیه');
