@@ -31,6 +31,8 @@ jobs:
       - name: Allow TTS service queries
         run: |
           sed -i 's#<application#<queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>\n    <application#' android/app/src/main/AndroidManifest.xml
+      - name: Inject native Piper
+        run: bash native/inject-native.sh
       - name: Sync
         run: npx cap sync android
       - name: Build debug APK
