@@ -252,7 +252,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   setTimeout(function(){ if (NP) ensurePiper(); }, 0);
 
   /* ---------- Piper native (sherpa-onnx via Capacitor plugin "PiperNative") ---------- */
-  var NP = null, npOK = false, npTry = null;
+  var NP = null, npOK = false, npTry = null, npErr = '';
   try { if (isNative) NP = Capacitor.registerPlugin('PiperNative'); } catch (e) {}
   var NP_MODEL_URLS = function(id){
     var f = 'vits-piper-' + id + '.tar.bz2';
@@ -289,7 +289,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   function ensurePiper(){
     if (npOK) return Promise.resolve(true);
     if (NP) {
-      if (!npTry) npTry = NP.ping().then(function(){ npOK = true; window.PiperTTS = NATIVE_PIPER; return true; }, function(){ NP = null; return false; });
+      if (!npTry) npTry = NP.ping().then(function(){ npOK = true; window.PiperTTS = NATIVE_PIPER; return true; }, function(e){ npErr = String((e && (e.message || e.errorMessage || e.code)) || e || 'unknown'); NP = null; perf(); return false; });
       return npTry.then(function(ok){ return ok ? true : ensurePiperWeb(); });
     }
     return ensurePiperWeb();
@@ -708,6 +708,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     var el = $('#pperf'); if (!el) return;
     var a = [], r = 0;
     if (npOK) a.push('موتور بومی (sherpa-onnx)');
+    if (npErr && !npOK) a.push('پلاگین بومی در این APK فعال نیست: ' + npErr);
     if (pwBad && !npOK) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
     if (pPatched) a.push(pPatched === 1 ? 'بهینه‌سازی: فعال' : 'بهینه‌سازی: غیرفعال');
     if (pBoot) a.push('بارگذاری موتور: ' + nf.format(Math.round(pBoot / 1000)) + ' ثانیه');
