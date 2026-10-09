@@ -285,7 +285,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     stored: function(){ return NP.stored().then(function(r){ return (r && r.ids) || []; }); },
     download: function(id, cb){
       var h = null, done = function(){ try { if (h && h.remove) h.remove(); } catch (e) {} };
-      return Promise.resolve(NP.addListener('progress', function(e){ if (cb) cb({ loaded: e.loaded, total: e.total }); }))
+      return Promise.resolve(NP.addListener('progress', function(e){ if (cb) cb({ loaded: e.loaded, total: e.total, stage: e.stage, n: e.n }); }))
         .then(function(x){ h = x; return NP.download({ id: id, urls: NP_MODEL_URLS(id) }); })
         .then(function(r){ done(); return r; }, function(e){ done(); throw e; });
     },
@@ -345,6 +345,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     if (!v) return;
     btn.disabled = true;
     ensurePiper().then(function(ok){ if (!ok) throw new Error('موتور Piper بارگذاری نشد.'); return PiperTTS.download(v.id, function(pr){
+      if (pr && pr.stage === 'extract') { st.textContent = 'در حال آماده‌سازی فایل‌های صدا… (فایل ' + nf.format(pr.n || 0) + ') — تا چند دقیقه صبر کنید'; return; }
       if (pr && pr.total) st.textContent = 'در حال دانلود: ' + nf.format(Math.round(pr.loaded * 100 / pr.total)) + '٪';
     }); }).then(function(){
       st.textContent = 'در حال آزمایش صدا…';
@@ -715,7 +716,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   function perf(){
     var el = $('#pperf'); if (!el) return;
-    var a = ['نسخه ۴', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
+    var a = ['نسخه ۵', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
     if (npOK) a.push('موتور بومی (sherpa-onnx)');
     if (npErr && !npOK) a.push('پلاگین بومی در این APK فعال نیست: ' + npErr);
     if (pwBad && !npOK) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
