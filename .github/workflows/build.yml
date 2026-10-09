@@ -35,6 +35,10 @@ jobs:
         run: bash native/inject-native.sh
       - name: Sync
         run: npx cap sync android
+      - name: Gradle memory (large model + Kotlin API)
+        run: |
+          echo "org.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8" >> android/gradle.properties
+          echo "kotlin.daemon.jvmargs=-Xmx2g" >> android/gradle.properties
       - name: Build debug APK
         run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon --stacktrace
       - name: Copy APK
