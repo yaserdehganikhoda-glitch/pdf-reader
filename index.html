@@ -253,7 +253,16 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
 
   /* ---------- Piper native (sherpa-onnx via Capacitor plugin "PiperNative") ---------- */
   var NP = null, npOK = false, npTry = null, npErr = '';
-  try { if (isNative) NP = Capacitor.registerPlugin('PiperNative'); } catch (e) {}
+  var CAP = window.Capacitor, capPlat = '';
+  try { capPlat = CAP && CAP.getPlatform ? String(CAP.getPlatform()) : ''; } catch (e) {}
+  var onNative = false;
+  try { onNative = !!((CAP && CAP.isNativePlatform && CAP.isNativePlatform()) || window.androidBridge || (capPlat && capPlat !== 'web')); } catch (e) {}
+  try {
+    if (onNative) {
+      if (CAP && CAP.registerPlugin) NP = CAP.registerPlugin('PiperNative');
+      else if (CAP && CAP.Plugins && CAP.Plugins.PiperNative) NP = CAP.Plugins.PiperNative;
+    }
+  } catch (e) {}
   var NP_MODEL_URLS = function(id){
     var f = 'vits-piper-' + id + '.tar.bz2';
     return [
@@ -706,7 +715,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   function perf(){
     var el = $('#pperf'); if (!el) return;
-    var a = ['نسخه ۳', isNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
+    var a = ['نسخه ۴', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
     if (npOK) a.push('موتور بومی (sherpa-onnx)');
     if (npErr && !npOK) a.push('پلاگین بومی در این APK فعال نیست: ' + npErr);
     if (pwBad && !npOK) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
