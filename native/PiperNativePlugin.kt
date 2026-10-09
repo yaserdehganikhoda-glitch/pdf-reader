@@ -24,7 +24,8 @@ import java.util.concurrent.Executors
 
 /**
  * Piper (VITS) فارسی به‌صورت بومی با sherpa-onnx.
- * متدها: ping, stored, download({id, urls}), synthesize({id, text}), remove({id})
+ * متدها: ping, stored, download({id, urls}), synthesize({id, text}) → {wav, sampleRate, ms}, remove({id})
+ * صداهای داخل assets/piper/vits-piper-<id> هم در stored دیده می‌شوند و بدون دانلود کار می‌کنند.
  * رویداد: "progress" {loaded, total}
  *
  * مسیر ذخیرهٔ صداها (یک‌جا قابل تغییر): <externalFilesDir>/piper/<id>/
@@ -53,8 +54,42 @@ class PiperNativePlugin : Plugin() {
     @PluginMethod
     fun stored(call: PluginCall) {
         val ids = org.json.JSONArray()
-        root().listFiles()?.forEach { d -> if (File(d, ".ok").exists()) ids.put(d.name) }
+        val seen = HashSet<String>()
+        root().listFiles()?.forEach { d -> if (File(d, ".ok").exists() && seen.add(d.name)) ids.put(d.name) }
+        bundledIds().forEach { if (seen.add(it)) ids.put(it) }
         call.resolve(JSObject().put("ids", ids))
+    }
+
+    /** صداهایی که موقع ساخت APK داخل assets/piper گذاشته شده‌اند (بدون نیاز به دانلود) */
+    private fun bundledIds(): List<String> =
+        (context.assets.list("piper") ?: emptyArray()).filter { it.startsWith("vits-piper-") }.map { it.removePrefix("vits-piper-") }
+
+    private fun copyAssets(src: String, dst: File) {
+        val kids = context.assets.list(src) ?: emptyArray()
+        if (kids.isNotEmpty()) {
+            dst.mkdirs()
+            for (n in kids) copyAssets("$src/$n", File(dst, n))
+            return
+        }
+        try {
+            context.assets.open(src).use { ins ->
+                dst.parentFile?.mkdirs()
+                FileOutputStream(dst).use { ins.copyTo(it) }
+            }
+        } catch (e: java.io.FileNotFoundException) { dst.mkdirs() }
+    }
+
+    /** بار اول، مدل داخل APK به حافظهٔ برنامه کپی می‌شود (espeak-ng-data باید روی فایل‌سیستم باشد) */
+    private fun ensureBundled(id: String) {
+        if (okMark(id).exists() || id !in bundledIds()) return
+        val dst = voiceDir(id)
+        dst.deleteRecursively(); dst.mkdirs()
+        copyAssets("piper/vits-piper-$id", dst)
+        if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists()) {
+            dst.deleteRecursively()
+            throw IllegalStateException("مدل داخل برنامه کامل نیست")
+        }
+        okMark(id).writeText("1")
     }
 
     @PluginMethod
@@ -176,10 +211,12 @@ class PiperNativePlugin : Plugin() {
         val text = call.getString("text") ?: return call.reject("text")
         cpu.execute {
             try {
+                val t0 = System.currentTimeMillis()
+                ensureBundled(id)
                 if (!okMark(id).exists()) throw IllegalStateException("این صدا هنوز دانلود نشده است")
                 val a = engineFor(id).generate(text = text, sid = 0, speed = 1.0f)
                 val wav = toWav(a.samples, a.sampleRate)
-                call.resolve(JSObject().put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", a.sampleRate))
+                call.resolve(JSObject().put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", a.sampleRate).put("ms", System.currentTimeMillis() - t0))
             } catch (e: Throwable) {
                 call.reject("خطای موتور بومی: ${e.message}")
             }

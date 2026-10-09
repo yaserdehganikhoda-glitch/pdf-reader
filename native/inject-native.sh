@@ -19,7 +19,9 @@ mkdir -p "$PKG_PATH" android/app/src/main/jniLibs android/app/src/main/java/com/
 curl -fL --retry 3 -o /tmp/sherpa-android.tar.bz2 \
   "https://github.com/k2-fsa/sherpa-onnx/releases/download/v${VER}/sherpa-onnx-v${VER}-android.tar.bz2"
 tar xjf /tmp/sherpa-android.tar.bz2 -C /tmp
-cp -r /tmp/jniLibs/* android/app/src/main/jniLibs/
+for ABI in ${PIPER_ABIS:-arm64-v8a armeabi-v7a}; do
+  [ -d "/tmp/jniLibs/$ABI" ] && cp -r "/tmp/jniLibs/$ABI" android/app/src/main/jniLibs/
+done
 
 # 2) API کاتلین همان نسخه
 git clone --depth 1 --branch "v${VER}" https://github.com/k2-fsa/sherpa-onnx /tmp/sherpa-src
@@ -31,6 +33,25 @@ sed "s/^package .*/package $APP_ID;/" "$HERE/MainActivity.java"   > "$PKG_PATH/M
 
 # 4) امضای ثابت (تا هر نسخه روی قبلی نصب شود)
 cp "$HERE/debug.keystore" android/app/debug.keystore
+
+# 4.5) مدل صدا داخل APK (بدون نیاز به دانلود؛ PIPER_BUNDLE=0 برای خاموش‌کردن)
+if [ "${PIPER_BUNDLE:-1}" = "1" ]; then
+  ASSETS=android/app/src/main/assets/piper
+  mkdir -p "$ASSETS"
+  for V in ${PIPER_VOICES:-amir-medium}; do
+    if [ ! -f "$ASSETS/vits-piper-fa_IR-$V/tokens.txt" ]; then
+      curl -fL --retry 3 -o "/tmp/voice-$V.tar.bz2" "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-fa_IR-$V.tar.bz2"
+      tar xjf "/tmp/voice-$V.tar.bz2" -C "$ASSETS"
+    fi
+    [ -f "$ASSETS/vits-piper-fa_IR-$V/tokens.txt" ] || { echo "مدل $V کامل نیست"; exit 1; }
+  done
+fi
+
+# 4.6) قاعدهٔ ProGuard (برای ساخت release)
+PR=android/app/proguard-rules.pro
+if [ -f "$PR" ] && ! grep -q k2fsa "$PR"; then
+  printf '\n-keep class com.k2fsa.sherpa.onnx.** { *; }\n-keep class %s.PiperNativePlugin { *; }\n' "$APP_ID" >> "$PR"
+fi
 
 # 5) تنظیمات Gradle
 python3 - <<'PY'
