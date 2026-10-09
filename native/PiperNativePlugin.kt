@@ -117,6 +117,7 @@ class PiperNativePlugin : Plugin() {
     }
 
     private fun extract(archive: File, dst: File) {
+        var cnt = 0; var lastEmit = 0L
         TarArchiveInputStream(BZip2CompressorInputStream(BufferedInputStream(archive.inputStream(), 1 shl 16))).use { tar ->
             while (true) {
                 val e = tar.nextTarEntry ?: break
@@ -125,6 +126,12 @@ class PiperNativePlugin : Plugin() {
                 if (e.isDirectory) { f.mkdirs(); continue }
                 f.parentFile?.mkdirs()
                 FileOutputStream(f).use { tar.copyTo(it) }
+                cnt++
+                val now = System.currentTimeMillis()
+                if (now - lastEmit > 400) {
+                    lastEmit = now
+                    notifyListeners("progress", JSObject().put("stage", "extract").put("n", cnt))
+                }
             }
         }
     }
