@@ -50,6 +50,8 @@ input[type=range]{accent-color:var(--accent)}
 .bar-in{max-width:760px;margin:0 auto;display:grid;gap:8px}
 .prog{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}
 .bar .btns{display:grid;grid-template-columns:1fr 1.6fr 1fr 1fr;gap:8px}
+details summary{cursor:pointer;font-weight:600;min-height:32px}
+textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
 .empty{color:var(--muted);text-align:center;padding:20px 0}
 .row input[type=text],.row input[type=password]{width:100%;font:inherit;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:44px;direction:ltr;text-align:left}
 </style>
@@ -89,6 +91,7 @@ input[type=range]{accent-color:var(--accent)}
     <div id="piperbox" class="row" hidden>
       <button class="btn" id="pdl" type="button">دانلود صدای فارسی</button>
       <p class="hint" id="pstat"></p>
+      <p class="hint" id="pperf"></p>
       <label class="chk"><input type="checkbox" id="enh" checked> بهبود کیفیت صدا (وضوح و یکنواختی بلندی)</label>
       <p class="hint">کاملاً رایگان و بدون سقف است و بعد از دانلود بدون اینترنت کار می‌کند. سرعت اعمال می‌شود ولی زیر و بمی در این حالت اثر ندارد. ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
     </div>
@@ -117,6 +120,12 @@ input[type=range]{accent-color:var(--accent)}
     </div>
     <label class="chk"><input type="checkbox" id="allLangs"> نمایش صداهای همهٔ زبان‌ها</label>
   </div>
+
+  <details class="card">
+    <summary>واژه‌نامهٔ تلفظ (اصلاح کلمه‌های غلط‌خوانده‌شده)</summary>
+    <p class="hint" style="margin-top:8px">در هر خط یک مورد بنویسید: «کلمه = تلفظ». مثال: <b>شیراز = شیراز</b> یا <b>ایلان ماسک = ایلان ماسک</b>. برای حذف یک کلمه از خواندن، سمت راست را خالی بگذارید. با هر تغییر، صدا از نو ساخته می‌شود.</p>
+    <textarea id="dict" dir="rtl" placeholder="مثلاً:&#10;خویش = خویش&#10;ChatGPT = چت جی پی تی"></textarea>
+  </details>
 
   <div class="card">
     <div id="reader"><div class="empty">هنوز فایلی باز نشده است.</div></div>
@@ -298,29 +307,45 @@ input[type=range]{accent-color:var(--accent)}
 
   /* ---------- PDF -> text ---------- */
   function clean(t){
-    t = t.normalize('NFKC');
-    t = t.replace(/[ \t\u00a0]+/g, ' ');
-    t = t.replace(/ *\n */g, '\n');
-    // join lines that do not end a sentence
-    t = t.replace(/([^.!?؟…؛:\n])\n(?!\n)/g, '$1 ');
-    return t.trim();
+    t = t.normalize('NFKC').replace(/[\u00ad\u200b\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '');
+    t = t.replace(/[ \t\u00a0]+/g, ' ').replace(/ *\n */g, '\n');
+    var ls = t.split('\n'), ln = ls.map(function(l){ return l.length; }).filter(Boolean).sort(function(a, b){ return a - b; });
+    var ref = ln.length ? ln[Math.floor(ln.length * 0.9)] : 0, out = '';
+    ls.forEach(function(l, i){
+      var nx = ls[i + 1];
+      if (nx === undefined) { out += l; return; }
+      if (!l || !nx) { out += l + '\n'; return; }
+      if (/[A-Za-z]-$/.test(l) && /^[a-z]/.test(nx)) { out += l.slice(0, -1); return; }
+      var brk = /[.!?؟…؛:]["»”')\]]*$/.test(l) || (ref >= 40 && l.length < ref * 0.45 && !/[،,]$/.test(l));
+      out += l + (brk ? '\n' : ' ');
+    });
+    return out.trim();
   }
+  var ABR = /^(?:dr|mr|mrs|ms|prof|vs|fig|vol|pp|jr|sr|st|دکتر|مهندس)$/i;
   function splitSentences(par){
-    var out = [];
-    var parts = par.split(/(?<=[.!?؟…؛][»"”')\]]?)\s+/);
-    parts.forEach(function(s){
+    var raw = [], res = [], re = /[.!?؟…؛]+["»”')\]]*(?=\s|$)/g, last = 0, m;
+    while ((m = re.exec(par))) {
+      var end = m.index + m[0].length, head = par.slice(last, m.index);
+      if (m[0][0] === '.' && !/[!?؟…؛]/.test(m[0])) {
+        var tok = (head.match(/\S+$/) || [''])[0].replace(/^[("«“\[]+/, '');
+        if ((tok.length === 1 && /\p{L}/u.test(tok)) || /^(?:\p{L}{1,2}\.)+\p{L}{1,2}$/u.test(tok) || ABR.test(tok) || /^[\d۰-۹٠-٩]{1,3}$/.test(head.trim())) continue;
+      }
+      raw.push(par.slice(last, end)); last = end;
+    }
+    if (last < par.length) raw.push(par.slice(last));
+    raw.forEach(function(s){
       s = s.trim();
       if (!s || !/[\p{L}\p{N}]/u.test(s)) return;
-      while (s.length > 260) {
-        var h = s.slice(0, 260), c = Math.max(h.lastIndexOf('،'), h.lastIndexOf(','), h.lastIndexOf('؛'), h.lastIndexOf(':'));
-        if (c < 80) c = h.lastIndexOf(' ');
-        if (c < 80) c = 259;
-        out.push(s.slice(0, c + 1).trim());
+      while (s.length > 90) {
+        var h = s.slice(0, 90), c = Math.max(h.lastIndexOf('،'), h.lastIndexOf(','), h.lastIndexOf('؛'), h.lastIndexOf(':'));
+        if (c < 28) c = h.lastIndexOf(' ');
+        if (c < 28) c = 89;
+        res.push(s.slice(0, c + 1).trim());
         s = s.slice(c + 1).trim();
       }
-      if (s) out.push(s);
+      if (s) res.push(s);
     });
-    return out;
+    return res;
   }
   function dropRepeats(pg){
     var key = function(l){ return l.replace(/[\d۰-۹٠-٩]+/g, '#'); }, cnt = {};
@@ -348,6 +373,7 @@ input[type=range]{accent-color:var(--accent)}
       }
       pages = dropRepeats(pages).map(clean); pdf.destroy();
       build(pages); warmPiper();
+      try { if (navigator.mediaSession) navigator.mediaSession.metadata = new MediaMetadata({ title: file.name }); } catch (e) {}
       if (sents.length) status(file.name + ' — ' + nf.format(pdf.numPages) + ' صفحه، ' + nf.format(sents.length) + ' جمله');
     } catch (e) {
       status('خواندن فایل ناموفق بود: ' + (e && e.message ? e.message : e));
@@ -355,7 +381,7 @@ input[type=range]{accent-color:var(--accent)}
   }
   var pageParas = {}, pgEls = {}, pgObs = null;
   function build(pages){
-    sents = []; idx = 0; curEl = null; pageParas = {}; pgEls = {};
+    sents = []; idx = 0; curEl = null; pageParas = {}; pgEls = {}; plan = {};
     if (pgObs) pgObs.disconnect();
     var box = $('#reader'); box.textContent = '';
     pgObs = 'IntersectionObserver' in window ? new IntersectionObserver(function(es){
@@ -401,8 +427,9 @@ input[type=range]{accent-color:var(--accent)}
   }
 
   /* ---------- playback ---------- */
-  var audio = new Audio();
-  var cache = {}, nid = 0, curNid = '', gen = 0, cn = 0, LIMS = [90, 380, 600], seekT = 0;
+  var audio = new Audio(), curUtt = null;
+  audio.preservesPitch = true; audio.webkitPreservesPitch = true;
+  var cache = {}, nid = 0, curNid = '', gen = 0, cn = 0, seekT = 0, pSpeed = 18, pSamples = 0, pPatched = 0, plan = {}, lastLen = 0;
   var SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
   function cancelAll(){
     gen++;
@@ -411,7 +438,7 @@ input[type=range]{accent-color:var(--accent)}
     try { audio.onended = null; audio.onerror = null; audio.ontimeupdate = null; audio.pause(); } catch (e) {}
   }
   function clearCache(){
-    gen++;
+    gen++; plan = {};
     Object.keys(cache).forEach(function(k){
       cache[k].then(function(u){ URL.revokeObjectURL(u); }).catch(function(){});
       delete cache[k];
@@ -428,18 +455,23 @@ input[type=range]{accent-color:var(--accent)}
     var r = Math.round((+$('#rate').value - 1) * 100), pt = Math.round((+$('#pitch').value - 1) * 100);
     var ssml = '<speak version="1.0" xml:lang="fa-IR" xmlns="http://www.w3.org/2001/10/synthesis"><voice name="' + v.id +
       '"><prosody rate="' + (r >= 0 ? '+' : '') + r + '%" pitch="' + (pt >= 0 ? '+' : '') + pt + '%">' + esc(ttsText(sents[i].text)) + '</prosody></voice></speak>';
-    var pr = fetch('https://' + reg + '.tts.speech.microsoft.com/cognitiveservices/v1', {
+    var send = function(n){ return fetch('https://' + reg + '.tts.speech.microsoft.com/cognitiveservices/v1', {
       method: 'POST',
       headers: {
         'Ocp-Apim-Subscription-Key': key,
         'Content-Type': 'application/ssml+xml',
-        'X-Microsoft-OutputFormat': 'audio-24khz-48kbitrate-mono-mp3'
+        'X-Microsoft-OutputFormat': 'audio-24khz-96kbitrate-mono-mp3'
       },
       body: ssml
     }).then(function(res){
+      if ((res.status === 429 || res.status >= 500) && n < 3) {
+        var w = Math.min((+res.headers.get('Retry-After') || (n + 1) * 1.5) * 1000, 8000);
+        return new Promise(function(r){ setTimeout(r, w); }).then(function(){ return send(n + 1); });
+      }
       if (!res.ok) throw new Error('Azure ' + res.status + (res.status === 401 || res.status === 403 ? ' (کلید یا منطقه نادرست است)' : ''));
       return res.blob();
-    }).then(function(b){ return URL.createObjectURL(b); });
+    }); };
+    var pr = send(0).then(function(b){ return URL.createObjectURL(b); });
     pr.catch(function(){ delete cache[ck]; });
     cache[ck] = pr;
     return pr;
@@ -473,19 +505,65 @@ input[type=range]{accent-color:var(--accent)}
     }
     return out.join(' و ');
   }
+  var MON_FA = ['','فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'],
+      MON_EN = ['','ژانویه','فوریه','مارس','آوریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'],
+      LET = {A:'ای',B:'بی',C:'سی',D:'دی',E:'ای',F:'اف',G:'جی',H:'اچ',I:'آی',J:'جی',K:'کی',L:'ال',M:'ام',N:'ان',O:'او',P:'پی',Q:'کیو',R:'آر',S:'اس',T:'تی',U:'یو',V:'وی',W:'دبلیو',X:'ایکس',Y:'وای',Z:'زد'},
+      UNIT = {km:'کیلومتر',cm:'سانتی‌متر',mm:'میلی‌متر',kg:'کیلوگرم',mg:'میلی‌گرم',ml:'میلی‌لیتر',kb:'کیلوبایت',mb:'مگابایت',gb:'گیگابایت',hz:'هرتز',khz:'کیلوهرتز',mhz:'مگاهرتز',ghz:'گیگاهرتز'},
+      L0 = '(?<![\\p{L}])', L1 = '(?![\\p{L}])',
+      ABBR = [
+        [/\(\s*ع\s*\)/g, ' علیه السلام '], [/\(\s*ص\s*\)/g, ' صلی الله علیه و آله '], [/\(\s*س\s*\)/g, ' سلام الله علیها '],
+        [/\(\s*ره\s*\)/g, ' رحمة الله علیه '], [/\(\s*رض\s*\)/g, ' رضی الله عنه '],
+        [new RegExp(L0 + 'ه\\s*\\.\\s*ش\\.?' + L1, 'gu'), ' هجری شمسی '], [new RegExp(L0 + 'ه\\s*\\.\\s*ق\\.?' + L1, 'gu'), ' هجری قمری '],
+        [new RegExp(L0 + 'ق\\s*\\.\\s*م\\.?' + L1, 'gu'), ' قبل از میلاد '], [new RegExp(L0 + 'ق\\s*\\.\\s*ظ\\.?' + L1, 'gu'), ' قبل از ظهر '],
+        [new RegExp(L0 + 'ب\\s*\\.\\s*ظ\\.?' + L1, 'gu'), ' بعد از ظهر '], [new RegExp(L0 + 'ر\\s*\\.\\s*ک\\.?' + L1, 'gu'), ' رجوع کنید به '],
+        [new RegExp(L0 + 'ج\\s*\\.\\s*ا\\s*\\.\\s*ا\\.?' + L1, 'gu'), ' جمهوری اسلامی ایران '], [/\bDr\.?(?=\s)/g, 'دکتر']
+      ];
+  function digitsAscii(t){
+    return t.replace(/[۰-۹]/g, function(c){ return c.charCodeAt(0) - 1776; }).replace(/[٠-٩]/g, function(c){ return c.charCodeAt(0) - 1632; })
+      .replace(/(\d)٫(?=\d)/g, '$1.').replace(/(\d)[,٬،](?=\d{3}(?!\d))/g, '$1');
+  }
   function faNums(t){
-    t = t.replace(/[۰-۹]/g, function(c){ return c.charCodeAt(0) - 1776; }).replace(/[٠-٩]/g, function(c){ return c.charCodeAt(0) - 1632; })
-      .replace(/(\d)[,٬،](?=\d{3}(?!\d))/g, '$1').replace(/(\d)\s*[%٪]/g, '$1 درصد ').replace(/(\d)\s*[\/\-–]\s*(?=\d)/g, '$1 ');
-    return t.replace(/\d+(?:[.٫]\d+)?/g, function(m){
-      var q = m.split(/[.٫]/);
+    return t.replace(/\d+(?:\.\d+)?/g, function(m){
+      var q = m.split('.');
       return ' ' + numFa(q[0]) + (q[1] ? ' ممیز ' + numFa(q[1]) : '') + ' ';
     });
   }
-  function ttsText(t){
-    t = t.replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/ة/g, 'ه').replace(/[\u0640\u064B-\u065F\u0670\u00A0]/g, function(c){ return c === '\u00A0' ? ' ' : ''; });
-    t = faNums(t).replace(/([^\s,.;:!?؟،؛])\s+(اما|ولی|لیکن|بنابراین|همچنین|زیرا|یعنی|درنتیجه|در نتیجه|با این حال|در حالی که|علاوه بر این)(?=\s)/g, '$1, $2');
-    t = t.replace(/https?:\/\/\S+/g, ' ').replace(/[«»"“”]/g, '').replace(/\s*[(\[]\s*/g, ', ').replace(/\s*[)\]]\s*/g, ', ')
-      .replace(/[•▪■◆●○◦*_#|~^<>{}\\]/g, ' ').replace(/\s*[–—]\s*/g, ', ')
+  function dmy(d, m, y, mons){ return ' ' + numFa(String(+d)) + ' ' + mons[+m] + ' ' + numFa(y) + ' '; }
+  var userDict = [];
+  function normCh(t){ return t.replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/ة/g, 'ه'); }
+  function parseDict(){
+    userDict = [];
+    ($('#dict').value || '').split('\n').forEach(function(l){
+      var p = l.indexOf('='); if (p < 1) return;
+      var a = normCh(l.slice(0, p).trim()), b = l.slice(p + 1).trim();
+      if (!a) return;
+      try { userDict.push({ re: new RegExp('(?<![\\p{L}\\p{N}\\u200c])' + a.replace(/[\\^$.*+?()[\]{}|\/]/g, '\\$&') + '(?![\\p{L}\\p{N}\\u200c])', 'gu'), to: b }); } catch (e) {}
+    });
+  }
+  function ttsText(t, eng){
+    eng = eng || engine();
+    t = normCh(t).replace(/[\u0640\u064B-\u065F\u0670]/g, '').replace(/\u00A0/g, ' ')
+      .replace(/[\u00ad\u200b\u200d-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '');
+    userDict.forEach(function(d){ t = t.replace(d.re, function(){ return d.to; }); });
+    t = digitsAscii(t).replace(/(?:https?:\/\/|www\.)\S+|\S+@\S+\.\S+/g, ' ')
+      .replace(/\[\s*\d+(?:\s*[,،\-–]\s*\d+)*\s*\]|\(\s*\d{1,3}\s*\)/g, ' ');
+    ABBR.forEach(function(a){ t = t.replace(a[0], a[1]); });
+    t = t.replace(/(\d)\s*[%٪]/g, '$1 درصد ').replace(/(\d)\/(\d+)(?=\s*درصد)/g, '$1.$2')
+      .replace(/(?<!\d)(1[34]\d\d)\s*[\/\-.]\s*(0?[1-9]|1[0-2])\s*[\/\-.]\s*(0?[1-9]|[12]\d|3[01])(?!\d)/g, function(_, y, m, d){ return dmy(d, m, y, MON_FA); })
+      .replace(/(?<!\d)(0?[1-9]|[12]\d|3[01])\s*[\/\-.]\s*(0?[1-9]|1[0-2])\s*[\/\-.]\s*(1[34]\d\d)(?!\d)/g, function(_, d, m, y){ return dmy(d, m, y, MON_FA); })
+      .replace(/(?<!\d)((?:19|20)\d\d)\s*[\/\-]\s*(0?[1-9]|1[0-2])\s*[\/\-]\s*(0?[1-9]|[12]\d|3[01])(?!\d)/g, function(_, y, m, d){ return dmy(d, m, y, MON_EN); })
+      .replace(/(?<!\d)([01]?\d|2[0-3]):([0-5]\d)(?![\d:])/g, function(_, h, m){ return ' ' + numFa(String(+h)) + (+m ? ' و ' + numFa(String(+m)) + ' دقیقه' : '') + ' '; })
+      .replace(/(?<![\d\-\/.])(\d{1,4})\s*[-–—]\s*(\d{1,4})(?![\d\-\/])/g, '$1 تا $2')
+      .replace(/(\d)\s*(km|cm|mm|kg|mg|ml|kb|mb|gb|khz|mhz|ghz|hz)(?![a-z])/gi, function(_, d, u){ return d + ' ' + UNIT[u.toLowerCase()] + ' '; })
+      .replace(/(\d)\s*°\s*[Cc](?![a-z])/g, '$1 درجه سانتی‌گراد ').replace(/(\d)\s*°/g, '$1 درجه ')
+      .replace(/\$\s*(\d+(?:\.\d+)?)/g, '$1 دلار ').replace(/€\s*(\d+(?:\.\d+)?)/g, '$1 یورو ')
+      .replace(/(\d)\s*[\/\-–]\s*(?=\d)/g, '$1 ');
+    t = faNums(t).replace(/(?<![A-Za-z])[A-Z]{2,5}(?![A-Za-z])/g, function(w){ return /^[IVX]+$/.test(w) ? w : ' ' + w.split('').map(function(c){ return LET[c]; }).join(' ') + ' '; });
+    t = t.replace(/([^\s,.;:!?؟،؛])\s+(اما|ولی|لیکن|بلکه|بنابراین|همچنین|زیرا|یعنی|درنتیجه|در نتیجه|با این حال|در حالی که|علاوه بر این|در عین حال|به عبارت دیگر|برای مثال|به همین دلیل|از این رو|هرچند|اگرچه)(?=\s)/g, '$1, $2');
+    if (eng !== 'azure') t = t.replace(/\u200c/g, '');
+    t = t.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, ' ').replace(/\.{4,}/g, ', ').replace(/[_=\-–—]{3,}/g, ' ').replace(/&/g, ' و ')
+      .replace(/[«»"“”]/g, '').replace(/\s*[(\[]\s*/g, ', ').replace(/\s*[)\]]\s*/g, ', ')
+      .replace(/[•▪■◆●○◦*_#|~^<>{}\\\/]/g, ' ').replace(/\s*[–—]\s*/g, ', ')
       .replace(/،/g, ',').replace(/؛/g, ';').replace(/؟/g, '?').replace(/…/g, '...').replace(/\s+/g, ' ').replace(/\s+([,.;:!?])/g, '$1').replace(/^[,\s]+/, '').trim();
     t = t.replace(/,\s*([.!?;:])/g, '$1').replace(/,\s*,/g, ',');
     return /[.!?;:]$/.test(t) ? t : t.replace(/,$/, '') + '.';
@@ -495,13 +573,63 @@ input[type=range]{accent-color:var(--accent)}
     pwBad = true; pws.forEach(function(w){ try { w.terminate(); } catch (e) {} }); pws = [];
     Object.keys(pwWait).forEach(function(k){ pwWait[k].rej(new Error('worker')); delete pwWait[k]; });
   }
+  function workerMain(){
+    var P = null, sess = {}, ok = false, sent = false, mc = {};
+    try {
+      var _is = WebAssembly.instantiateStreaming, _in = WebAssembly.instantiate;
+      if (_is) WebAssembly.instantiateStreaming = function(src, imp){
+        return Promise.resolve(src).then(function(r){
+          var u = r && r.url, fin = function(m){ return _in.call(WebAssembly, m, imp).then(function(i){ return { module: m, instance: i }; }); };
+          if (!u || !/piper/i.test(u)) return _is.call(WebAssembly, r, imp);
+          if (mc[u]) { try { if (r.body) r.body.cancel(); } catch (e) {} return mc[u].then(fin); }
+          var r2 = r.clone();
+          mc[u] = WebAssembly.compileStreaming(r);
+          mc[u].then(function(){ try { r2.body.cancel(); } catch (e) {} });
+          return mc[u].then(fin, function(){ delete mc[u]; return _is.call(WebAssembly, r2, imp); });
+        });
+      };
+    } catch (e) {}
+    async function patch(){
+      var us = (performance.getEntriesByType('resource') || []).map(function(e){ return e.name; })
+        .filter(function(u){ return /onnxruntime-web/i.test(u) && /\.m?js(\?|$)/.test(u) && !/ort-wasm/i.test(u); });
+      for (var i = 0; i < us.length && !ok; i++) {
+        try {
+          var o = await import(us[i]), IS = o.InferenceSession || (o.default && o.default.InferenceSession);
+          if (!IS || !IS.create) continue;
+          if (!IS.__pc) {
+            var orig = IS.create.bind(IS);
+            IS.create = function(a, b){
+              var u8 = a instanceof ArrayBuffer ? new Uint8Array(a) : (ArrayBuffer.isView(a) ? new Uint8Array(a.buffer, a.byteOffset, a.byteLength) : null);
+              if (!u8 || u8.length < 1e6) return orig(a, b);
+              var k = String(u8.length);
+              for (var j = 1; j <= 32; j++) k += ',' + u8[Math.floor(u8.length * j / 33)];
+              if (!sess[k]) { sess[k] = orig(a, b); sess[k].catch(function(){ delete sess[k]; }); }
+              return sess[k];
+            };
+            IS.__pc = 1;
+          }
+          ok = true;
+        } catch (e) {}
+      }
+    }
+    self.onmessage = async function(e){
+      var d = e.data;
+      try {
+        P = P || await import('https://esm.sh/@diffusionstudio/vits-web');
+        var b = await P.predict({ text: d.text, voiceId: d.voiceId });
+        if (!ok) await patch();
+        self.postMessage({ id: d.id, blob: b });
+        if (!sent) { sent = true; self.postMessage({ patched: ok }); }
+      } catch (x) { self.postMessage({ id: d.id, error: String(x && x.message || x) }); }
+    };
+  }
   function getWorker(l){
     if (pwBad || !window.Worker) return null;
     if (pws[l]) return pws[l];
     try {
-      var src = "import * as P from 'https://esm.sh/@diffusionstudio/vits-web';self.onmessage=async function(e){var d=e.data;try{self.postMessage({id:d.id,blob:await P.predict({text:d.text,voiceId:d.voiceId})});}catch(x){self.postMessage({id:d.id,error:String(x&&x.message||x)});}};";
+      var src = '(' + workerMain.toString() + ')()';
       var pw = pws[l] = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })), { type: 'module' });
-      pw.onmessage = function(e){ var d = e.data, w = pwWait[d.id]; if (!w) return; delete pwWait[d.id]; d.error ? w.rej(new Error('P:' + d.error)) : w.res(d.blob); };
+      pw.onmessage = function(e){ var d = e.data, w; if (d.patched !== undefined) { pPatched = d.patched ? 1 : 2; perf(); return; } w = pwWait[d.id]; if (!w) return; delete pwWait[d.id]; d.error ? w.rej(new Error('P:' + d.error)) : w.res(d.blob); };
       pw.onerror = function(){ killWorker(); };
     } catch (e) { pwBad = true; pws[l] = null; }
     return pws[l];
@@ -519,6 +647,19 @@ input[type=range]{accent-color:var(--accent)}
     var t = [];
     for (var k = i; k <= e; k++) t.push(ttsText(sents[k].text));
     return { start: i, end: e, text: t.join(' ') };
+  }
+  function perf(){
+    var el = $('#pperf'); if (!el) return;
+    el.textContent = (pPatched === 1 ? 'بهینه‌سازی سرعت: فعال' : pPatched === 2 ? 'بهینه‌سازی سرعت: فعال نشد (ساخت کندتر است)' : '') + (pSamples > 1 ? ' — سرعت ساخت: ' + nf.format(Math.round(pSpeed)) + ' کاراکتر در ثانیه' : '');
+  }
+  function firstLim(){ return Math.max(40, Math.min(72, Math.round(pSpeed * 2.5))); }
+  function nextLim(prevLen){
+    var pr = 12 * (+$('#rate').value || 1), f = Math.max(1, Math.min(2.5, pSpeed * LN.length * 0.8 / pr));
+    return Math.max(60, Math.min(450, Math.round(prevLen * f)));
+  }
+  function planChunk(i, first, prevLen){
+    if (first) delete plan[i];
+    return plan[i] || (plan[i] = chunkAt(i, first ? firstLim() : nextLim(prevLen)));
   }
   function trimCache(from){
     Object.keys(cache).forEach(function(k){
@@ -546,11 +687,11 @@ input[type=range]{accent-color:var(--accent)}
       var sr = dv.getUint32(24, true), n = dl >> 1, x = new Int16Array(ab.slice(ds, ds + n * 2)), i, pk = 0;
       for (i = 0; i < n; i++) { var m = Math.abs(x[i]); if (m > pk) pk = m; }
       if (!pk) return blob;
-      var th = Math.max(250, pk * 0.02), a = 0, b = n - 1;
+      var th = Math.max(250, pk * 0.012), a = 0, b = n - 1;
       while (a < n && Math.abs(x[a]) < th) a++;
       while (b > a && Math.abs(x[b]) < th) b--;
       if (b - a < sr * 0.1) return blob;
-      a = Math.max(0, a - Math.round(sr * 0.03)); b = Math.min(n - 1, b + Math.round(sr * 0.06));
+      a = Math.max(0, a - Math.round(sr * 0.03)); b = Math.min(n - 1, b + Math.round(sr * 0.09));
       var len = b - a + 1, g = Math.min(3, 27000 / pk), out = new Int16Array(len);
       for (i = 0; i < len; i++) out[i] = Math.max(-32768, Math.min(32767, x[a + i] * g));
       var fi = Math.min(len, Math.round(sr * 0.004)), fo = Math.min(len, Math.round(sr * 0.012));
@@ -590,7 +731,12 @@ input[type=range]{accent-color:var(--accent)}
     L = LN[ln]; L.b++;
     var pr = L.q.then(function(){
       if (g !== gen) throw new Error('cancelled');
-      return piperPredict(c.text, v.id, ln);
+      var t0 = Date.now();
+      return piperPredict(c.text, v.id, ln).then(function(b){
+        var sec = (Date.now() - t0) / 1000;
+        if (c.start >= 0 && sec > 0.15 && ++pSamples > 1) { var sp = c.text.length / sec; pSpeed = pSamples === 2 ? sp : pSpeed * 0.5 + sp * 0.5; perf(); }
+        return b;
+      });
     }).then(function(b){ return polish(b).catch(function(){ return b; }); }).then(function(b){ return URL.createObjectURL(b); });
     L.q = pr.catch(function(){});
     pr.then(function(){ L.b--; }, function(){ L.b--; });
@@ -598,12 +744,12 @@ input[type=range]{accent-color:var(--accent)}
     cache[ck] = pr;
     return pr;
   }
-  function prefetchPiper(from, n){
-    var i = from, k = cn;
+  function prefetchPiper(from, n, prevLen){
+    var i = from;
     while (n-- > 0 && i < sents.length) {
-      var c = chunkAt(i, LIMS[Math.min(k++, 2)]);
+      var c = planChunk(i, false, prevLen);
       piperFetch(c).catch(function(){});
-      i = c.end + 1;
+      i = c.end + 1; prevLen = c.text.length;
     }
   }
   function warmPiper(){
@@ -613,8 +759,7 @@ input[type=range]{accent-color:var(--accent)}
     ensurePiper().then(function(ok){ return ok ? PiperTTS.stored() : []; }).then(function(a){
       if ((a || []).indexOf(v.id) < 0) return;
       if (!sents.length) { piperFetch({ start: -1, end: -1, text: 'سلام.' }).catch(function(){}); return; }
-      piperFetch(chunkAt(0, LIMS[0])).catch(function(){});
-        var c0 = chunkAt(0, LIMS[0]); if (c0.end + 1 < sents.length) piperFetch(chunkAt(c0.end + 1, LIMS[1])).catch(function(){});
+      var c0 = planChunk(0, true); piperFetch(c0).catch(function(){}); prefetchPiper(c0.end + 1, 1, c0.text.length);
     }).catch(function(){});
   }
   function followChunk(c){
@@ -666,11 +811,11 @@ input[type=range]{accent-color:var(--accent)}
       return;
     }
     if (eng === 'piper') {
-      var c = chunkAt(idx, LIMS[Math.min(cn, 2)]);
-      cn++;
+      var c = planChunk(idx, cn === 0, lastLen);
+      cn++; lastLen = c.text.length;
       status('در حال آماده‌سازی صدا…');
       var t0 = Date.now(), tk = setInterval(function(){ if (my !== token || !playing) clearInterval(tk); else status('در حال آماده‌سازی صدا… ' + nf.format(Math.round((Date.now() - t0) / 1000)) + ' ثانیه'); }, 1000);
-      ensurePiper().then(function(){ var pf = piperFetch(c); prefetchPiper(c.end + 1, 2); return pf; }).then(function(url){
+      ensurePiper().then(function(){ var pf = piperFetch(c); prefetchPiper(c.end + 1, 2, c.text.length); return pf; }).then(function(url){
         clearInterval(tk);
         if (my !== token || !playing) return;
         status('');
@@ -697,7 +842,7 @@ input[type=range]{accent-color:var(--accent)}
       });
       return;
     }
-    var u = new SpeechSynthesisUtterance(ttsText(sents[idx].text));
+    var u = curUtt = new SpeechSynthesisUtterance(ttsText(sents[idx].text, 'device'));
     if (v) {
       var all = synth.getVoices() || [];
       for (var k = 0; k < all.length; k++) if (all[k].voiceURI === v.id) { u.voice = all[k]; break; }
@@ -719,7 +864,7 @@ input[type=range]{accent-color:var(--accent)}
     playing = true;
     token++;
     var my = token;
-    cn = 0;
+    cn = 0; lastLen = 0;
     cancelAll();
     if (engine() === 'piper') setupFx();
     if (engine() !== 'device') { audio.src = SILENT; audio.play().catch(function(){}); }
@@ -755,6 +900,7 @@ input[type=range]{accent-color:var(--accent)}
     $('#next').disabled = !has;
     $('#stop').disabled = !has;
     $('#play').textContent = playing ? 'توقف موقت' : 'پخش';
+    try { if (navigator.mediaSession) navigator.mediaSession.playbackState = playing ? 'playing' : 'paused'; } catch (e) {}
   }
 
   /* ---------- events ---------- */
@@ -792,6 +938,12 @@ input[type=range]{accent-color:var(--accent)}
   };
   $('#enh').checked = sget('enh', '1') !== '0';
   $('#enh').onchange = function(){ sset('enh', this.checked ? '1' : '0'); setupFx(); wireFx(engine() === 'piper'); };
+  $('#dict').value = sget('dict', ''); parseDict();
+  $('#dict').onchange = function(){ sset('dict', this.value); parseDict(); changed(); };
+  if ('mediaSession' in navigator) { try {
+    navigator.mediaSession.metadata = new MediaMetadata({ title: 'خوانندهٔ صوتی PDF' });
+    [['play', function(){ if (!playing) start(); }], ['pause', function(){ if (playing) pause(); }], ['previoustrack', function(){ seekTo(idx - 1); }], ['nexttrack', function(){ seekTo(idx + 1); }]].forEach(function(a){ navigator.mediaSession.setActionHandler(a[0], a[1]); });
+  } catch (e) {} }
   $('#akey').onchange = function(){ sset('akey', this.value.trim()); clearCache(); };
   $('#aregion').onchange = function(){ sset('aregion', this.value.trim()); clearCache(); };
 
