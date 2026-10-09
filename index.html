@@ -275,6 +275,7 @@ input[type=range]{accent-color:var(--accent)}
         var done = !!v && (a || []).indexOf(v.id) >= 0;
         st.textContent = done ? 'صدا دانلود شده و آفلاین کار می‌کند.' : 'این صدا هنوز دانلود نشده است (حدود ۶۰ مگابایت؛ فقط بار اول اینترنت لازم است).';
         btn.hidden = done;
+        if (done) warmPiper();
       });
     }).catch(function(){ st.textContent = ''; });
   }
@@ -401,7 +402,7 @@ input[type=range]{accent-color:var(--accent)}
 
   /* ---------- playback ---------- */
   var audio = new Audio();
-  var cache = {}, nid = 0, curNid = '', gen = 0, cn = 0, LIMS = [140, 380, 600], seekT = 0;
+  var cache = {}, nid = 0, curNid = '', gen = 0, cn = 0, LIMS = [90, 380, 600], seekT = 0;
   var SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
   function cancelAll(){
     gen++;
@@ -606,11 +607,13 @@ input[type=range]{accent-color:var(--accent)}
     }
   }
   function warmPiper(){
-    if (engine() !== 'piper' || !sents.length) return;
+    if (engine() !== 'piper') return;
     var v = currentVoice();
     if (!v) return;
     ensurePiper().then(function(ok){ return ok ? PiperTTS.stored() : []; }).then(function(a){
-      if ((a || []).indexOf(v.id) >= 0) piperFetch(chunkAt(0, LIMS[0])).catch(function(){});
+      if ((a || []).indexOf(v.id) < 0) return;
+      if (!sents.length) { piperFetch({ start: -1, end: -1, text: 'سلام.' }).catch(function(){}); return; }
+      piperFetch(chunkAt(0, LIMS[0])).catch(function(){});
         var c0 = chunkAt(0, LIMS[0]); if (c0.end + 1 < sents.length) piperFetch(chunkAt(c0.end + 1, LIMS[1])).catch(function(){});
     }).catch(function(){});
   }
@@ -666,7 +669,9 @@ input[type=range]{accent-color:var(--accent)}
       var c = chunkAt(idx, LIMS[Math.min(cn, 2)]);
       cn++;
       status('در حال آماده‌سازی صدا…');
+      var t0 = Date.now(), tk = setInterval(function(){ if (my !== token || !playing) clearInterval(tk); else status('در حال آماده‌سازی صدا… ' + nf.format(Math.round((Date.now() - t0) / 1000)) + ' ثانیه'); }, 1000);
       ensurePiper().then(function(){ var pf = piperFetch(c); prefetchPiper(c.end + 1, 2); return pf; }).then(function(url){
+        clearInterval(tk);
         if (my !== token || !playing) return;
         status('');
         var sp = +$('#rate').value; wireFx(true);
@@ -678,6 +683,7 @@ input[type=range]{accent-color:var(--accent)}
         audio.play().catch(function(e){ fail(my, 'پخش صدا ناموفق بود: ' + e.message); });
         trimCache(c.start);
       }).catch(function(e){
+        clearInterval(tk);
         fail(my, 'خطا در صدای Piper: ' + (e && e.message ? e.message : e));
       });
       return;
