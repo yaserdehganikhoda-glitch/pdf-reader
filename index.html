@@ -429,7 +429,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   /* ---------- playback ---------- */
   var audio = new Audio(), curUtt = null;
   audio.preservesPitch = true; audio.webkitPreservesPitch = true;
-  var cache = {}, nid = 0, curNid = '', gen = 0, cn = 0, seekT = 0, pSpeed = 18, pSamples = 0, pPatched = 0, plan = {}, lastLen = 0;
+  var cache = {}, nid = 0, curNid = '', gen = 0, cn = 0, seekT = 0, pSpeed = 18, pSamples = 0, pPatched = 0, pBoot = 0, pFirst = 0, pInfo = null, plan = {}, lastLen = 0;
   var SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
   function cancelAll(){
     gen++;
@@ -477,7 +477,6 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     return pr;
   }
   var LN = [{ q: Promise.resolve(), b: 0 }];
-  if ((navigator.hardwareConcurrency || 4) >= 6 && (navigator.deviceMemory || 4) >= 4) LN.push({ q: Promise.resolve(), b: 0 });
   function withTimeout(pr, ms, msg){
     return new Promise(function(res, rej){
       var t = setTimeout(function(){ rej(new Error(msg)); }, ms);
@@ -573,8 +572,8 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     pwBad = true; pws.forEach(function(w){ try { w.terminate(); } catch (e) {} }); pws = [];
     Object.keys(pwWait).forEach(function(k){ pwWait[k].rej(new Error('worker')); delete pwWait[k]; });
   }
-  function workerMain(){
-    var P = null, sess = {}, ok = false, sent = false, mc = {};
+  function piperKit(){
+    var sess = {}, mc = {}, ok = false;
     try {
       var _is = WebAssembly.instantiateStreaming, _in = WebAssembly.instantiate;
       if (_is) WebAssembly.instantiateStreaming = function(src, imp){
@@ -612,12 +611,16 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
         } catch (e) {}
       }
     }
+    return { patch: async function(){ if (!ok) { try { await patch(); } catch (e) {} } return ok; } };
+  }
+  function workerBody(){
+    var P = null, sent = false;
     self.onmessage = async function(e){
       var d = e.data;
       try {
-        P = P || await import('https://esm.sh/@diffusionstudio/vits-web');
+        if (!P) { var t0 = Date.now(); P = await import('https://esm.sh/@diffusionstudio/vits-web'); self.postMessage({ boot: Date.now() - t0 }); }
         var b = await P.predict({ text: d.text, voiceId: d.voiceId });
-        if (!ok) await patch();
+        var ok = await kit.patch();
         self.postMessage({ id: d.id, blob: b });
         if (!sent) { sent = true; self.postMessage({ patched: ok }); }
       } catch (x) { self.postMessage({ id: d.id, error: String(x && x.message || x) }); }
@@ -627,19 +630,28 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     if (pwBad || !window.Worker) return null;
     if (pws[l]) return pws[l];
     try {
-      var src = '(' + workerMain.toString() + ')()';
+      var src = 'var kit=(' + piperKit.toString() + ')();(' + workerBody.toString() + ')()';
       var pw = pws[l] = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })), { type: 'module' });
-      pw.onmessage = function(e){ var d = e.data, w; if (d.patched !== undefined) { pPatched = d.patched ? 1 : 2; perf(); return; } w = pwWait[d.id]; if (!w) return; delete pwWait[d.id]; d.error ? w.rej(new Error('P:' + d.error)) : w.res(d.blob); };
+      pw.onmessage = function(e){ var d = e.data, w; if (d.boot !== undefined) { pBoot = d.boot; perf(); return; } if (d.patched !== undefined) { pPatched = d.patched ? 1 : 2; perf(); return; } w = pwWait[d.id]; if (!w) return; delete pwWait[d.id]; d.error ? w.rej(new Error('P:' + d.error)) : w.res(d.blob); };
       pw.onerror = function(){ killWorker(); };
     } catch (e) { pwBad = true; pws[l] = null; }
     return pws[l];
   }
+  var mainKit = null;
   function piperPredict(text, id, l){
     var w = getWorker(l || 0), n = ++pwId;
-    var main = function(){ return withTimeout(Promise.resolve(PiperTTS.predict({ text: text, voiceId: id })), 120000, PIPER_TO); };
+    var main = function(){
+      mainKit = mainKit || piperKit();
+      return withTimeout(Promise.resolve(PiperTTS.predict({ text: text, voiceId: id })).then(function(b){ return mainKit.patch().then(function(){ return b; }); }), 240000, PIPER_TO);
+    };
     if (!w) return main();
-    return withTimeout(new Promise(function(res, rej){ pwWait[n] = { res: res, rej: rej }; w.postMessage({ id: n, text: text, voiceId: id }); }), 120000, PIPER_TO)
-      .catch(function(e){ delete pwWait[n]; if (!/^P:/.test(e.message)) killWorker(); return main(); });
+    return withTimeout(new Promise(function(res, rej){ pwWait[n] = { res: res, rej: rej }; w.postMessage({ id: n, text: text, voiceId: id }); }), 240000, PIPER_TO)
+      .catch(function(e){
+        delete pwWait[n];
+        if (e.message === PIPER_TO) { try { w.terminate(); } catch (x) {} pws[l || 0] = null; throw e; }
+        if (!/^P:/.test(e.message)) killWorker();
+        return main();
+      });
   }
   function chunkAt(i, lim){
     var e = i, len = sents[i].text.length;
@@ -650,7 +662,17 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   function perf(){
     var el = $('#pperf'); if (!el) return;
-    el.textContent = (pPatched === 1 ? 'بهینه‌سازی سرعت: فعال' : pPatched === 2 ? 'بهینه‌سازی سرعت: فعال نشد (ساخت کندتر است)' : '') + (pSamples > 1 ? ' — سرعت ساخت: ' + nf.format(Math.round(pSpeed)) + ' کاراکتر در ثانیه' : '');
+    var a = [], r = 0;
+    if (pwBad) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
+    if (pPatched) a.push(pPatched === 1 ? 'بهینه‌سازی: فعال' : 'بهینه‌سازی: غیرفعال');
+    if (pBoot) a.push('بارگذاری موتور: ' + nf.format(Math.round(pBoot / 1000)) + ' ثانیه');
+    if (pFirst) a.push('اولین ساخت: ' + nf.format(Math.round(pFirst)) + ' ثانیه');
+    if (pInfo) {
+      r = pInfo.sec / Math.max(0.1, pInfo.aud);
+      a.push('آخرین ساخت: ' + nf.format(pInfo.n) + ' نویسه در ' + nf.format(Math.round(pInfo.sec * 10) / 10) + ' ثانیه (صدا ' + nf.format(Math.round(pInfo.aud * 10) / 10) + ' ثانیه، ' + nf.format(Math.round(r * 10) / 10) + '× زمان واقعی)');
+      if (r > 1.1) a.push('این گوشی از پخش زنده کندتر است');
+    }
+    el.textContent = a.join(' — ');
   }
   function firstLim(){ return Math.max(40, Math.min(72, Math.round(pSpeed * 2.5))); }
   function nextLim(prevLen){
@@ -734,7 +756,12 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       var t0 = Date.now();
       return piperPredict(c.text, v.id, ln).then(function(b){
         var sec = (Date.now() - t0) / 1000;
-        if (c.start >= 0 && sec > 0.15 && ++pSamples > 1) { var sp = c.text.length / sec; pSpeed = pSamples === 2 ? sp : pSpeed * 0.5 + sp * 0.5; perf(); }
+        if (!pFirst) pFirst = sec;
+        if (c.start >= 0 && sec > 0.15) {
+          pInfo = { n: c.text.length, sec: sec, aud: Math.max(0, b.size - 44) / 44100 };
+          if (++pSamples > 1) { var sp = c.text.length / sec; pSpeed = pSamples === 2 ? sp : pSpeed * 0.5 + sp * 0.5; }
+        }
+        perf();
         return b;
       });
     }).then(function(b){ return polish(b).catch(function(){ return b; }); }).then(function(b){ return URL.createObjectURL(b); });
@@ -814,7 +841,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       var c = planChunk(idx, cn === 0, lastLen);
       cn++; lastLen = c.text.length;
       status('در حال آماده‌سازی صدا…');
-      var t0 = Date.now(), tk = setInterval(function(){ if (my !== token || !playing) clearInterval(tk); else status('در حال آماده‌سازی صدا… ' + nf.format(Math.round((Date.now() - t0) / 1000)) + ' ثانیه'); }, 1000);
+      var t0 = Date.now(), tk = setInterval(function(){ if (my !== token || !playing) clearInterval(tk); else status('در حال آماده‌سازی صدا (' + nf.format(c.text.length) + ' نویسه)… ' + nf.format(Math.round((Date.now() - t0) / 1000)) + ' ثانیه'); }, 1000);
       ensurePiper().then(function(){ var pf = piperFetch(c); prefetchPiper(c.end + 1, 2, c.text.length); return pf; }).then(function(url){
         clearInterval(tk);
         if (my !== token || !playing) return;
