@@ -249,66 +249,33 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   loadNative();
   setTimeout(loadNative, 1500);
-  setTimeout(function(){ perf(); if (NP) ensurePiper().then(function(){ perf(); }); }, 0);
-
-  /* ---------- Piper native (sherpa-onnx via Capacitor plugin "PiperNative") ---------- */
-  var NP = null, npOK = false, npTry = null, npErr = '';
-  var CAP = window.Capacitor, capPlat = '';
-  try { capPlat = CAP && CAP.getPlatform ? String(CAP.getPlatform()) : ''; } catch (e) {}
-  var onNative = false;
-  try { onNative = !!((CAP && CAP.isNativePlatform && CAP.isNativePlatform()) || window.androidBridge || (capPlat && capPlat !== 'web')); } catch (e) {}
-  try {
-    if (onNative) {
-      if (CAP && CAP.registerPlugin) NP = CAP.registerPlugin('PiperNative');
-      else if (CAP && CAP.Plugins && CAP.Plugins.PiperNative) NP = CAP.Plugins.PiperNative;
-    }
-  } catch (e) {}
-  var NP_MODEL_URLS = function(id){
-    var f = 'vits-piper-' + id + '.tar.bz2';
-    return [
-      'https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/' + f,
-      'https://ghfast.top/https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/' + f
-    ];
-  };
-  function b64Blob(b64, type){
-    var bin = atob(b64), n = bin.length, u = new Uint8Array(n);
-    for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
-    return new Blob([u], { type: type });
-  }
-  var NATIVE_PIPER = {
-    voices: function(){
-      return Promise.resolve([
-        { key: 'fa_IR-amir-medium', name: 'amir', quality: 'medium', language: { family: 'fa' } },
-        { key: 'fa_IR-gyro-medium', name: 'gyro', quality: 'medium', language: { family: 'fa' } }
-      ]);
-    },
-    stored: function(){ return NP.stored().then(function(r){ return (r && r.ids) || []; }); },
-    download: function(id, cb){
-      var h = null, done = function(){ try { if (h && h.remove) h.remove(); } catch (e) {} };
-      return Promise.resolve(NP.addListener('progress', function(e){ if (cb) cb({ loaded: e.loaded, total: e.total, stage: e.stage, n: e.n }); }))
-        .then(function(x){ h = x; return NP.download({ id: id, urls: NP_MODEL_URLS(id) }); })
-        .then(function(r){ done(); return r; }, function(e){ done(); throw e; });
-    },
-    predict: function(o){
-      return NP.synthesize({ id: o.voiceId, text: o.text }).then(function(r){ return b64Blob(r.wav, 'audio/wav'); });
-    }
-  };
 
   var piperLoading = null, piperVoicesLoaded = false;
-  function ensurePiper(){
-    if (npOK) return Promise.resolve(true);
-    if (NP) {
-      if (!npTry) npTry = NP.ping().then(function(){ npOK = true; window.PiperTTS = NATIVE_PIPER; return true; }, function(e){ npErr = String((e && (e.message || e.errorMessage || e.code)) || e || 'unknown'); NP = null; perf(); return false; });
-      return npTry.then(function(ok){ return ok ? true : ensurePiperWeb(); });
-    }
-    return ensurePiperWeb();
+  var PN = null, pnOk = false, MODEL_BASE = 'https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-';
+  try { if (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) PN = Capacitor.registerPlugin('PiperNative'); } catch (e) {}
+  function initNative(){
+    if (!PN) return Promise.resolve(false);
+    if (pnOk) return Promise.resolve(true);
+    return PN.ping().then(function(){ pnOk = true; pPatched = 3; perf(); renderVoices(); return true; }).catch(function(){ return false; });
   }
-  function ensurePiperWeb(){
-    if (window.PiperTTS) return Promise.resolve(true);
+  function pStored(){ return pnOk ? PN.stored().then(function(r){ return (r && r.ids) || []; }) : PiperTTS.stored(); }
+  function nDownload(id, cb){
+    var h = null, done = function(){ try { if (h && h.remove) h.remove(); } catch (e) {} };
+    return Promise.resolve(PN.addListener('progress', function(e){
+      if (e && e.stage === 'extract') $('#pstat').textContent = 'در حال استخراج مدل…'; else cb(e);
+    })).then(function(x){ h = x; return PN.download({ id: id, urls: [MODEL_BASE + id + '.tar.bz2'] }); }).then(done, function(e){ done(); throw e; });
+  }
+  function b64wav(r){
+    var bin = atob(r.wav), n = bin.length, u = new Uint8Array(n);
+    for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
+    return new Blob([u], { type: 'audio/wav' });
+  }
+  function ensurePiper(){
+    if (pnOk || window.PiperTTS) return Promise.resolve(true);
     if (!piperLoading) {
-      piperLoading = import('https://esm.sh/@diffusionstudio/vits-web').then(function(m){
-        window.PiperTTS = m;
-        return true;
+      piperLoading = initNative().then(function(ok){
+        if (ok) return true;
+        return import('https://esm.sh/@diffusionstudio/vits-web').then(function(m){ window.PiperTTS = m; return true; });
       }).catch(function(){ piperLoading = null; return false; });
     }
     return piperLoading;
@@ -331,7 +298,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     ensurePiper().then(function(ok){
       if (!ok) { st.textContent = 'موتور Piper بارگذاری نشد. اینترنت یا VPN را بررسی کنید.'; btn.hidden = true; return; }
       loadPiper();
-      return PiperTTS.stored().then(function(a){
+      return pStored().then(function(a){
         var v = currentVoice();
         var done = !!v && (a || []).indexOf(v.id) >= 0;
         st.textContent = done ? 'صدا دانلود شده و آفلاین کار می‌کند.' : 'این صدا هنوز دانلود نشده است (حدود ۶۰ مگابایت؛ فقط بار اول اینترنت لازم است).';
@@ -342,12 +309,11 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   $('#pdl').onclick = function(){
     var v = currentVoice(), btn = $('#pdl'), st = $('#pstat');
-    if (!v) return;
+    if (!v || (!window.PiperTTS && !pnOk)) return;
     btn.disabled = true;
-    ensurePiper().then(function(ok){ if (!ok) throw new Error('موتور Piper بارگذاری نشد.'); return PiperTTS.download(v.id, function(pr){
-      if (pr && pr.stage === 'extract') { st.textContent = 'در حال آماده‌سازی فایل‌های صدا… (فایل ' + nf.format(pr.n || 0) + ') — تا چند دقیقه صبر کنید'; return; }
+    (pnOk ? nDownload : PiperTTS.download)(v.id, function(pr){
       if (pr && pr.total) st.textContent = 'در حال دانلود: ' + nf.format(Math.round(pr.loaded * 100 / pr.total)) + '٪';
-    }); }).then(function(){
+    }).then(function(){
       st.textContent = 'در حال آزمایش صدا…';
       return piperPredict('سلام.', v.id);
     }).then(function(){ updatePiperStatus(); warmPiper(); }).catch(function(e){
@@ -357,6 +323,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   if (synth && !isNative) { synth.onvoiceschanged = loadVoices; }
   loadVoices();
   setTimeout(loadVoices, 600);
+  initNative();
 
   /* ---------- PDF -> text ---------- */
   function clean(t){
@@ -482,7 +449,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   /* ---------- playback ---------- */
   var audio = new Audio(), curUtt = null;
   audio.preservesPitch = true; audio.webkitPreservesPitch = true;
-  var cache = {}, nid = 0, curNid = '', gen = 0, cn = 0, seekT = 0, pSpeed = 18, pSamples = 0, pPatched = 0, pBoot = 0, pFirst = 0, pInfo = null, plan = {}, lastLen = 0;
+  var cache = {}, nid = 0, curNid = '', gen = 0, cn = 0, seekT = 0, pSpeed = 18, pSamples = 0, pPatched = 0, pBoot = 0, pFirst = 0, pInfo = null, pNativeMs = 0, plan = {}, lastLen = 0;
   var SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
   function cancelAll(){
     gen++;
@@ -692,7 +659,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   var mainKit = null;
   function piperPredict(text, id, l){
-    if (npOK) return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: text, voiceId: id })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.');
+    if (pnOk) return withTimeout(PN.synthesize({ id: id, text: text }).then(function(r){ pNativeMs = r.ms || 0; return b64wav(r); }), 120000, PIPER_TO);
     var w = getWorker(l || 0), n = ++pwId;
     var main = function(){
       mainKit = mainKit || piperKit();
@@ -716,11 +683,9 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   function perf(){
     var el = $('#pperf'); if (!el) return;
-    var a = ['نسخه ۵', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
-    if (npOK) a.push('موتور بومی (sherpa-onnx)');
-    if (npErr && !npOK) a.push('پلاگین بومی در این APK فعال نیست: ' + npErr);
-    if (pwBad && !npOK) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
-    if (pPatched) a.push(pPatched === 1 ? 'بهینه‌سازی: فعال' : 'بهینه‌سازی: غیرفعال');
+    var a = [], r = 0;
+    if (pwBad) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
+    if (pPatched) a.push(pPatched === 3 ? 'Piper بومی (سریع)' : pPatched === 1 ? 'بهینه‌سازی: فعال' : 'بهینه‌سازی: غیرفعال');
     if (pBoot) a.push('بارگذاری موتور: ' + nf.format(Math.round(pBoot / 1000)) + ' ثانیه');
     if (pFirst) a.push('اولین ساخت: ' + nf.format(Math.round(pFirst)) + ' ثانیه');
     if (pInfo) {
@@ -728,6 +693,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       a.push('آخرین ساخت: ' + nf.format(pInfo.n) + ' نویسه در ' + nf.format(Math.round(pInfo.sec * 10) / 10) + ' ثانیه (صدا ' + nf.format(Math.round(pInfo.aud * 10) / 10) + ' ثانیه، ' + nf.format(Math.round(r * 10) / 10) + '× زمان واقعی)');
       if (r > 1.1) a.push('این گوشی از پخش زنده کندتر است');
     }
+    if (pNativeMs) a.push('زمان موتور بومی: ' + nf.format(pNativeMs) + ' میلی‌ثانیه');
     el.textContent = a.join(' — ');
   }
   function firstLim(){ return Math.max(40, Math.min(72, Math.round(pSpeed * 2.5))); }
@@ -799,7 +765,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   function piperFetch(c){
     var v = currentVoice();
-    if (!window.PiperTTS || !v) return Promise.reject(new Error('موتور Piper در این نسخه موجود نیست.'));
+    if ((!window.PiperTTS && !pnOk) || !v) return Promise.reject(new Error('موتور Piper در این نسخه موجود نیست.'));
     if (!/[\p{L}\p{N}]/u.test(c.text)) return Promise.resolve(SILENT);
     var ck = ['piper', v.id, c.start, c.end].join('|');
     if (cache[ck]) return cache[ck];
@@ -839,7 +805,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     if (engine() !== 'piper') return;
     var v = currentVoice();
     if (!v) return;
-    ensurePiper().then(function(ok){ return ok ? PiperTTS.stored() : []; }).then(function(a){
+    ensurePiper().then(function(ok){ return ok ? pStored() : []; }).then(function(a){
       if ((a || []).indexOf(v.id) < 0) return;
       if (!sents.length) { piperFetch({ start: -1, end: -1, text: 'سلام.' }).catch(function(){}); return; }
       var c0 = planChunk(0, true); piperFetch(c0).catch(function(){}); prefetchPiper(c0.end + 1, 1, c0.text.length);
