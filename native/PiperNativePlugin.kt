@@ -35,7 +35,7 @@ import java.util.concurrent.Executors
 
 /**
  * Piper (VITS) فارسی به‌صورت بومی با sherpa-onnx.
- * متدها: ping, stored, download({id, urls}), synthesize({id, text}), remove({id})
+ * متدها: ping, stored, download({id, urls} یا {id, files:[{name, urls}]}), synthesize({id, text, noiseScale?, noiseScaleW?, speed?}), remove({id})
  * پوشهٔ دلخواه کاربر: pickFolder, folder, exportVoices({ids?}), importVoices({ids?, overwrite?})
  * رویداد: "progress" {loaded, total}
  *
@@ -48,6 +48,7 @@ class PiperNativePlugin : Plugin() {
     private val cpu = Executors.newSingleThreadExecutor()    // ساخت صدا (پشت‌سرهم)
     private var tts: OfflineTts? = null
     private var ttsId: String? = null
+    private var ttsKey: String? = null   // شناسهٔ صدا + پارامترهای سبک؛ با تغییر آن موتور از نو ساخته می‌شود
     private var sampleRate = 22050
 
     private fun root(): File {
@@ -210,6 +211,8 @@ class PiperNativePlugin : Plugin() {
     @PluginMethod
     fun download(call: PluginCall) {
         val id = call.getString("id") ?: return call.reject("id")
+        val files = call.getArray("files")
+        if (files != null && files.length() > 0) return downloadFiles(call, id, files)   // مدل‌های بدون آرشیو (مثل Coqui)
         val urls = call.getArray("urls")?.toList<String>() ?: emptyList()
         if (urls.isEmpty()) return call.reject("urls")
         io.execute {
@@ -231,6 +234,35 @@ class PiperNativePlugin : Plugin() {
             } catch (e: Exception) {
                 voiceDir(id).deleteRecursively()
                 call.reject("استخراج ناموفق: ${e.message}")
+            }
+        }
+    }
+
+    /** دانلود چند فایل جدا (مثلاً model.onnx و tokens.txt) بدون آرشیو؛ files = [{name, urls:[...]}] */
+    private fun downloadFiles(call: PluginCall, id: String, files: org.json.JSONArray) {
+        io.execute {
+            try {
+                val dst = voiceDir(id)
+                dst.deleteRecursively(); dst.mkdirs()
+                for (i in 0 until files.length()) {
+                    val o = files.getJSONObject(i)
+                    val name = o.getString("name").replace(Regex("[^A-Za-z0-9_.-]"), "_")
+                    val us = o.getJSONArray("urls")
+                    val tmp = File(dst, "$name.part")
+                    var lastErr: Exception? = null
+                    for (k in 0 until us.length()) {
+                        try { fetch(us.getString(k), tmp); lastErr = null; break } catch (e: Exception) { lastErr = e }
+                    }
+                    if (lastErr != null) throw lastErr
+                    if (!tmp.renameTo(File(dst, name))) throw IllegalStateException("ذخیرهٔ فایل $name ممکن نشد")
+                }
+                if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists())
+                    throw IllegalStateException("فایل‌های مدل کامل نیست")
+                okMark(id).writeText("1")
+                call.resolve()
+            } catch (e: Throwable) {
+                voiceDir(id).deleteRecursively()
+                call.reject("دانلود ناموفق: ${e.message}")
             }
         }
     }
@@ -287,15 +319,21 @@ class PiperNativePlugin : Plugin() {
     private fun findOnnx(dir: File): File? =
         findRoot(dir).listFiles()?.firstOrNull { it.name.endsWith(".onnx") }
 
-    private fun engineFor(id: String): OfflineTts {
-        if (tts != null && ttsId == id) return tts!!
-        tts?.release(); tts = null; ttsId = null
+    private fun engineFor(id: String, ns: Float, nw: Float): OfflineTts {
+        val key = "$id|$ns|$nw"
+        if (tts != null && ttsId == id && ttsKey == key) return tts!!
+        tts?.release(); tts = null; ttsId = null; ttsKey = null
         val r = findRoot(voiceDir(id))
         val onnx = findOnnx(voiceDir(id)) ?: throw IllegalStateException("مدل پیدا نشد؛ دوباره دانلود کنید")
+        val espeak = File(r, "espeak-ng-data")
         val vits = OfflineTtsVitsModelConfig(
             model = onnx.absolutePath,
             tokens = File(r, "tokens.txt").absolutePath,
-            dataDir = File(r, "espeak-ng-data").absolutePath,
+            // مدل‌های Piper/Mimic3 به espeak نیاز دارند؛ مدل‌های Coqui (مثل نگار) ندارند
+            dataDir = if (espeak.isDirectory) espeak.absolutePath else "",
+            // noiseScale/noiseScaleW: کمتر = یکنواخت‌تر و پایدارتر، بیشتر = پرحالت‌تر ولی ناپایدارتر
+            noiseScale = ns,
+            noiseScaleW = nw,
         )
         val cfg = OfflineTtsConfig(
             model = OfflineTtsModelConfig(
@@ -308,7 +346,7 @@ class PiperNativePlugin : Plugin() {
         )
         // assetManager = null → مدل از مسیر فایل خوانده می‌شود
         val t = OfflineTts(assetManager = null, config = cfg)
-        tts = t; ttsId = id; sampleRate = t.sampleRate()
+        tts = t; ttsId = id; ttsKey = key; sampleRate = t.sampleRate()
         return t
     }
 
@@ -316,10 +354,13 @@ class PiperNativePlugin : Plugin() {
     fun synthesize(call: PluginCall) {
         val id = call.getString("id") ?: return call.reject("id")
         val text = call.getString("text") ?: return call.reject("text")
+        val ns = (call.getFloat("noiseScale") ?: 0.667f).coerceIn(0.2f, 1.2f)
+        val nw = (call.getFloat("noiseScaleW") ?: 0.8f).coerceIn(0.2f, 1.2f)
+        val sp = (call.getFloat("speed") ?: 1.0f).coerceIn(0.6f, 1.6f)   // <1 کندتر (سرعت هوشمند)
         cpu.execute {
             try {
                 if (!okMark(id).exists()) throw IllegalStateException("این صدا هنوز دانلود نشده است")
-                val a = engineFor(id).generate(text = text, sid = 0, speed = 1.0f)
+                val a = engineFor(id, ns, nw).generate(text = text, sid = 0, speed = sp)
                 val wav = toWav(a.samples, a.sampleRate)
                 call.resolve(JSObject().put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", a.sampleRate))
             } catch (e: Throwable) {
