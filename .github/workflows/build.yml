@@ -35,8 +35,25 @@ jobs:
         run: bash native/inject-native.sh
       - name: Sync
         run: npx cap sync android
+      - name: Patch Gradle repos
+        run: |
+          sed -i "s#^\([[:space:]]*\)google()#\1google()\n\1maven { url 'https://maven-central.storage-download.googleapis.com/maven2/' }#" android/build.gradle
+          grep -n "google()\|mavenCentral\|storage-download\|google-services" android/build.gradle || true
+      - name: Check Maven access
+        continue-on-error: true
+        run: |
+          P=org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.9.0/kotlin-stdlib-jdk8-1.9.0.pom
+          for U in https://repo.maven.apache.org/maven2 https://maven-central.storage-download.googleapis.com/maven2 https://repo1.maven.org/maven2; do
+            echo "$U -> $(curl -s -o /dev/null -w '%{http_code}' --max-time 30 $U/$P)"
+          done
       - name: Build debug APK
-        run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon --stacktrace
+        run: |
+          cd android && chmod +x gradlew
+          for i in 1 2 3; do
+            ./gradlew assembleDebug --no-daemon --stacktrace --refresh-dependencies && exit 0
+            sleep 15
+          done
+          exit 1
       - name: Copy APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk PdfVoiceReader.apk
       - name: Upload APK (run page)
