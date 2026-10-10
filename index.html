@@ -70,7 +70,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
 <div class="wrap">
   <div>
     <h1>خوانندهٔ صوتی PDF</h1>
-    <p class="sub">فایل PDF را انتخاب کنید تا متنش با صدای دستگاه خوانده شود.</p>
+    <p class="sub">فایل PDF را انتخاب کنید تا متنش با صدای آفلاین Piper خوانده شود.</p>
   </div>
 
   <div class="card">
@@ -82,53 +82,29 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     <div id="status" aria-live="polite"></div>
   </div>
 
+  <div class="card" id="dlbanner" hidden>
+    <b>صدای فارسی هنوز دانلود نشده است</b>
+    <p class="hint" style="margin:6px 0 10px">برای شروع، یک‌بار صدای Piper (حدود ۶۰ مگابایت) را دانلود کنید. بعد از آن بدون اینترنت کار می‌کند.</p>
+    <button class="btn primary" id="dlgo" type="button">دانلود صدای فارسی</button>
+    <p class="hint" id="dlmsg" style="margin-top:8px"></p>
+  </div>
+
   <div class="card">
-    <div id="nosupport" class="warn" hidden>مرورگر شما از تبدیل متن به گفتار پشتیبانی نمی‌کند. از Chrome یا Edge یا Safari استفاده کنید.</div>
-    <div id="novoice" class="warn" hidden style="margin-bottom:12px">هیچ صدای فارسی روی این دستگاه پیدا نشد. صداهای سایر زبان‌ها نمایش داده شده‌اند، ولی فارسی را درست نمی‌خوانند. در تنظیمات سیستم‌عامل (Text-to-speech) می‌توانید صدای فارسی نصب کنید.</div>
-    <div class="row">
-      <label for="engine"><span>موتور صدا</span></label>
-      <select id="engine">
-        <option value="device">صدای دستگاه (رایگان)</option>
-        <option value="azure">صدای ابری Azure (کیفیت بالا)</option>
-        <option value="piper">صدای آفلاین Piper (رایگان)</option>
-      </select>
-    </div>
-    <div id="azurebox" class="row" hidden>
-      <input id="akey" type="password" placeholder="Azure Speech key" autocomplete="off">
-      <input id="aregion" type="text" placeholder="Region (e.g. westeurope)" autocomplete="off">
-      <p class="hint">صداهای فارسی: Dilara (زن) و Farid (مرد). کلید را از منبع Speech در پورتال Azure بگیرید. کلید فقط روی همین دستگاه ذخیره می‌شود و مستقیم به Azure می‌رود. این حالت به اینترنت نیاز دارد و هزینه بر اساس مصرف است.</p>
-    </div>
-    <div id="piperbox" class="row" hidden>
+    <div id="piperbox" class="row">
       <button class="btn" id="pdl" type="button">دانلود صدای فارسی</button>
       <p class="hint" id="pstat"></p>
       <p class="hint" id="pperf"></p>
       <label class="chk"><input type="checkbox" id="enh" checked> بهبود کیفیت صدا (وضوح و یکنواختی بلندی)</label>
-      <p class="hint">کاملاً رایگان و بدون سقف است و بعد از دانلود بدون اینترنت کار می‌کند. سرعت اعمال می‌شود ولی زیر و بمی در این حالت اثر ندارد. ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
+      <p class="hint">کاملاً رایگان و بدون سقف است و بعد از دانلود بدون اینترنت کار می‌کند. ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
     </div>
-    <div class="two row">
-      <div>
-        <label for="gender"><span>نوع صدا</span></label>
-        <select id="gender">
-          <option value="all">همه</option>
-          <option value="f">زن</option>
-          <option value="m">مرد</option>
-        </select>
-      </div>
-      <div>
-        <label for="voice"><span>گوینده</span></label>
-        <select id="voice"></select>
-      </div>
+    <div class="row">
+      <label for="voice"><span>گوینده</span></label>
+      <select id="voice"></select>
     </div>
-    <p class="hint" style="margin-bottom:12px">مرورگر جنسیت صدا را اعلام نمی‌کند؛ تشخیص زن/مرد بر اساس نام صداست و ممکن است برای بعضی صداها «نامشخص» باشد.</p>
     <div class="row">
       <label for="rate"><span>سرعت</span><span id="rateV"></span></label>
       <input type="range" id="rate" min="0.5" max="2" step="0.1" value="1">
     </div>
-    <div class="row">
-      <label for="pitch"><span>زیر و بمی</span><span id="pitchV"></span></label>
-      <input type="range" id="pitch" min="0.5" max="1.5" step="0.1" value="1">
-    </div>
-    <label class="chk"><input type="checkbox" id="allLangs"> نمایش صداهای همهٔ زبان‌ها</label>
   </div>
 
   <details class="card">
@@ -586,7 +562,6 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
 (function(){
   var $ = function(s){ return document.querySelector(s); };
   var nf = new Intl.NumberFormat('fa-IR');
-  var synth = window.speechSynthesis;
   var sents = [], idx = 0, playing = false, token = 0, voices = [], curEl = null;
 
   if (window.pdfjsLib) {
@@ -597,81 +572,33 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   function sget(k, d){ try { var v = localStorage.getItem(k); return v === null ? d : v; } catch(e){ return d; } }
   function sset(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
   $('#rate').value = sget('rate', '1');
-  $('#pitch').value = sget('pitch', '1');
-  $('#gender').value = sget('gender', 'all');
   function showVals(){
     $('#rateV').textContent = nf.format(+$('#rate').value) + '×';
-    $('#pitchV').textContent = nf.format(+$('#pitch').value);
   }
   showVals();
 
   function status(t){ $('#status').textContent = t || ''; }
 
   /* ---------- voices ---------- */
-  var TTSP = null, nativeVoices = [];
-  try {
-    if (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) TTSP = Capacitor.registerPlugin('TextToSpeech');
-  } catch (e) {}
-  var isNative = !!TTSP;
-  var AZ = [
-    { id: 'fa-IR-DilaraNeural', name: 'Dilara', lang: 'fa-IR', gender: 'f', fa: true },
-    { id: 'fa-IR-FaridNeural', name: 'Farid', lang: 'fa-IR', gender: 'm', fa: true }
-  ];
+  var isNative = false;
+  try { isNative = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()); } catch (e) {}
   var piperVoices = [
     { id: 'fa_IR-amir-medium', name: 'amir (medium)', lang: 'fa-IR', gender: '?', fa: true },
     { id: 'fa_IR-gyro-medium', name: 'gyro (medium)', lang: 'fa-IR', gender: '?', fa: true }
   ];
-  var FEM = /female|woman|dilara|zira|hazel|samantha|victoria|karen|moira|tessa|fiona|susan|heera|aria|jenny|sara|zuzana|elena|katya|milena|ava/i;
-  var MALE = /\bmale\b|farid|david|mark|george|daniel|alex|fred|ravi|guy|ryan|thomas|jorge|diego|yuri|pavel/i;
-  function genderOf(name){
-    if (FEM.test(name)) return 'f';
-    if (MALE.test(name)) return 'm';
-    return '?';
-  }
-  function engine(){ return $('#engine').value; }
-  function canSpeak(){ return engine() !== 'device' || isNative || !!synth; }
-  var se = sget('engine', 'device'); if (se === 'azure' || se === 'piper') $('#engine').value = se;
-  $('#akey').value = sget('akey', '');
-  $('#aregion').value = sget('aregion', '');
-
-  function deviceVoices(){
-    var raw = [];
-    if (isNative) {
-      raw = nativeVoices.map(function(v, i){ return { id: String(i), name: v.name || v.voiceURI || ('voice ' + i), lang: v.lang || '' }; });
-    } else if (synth) {
-      raw = (synth.getVoices() || []).map(function(v){ return { id: v.voiceURI, name: v.name, lang: v.lang }; });
-    }
-    return raw.map(function(v){
-      return { id: v.id, name: v.name, lang: v.lang, gender: genderOf(v.name), fa: /^fa/i.test(v.lang) };
-    });
-  }
-  function allVoices(){ var e = engine(); return e === 'azure' ? AZ : e === 'piper' ? piperVoices : deviceVoices(); }
+  function engine(){ return 'piper'; }
+  function canSpeak(){ return true; }
+  function allVoices(){ return piperVoices; }
   function renderVoices(){
-    var az = engine() === 'azure', pp = engine() === 'piper', cloud = az || pp;
-    $('#azurebox').hidden = !az;
-    $('#piperbox').hidden = !pp;
-    $('#allLangs').parentNode.hidden = cloud;
-    $('#nosupport').hidden = cloud || isNative || !!synth;
-    var sel = $('#voice');
-    var prev = sel.value || sget('voice', '');
-    var all = allVoices();
-    var fa = all.filter(function(v){ return v.fa; });
-    var useAll = $('#allLangs').checked || fa.length === 0;
-    $('#novoice').hidden = cloud || !(fa.length === 0 && all.length > 0);
-    var list = useAll ? all : fa;
-    var g = $('#gender').value;
-    if (g !== 'all') {
-      list = list.filter(function(v){ return v.gender === g || v.gender === '?'; });
-    }
+    var sel = $('#voice'), prev = sel.value || sget('voice', '');
     sel.textContent = '';
-    list.forEach(function(v){
+    piperVoices.forEach(function(v){
       var o = document.createElement('option');
-      o.value = v.id;
-      o.textContent = v.name + ' (' + v.lang + ') — ' + (v.gender === 'f' ? 'زن' : v.gender === 'm' ? 'مرد' : 'نامشخص');
+      o.value = v.id; o.textContent = v.name;
       sel.appendChild(o);
     });
-    if (prev && list.some(function(v){ return v.id === prev; })) sel.value = prev;
-    if (pp) updatePiperStatus();
+    if (prev && piperVoices.some(function(v){ return v.id === prev; })) sel.value = prev;
+    updatePiperStatus();
   }
   function currentVoice(){
     var id = $('#voice').value, all = allVoices();
@@ -679,20 +606,26 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     return null;
   }
   function loadVoices(){ renderVoices(); }
-  function loadNative(){
-    if (!TTSP) return;
-    TTSP.getSupportedVoices().then(function(r){ nativeVoices = (r && r.voices) || []; renderVoices(); }).catch(function(){});
-  }
-  loadNative();
-  setTimeout(loadNative, 1500);
 
   var piperLoading = null, piperVoicesLoaded = false;
   var PN = null, pnOk = false, MODEL_BASE = 'https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-';
   try { if (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) PN = Capacitor.registerPlugin('PiperNative'); } catch (e) {}
+  var APP_VER = 6, pnState = PN ? 'wait' : 'none', pnErr = '', pnInfo = null;
   function initNative(){
-    if (!PN) return Promise.resolve(false);
+    if (!PN) { perf(); return Promise.resolve(false); }
     if (pnOk) return Promise.resolve(true);
-    return PN.ping().then(function(){ pnOk = true; pPatched = 3; perf(); renderVoices(); return true; }).catch(function(){ return false; });
+    var tries = 0;
+    function go(){
+      return PN.ping().then(function(r){
+        pnOk = true; pnState = 'ok'; pnInfo = r || {}; pPatched = 3; perf(); renderVoices(); return true;
+      }, function(e){
+        pnErr = (e && e.message) ? e.message : String(e);
+        if (++tries < 3) return new Promise(function(r){ setTimeout(r, 1200); }).then(go);
+        pnState = 'fail'; perf(); return false;
+      });
+    }
+    pnState = 'wait'; perf();
+    return go();
   }
   function pStored(){ return pnOk ? PN.stored().then(function(r){ return (r && r.ids) || []; }) : PiperTTS.stored(); }
   function nDownload(id, cb){
@@ -732,13 +665,13 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     var st = $('#pstat'), btn = $('#pdl');
     if (!window.PiperTTS) st.textContent = 'در حال بارگذاری موتور Piper…';
     ensurePiper().then(function(ok){
-      if (!ok) { st.textContent = 'موتور Piper بارگذاری نشد. اینترنت یا VPN را بررسی کنید.'; btn.hidden = true; return; }
+      if (!ok) { st.textContent = 'موتور Piper بارگذاری نشد. اینترنت یا VPN را بررسی کنید.'; btn.hidden = true; $('#dlbanner').hidden = true; return; }
       loadPiper();
       return pStored().then(function(a){
         var v = currentVoice();
         var done = !!v && (a || []).indexOf(v.id) >= 0;
         st.textContent = done ? 'صدا دانلود شده و آفلاین کار می‌کند.' : 'این صدا هنوز دانلود نشده است (حدود ۶۰ مگابایت؛ فقط بار اول اینترنت لازم است).';
-        btn.hidden = done;
+        btn.hidden = done; $('#dlbanner').hidden = done;
         if (done) warmPiper();
       });
     }).catch(function(){ st.textContent = ''; });
@@ -746,7 +679,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   $('#pdl').onclick = function(){
     var v = currentVoice(), btn = $('#pdl'), st = $('#pstat');
     if (!v || (!window.PiperTTS && !pnOk)) return;
-    btn.disabled = true;
+    btn.disabled = true; $('#dlgo').disabled = true;
     (pnOk ? nDownload : PiperTTS.download)(v.id, function(pr){
       if (pr && pr.total) st.textContent = 'در حال دانلود: ' + nf.format(Math.round(pr.loaded * 100 / pr.total)) + '٪';
     }).then(function(){
@@ -754,9 +687,8 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       return piperPredict('سلام.', v.id);
     }).then(function(){ updatePiperStatus(); warmPiper(); }).catch(function(e){
       st.textContent = 'دانلود ناموفق بود: ' + (e && e.message ? e.message : e) + ' (ممکن است به VPN نیاز باشد)';
-    }).then(function(){ btn.disabled = false; });
+    }).then(function(){ btn.disabled = false; $('#dlgo').disabled = false; });
   };
-  if (synth && !isNative) { synth.onvoiceschanged = loadVoices; }
   loadVoices();
   setTimeout(loadVoices, 600);
   initNative();
@@ -859,8 +791,6 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   var SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
   function cancelAll(){
     gen++;
-    if (synth) synth.cancel();
-    if (isNative) { try { TTSP.stop().catch(function(){}); } catch (e) {} }
     try { audio.onended = null; audio.onerror = null; audio.ontimeupdate = null; audio.pause(); } catch (e) {}
   }
   function clearCache(){
@@ -871,37 +801,6 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     });
   }
   function esc(t){ return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-  function azureFetch(i){
-    var v = currentVoice();
-    var key = $('#akey').value.trim(), reg = $('#aregion').value.trim();
-    if (!v || !key || !reg) return Promise.reject(new Error('کلید و منطقهٔ Azure را وارد کنید.'));
-    if (!/^[a-z0-9-]+$/i.test(reg)) return Promise.reject(new Error('نام منطقه نادرست است.'));
-    var ck = [v.id, $('#rate').value, $('#pitch').value, i].join('|');
-    if (cache[ck]) return cache[ck];
-    var r = Math.round((+$('#rate').value - 1) * 100), pt = Math.round((+$('#pitch').value - 1) * 100);
-    var ssml = '<speak version="1.0" xml:lang="fa-IR" xmlns="http://www.w3.org/2001/10/synthesis"><voice name="' + v.id +
-      '"><prosody rate="' + (r >= 0 ? '+' : '') + r + '%" pitch="' + (pt >= 0 ? '+' : '') + pt + '%">' + esc(speechOf(i, 'azure')) + '</prosody></voice></speak>';
-    var send = function(n){ return fetch('https://' + reg + '.tts.speech.microsoft.com/cognitiveservices/v1', {
-      method: 'POST',
-      headers: {
-        'Ocp-Apim-Subscription-Key': key,
-        'Content-Type': 'application/ssml+xml',
-        'X-Microsoft-OutputFormat': 'audio-24khz-96kbitrate-mono-mp3'
-      },
-      body: ssml
-    }).then(function(res){
-      if ((res.status === 429 || res.status >= 500) && n < 3) {
-        var w = Math.min((+res.headers.get('Retry-After') || (n + 1) * 1.5) * 1000, 8000);
-        return new Promise(function(r){ setTimeout(r, w); }).then(function(){ return send(n + 1); });
-      }
-      if (!res.ok) throw new Error('Azure ' + res.status + (res.status === 401 || res.status === 403 ? ' (کلید یا منطقه نادرست است)' : ''));
-      return res.blob();
-    }); };
-    var pr = send(0).then(function(b){ return URL.createObjectURL(b); });
-    pr.catch(function(){ delete cache[ck]; });
-    cache[ck] = pr;
-    return pr;
-  }
   var LN = [{ q: Promise.resolve(), b: 0 }];
   function withTimeout(pr, ms, msg){
     return new Promise(function(res, rej){
@@ -1072,9 +971,18 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   function perf(){
     var el = $('#pperf'); if (!el) return;
-    var a = [], r = 0;
+    var a = [], r = 0, cap = !!window.Capacitor;
+    a.push('نسخه ' + nf.format(APP_VER));
+    a.push(isNative ? 'اپ اندروید' : 'مرورگر');
+    a.push('Capacitor: ' + (cap ? 'بله' : 'خیر'));
+    if (isNative) a.push('android/bridge: ' + (window.androidBridge ? 'هست' : 'نیست'));
+    if (PN) {
+      a.push('پلاگین: ' + (pnState === 'ok' ? 'متصل' : pnState === 'wait' ? 'در انتظار' : 'پاسخ نمی‌دهد (' + (pnErr || 'نامشخص') + ')'));
+      if (pnState === 'ok') a.push('موتور بومی (sherpa-onnx' + (pnInfo && pnInfo.sherpa === false ? '؛ بارگذاری ناموفق: ' + (pnInfo.error || '') : ') — ' + (pnInfo && pnInfo.abi ? pnInfo.abi : '')) + (pnInfo && pnInfo.sherpa === false ? ')' : ''));
+      if (pnState === 'fail') a.push('برنامهٔ اندروید باید با افزونهٔ PiperNative ساخته شود (راهنمای piper-native-android)');
+    }
     if (pwBad) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
-    if (pPatched) a.push(pPatched === 3 ? 'Piper بومی (سریع)' : pPatched === 1 ? 'بهینه‌سازی: فعال' : 'بهینه‌سازی: غیرفعال');
+    if (pPatched && pPatched !== 3) a.push(pPatched === 1 ? 'بهینه‌سازی: فعال' : 'بهینه‌سازی: غیرفعال');
     if (pBoot) a.push('بارگذاری موتور: ' + nf.format(Math.round(pBoot / 1000)) + ' ثانیه');
     if (pFirst) a.push('اولین ساخت: ' + nf.format(Math.round(pFirst)) + ' ثانیه');
     if (pInfo) {
@@ -1233,24 +1141,6 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   function speakNow(){
     var my = token, eng = engine(), v = currentVoice();
-    if (eng === 'azure') {
-      azureFetch(idx).then(function(url){
-        if (my !== token || !playing) return;
-        wireFx(false);
-        audio.onended = function(){ gap(my); };
-        audio.onerror = function(){ fail(my, 'پخش صدا ناموفق بود.'); };
-        audio.src = url;
-        audio.defaultPlaybackRate = 1; audio.playbackRate = 1;
-        audio.play().catch(function(e){ fail(my, 'پخش صدا ناموفق بود: ' + e.message); });
-        if (idx + 1 < sents.length) azureFetch(idx + 1).catch(function(){});
-        trimCache(idx);
-      }).catch(function(e){
-        var m = e && e.message ? e.message : String(e);
-        if (m === 'Failed to fetch') m = 'اتصال به Azure ممکن نیست. اینترنت را بررسی کنید.';
-        fail(my, 'خطا در صدای ابری: ' + m);
-      });
-      return;
-    }
     if (eng === 'piper') {
       var c = planChunk(idx, cn === 0, lastLen);
       cn++; lastLen = c.text.length;
@@ -1274,30 +1164,6 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       });
       return;
     }
-    if (isNative) {
-      var vi = v ? parseInt(v.id, 10) : -1;
-      var opts = { text: speechOf(idx), lang: v && v.lang ? v.lang : 'fa-IR', rate: +$('#rate').value, pitch: +$('#pitch').value, volume: 1.0, queueStrategy: 0 };
-      if (vi >= 0) opts.voice = vi;
-      TTSP.speak(opts).then(function(){ gap(my); }).catch(function(e){
-        fail(my, 'خطا در صدای دستگاه: ' + (e && e.message ? e.message : ''));
-      });
-      return;
-    }
-    var u = curUtt = new SpeechSynthesisUtterance(speechOf(idx, 'device'));
-    if (v) {
-      var all = synth.getVoices() || [];
-      for (var k = 0; k < all.length; k++) if (all[k].voiceURI === v.id) { u.voice = all[k]; break; }
-      u.lang = v.lang;
-    } else { u.lang = 'fa-IR'; }
-    u.rate = +$('#rate').value;
-    u.pitch = +$('#pitch').value;
-    u.onend = function(){ gap(my); };
-    u.onerror = function(e){
-      if (my !== token) return;
-      if (e.error === 'canceled' || e.error === 'interrupted') return;
-      fail(my, 'خطا در پخش صدا: ' + e.error);
-    };
-    synth.speak(u);
   }
   function start(i){
     if (!sents.length || !canSpeak()) return;
@@ -1365,18 +1231,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     if (engine() === 'piper') { audio.defaultPlaybackRate = +this.value; audio.playbackRate = +this.value; return; }
     changed();
   };
-  $('#pitch').oninput = function(){ showVals(); sset('pitch', this.value); };
-  $('#pitch').onchange = function(){ if (engine() === 'piper') return; changed(); };
   $('#voice').onchange = function(){ sset('voice', this.value); if (engine() === 'piper') updatePiperStatus(); changed(); warmPiper(); };
-  $('#gender').onchange = function(){ sset('gender', this.value); renderVoices(); changed(); };
-  $('#allLangs').onchange = renderVoices;
-  $('#engine').onchange = function(){
-    var was = playing;
-    pause(); clearCache();
-    sset('engine', this.value);
-    renderVoices(); ui(); warmPiper();
-    if (was) start();
-  };
   $('#enh').checked = sget('enh', '1') !== '0';
   $('#enh').onchange = function(){ sset('enh', this.checked ? '1' : '0'); setupFx(); wireFx(engine() === 'piper'); };
   fixOn = sget('fxon', '1') !== '0'; fixHi = sget('fxhi', '1') !== '0';
@@ -1389,8 +1244,8 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     navigator.mediaSession.metadata = new MediaMetadata({ title: 'خوانندهٔ صوتی PDF' });
     [['play', function(){ if (!playing) start(); }], ['pause', function(){ if (playing) pause(); }], ['previoustrack', function(){ seekTo(idx - 1); }], ['nexttrack', function(){ seekTo(idx + 1); }]].forEach(function(a){ navigator.mediaSession.setActionHandler(a[0], a[1]); });
   } catch (e) {} }
-  $('#akey').onchange = function(){ sset('akey', this.value.trim()); clearCache(); };
-  $('#aregion').onchange = function(){ sset('aregion', this.value.trim()); clearCache(); };
+  $('#dlgo').onclick = function(){ if (!$('#pdl').disabled) $('#pdl').click(); };
+  try { new MutationObserver(function(){ $('#dlmsg').textContent = $('#pstat').textContent; }).observe($('#pstat'), { childList: true, characterData: true, subtree: true }); } catch (e) {}
 
   var drop = $('#drop'), fin = $('#file');
   drop.onclick = function(){ fin.click(); };
