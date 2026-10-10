@@ -73,6 +73,30 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
 #fixTip b{color:var(--accent)}
 html,body{overflow-x:hidden}
 #reader,#reader p{overflow-wrap:anywhere}
+input[type=range].rng{-webkit-appearance:none;appearance:none;background:transparent;height:34px;margin:0;padding:0;cursor:pointer}
+input[type=range].rng:disabled{opacity:.45;cursor:not-allowed}
+input[type=range].rng:focus{outline:none}
+input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:999px}
+.rng::-webkit-slider-runnable-track{height:8px;border-radius:999px;background:linear-gradient(to left,var(--accent) var(--p,0%),var(--line) var(--p,0%))}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;margin-top:-9px;border-radius:50%;background:var(--accent);border:3px solid var(--card);box-shadow:0 0 0 1px var(--accent),0 2px 6px rgba(0,0,0,.3);transition:transform .12s}
+.rng:active::-webkit-slider-thumb{transform:scale(1.18)}
+.rng::-moz-range-track{height:8px;border-radius:999px;background:var(--line)}
+.rng::-moz-range-progress{height:8px;border-radius:999px;background:var(--accent)}
+.rng::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent);border:3px solid var(--card);box-shadow:0 0 0 1px var(--accent)}
+.rwrap{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
+.rstep{width:44px;padding:0;font-size:1.3rem;line-height:1}
+.rchips{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.rchips .chip{min-height:38px;padding:2px 0;font-size:.82rem;text-align:center}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+#seekTip{position:fixed;inset-inline:12px;bottom:calc(215px + env(safe-area-inset-bottom,0px));max-width:736px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;box-shadow:0 8px 30px rgba(0,0,0,.35);z-index:11;font-size:.85rem;line-height:1.8;pointer-events:none}
+#seekTip b{color:var(--accent)}
+.lib-i{display:flex;gap:8px;align-items:stretch;margin-top:8px}
+.lib-open{flex:1;min-width:0;text-align:start;font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 12px;cursor:pointer;min-height:56px;line-height:1.6}
+.lib-open:hover{border-color:var(--accent)}
+.lib-open.cur{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.lib-open b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-open span{display:block;font-size:.78rem;color:var(--muted)}
+.lib-del{flex:none}
 </style>
 </head>
 <body>
@@ -90,6 +114,15 @@ html,body{overflow-x:hidden}
     <input type="file" id="file" accept="application/pdf,.pdf" hidden>
     <div id="status" aria-live="polite"></div>
   </div>
+
+  <details class="card" id="libBox" open>
+    <summary>کتابخانهٔ PDFهای ذخیره‌شده <span id="libCount"></span></summary>
+    <p class="hint" style="margin:8px 0">هر PDF که باز می‌کنید در حافظهٔ خود برنامه ذخیره می‌شود تا دفعهٔ بعد بدون انتخاب دوبارهٔ فایل، از همین‌جا باز شود. جای خواندن هر فایل هم حفظ می‌شود.</p>
+    <label class="chk"><input type="checkbox" id="libAuto" checked> ذخیرهٔ خودکار PDFهایی که باز می‌کنم</label>
+    <div id="libList"></div>
+    <p class="hint" id="libMsg" aria-live="polite" style="margin-top:8px"></p>
+    <button class="btn" id="libClear" type="button" style="width:100%;margin-top:8px" hidden>حذف همهٔ فایل‌های ذخیره‌شده</button>
+  </details>
 
   <div class="card">
     <div id="nosupport" class="warn" hidden>مرورگر شما از تبدیل متن به گفتار پشتیبانی نمی‌کند. از Chrome یا Edge یا Safari استفاده کنید.</div>
@@ -118,11 +151,34 @@ html,body{overflow-x:hidden}
     </div>
     <p class="hint" style="margin-bottom:12px">مرورگر جنسیت صدا را اعلام نمی‌کند؛ تشخیص زن/مرد بر اساس نام صداست و ممکن است برای بعضی صداها «نامشخص» باشد.</p>
     <div class="row">
-      <label for="rate"><span>سرعت</span><span id="rateV"></span></label>
-      <input type="range" id="rate" min="0.5" max="2" step="0.1" value="1">
+      <label for="rate"><span>سرعت گفتار</span><span id="rateV"></span></label>
+      <div class="rwrap">
+        <button class="btn sm rstep" id="rateDn" type="button" aria-label="کندتر">−</button>
+        <input type="range" class="rng" id="rate" min="0.4" max="2.5" step="0.05" value="1">
+        <button class="btn sm rstep" id="rateUp" type="button" aria-label="تندتر">+</button>
+      </div>
+      <div class="chips rchips" id="rateChips"></div>
+      <p class="hint">سرعت کمتر از ۱× با کشش خود گفتار (بدون تغییر زیر و بمی) ساخته می‌شود و حین کشیدن نوار همان لحظه اثر می‌کند.</p>
     </div>
     <label class="chk"><input type="checkbox" id="allLangs"> نمایش صداهای همهٔ زبان‌ها</label>
   </div>
+
+  <details class="card" id="bgmBox">
+    <summary>موسیقی پس‌زمینه برای گفتار</summary>
+    <p class="hint" style="margin:8px 0">یک فایل موسیقی از گوشی انتخاب کنید تا همزمان با خواندن، آرام و پیوسته پخش شود. برای اینکه گفتار واضح بماند، موسیقی همیشه کم‌صدا پخش می‌شود، نوسان بلندی‌اش یکدست می‌شود و فرکانس‌های اصلی گفتار در آن کم می‌شود. با «توقف موقت» موسیقی هم آرام خاموش می‌شود.</p>
+    <input type="file" id="bgmFile" accept="audio/*" hidden>
+    <div class="two row">
+      <button class="btn" id="bgmPick" type="button">انتخاب موسیقی</button>
+      <button class="btn" id="bgmDel" type="button" disabled>حذف موسیقی</button>
+    </div>
+    <p class="hint" id="bgmName" style="margin-bottom:12px"></p>
+    <label class="chk" style="margin-bottom:12px"><input type="checkbox" id="bgmOn" checked> پخش موسیقی همراه با خواندن</label>
+    <div class="row">
+      <label for="bgmLvl"><span>میزان موسیقی</span><span id="bgmLvlV"></span></label>
+      <input type="range" class="rng" id="bgmLvl" min="0" max="100" step="1" value="60">
+    </div>
+    <button class="btn" id="bgmTry" type="button" disabled style="width:100%">پیش‌شنیدن موسیقی</button>
+  </details>
 
   <details class="card" id="vfbox" hidden>
     <summary>پوشهٔ ذخیرهٔ صداها (ذخیره و بارگذاری صداهای دانلودشده)</summary>
@@ -231,11 +287,12 @@ html,body{overflow-x:hidden}
 </div>
 
 <div id="fixTip" hidden></div>
+<div id="seekTip" hidden></div>
 
 <div class="bar">
   <div class="bar-in">
     <div class="prog"><span id="pos">—</span><span id="pageInfo"></span></div>
-    <input type="range" id="seek" min="0" max="0" value="0" step="1" disabled aria-label="موقعیت در متن">
+    <input type="range" class="rng" id="seek" min="0" max="0" value="0" step="1" disabled aria-label="موقعیت در متن">
     <div class="btns">
       <button class="btn sm2" id="pgPrev" disabled aria-label="صفحهٔ قبل">صفحهٔ<br>قبل</button>
       <button class="btn sm2" id="prev" disabled aria-label="جملهٔ قبل">جملهٔ<br>قبل</button>
@@ -270,9 +327,13 @@ html,body{overflow-x:hidden}
   function sset(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
   $('#rate').value = sget('rate', '1');
   $('#gender').value = sget('gender', 'all');
+  function fillRng(el){ var mn = +el.min, mx = +el.max, p = mx > mn ? (el.value - mn) / (mx - mn) * 100 : 0; el.style.setProperty('--p', Math.max(0, Math.min(100, p)) + '%'); }
   function showVals(){
-    $('#rateV').textContent = nf.format(+$('#rate').value) + '×';
-    $('#spBtn').textContent = 'سرعت ' + nf.format(+$('#rate').value) + '×';
+    var r = +$('#rate').value, ch = document.querySelectorAll('#rateChips .chip'), i;
+    $('#rateV').textContent = nf.format(r) + '×';
+    $('#spBtn').textContent = 'سرعت ' + nf.format(r) + '×';
+    fillRng($('#rate'));
+    for (i = 0; i < ch.length; i++) ch[i].classList.toggle('on', Math.abs(+ch[i].dataset.v - r) < 0.001);
   }
   showVals();
 
@@ -818,6 +879,7 @@ html,body{overflow-x:hidden}
       curKey = 'pos:' + file.name + ':' + file.size;
       var sv = parseInt(sget(curKey, '0'), 10);
       if (sv > 0 && sv < sents.length) { idx = sv; mark(true); }
+      libSave(file, pdf.numPages, sents.length);
       try { if (navigator.mediaSession) navigator.mediaSession.metadata = new MediaMetadata({ title: file.name }); } catch (e) {}
       if (!sents.length) status(ocrHint().replace(/^ — /, '')); else status(file.name + ' — ' + nf.format(pdf.numPages) + ' صفحه، ' + nf.format(sents.length) + ' جمله' + (idx ? ' — ادامه از جملهٔ ' + nf.format(idx + 1) : '') + ocrHint());
       if (O.ocr !== 'off' && ocrTodo().length) runOcr();
@@ -873,18 +935,18 @@ html,body{overflow-x:hidden}
   }
 
   /* ---------- playback ---------- */
-  var audioA = new Audio(), audioB = new Audio(), audio = audioA, nxt = null;
+  var audioA = new Audio(), audioB = new Audio(), audio = audioA, nxt = null, curC = null;
   [audioA, audioB].forEach(function(a){ a.preservesPitch = true; a.webkitPreservesPitch = true; });
   var cache = {}, nid = 0, curNid = '', gen = 0, cn = 0, seekT = 0, pSpeed = 18, pSamples = 0, pPatched = 0, pBoot = 0, pFirst = 0, pInfo = null, plan = {}, lastLen = 0;
   var SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
   function cancelAll(){
-    gen++; nxt = null;
+    gen++; nxt = null; curC = null;
     [audioA, audioB].forEach(function(a){ try { a.onended = null; a.onerror = null; a.ontimeupdate = null; a.pause(); } catch (e) {} });
   }
   function clearCache(){
     gen++; plan = {};
     Object.keys(cache).forEach(function(k){
-      cache[k].then(function(u){ URL.revokeObjectURL(u); }).catch(function(){});
+      cache[k].then(dropRaw).catch(function(){});
       delete cache[k];
     });
   }
@@ -1392,7 +1454,7 @@ html,body{overflow-x:hidden}
   function trimCache(from){
     Object.keys(cache).forEach(function(k){
       var q = k.split('|'), e = +q[q.length - 1];
-      if (e < from - 2) { cache[k].then(function(u){ if (u !== SILENT) URL.revokeObjectURL(u); }).catch(function(){}); delete cache[k]; }
+      if (e < from - 2) { cache[k].then(dropRaw).catch(function(){}); delete cache[k]; }
     });
   }
   function wavHdr(sr, n){
@@ -1456,6 +1518,110 @@ html,body{overflow-x:hidden}
     if (!actx) return;
     try { fxSrcs.forEach(function(f){ f.disconnect(); f.connect(on && $('#enh').checked ? fxIn : actx.destination); }); if (actx.state !== 'running') actx.resume(); } catch (e) {}
   }
+  /* ---------- slow speech: pitch-preserving time-stretch (WSOLA), baked into the audio ---------- */
+  function wsolaCore(x, sr, rate){
+    var n = x.length, N = Math.round(sr * 0.032), i, j, m, k, tp, ref, best, bs, c, v, o;
+    N += N & 1;
+    var Hs = N >> 1, Ha = Hs * rate, D = Math.round(sr * 0.015), P = D, frames = Math.ceil(n / Ha) + 2;
+    var xp = new Float32Array(n + N + 2 * D + 8); xp.set(x, P);
+    var win = new Float32Array(N); for (i = 0; i < N; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / N);
+    var out = new Float32Array(frames * Hs + N + 8);
+    function sc(cand, rf, st){
+      var s = 0, e = 0, a, q;
+      for (q = 0; q < Hs; q += st) { a = xp[cand + P + q]; s += a * xp[rf + P + q]; e += a * a; }
+      return s / Math.sqrt(e + 1e-6);
+    }
+    for (j = 0; j < N; j++) out[j] = xp[P + j] * (j < Hs ? 1 : win[j]);
+    var prev = 0;
+    for (m = 1; m < frames; m++) {
+      tp = Math.round(m * Ha);
+      if (tp >= n) break;
+      ref = prev + Hs;
+      best = tp; bs = sc(tp, ref, 4);
+      for (c = tp - D; c <= tp + D; c += 2) { v = sc(c, ref, 4); if (v > bs) { bs = v; best = c; } }
+      k = best; bs = -Infinity;
+      for (c = best - 2; c <= best + 2; c++) {
+        if (c < tp - D || c > tp + D) continue;
+        v = sc(c, ref, 1); if (v > bs) { bs = v; k = c; }
+      }
+      o = m * Hs;
+      for (j = 0; j < N; j++) out[o + j] += xp[k + P + j] * win[j];
+      prev = k;
+    }
+    var L = Math.min(Math.round(n / rate), out.length), res = new Float32Array(L), f = Math.min(L, Math.round(sr * 0.01));
+    res.set(out.subarray(0, L));
+    for (i = 0; i < f; i++) res[L - 1 - i] *= i / f;
+    return res;
+  }
+  var swk = null, swN = 0, swWait = {};
+  function workerStretch(x, sr, rate){
+    return new Promise(function(res){
+      if (swk === null) {
+        try {
+          swk = new Worker(URL.createObjectURL(new Blob(['var wsola=' + wsolaCore.toString() + ';self.onmessage=function(e){var d=e.data;try{var o=wsola(new Float32Array(d.b),d.sr,d.r);self.postMessage({id:d.id,b:o.buffer},[o.buffer]);}catch(x){self.postMessage({id:d.id,e:1});}};'], { type: 'text/javascript' })));
+          swk.onmessage = function(e){ var d = e.data, w = swWait[d.id]; if (!w) return; delete swWait[d.id]; w(d.e ? null : new Float32Array(d.b)); };
+          swk.onerror = function(){ var q = swWait; swWait = {}; swk = false; Object.keys(q).forEach(function(id){ q[id](null); }); };
+        } catch (e) { swk = false; }
+      }
+      if (!swk) { res(null); return; }
+      var id = ++swN, cp = x.slice();
+      swWait[id] = res;
+      try { swk.postMessage({ id: id, b: cp.buffer, sr: sr, r: rate }, [cp.buffer]); } catch (e) { delete swWait[id]; res(null); }
+    });
+  }
+  function stretchPcm(x, sr, rate){
+    return workerStretch(x, sr, rate).then(function(o){
+      if (o) return o;
+      return new Promise(function(res){ setTimeout(function(){ try { res(wsolaCore(x, sr, rate)); } catch (e) { res(null); } }, 0); });
+    });
+  }
+  function wavPcm(ab){
+    var dv = new DataView(ab);
+    if (ab.byteLength < 48 || dv.getUint32(0) !== 0x52494646 || dv.getUint16(20, true) !== 1 || dv.getUint16(22, true) !== 1 || dv.getUint16(34, true) !== 16) return null;
+    var o = 12, ds = -1, dl = 0;
+    while (o + 8 <= ab.byteLength) {
+      var id = dv.getUint32(o), sz = dv.getUint32(o + 4, true);
+      if (id === 0x64617461) { ds = o + 8; dl = (!sz || sz > ab.byteLength - ds) ? ab.byteLength - ds : sz; break; }
+      o += 8 + sz + (sz & 1);
+    }
+    if (ds < 0) return null;
+    return { sr: dv.getUint32(24, true), x: new Int16Array(ab.slice(ds, ds + (dl >> 1) * 2)) };
+  }
+  function stretchBlob(blob, r){
+    return blob.arrayBuffer().then(function(ab){
+      var w = wavPcm(ab), i; if (!w || !w.x.length) return null;
+      var f = new Float32Array(w.x.length); for (i = 0; i < f.length; i++) f[i] = w.x[i] / 32768;
+      return stretchPcm(f, w.sr, r).then(function(o){
+        if (!o || !o.length) return null;
+        var out = new Int16Array(o.length), v;
+        for (i = 0; i < o.length; i++) { v = Math.round(o[i] * 32768); out[i] = v > 32767 ? 32767 : v < -32768 ? -32768 : v; }
+        return new Blob([wavHdr(w.sr, out.length * 2), out], { type: 'audio/wav' });
+      });
+    });
+  }
+  var rawBlob = {}, sTab = {};
+  function dropRaw(u){
+    if (!u || u === SILENT) return;
+    try { URL.revokeObjectURL(u); } catch (e) {}
+    delete rawBlob[u];
+    var t = sTab[u]; delete sTab[u];
+    if (t) Object.keys(t).forEach(function(k){ t[k].then(function(u2){ if (u2) { try { URL.revokeObjectURL(u2); } catch (e) {} } }).catch(function(){}); });
+  }
+  function bakeRate(){ var r = +$('#rate').value || 1; return r < 0.97 ? Math.round(r * 100) / 100 : 1; }
+  function piperAudio(c){
+    var r = bakeRate();
+    return piperFetch(c).then(function(url){
+      if (r === 1 || url === SILENT || !rawBlob[url]) return { url: url, baked: 1 };
+      var t = sTab[url] || (sTab[url] = {}), k = String(r);
+      if (!t[k]) t[k] = stretchBlob(rawBlob[url], r).then(function(b){ return b ? URL.createObjectURL(b) : ''; }).catch(function(){ return ''; });
+      return t[k].then(function(u){ return u ? { url: u, baked: r } : { url: url, baked: 1 }; });
+    });
+  }
+  function applyRate(el){
+    var r = +$('#rate').value || 1, v = Math.max(0.0625, Math.min(16, r / (el._b || 1)));
+    try { el.defaultPlaybackRate = v; el.playbackRate = v; } catch (e) {}
+  }
+
   function piperFetch(c){
     var v = currentVoice();
     if (!window.PiperTTS || !v) return Promise.reject(new Error('موتور Piper در این نسخه موجود نیست.'));
@@ -1479,7 +1645,7 @@ html,body{overflow-x:hidden}
         perf();
         return b;
       });
-    }).then(function(b){ return polish(b, c.mid).catch(function(){ return b; }); }).then(function(b){ return URL.createObjectURL(b); });
+    }).then(function(b){ return polish(b, c.mid).catch(function(){ return b; }); }).then(function(b){ var u = URL.createObjectURL(b); rawBlob[u] = b; return u; });
     L.q = pr.catch(function(){});
     pr.then(function(){ L.b--; }, function(){ L.b--; });
     pr.catch(function(){ delete cache[ck]; });
@@ -1525,7 +1691,7 @@ html,body{overflow-x:hidden}
   }
   function pauseMs(i){
     var q = sents[i]; if (!q) return 0;
-    var t = q.text, r = Math.max(0.5, +$('#rate').value || 1), ms,
+    var t = q.text, r = Math.max(0.4, +$('#rate').value || 1), ms,
         strong = /[.!?؟…]["»”')\]]*$/.test(t), soft = /[:؛;]$/.test(t);
     if (q.pe) ms = (!strong && !soft && t.length < 80) ? 720 : (/[?؟]["»”')\]]*$/.test(t) ? 470 : 410);
     else if (q.cont && !strong) ms = 60;
@@ -1543,23 +1709,23 @@ html,body{overflow-x:hidden}
     nxt = null;
     var ni = c.end + 1;
     if (ni >= sents.length || sents[c.end].pe) return;
-    var nc = planChunk(ni, false, c.text.length), el = audio === audioA ? audioB : audioA, n = { c: nc, el: el, my: my, url: '' };
+    var nc = planChunk(ni, false, c.text.length), el = audio === audioA ? audioB : audioA, n = { c: nc, el: el, my: my, url: '', b: 1 };
     nxt = n;
-    piperFetch(nc).then(function(url){
+    piperAudio(nc).then(function(a){
       if (nxt !== n || my !== token || !playing) return;
       el.onended = null; el.ontimeupdate = null; el.onerror = null;
       try { el.pause(); } catch (e) {}
-      var sp = +$('#rate').value;
-      el.src = url; el.defaultPlaybackRate = sp; el.playbackRate = sp; el.preload = 'auto';
+      el._b = a.baked; n.b = a.baked;
+      el.src = a.url; applyRate(el); el.preload = 'auto';
       try { el.load(); } catch (e) {}
-      n.url = url;
+      n.url = a.url;
     }).catch(function(){});
   }
-  function playEl(el, c, url, my){
+  function playEl(el, c, url, my, baked){
     var other = el === audioA ? audioB : audioA;
     other.onended = null; other.ontimeupdate = null; other.onerror = null;
-    audio = el;
-    var sp = +$('#rate').value; wireFx(true);
+    audio = el; curC = c; el._b = baked || 1;
+    wireFx(true);
     el.onended = function(){
       el.ontimeupdate = null;
       idx = c.end;
@@ -1568,7 +1734,7 @@ html,body{overflow-x:hidden}
         var go = function(){
           if (nxt !== n || my !== token || !playing) return;
           cn++; lastLen = n.c.text.length; idx = n.c.start; mark(true);
-          playEl(n.el, n.c, n.url, my);
+          playEl(n.el, n.c, n.url, my, n.b);
         }, pm = pauseMs(c.end);
         if (pm > 0) setTimeout(go, pm); else go();
         return;
@@ -1578,7 +1744,7 @@ html,body{overflow-x:hidden}
     el.onerror = function(){ fail(my, 'پخش صدا ناموفق بود.'); };
     el.ontimeupdate = function(){ followChunk(c); };
     if (el.src !== url) el.src = url;
-    el.defaultPlaybackRate = sp; el.playbackRate = sp;
+    applyRate(el);
     el.play().catch(function(e){ fail(my, 'پخش صدا ناموفق بود: ' + e.message); });
     trimCache(c.start);
     primeNext(c, my);
@@ -1589,11 +1755,11 @@ html,body{overflow-x:hidden}
     cn++; lastLen = c.text.length;
     status('در حال آماده‌سازی صدا…');
     var t0 = Date.now(), tk = setInterval(function(){ if (my !== token || !playing) clearInterval(tk); else status('در حال آماده‌سازی صدا (' + nf.format(c.text.length) + ' نویسه)… ' + nf.format(Math.round((Date.now() - t0) / 1000)) + ' ثانیه'); }, 1000);
-    ensurePiper().then(function(){ var pf = piperFetch(c); prefetchPiper(c.end + 1, 2, c.text.length); return pf; }).then(function(url){
+    ensurePiper().then(function(){ var pf = piperAudio(c); prefetchPiper(c.end + 1, 2, c.text.length); return pf; }).then(function(a){
       clearInterval(tk);
       if (my !== token || !playing) return;
       status('');
-      playEl(audio, c, url, my);
+      playEl(audio, c, a.url, my, a.baked);
     }).catch(function(e){
       clearInterval(tk);
       fail(my, 'خطا در صدای Piper: ' + (e && e.message ? e.message : e));
@@ -1629,12 +1795,12 @@ html,body{overflow-x:hidden}
       if (scroll) follow(curEl);
       $('#pos').textContent = 'جملهٔ ' + nf.format(idx + 1) + ' از ' + nf.format(sents.length);
       $('#pageInfo').textContent = 'صفحهٔ ' + nf.format(sents[idx].page);
-      $('#seek').max = sents.length - 1; $('#seek').value = idx;
+      $('#seek').max = sents.length - 1; $('#seek').value = idx; fillRng($('#seek'));
       if (curKey) sset(curKey, idx);
     } else {
       $('#pos').textContent = '—';
       $('#pageInfo').textContent = '';
-      $('#seek').max = 0; $('#seek').value = 0;
+      $('#seek').max = 0; $('#seek').value = 0; fillRng($('#seek'));
     }
   }
   function follow(el){
@@ -1654,8 +1820,163 @@ html,body{overflow-x:hidden}
     $('#rtools').hidden = !sents.length;
     $('#rtools2').hidden = !sents.length;
     $('#play').textContent = playing ? 'توقف موقت' : 'پخش';
+    musicSync();
     try { if (navigator.mediaSession) navigator.mediaSession.playbackState = playing ? 'playing' : 'paused'; } catch (e) {}
   }
+
+  /* ---------- PDF library (IndexedDB) ---------- */
+  function kvDel(k){
+    return kvOpen().then(function(db){ return db ? new Promise(function(res){ try { var tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').delete(k); tx.oncomplete = function(){ res(true); }; tx.onerror = tx.onabort = function(){ res(false); }; } catch (e) { res(false); } }) : false; });
+  }
+  var libQ = Promise.resolve();
+  function libLock(fn){ var p = libQ.then(fn); libQ = p.catch(function(){}); return p; }
+  function libIdx(){ return kvGet('lib:index').then(function(a){ return Array.isArray(a) ? a : []; }); }
+  function libMsg(t){ $('#libMsg').textContent = t || ''; }
+  function libSize(b){ return b >= 1048576 ? nf.format(Math.round(b / 104857.6) / 10) + ' مگابایت' : nf.format(Math.max(1, Math.round(b / 1024))) + ' کیلوبایت'; }
+  function libSave(file, pages, total){
+    return libLock(function(){
+      return libIdx().then(function(a){
+        var id = file.name + ':' + file.size, now = Date.now(), e = a.filter(function(x){ return x.id === id; })[0];
+        if (e) { e.opened = now; e.pages = pages; e.total = total; return kvSet('lib:index', a); }
+        if (!$('#libAuto').checked) return;
+        return kvSet('lib:f:' + id, file).then(function(ok){
+          if (!ok) throw new Error('store');
+          a.unshift({ id: id, name: file.name, size: file.size, added: now, opened: now, pages: pages, total: total });
+          return kvSet('lib:index', a).then(function(ok2){ if (!ok2) throw new Error('store'); try { navigator.storage.persist(); } catch (x) {} });
+        });
+      });
+    }).then(libRender).catch(function(){ libMsg('ذخیرهٔ این فایل در کتابخانه ممکن نشد (حافظه یا دسترسی مرورگر).'); });
+  }
+  function libRender(){
+    return libIdx().then(function(a){
+      var box = $('#libList'), tot = 0;
+      box.textContent = '';
+      $('#libCount').textContent = a.length ? '(' + nf.format(a.length) + ')' : '';
+      $('#libClear').hidden = !a.length;
+      if (!a.length) { var p = document.createElement('p'); p.className = 'empty'; p.textContent = 'هنوز فایلی ذخیره نشده است.'; box.appendChild(p); libMsg(''); return; }
+      a.sort(function(x, y){ return (y.opened || 0) - (x.opened || 0); });
+      a.forEach(function(e){
+        tot += e.size || 0;
+        var row = document.createElement('div'), ob = document.createElement('button'), nm = document.createElement('b'), inf = document.createElement('span'), del = document.createElement('button');
+        var pos = parseInt(sget('pos:' + e.id, '0'), 10) || 0, pr = e.total > 1 && pos > 0 ? Math.min(99, Math.round(pos / e.total * 100)) : 0;
+        row.className = 'lib-i';
+        ob.type = 'button'; ob.className = 'lib-open' + (curKey === 'pos:' + e.id ? ' cur' : '');
+        nm.dir = 'auto'; nm.textContent = e.name;
+        inf.textContent = [libSize(e.size || 0), e.pages ? nf.format(e.pages) + ' صفحه' : '', pr ? nf.format(pr) + '٪ خوانده شده' : '', new Date(e.opened || e.added || Date.now()).toLocaleDateString('fa-IR')].filter(Boolean).join('، ');
+        ob.appendChild(nm); ob.appendChild(inf);
+        ob.onclick = function(){ libOpen(e.id); };
+        del.type = 'button'; del.className = 'btn sm lib-del'; del.textContent = 'حذف'; del.setAttribute('aria-label', 'حذف ' + e.name);
+        del.onclick = function(){ if (confirm('«' + e.name + '» از کتابخانه حذف شود؟')) libDel(e.id); };
+        row.appendChild(ob); row.appendChild(del); box.appendChild(row);
+      });
+      libMsg('مجموع حجم ذخیره‌شده: ' + libSize(tot));
+    }).catch(function(){});
+  }
+  function libOpen(id){
+    libMsg('در حال باز کردن…');
+    return libIdx().then(function(a){
+      var e = a.filter(function(x){ return x.id === id; })[0];
+      if (!e) throw new Error('none');
+      return kvGet('lib:f:' + id).then(function(b){
+        if (!b) throw new Error('none');
+        return loadFile(new File([b], e.name, { type: 'application/pdf', lastModified: e.added || Date.now() }));
+      });
+    }).catch(function(){ libMsg('این فایل در حافظه پیدا نشد؛ دوباره آن را انتخاب کنید.'); });
+  }
+  function libDel(id){
+    return libLock(function(){
+      return libIdx().then(function(a){ return kvDel('lib:f:' + id).then(function(){ return kvSet('lib:index', a.filter(function(x){ return x.id !== id; })); }); });
+    }).then(libRender);
+  }
+  $('#libClear').onclick = function(){
+    if (!confirm('همهٔ PDFهای ذخیره‌شده حذف شوند؟ جای خواندن و نتیجهٔ OCR حفظ می‌ماند.')) return;
+    libLock(function(){
+      return libIdx().then(function(a){ return Promise.all(a.map(function(e){ return kvDel('lib:f:' + e.id); })).then(function(){ return kvSet('lib:index', []); }); });
+    }).then(libRender);
+  };
+  $('#libAuto').checked = sget('libAuto', '1') !== '0';
+  $('#libAuto').onchange = function(){ sset('libAuto', this.checked ? '1' : '0'); };
+  $('#libBox').addEventListener('toggle', function(){ if (this.open) libRender(); });
+  libRender();
+
+  /* ---------- background music ---------- */
+  var bgm = { el: null, ctx: null, gain: null, url: '', loaded: false, preview: false, off: 0 };
+  var BGM_MAX = 0.2;
+  function bgmLevel(){ var v = Math.max(0, Math.min(100, +$('#bgmLvl').value || 0)) / 100; return BGM_MAX * v * v; }
+  function bgmWant(){ return !!(bgm.loaded && (bgm.preview || (playing && $('#bgmOn').checked))); }
+  function bgmGraph(){
+    if (bgm.ctx) return true;
+    var AC = window.AudioContext || window.webkitAudioContext; if (!AC || !bgm.el) return false;
+    try {
+      var c = new AC(), src = c.createMediaElementSource(bgm.el);
+      function bq(type, f, q, g){ var n = c.createBiquadFilter(); n.type = type; n.frequency.value = f; if (q) n.Q.value = q; if (g !== undefined) n.gain.value = g; return n; }
+      var hp = bq('highpass', 60, 0.7), mid = bq('peaking', 900, 0.6, -9), pres = bq('peaking', 3000, 0.9, -7), lp = bq('lowpass', 6500, 0.6);
+      var cp = c.createDynamicsCompressor(); cp.threshold.value = -30; cp.knee.value = 20; cp.ratio.value = 8; cp.attack.value = 0.01; cp.release.value = 0.3;
+      var g = c.createGain(); g.gain.value = 0;
+      src.connect(hp); hp.connect(mid); mid.connect(pres); pres.connect(lp); lp.connect(cp); cp.connect(g); g.connect(c.destination);
+      bgm.ctx = c; bgm.gain = g;
+    } catch (e) { bgm.ctx = null; bgm.gain = null; return false; }
+    return true;
+  }
+  function bgmSetGain(v, tc){
+    if (bgm.gain) {
+      try { var t = bgm.ctx.currentTime; bgm.gain.gain.cancelScheduledValues(t); bgm.gain.gain.setTargetAtTime(v, t, tc); } catch (e) { try { bgm.gain.gain.value = v; } catch (x) {} }
+    } else if (bgm.el) { try { bgm.el.volume = Math.max(0, Math.min(1, v)); } catch (e) {} }
+  }
+  function musicSync(){
+    if (!bgm || !bgm.loaded || !bgm.el) return;
+    clearTimeout(bgm.off);
+    if (bgmWant()) {
+      bgmGraph();
+      try { if (bgm.ctx && bgm.ctx.state !== 'running') bgm.ctx.resume(); } catch (e) {}
+      bgmSetGain(bgmLevel(), 0.3);
+      if (bgm.el.paused) { var pr = bgm.el.play(); if (pr && pr.catch) pr.catch(function(){}); }
+    } else {
+      bgmSetGain(0, 0.25);
+      if (!bgm.el.paused) bgm.off = setTimeout(function(){ if (!bgmWant()) { try { bgm.el.pause(); } catch (e) {} } }, 1200);
+    }
+  }
+  function bgmUi(){
+    $('#bgmDel').disabled = !bgm.loaded;
+    $('#bgmTry').disabled = !bgm.loaded;
+    $('#bgmTry').textContent = bgm.preview ? 'توقف پیش‌شنیدن' : 'پیش‌شنیدن موسیقی';
+  }
+  function bgmLoadBlob(blob, name){
+    if (!bgm.el) {
+      bgm.el = new Audio(); bgm.el.loop = true; bgm.el.preload = 'auto';
+      bgm.el.onerror = function(){ if (bgm.loaded) { bgm.preview = false; bgmUi(); status('این فایل موسیقی پخش نشد؛ فایل دیگری انتخاب کنید.'); } };
+    }
+    if (bgm.url) { try { URL.revokeObjectURL(bgm.url); } catch (e) {} }
+    bgm.url = URL.createObjectURL(blob); bgm.el.src = bgm.url; bgm.loaded = true;
+    $('#bgmName').textContent = 'موسیقی انتخاب‌شده: ' + (name || 'بدون نام');
+    bgmUi(); musicSync();
+  }
+  function bgmClear(){
+    bgm.preview = false; bgm.loaded = false; clearTimeout(bgm.off);
+    if (bgm.el) { try { bgm.el.pause(); bgm.el.removeAttribute('src'); bgm.el.load(); } catch (e) {} }
+    if (bgm.url) { try { URL.revokeObjectURL(bgm.url); } catch (e) {} bgm.url = ''; }
+    $('#bgmName').textContent = '';
+    bgmUi();
+  }
+  $('#bgmLvl').value = Math.max(0, Math.min(100, +sget('bgmLvl', '60') || 0));
+  $('#bgmOn').checked = sget('bgmOn', '1') !== '0';
+  $('#bgmLvl').oninput = function(){
+    $('#bgmLvlV').textContent = nf.format(+this.value) + '٪'; sset('bgmLvl', this.value); fillRng(this);
+    if (bgm.loaded && bgmWant()) bgmSetGain(bgmLevel(), 0.05);
+  };
+  $('#bgmLvl').oninput();
+  $('#bgmOn').onchange = function(){ sset('bgmOn', this.checked ? '1' : '0'); musicSync(); };
+  $('#bgmPick').onclick = function(){ $('#bgmFile').click(); };
+  $('#bgmFile').onchange = function(){
+    var f = this.files[0]; this.value = '';
+    if (!f) return;
+    if (f.type && f.type.indexOf('audio') !== 0 && !/\.(mp3|m4a|aac|wav|ogg|oga|opus|flac|webm)$/i.test(f.name)) { status('فایل انتخاب‌شده صوتی نیست.'); return; }
+    bgmLoadBlob(f, f.name);
+    kvSet('bgm', { blob: f, name: f.name }).then(function(ok){ if (!ok) status('موسیقی پخش می‌شود، ولی برای دفعهٔ بعد ذخیره نشد.'); });
+  };
+  $('#bgmDel').onclick = function(){ bgmClear(); kvSet('bgm', null); };
+  $('#bgmTry').onclick = function(){ bgm.preview = !bgm.preview; bgmUi(); musicSync(); };
+  kvGet('bgm').then(function(v){ if (v && v.blob && !bgm.loaded) bgmLoadBlob(v.blob, v.name); }).catch(function(){});
 
   /* ---------- events ---------- */
   $('#play').onclick = function(){ playing ? pause() : start(); };
@@ -1700,8 +2021,18 @@ html,body{overflow-x:hidden}
   $('#qBox').onkeydown = function(e){ if (e.key === 'Enter') { e.preventDefault(); findNext(1); $('#qBox').blur(); } };
   $('#pgBtn').onclick = gotoPage;
   $('#pgGo').onkeydown = function(e){ if (e.key === 'Enter') { e.preventDefault(); gotoPage(); } };
-  $('#seek').oninput = function(){ $('#pos').textContent = 'جملهٔ ' + nf.format(+this.value + 1) + ' از ' + nf.format(sents.length); };
-  $('#seek').onchange = function(){ seekTo(+this.value); };
+  var stT = 0;
+  $('#seek').oninput = function(){
+    var i = +this.value, q = sents[i], tip = $('#seekTip');
+    fillRng(this);
+    $('#pos').textContent = 'جملهٔ ' + nf.format(i + 1) + ' از ' + nf.format(sents.length);
+    if (!q) return;
+    tip.textContent = '';
+    var b = document.createElement('b'); b.textContent = 'صفحهٔ ' + nf.format(q.page) + ': ';
+    tip.appendChild(b); tip.appendChild(document.createTextNode(q.text.length > 90 ? q.text.slice(0, 90) + '…' : q.text));
+    tip.hidden = false; clearTimeout(stT); stT = setTimeout(function(){ tip.hidden = true; }, 1500);
+  };
+  $('#seek').onchange = function(){ clearTimeout(stT); $('#seekTip').hidden = true; seekTo(+this.value); };
   function pageJump(dir){
     if (!sents.length) return;
     var p = sents[idx].page, k;
@@ -1713,11 +2044,20 @@ html,body{overflow-x:hidden}
   }
   $('#pgPrev').onclick = function(){ pageJump(-1); };
   $('#pgNext').onclick = function(){ pageJump(1); };
-  var SPD = [0.8, 1, 1.2, 1.5, 1.8, 2];
+  var SPD = [0.5, 0.7, 0.85, 1, 1.2, 1.5, 1.8, 2], RMIN = 0.4, RMAX = 2.5, RSTEP = 0.05, rpT = 0;
   function setRate(v){
+    v = Math.round(Math.max(RMIN, Math.min(RMAX, +v || 1)) / RSTEP) * RSTEP; v = Math.round(v * 100) / 100;
     $('#rate').value = v; showVals(); sset('rate', v);
-    [audioA, audioB].forEach(function(a){ a.defaultPlaybackRate = v; a.playbackRate = v; });
+    [audioA, audioB].forEach(applyRate);
+    clearTimeout(rpT); rpT = setTimeout(function(){ if (playing && curC) primeNext(curC, token); }, 250);
   }
+  [0.5, 0.75, 1, 1.25, 1.5, 2].forEach(function(v){
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.dataset.v = v; b.textContent = nf.format(v) + '×';
+    b.onclick = function(){ setRate(v); }; $('#rateChips').appendChild(b);
+  });
+  $('#rateDn').onclick = function(){ setRate(+$('#rate').value - RSTEP); };
+  $('#rateUp').onclick = function(){ setRate(+$('#rate').value + RSTEP); };
+  showVals();
   $('#spBtn').onclick = function(){
     var c = +$('#rate').value, n = SPD[0];
     for (var i = 0; i < SPD.length; i++) if (SPD[i] > c + 0.01) { n = SPD[i]; break; }
@@ -1746,10 +2086,7 @@ html,body{overflow-x:hidden}
 
   function restartIfPlaying(){ if (playing) start(); }
   function changed(){ clearCache(); restartIfPlaying(); }
-  $('#rate').oninput = function(){ showVals(); sset('rate', this.value); };
-  $('#rate').onchange = function(){
-    [audioA, audioB].forEach(function(a){ a.defaultPlaybackRate = +this.value; a.playbackRate = +this.value; }, this);
-  };
+  $('#rate').oninput = function(){ setRate(this.value); };
   $('#voice').onchange = function(){ sset('voice', this.value); if (engine() === 'piper') updatePiperStatus(); changed(); warmPiper(); };
   $('#gender').onchange = function(){ sset('gender', this.value); renderVoices(); changed(); };
   $('#allLangs').onchange = renderVoices;
