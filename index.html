@@ -83,14 +83,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   <div class="card">
     <div id="nosupport" class="warn" hidden>مرورگر شما از تبدیل متن به گفتار پشتیبانی نمی‌کند. از Chrome یا Edge یا Safari استفاده کنید.</div>
     <div id="novoice" class="warn" hidden style="margin-bottom:12px">هیچ صدای فارسی روی این دستگاه پیدا نشد. صداهای سایر زبان‌ها نمایش داده شده‌اند، ولی فارسی را درست نمی‌خوانند. در تنظیمات سیستم‌عامل (Text-to-speech) می‌توانید صدای فارسی نصب کنید.</div>
-    <div class="row">
-      <label for="engine"><span>موتور صدا</span></label>
-      <select id="engine">
-        <option value="device">صدای دستگاه (رایگان)</option>
-        <option value="azure">صدای ابری Azure (کیفیت بالا)</option>
-        <option value="piper">صدای آفلاین Piper (رایگان)</option>
-      </select>
-    </div>
+    <input type="hidden" id="engine" value="piper">
     <div id="azurebox" class="row" hidden>
       <input id="akey" type="password" placeholder="Azure Speech key" autocomplete="off">
       <input id="aregion" type="text" placeholder="Region (e.g. westeurope)" autocomplete="off">
@@ -204,7 +197,6 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     { id: 'fa-IR-FaridNeural', name: 'Farid', lang: 'fa-IR', gender: 'm', fa: true }
   ];
   var piperVoices = [
-    { id: 'fa_IR-amir-medium', name: 'amir (medium)', lang: 'fa-IR', gender: '?', fa: true },
     { id: 'fa_IR-gyro-medium', name: 'gyro (medium)', lang: 'fa-IR', gender: '?', fa: true }
   ];
   var FEM = /female|woman|dilara|zira|hazel|samantha|victoria|karen|moira|tessa|fiona|susan|heera|aria|jenny|sara|zuzana|elena|katya|milena|ava/i;
@@ -216,7 +208,6 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   function engine(){ return $('#engine').value; }
   function canSpeak(){ return engine() !== 'device' || isNative || !!synth; }
-  var se = sget('engine', 'device'); if (se === 'azure' || se === 'piper') $('#engine').value = se;
   $('#akey').value = sget('akey', '');
   $('#aregion').value = sget('aregion', '');
 
@@ -286,7 +277,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     }
   } catch (e) {}
   var NP_MODEL_URLS = function(id){
-    var f = 'vits-piper-' + id + '.tar.bz2';
+    var f = (/^mimic3-/.test(id) ? 'vits-' : 'vits-piper-') + id + '.tar.bz2';
     return [
       'https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/' + f,
       'https://ghfast.top/https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/' + f
@@ -300,8 +291,9 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   var NATIVE_PIPER = {
     voices: function(){
       return Promise.resolve([
-        { key: 'fa_IR-amir-medium', name: 'amir', quality: 'medium', language: { family: 'fa' } },
-        { key: 'fa_IR-gyro-medium', name: 'gyro', quality: 'medium', language: { family: 'fa' } }
+        { key: 'fa_IR-gyro-medium', name: 'gyro', quality: 'medium', language: { family: 'fa' } },
+        { key: 'fa_IR-ganji_adabi-medium', name: 'ganji_adabi', quality: 'medium', language: { family: 'fa' } },
+        { key: 'mimic3-fa-haaniye_low', name: 'haaniye', quality: 'low', language: { family: 'fa' } }
       ]);
     },
     stored: function(){ return NP.stored().then(function(r){ return (r && r.ids) || []; }); },
@@ -340,9 +332,10 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     piperVoicesLoaded = true;
     PiperTTS.voices().then(function(vs){
       var fa = (vs || []).filter(function(v){
+        if (/amir/i.test(v.key || '')) return false;
         return (v.language && v.language.family === 'fa') || /^fa_/.test(v.key || '');
       }).map(function(v){
-        return { id: v.key, name: (v.name || v.key) + ' (' + (v.quality || '') + ')', lang: 'fa-IR', gender: '?', fa: true };
+        return { id: v.key, name: (v.name || v.key) + ' (' + (v.quality || '') + ')', lang: 'fa-IR', gender: /haaniye/i.test(v.key || '') ? 'f' : /gyro|ganji|amir/i.test(v.key || '') ? 'm' : '?', fa: true };
       });
       if (fa.length) { piperVoices = fa; renderVoices(); }
     }).catch(function(){});
