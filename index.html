@@ -3,369 +3,645 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1430">
 <title>خوانندهٔ صوتی PDF</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;800&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f7f6f2;--card:#fff;--ink:#1c1b18;--muted:#6b6a64;--line:#e4e2da;--accent:#0f766e;--accent-ink:#fff;--hl:#fde68a;--hl-ink:#1c1b18;--warn:#fff4d6;--warn-ink:#7a4b00;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14130f;--card:#1e1d18;--ink:#f1efe8;--muted:#a09e94;--line:#34322b;--accent:#2dd4bf;--accent-ink:#06201c;--hl:#5b4a0a;--hl-ink:#fff7d6;--warn:#3a2c0a;--warn-ink:#f6d98b}}
-:root[data-theme="dark"]{--bg:#14130f;--card:#1e1d18;--ink:#f1efe8;--muted:#a09e94;--line:#34322b;--accent:#2dd4bf;--accent-ink:#06201c;--hl:#5b4a0a;--hl-ink:#fff7d6;--warn:#3a2c0a;--warn-ink:#f6d98b}
-*{box-sizing:border-box}
+/* ===== توکن‌های رنگ: لاجورد، فیروزه و طلا ===== */
+:root{
+--font:"Vazirmatn",Tahoma,"Segoe UI",system-ui,sans-serif;--rfont:var(--font);
+--bg0:#e4e9f5;--bg1:#f4f6fb;--paper:#fffefb;--paper-edge:#d5ddf0;--card:#fff;
+--ink:#121b3a;--muted:#56648a;--line:rgba(28,48,112,.15);
+--accent:#08706c;--accent-2:#2747b0;--accent-ink:#fff;
+--gold:#e5a11f;--hl:rgba(245,185,50,.36);--hl-ink:#121b3a;
+--glass:rgba(255,255,255,.82);--glass-line:rgba(28,48,112,.16);
+--shadow:0 30px 70px -30px rgba(24,40,110,.5);
+--warn:#fff3d1;--warn-ink:#7a4b00;--scrim:rgba(10,16,40,.5);
+--dock-h:220px;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+--bg0:#050a19;--bg1:#0b1430;--paper:#0f1938;--paper-edge:#1b2a59;--card:#16224b;
+--ink:#e8edfb;--muted:#98a7ce;--line:rgba(148,170,240,.18);
+--accent:#3ad8c6;--accent-2:#7b94ff;--accent-ink:#03201c;
+--gold:#f6c767;--hl:rgba(246,199,103,.25);--hl-ink:#fff7e0;
+--glass:rgba(14,24,54,.82);--glass-line:rgba(148,170,240,.22);
+--shadow:0 30px 80px -30px rgba(0,0,0,.85);
+--warn:#3a2c0a;--warn-ink:#f6d98b;--scrim:rgba(2,5,16,.66);color-scheme:dark}}
+:root[data-theme="dark"]{
+--bg0:#050a19;--bg1:#0b1430;--paper:#0f1938;--paper-edge:#1b2a59;--card:#16224b;
+--ink:#e8edfb;--muted:#98a7ce;--line:rgba(148,170,240,.18);
+--accent:#3ad8c6;--accent-2:#7b94ff;--accent-ink:#03201c;
+--gold:#f6c767;--hl:rgba(246,199,103,.25);--hl-ink:#fff7e0;
+--glass:rgba(14,24,54,.82);--glass-line:rgba(148,170,240,.22);
+--shadow:0 30px 80px -30px rgba(0,0,0,.85);
+--warn:#3a2c0a;--warn-ink:#f6d98b;--scrim:rgba(2,5,16,.66);color-scheme:dark}
+:root[data-theme="sepia"]{
+--bg0:#d8c8a0;--bg1:#e9ddc3;--paper:#f8efd9;--paper-edge:#d9c9a2;--card:#fbf4e2;
+--ink:#33281a;--muted:#75643f;--line:rgba(80,55,20,.18);
+--accent:#7d4a1c;--accent-2:#a8702a;--accent-ink:#fff;
+--gold:#d9961f;--hl:rgba(224,160,48,.36);--hl-ink:#2b2110;
+--glass:rgba(248,239,217,.86);--glass-line:rgba(80,55,20,.2);
+--shadow:0 30px 70px -30px rgba(80,55,20,.5);
+--warn:#fff0c4;--warn-ink:#7a4b00;--scrim:rgba(40,28,10,.5);color-scheme:light}
+
+/* ===== پایه ===== */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
-html,body{margin:0}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{background:var(--bg);color:var(--ink);font-family:"Vazirmatn",Tahoma,"Segoe UI",system-ui,sans-serif;line-height:1.9;padding:16px 14px 240px}
-.wrap{max-width:760px;margin:0 auto;display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
-h1{font-size:1.25rem;margin:4px 0 0}
-.sub{color:var(--muted);font-size:.85rem;margin:0}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
-.btn{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 14px;cursor:pointer;min-height:44px}
-.btn:hover{border-color:var(--accent)}
-.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.drop{border:2px dashed var(--line);border-radius:14px;padding:22px 14px;text-align:center;cursor:pointer}
-.drop.over{border-color:var(--accent)}
-.drop b{display:block;margin-bottom:4px}
-.row{display:grid;gap:6px;margin-bottom:12px}
-.row:last-child{margin-bottom:0}
-.row label{font-size:.85rem;color:var(--muted);display:flex;justify-content:space-between}
-select,input[type=range]{width:100%;font:inherit}
-select{padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:44px}
-input[type=range]{accent-color:var(--accent)}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.chk{display:flex;gap:8px;align-items:center;font-size:.85rem;color:var(--muted)}
-.warn{background:var(--warn);color:var(--warn-ink);border-radius:10px;padding:10px 12px;font-size:.85rem}
-.hint{font-size:.78rem;color:var(--muted);margin:0}
-#status{font-size:.85rem;color:var(--muted);min-height:1.4em}
-#reader{font-size:1.15rem;line-height:2.2}
-#reader p{margin:0 0 .8em}
-#reader span{cursor:pointer;border-radius:5px;padding:1px 0;transition:background .15s;-webkit-box-decoration-break:clone;box-decoration-break:clone}
-#reader span:hover{background:color-mix(in srgb,var(--hl) 40%,transparent)}
-#reader span.cur{background:var(--hl);color:var(--hl-ink);box-shadow:0 0 0 3px var(--hl)}
-.rtools{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
-.btn.sm{min-height:40px;padding:4px 12px}
-.rtools input{width:84px;font:inherit;padding:6px 8px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:40px;text-align:center}
-.rtools .sp{flex:1}
-.rtools input#qBox{flex:1;width:auto;min-width:120px;text-align:right}
-:root[data-theme="sepia"]{--bg:#f1e7d0;--card:#f8f0dc;--ink:#3b2f1e;--muted:#7a6a4f;--line:#dccfae;--accent:#8a5a1f;--accent-ink:#fff;--hl:#f2d98a;--hl-ink:#2b2110;--warn:#fff0c4;--warn-ink:#7a4b00}
-#seek{width:100%;margin:0;accent-color:var(--accent)}
-.pg{font-size:.78rem;color:var(--accent);border-bottom:1px solid var(--line);margin:1.2em 0 .6em;padding-bottom:2px;font-weight:600}
-.pg:first-child{margin-top:0}
-.bar{position:fixed;inset-inline:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px))}
-.bar-in{max-width:760px;margin:0 auto;display:grid;gap:8px}
-.prog{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}
-.bar .btns{display:grid;grid-template-columns:1fr 1fr 1.7fr 1fr 1fr;gap:6px}
-.bar .btns2{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.btn.sm2{font-size:.78rem;padding:4px 2px;line-height:1.35;min-height:44px}
-details summary{cursor:pointer;font-weight:600;min-height:32px}
-textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
-.empty{color:var(--muted);text-align:center;padding:20px 0}
-.row input[type=text],.row input[type=password],.row input[type=number]{width:100%;font:inherit;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:44px;direction:ltr;text-align:left}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg0);color:var(--ink);font-family:var(--font);line-height:1.8;text-rendering:optimizeLegibility;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:10px}
+.aura{position:fixed;inset:-20%;z-index:0;pointer-events:none;
+background:radial-gradient(42% 38% at 80% 10%,color-mix(in srgb,var(--accent-2) 36%,transparent),transparent 70%),
+radial-gradient(40% 36% at 10% 90%,color-mix(in srgb,var(--accent) 30%,transparent),transparent 70%),
+linear-gradient(180deg,var(--bg1),var(--bg0));animation:drift 50s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate3d(-3%,2%,0) scale(1.07)}}
+.app{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+
+/* ===== نوار بالا ===== */
+.top{flex:none;display:flex;align-items:center;gap:10px;width:100%;max-width:920px;margin:0 auto;padding:10px 14px 8px}
+.ibtn{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:52px;min-height:52px;padding:4px 6px;border:0;background:transparent;color:var(--ink);border-radius:18px;cursor:pointer;transition:background .2s,transform .12s}
+.ibtn svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ibtn .cap{font-size:.66rem;color:var(--muted);line-height:1}
+.ibtn:hover{background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.ibtn:active{transform:scale(.92)}
+.ibtn:disabled{opacity:.35;pointer-events:none}
+.ibtn.round{flex:none;width:46px;height:46px;min-width:46px;min-height:46px;padding:0;border-radius:50%;background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+#docTitle{flex:1;min-width:0;font-weight:600;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#docTitle:empty::before{content:"خوانندهٔ صوتی PDF";color:var(--muted);font-weight:500}
+#pageInfo{flex:none;font-size:.78rem;font-weight:600;padding:3px 12px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-line);font-variant-numeric:tabular-nums}
+#pageInfo:empty{display:none}
+
+/* ===== کادر نمایش متن ===== */
+.frame{position:relative;flex:1;min-height:0;width:calc(100% - 20px);max-width:900px;margin:0 auto calc(10px + env(safe-area-inset-bottom,0px));border-radius:30px;background:var(--paper);border:1px solid var(--paper-edge);box-shadow:var(--shadow);overflow:hidden;animation:rise .8s cubic-bezier(.2,.8,.2,1) both}
+.frame::before,.frame::after{content:"";position:absolute;inset-inline:0;z-index:3;pointer-events:none}
+.frame::before{top:0;height:38px;background:linear-gradient(var(--paper),transparent)}
+.frame::after{bottom:0;height:calc(var(--dock-h) + 18px);background:linear-gradient(to top,var(--paper) 52%,transparent)}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}}
+.stage{position:absolute;inset:0;z-index:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:40px clamp(18px,5vw,54px) calc(var(--dock-h) + 48px);scroll-padding-top:64px;scroll-padding-bottom:var(--dock-h);scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+#reader{max-width:42rem;margin:0 auto;font-family:var(--rfont);font-size:1.15rem;line-height:2.25;overflow-wrap:anywhere}
+#reader p{margin:0 0 .9em}
+.pgc+.pgc{margin-top:2.4em}
+.pg{display:flex;align-items:center;gap:14px;margin:0 0 1.1em;color:var(--muted);font-family:var(--font);font-size:.76rem;font-weight:600;line-height:1.4}
+.pg::before,.pg::after{content:"";flex:1;height:1px;background:linear-gradient(to left,var(--line),transparent)}
+.pg::after{background:linear-gradient(to right,var(--line),transparent)}
+#reader span{cursor:pointer;border-radius:8px;padding:2px 0;transition:background .2s,box-shadow .3s;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+#reader span:hover{background:color-mix(in srgb,var(--gold) 16%,transparent)}
+#reader span.cur{background:var(--hl);color:var(--hl-ink);box-shadow:0 0 0 4px var(--hl),0 0 28px 6px color-mix(in srgb,var(--gold) 38%,transparent)}
+.is-playing #reader span.cur{animation:glow 2.6s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 0 4px var(--hl),0 0 38px 10px color-mix(in srgb,var(--gold) 52%,transparent)}}
 #reader span.risk{text-decoration:underline dashed;text-decoration-color:var(--warn-ink);text-underline-offset:6px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.chip{font:inherit;font-size:.95rem;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 14px;cursor:pointer;min-height:44px}
-.chip:hover{border-color:var(--accent)}
-.chip bdi:last-child{color:var(--muted)}
-#fixBreak,#fixStats{line-height:2}
-#fixTip{position:fixed;inset-inline:12px;bottom:calc(240px + env(safe-area-inset-bottom,0px));max-width:736px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,.35);z-index:10;font-size:.85rem;line-height:1.9;max-height:45vh;overflow:auto}
-#fixTip b{color:var(--accent)}
-html,body{overflow-x:hidden}
-#reader,#reader p{overflow-wrap:anywhere}
-input[type=range].rng{-webkit-appearance:none;appearance:none;background:transparent;height:34px;margin:0;padding:0;cursor:pointer}
+.empty{color:var(--muted);text-align:center;padding:20px 0;font-size:.9rem}
+#reader .empty{padding:48px 8px;line-height:2}
+
+/* ===== صفحهٔ آغاز (بدون فایل) ===== */
+.hero{position:absolute;inset:0;z-index:4;display:grid;place-content:center;justify-items:center;gap:14px;padding:24px 24px calc(var(--dock-h) + 8px);text-align:center}
+.has-doc .hero{display:none}
+.hero-main{display:grid;justify-items:center;gap:12px;max-width:26rem;padding:26px 22px;border-radius:28px;cursor:pointer;transition:transform .3s,background .3s}
+.hero-main:hover,.hero-main.over{background:color-mix(in srgb,var(--accent) 7%,transparent);transform:translateY(-2px)}
+.star{width:min(46vw,190px);height:auto;overflow:visible;filter:drop-shadow(0 0 16px color-mix(in srgb,var(--accent) 40%,transparent));transition:transform .6s}
+.hero-main.over .star{transform:scale(1.08) rotate(22deg)}
+.star path{fill:none;stroke:var(--accent);stroke-width:1.5;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 2s .25s cubic-bezier(.4,0,.2,1) forwards}
+.star path.b{stroke:var(--accent-2);animation-delay:.6s}
+.star circle{fill:none;stroke:var(--gold);stroke-width:1.4;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.6s 1.1s cubic-bezier(.4,0,.2,1) forwards}
+.star circle.dot{fill:var(--gold);stroke:none;opacity:0;animation:fade .6s 2s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes fade{to{opacity:1}}
+.hero h1{margin:0;font-size:1.55rem;font-weight:800;line-height:1.5}
+.hero p{margin:0;color:var(--muted);font-size:.92rem;line-height:2}
+.cta{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:6px 30px;border-radius:999px;background:linear-gradient(135deg,var(--accent-2),var(--accent));color:var(--accent-ink);font-weight:700;margin-top:4px;box-shadow:0 12px 26px -12px var(--accent)}
+.ghost{font:inherit;border:0;background:transparent;color:var(--muted);cursor:pointer;min-height:44px;padding:4px 18px;border-radius:999px;font-size:.9rem}
+.ghost:hover{color:var(--ink);background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.only-hover{display:none}
+@media (hover:hover){.only-hover{display:inline}}
+.dropveil{position:absolute;inset:0;z-index:20;display:none;place-content:center;text-align:center;background:color-mix(in srgb,var(--paper) 88%,transparent);border:2px dashed var(--accent);border-radius:30px;font-weight:700;font-size:1.1rem;color:var(--accent)}
+.dragging .dropveil{display:grid}
+
+/* ===== یادداشت OCR ===== */
+.note{position:absolute;z-index:5;top:14px;inset-inline:14px;margin:0 auto;max-width:520px;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 14px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 10px 26px -14px rgba(0,0,0,.5);font-size:.82rem}
+.note span{flex:1;min-width:0}
+.note .btn{min-height:36px;padding:2px 16px;border-radius:999px;flex:none;font-size:.82rem}
+
+/* ===== نوار پخش ===== */
+.dock{position:absolute;z-index:6;inset-inline:0;bottom:10px;margin:0 auto;width:calc(100% - 20px);max-width:620px;padding:2px 14px 12px;border-radius:28px;background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:0 22px 44px -20px rgba(0,0,0,.5);display:grid;gap:2px;animation:rise .8s .2s cubic-bezier(.2,.8,.2,1) both}
+.grab{justify-self:center;border:0;background:transparent;padding:8px 28px;cursor:pointer;min-height:26px}
+.grab i{display:block;width:38px;height:4px;border-radius:4px;background:color-mix(in srgb,var(--ink) 24%,transparent)}
+#status{font-size:.8rem;color:var(--accent);text-align:center;line-height:1.7;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding:0 4px}
+#status:empty{display:none}
+.meta{display:flex;justify-content:center;font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.6}
+.ctl{display:grid;grid-template-columns:1fr 1fr auto 1fr 1fr;align-items:center;justify-items:center;gap:2px;margin-top:2px}
+.play{position:relative;width:74px;height:74px;border-radius:50%;border:0;padding:0;cursor:pointer;display:grid;place-items:center;color:var(--accent-ink);background:linear-gradient(145deg,var(--accent-2),var(--accent));box-shadow:0 14px 28px -10px var(--accent),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .15s,filter .2s}
+.play:active{transform:scale(.93)}
+.play:disabled{filter:grayscale(.75);opacity:.5;box-shadow:none;cursor:not-allowed}
+.play svg{position:relative;width:32px;height:32px}
+.play .i-pause{display:none;fill:currentColor}
+.play .i-play{fill:currentColor;stroke:currentColor;stroke-width:2.2;stroke-linejoin:round}
+.is-playing .play .i-play{display:none}
+.is-playing .play .i-pause{display:block}
+.play .ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--accent);opacity:0;pointer-events:none}
+.is-playing .play .ring{animation:ring 2.4s ease-out infinite}
+.is-playing .play .ring.r2{animation-delay:1.2s}
+@keyframes ring{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.6);opacity:0}}
+.is-prep .play .ring{display:none}
+.is-prep .play::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:3px solid transparent;border-top-color:var(--gold);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pills{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px}
+.pill{font:inherit;font-size:.78rem;font-weight:600;min-height:38px;padding:3px 6px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;line-height:1.3;transition:border-color .2s,background .2s,transform .12s}
+.pill:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.pill:active{transform:scale(.96)}
+.pill:disabled{opacity:.4;pointer-events:none}
+.dock-mini .pills,.dock-mini .meta,.dock-mini .ibtn .cap{display:none}
+.dock-mini .ctl{margin-top:0}
+
+/* ===== نوار لغزنده ===== */
+input[type=range].rng{-webkit-appearance:none;appearance:none;background:transparent;width:100%;height:30px;margin:0;padding:0;cursor:pointer}
 input[type=range].rng:disabled{opacity:.45;cursor:not-allowed}
 input[type=range].rng:focus{outline:none}
 input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:999px}
-.rng::-webkit-slider-runnable-track{height:8px;border-radius:999px;background:linear-gradient(to left,var(--accent) var(--p,0%),var(--line) var(--p,0%))}
-.rng::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;margin-top:-9px;border-radius:50%;background:var(--accent);border:3px solid var(--card);box-shadow:0 0 0 1px var(--accent),0 2px 6px rgba(0,0,0,.3);transition:transform .12s}
-.rng:active::-webkit-slider-thumb{transform:scale(1.18)}
-.rng::-moz-range-track{height:8px;border-radius:999px;background:var(--line)}
-.rng::-moz-range-progress{height:8px;border-radius:999px;background:var(--accent)}
-.rng::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent);border:3px solid var(--card);box-shadow:0 0 0 1px var(--accent)}
-.rwrap{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
-.rstep{width:44px;padding:0;font-size:1.3rem;line-height:1}
+.rng::-webkit-slider-runnable-track{height:6px;border-radius:999px;background:linear-gradient(to left,var(--accent) var(--p,0%),var(--line) var(--p,0%))}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-8px;border-radius:50%;background:var(--paper);border:3px solid var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent),0 2px 6px rgba(0,0,0,.3);transition:transform .12s}
+.rng:active::-webkit-slider-thumb{transform:scale(1.2)}
+.rng::-moz-range-track{height:6px;border-radius:999px;background:var(--line)}
+.rng::-moz-range-progress{height:6px;border-radius:999px;background:var(--accent)}
+.rng::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--paper);border:3px solid var(--accent)}
+input[type=range]:not(.rng){width:100%;accent-color:var(--accent)}
+#seekTip,#fixTip{position:fixed;inset-inline:12px;margin:0 auto;max-width:560px;background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 14px 40px -12px rgba(0,0,0,.5);font-size:.85rem;line-height:1.9}
+#seekTip{z-index:31;bottom:calc(var(--dock-h) + 40px + env(safe-area-inset-bottom,0px));border-radius:16px;padding:8px 14px;pointer-events:none}
+#fixTip{z-index:30;bottom:calc(var(--dock-h) + 24px + env(safe-area-inset-bottom,0px));border-radius:20px;padding:12px 16px;max-height:45vh;overflow:auto}
+#seekTip b,#fixTip b{color:var(--accent)}
+
+/* ===== منو ===== */
+.scrim{position:fixed;inset:0;z-index:40;background:var(--scrim);opacity:0;pointer-events:none;transition:opacity .3s;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.menu-open .scrim{opacity:1;pointer-events:auto}
+.menu{position:fixed;z-index:50;top:0;bottom:0;inset-inline-start:0;width:min(470px,100vw);display:flex;flex-direction:column;background:var(--paper);border-inline-end:1px solid var(--paper-edge);box-shadow:-30px 0 80px -30px rgba(0,0,0,.6);transform:translateX(104%);visibility:hidden;transition:transform .38s cubic-bezier(.2,.8,.2,1),visibility 0s .38s}
+.menu-open .menu{transform:none;visibility:visible;transition-delay:0s}
+.mh{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 10px 12px}
+.mh h2{margin:0;font-size:1.2rem;font-weight:800}
+.tabs{flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:0 16px 4px;padding:4px;border-radius:18px;background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.tab{font:inherit;font-size:.86rem;font-weight:600;border:0;background:transparent;color:var(--muted);border-radius:14px;min-height:42px;cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
+.tab[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 3px 12px -5px rgba(0,0,0,.4)}
+.mbody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:env(safe-area-inset-bottom,0px)}
+.panel{display:none;gap:18px;padding:16px 16px 36px}
+.panel.on{display:grid;animation:fadein .25s ease both}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}}
+.grp{display:grid;gap:12px}
+.grp>h3{margin:0;font-size:1rem;font-weight:800;line-height:1.6}
+.hint{font-size:.78rem;color:var(--muted);margin:0;line-height:1.9}
+.field{display:grid;gap:6px}
+.field>label{font-size:.85rem;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.warn{background:var(--warn);color:var(--warn-ink);border-radius:14px;padding:10px 14px;font-size:.85rem}
+.btn{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:8px 16px;cursor:pointer;min-height:46px;transition:transform .12s,border-color .2s,background .2s}
+.btn:hover{border-color:var(--accent)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:linear-gradient(135deg,var(--accent-2),var(--accent));color:var(--accent-ink);border-color:transparent;font-weight:700}
+.btn.sm{min-height:40px;padding:4px 14px;border-radius:12px}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+select,textarea,input[type=text],input[type=password],input[type=number],input[type=search]{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 14px;min-height:46px}
+select{-webkit-appearance:none;appearance:none;padding-left:38px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1.5l6 6 6-6' fill='none' stroke='%238b95b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 14px center}
+select:focus,textarea:focus,input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+input[type=password],#cvBase{direction:ltr;text-align:left}
+input[type=number]{text-align:center}
+textarea#dict{min-height:130px;resize:vertical;line-height:1.9}
+.chk{display:flex;flex-direction:row-reverse;justify-content:space-between;align-items:center;gap:14px;font-size:.88rem;line-height:1.8;cursor:pointer}
+input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:none;position:relative;width:46px;height:28px;margin:0;border-radius:999px;background:color-mix(in srgb,var(--ink) 18%,transparent);cursor:pointer;transition:background .2s}
+input[type=checkbox]::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:transform .22s cubic-bezier(.3,1.4,.5,1)}
+input[type=checkbox]:checked{background:var(--accent)}
+input[type=checkbox]:checked::after{transform:translateX(-18px)}
+input[type=checkbox]:disabled{opacity:.45;cursor:not-allowed}
+details.acc{border:1px solid var(--line);border-radius:20px;background:color-mix(in srgb,var(--ink) 3.5%,transparent)}
+details.acc>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:54px;padding:10px 16px;font-weight:700;font-size:.94rem;line-height:1.6}
+details.acc>summary::-webkit-details-marker{display:none}
+details.acc>summary::after,details.sub>summary::after{content:"";flex:none;width:9px;height:9px;border-inline-end:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin-top:-4px;transition:transform .25s,margin .25s}
+details[open]>summary::after{transform:rotate(-135deg);margin-top:4px}
+details.acc>.in{display:grid;gap:14px;padding:2px 16px 18px}
+details.sub>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:40px;font-size:.85rem;color:var(--muted)}
+details.sub>summary::-webkit-details-marker{display:none}
+details.sub>.in{display:grid;gap:10px;padding-top:6px}
+
+/* ===== عناصر ساخته‌شده با اسکریپت ===== */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:.9rem;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 14px;cursor:pointer;min-height:42px;transition:border-color .2s,background .2s}
+.chip:hover{border-color:var(--accent)}
+.chip bdi:last-child{color:var(--muted)}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
 .rchips{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
 .rchips .chip{min-height:38px;padding:2px 0;font-size:.82rem;text-align:center}
-.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-#seekTip{position:fixed;inset-inline:12px;bottom:calc(215px + env(safe-area-inset-bottom,0px));max-width:736px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;box-shadow:0 8px 30px rgba(0,0,0,.35);z-index:11;font-size:.85rem;line-height:1.8;pointer-events:none}
-#seekTip b{color:var(--accent)}
-.lib-i{display:flex;gap:8px;align-items:stretch;margin-top:8px}
-.lib-open{flex:1;min-width:0;text-align:start;font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 12px;cursor:pointer;min-height:56px;line-height:1.6}
+.rwrap{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
+.rstep{width:46px;padding:0;font-size:1.3rem;line-height:1}
+.lib-i{display:flex;gap:8px;align-items:stretch}
+.lib-open{position:relative;flex:1;min-width:0;text-align:start;font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;padding:10px 14px 12px;cursor:pointer;min-height:60px;line-height:1.6;overflow:hidden;transition:border-color .2s}
 .lib-open:hover{border-color:var(--accent)}
 .lib-open.cur{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .lib-open b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lib-open span{display:block;font-size:.78rem;color:var(--muted)}
+.lib-open span{display:block;font-size:.76rem;color:var(--muted)}
+.lib-pr{position:absolute;inset-inline:0;bottom:0;height:3px;background:linear-gradient(to left,var(--accent) var(--w,0%),transparent var(--w,0%))}
 .lib-del{flex:none}
-.cvItem{display:flex;gap:8px;align-items:center;margin-top:8px}.cvItem span{flex:1;word-break:break-word}
+#libList{display:grid;gap:8px}
+.cvItem{display:flex;gap:8px;align-items:center;padding:6px 6px 6px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card);margin-top:8px}
+.cvItem span{flex:1;word-break:break-word}
+#fixBreak,#fixStats{line-height:2}
+#fixTip{white-space:normal}
+
+/* ===== نمایش ===== */
+.sw{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sw button{display:grid;justify-items:center;gap:6px;padding:10px 4px 8px;border:1px solid var(--line);border-radius:16px;background:var(--card);font-size:.8rem;cursor:pointer;transition:border-color .2s}
+.sw button i{display:block;width:34px;height:34px;border-radius:50%;border:1px solid var(--line)}
+.sw button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);font-weight:700}
+.fsrow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.fsrow output{text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.sample{margin:0;padding:12px 16px;border-radius:16px;border:1px dashed var(--line);font-family:var(--rfont);line-height:2.1}
+.navrow{display:flex;gap:8px;align-items:center}
+.navrow input{flex:1;min-width:0}
+.navrow .btn{flex:none}
+
+@media (max-width:380px){.pills{grid-template-columns:1fr 1fr}.ibtn{min-width:46px}.play{width:68px;height:68px}}
+@media (prefers-reduced-motion:reduce){
+*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important}
+.star path,.star circle{stroke-dashoffset:0}.star circle.dot{opacity:1}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div>
-    <h1>خوانندهٔ صوتی PDF</h1>
-    <p class="sub">فایل PDF را انتخاب کنید تا متنش با صدای دستگاه خوانده شود.</p>
-  </div>
+<div class="aura" aria-hidden="true"></div>
 
-  <div class="card">
-    <div class="drop" id="drop" tabindex="0" role="button">
-      <b>انتخاب فایل PDF</b>
-      <span class="sub">یا فایل را اینجا رها کنید</span>
+<div class="app">
+  <header class="top">
+    <button class="ibtn round" id="menuBtn" type="button" aria-label="منو و تنظیمات" aria-expanded="false" aria-controls="menu">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 12h10M4 17h16"/></svg>
+    </button>
+    <div id="docTitle" dir="auto"></div>
+    <span id="pageInfo"></span>
+  </header>
+
+  <main class="frame">
+    <div class="stage" id="stage" tabindex="-1">
+      <div id="reader"></div>
     </div>
-    <input type="file" id="file" accept="application/pdf,.pdf" hidden>
-    <div id="status" aria-live="polite"></div>
-  </div>
 
-  <details class="card" id="libBox" open>
-    <summary>کتابخانهٔ PDFهای ذخیره‌شده <span id="libCount"></span></summary>
-    <p class="hint" style="margin:8px 0">هر PDF که باز می‌کنید در حافظهٔ خود برنامه ذخیره می‌شود تا دفعهٔ بعد بدون انتخاب دوبارهٔ فایل، از همین‌جا باز شود. جای خواندن هر فایل هم حفظ می‌شود.</p>
-    <label class="chk"><input type="checkbox" id="libAuto" checked> ذخیرهٔ خودکار PDFهایی که باز می‌کنم</label>
-    <div id="libList"></div>
-    <p class="hint" id="libMsg" aria-live="polite" style="margin-top:8px"></p>
-    <button class="btn" id="libClear" type="button" style="width:100%;margin-top:8px" hidden>حذف همهٔ فایل‌های ذخیره‌شده</button>
-  </details>
-
-  <div class="card">
-    <div id="nosupport" class="warn" hidden>مرورگر شما از تبدیل متن به گفتار پشتیبانی نمی‌کند. از Chrome یا Edge یا Safari استفاده کنید.</div>
-    <div id="novoice" class="warn" hidden style="margin-bottom:12px">هیچ صدای فارسی روی این دستگاه پیدا نشد. صداهای سایر زبان‌ها نمایش داده شده‌اند، ولی فارسی را درست نمی‌خوانند. در تنظیمات سیستم‌عامل (Text-to-speech) می‌توانید صدای فارسی نصب کنید.</div>
-    <input type="hidden" id="engine" value="piper">
-    <div id="piperbox" class="row" hidden>
-      <button class="btn" id="pdl" type="button">دانلود صدای فارسی</button>
-      <p class="hint" id="pstat"></p>
-      <p class="hint" id="pperf"></p>
-      <label class="chk"><input type="checkbox" id="enh" checked> بهبود کیفیت صدا (وضوح و یکنواختی بلندی)</label>
-      <p class="hint">کاملاً رایگان و بدون سقف است و بعد از دانلود بدون اینترنت کار می‌کند.  ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
-    </div>
-    <div class="two row">
-      <div>
-        <label for="gender"><span>نوع صدا</span></label>
-        <select id="gender">
-          <option value="all">همه</option>
-          <option value="f">زن</option>
-          <option value="m">مرد</option>
-        </select>
+    <div class="hero" id="heroWrap">
+      <div class="hero-main" id="drop" tabindex="0" role="button" aria-label="انتخاب فایل PDF">
+        <svg class="star" viewBox="0 0 120 120" aria-hidden="true">
+          <path pathLength="1" d="M22 22H98V98H22Z"/>
+          <path class="b" pathLength="1" d="M60 3.4L116.6 60L60 116.6L3.4 60Z"/>
+          <circle pathLength="1" cx="60" cy="60" r="27"/>
+          <circle class="dot" cx="60" cy="60" r="4"/>
+        </svg>
+        <h1>یک PDF انتخاب کنید</h1>
+        <p>متن آن با صدای فارسی خوانده می‌شود و جملهٔ در حال خواندن روی صفحه دنبال می‌شود.<span class="only-hover"> فایل را می‌توانید اینجا رها هم کنید.</span></p>
+        <span class="cta">انتخاب فایل</span>
       </div>
-      <div>
-        <label for="voice"><span>گوینده</span></label>
-        <select id="voice"></select>
+      <button class="ghost" id="heroLib" type="button">کتابخانهٔ من</button>
+    </div>
+
+    <div class="note" id="ocrNote" hidden>
+      <span id="ocrNoteT"></span>
+      <button class="btn primary" id="ocrNoteB" type="button"></button>
+    </div>
+
+    <div class="dropveil" aria-hidden="true"><span>برای باز کردن، فایل را رها کنید</span></div>
+
+    <section class="dock" id="dock" aria-label="پخش گفتار">
+      <button class="grab" id="dockTgl" type="button" aria-label="کوچک یا بزرگ کردن نوار پخش" aria-expanded="true"><i></i></button>
+      <div id="status" aria-live="polite"></div>
+      <div class="meta"><span id="pos">—</span></div>
+      <input type="range" class="rng" id="seek" min="0" max="0" value="0" step="1" disabled aria-label="موقعیت در متن">
+      <div class="ctl">
+        <button class="ibtn" id="pgPrev" type="button" disabled aria-label="صفحهٔ قبل" title="صفحهٔ قبل">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 6l6 6-6 6M5 6l6 6-6 6"/></svg><span class="cap">صفحه</span></button>
+        <button class="ibtn" id="prev" type="button" disabled aria-label="جملهٔ قبل" title="جملهٔ قبل">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg><span class="cap">جمله</span></button>
+        <button class="play" id="play" type="button" disabled aria-label="پخش" title="پخش (فاصله)">
+          <i class="ring"></i><i class="ring r2"></i>
+          <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 4.8v14.4L5.8 12z"/></svg>
+          <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.2" y="5" width="4.1" height="14" rx="1.5"/><rect x="13.7" y="5" width="4.1" height="14" rx="1.5"/></svg>
+        </button>
+        <button class="ibtn" id="next" type="button" disabled aria-label="جملهٔ بعد" title="جملهٔ بعد">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"/></svg><span class="cap">جمله</span></button>
+        <button class="ibtn" id="pgNext" type="button" disabled aria-label="صفحهٔ بعد" title="صفحهٔ بعد">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 6l-6 6 6 6M19 6l-6 6 6 6"/></svg><span class="cap">صفحه</span></button>
       </div>
-    </div>
-    <p class="hint" style="margin-bottom:12px">مرورگر جنسیت صدا را اعلام نمی‌کند؛ تشخیص زن/مرد بر اساس نام صداست و ممکن است برای بعضی صداها «نامشخص» باشد.</p>
-    <div class="row">
-      <label for="rate"><span>سرعت گفتار</span><span id="rateV"></span></label>
-      <div class="rwrap">
-        <button class="btn sm rstep" id="rateDn" type="button" aria-label="کندتر">−</button>
-        <input type="range" class="rng" id="rate" min="0.4" max="2.5" step="0.05" value="1">
-        <button class="btn sm rstep" id="rateUp" type="button" aria-label="تندتر">+</button>
+      <div class="pills">
+        <button class="pill" id="spBtn" type="button" aria-label="تغییر سرعت"></button>
+        <button class="pill" id="slBtn" type="button" aria-label="تایمر خواب">تایمر خواب</button>
+        <button class="pill" id="locBtn" type="button" disabled aria-label="رفتن به محل خواندن">محل خواندن</button>
+        <button class="pill" id="stop" type="button" disabled>توقف</button>
       </div>
-      <div class="chips rchips" id="rateChips"></div>
-      <p class="hint">سرعت کمتر از ۱× با کشش خود گفتار (بدون تغییر زیر و بمی) ساخته می‌شود و حین کشیدن نوار همان لحظه اثر می‌کند.</p>
-    </div>
-    <label class="chk"><input type="checkbox" id="allLangs"> نمایش صداهای همهٔ زبان‌ها</label>
-  </div>
-
-  <details class="card" id="matchBox">
-    <summary>صدای شخصی رایگان (نزدیک‌سازی به نمونهٔ صدا)</summary>
-    <p class="hint" style="margin:8px 0">یک فایل صدای تمیز از گوینده (۱ تا ۳ دقیقه گفتار، بدون موسیقی) انتخاب کنید. برنامه زیر و بمی و رنگ کلی صدای نمونه را اندازه می‌گیرد و گفتار فارسی Piper را به آن نزدیک می‌کند. کاملاً رایگان و آفلاین است و نمونه از دستگاه بیرون نمی‌رود. این کلون واقعی نیست: شبیه‌شدن در حد زیر و بمی و رنگ صداست و لحن، تلفظ و سبک گوینده همان Piper می‌ماند.</p>
-    <div class="row">
-      <label for="mBase"><span>صدای پایه (Piper)</span></label>
-      <select id="mBase"></select>
-      <p class="hint">صدای پایه باید دانلود شده باشد. اگر نمونه صدای زن است، پایهٔ زن (مثلاً haaniye) نتیجهٔ بهتری می‌دهد.</p>
-    </div>
-    <div class="row">
-      <label for="mName"><span>نام صدا</span></label>
-      <input type="text" id="mName" dir="auto" maxlength="60" placeholder="مثلاً: صدای من">
-    </div>
-    <input type="file" id="mFile" accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac,.aac,.webm" multiple hidden>
-    <div class="two row">
-      <button class="btn" id="mPick" type="button">انتخاب فایل نمونه</button>
-      <button class="btn primary" id="mMake" type="button" disabled>ساخت صدا</button>
-    </div>
-    <p class="hint" id="mFiles"></p>
-    <p class="hint" id="mMsg" aria-live="polite" style="margin-bottom:8px"></p>
-    <div id="mList"></div>
-    <div class="row" style="margin-top:10px">
-      <label for="mStr"><span>شدت نزدیک‌سازی</span></label>
-      <input type="range" id="mStr" min="0" max="100" step="5" value="100">
-      <p class="hint">اگر صدا مصنوعی یا کشیده شد، شدت را کمتر کنید.</p>
-    </div>
-  </details>
-
-  <details class="card" id="cloneBox">
-    <summary>کلون واقعی صدا با ElevenLabs (پولی، اختیاری)</summary>
-    <p class="hint" style="margin:8px 0">یک فایل صدای تمیز (حدود ۱ تا ۳ دقیقه صحبت یک نفر، بدون موسیقی و نویز) انتخاب کنید تا از روی آن یک صدای شخصی ساخته شود و PDF با همان صدا خوانده شود. این بخش از سرویس ElevenLabs (مدل eleven_v3 که فارسی را پشتیبانی می‌کند) استفاده می‌کند؛ پس برخلاف صداهای Piper آفلاین نیست، به کلید API و حسابی که کلون صدا را دارد (معمولاً پلن پولی) نیاز دارد، و هر بخشی که خوانده شود از اعتبار حساب مصرف می‌کند. فایل نمونه و متن‌های خوانده‌شده به آن سرویس فرستاده می‌شوند. فقط از صدای خودتان یا صدایی که اجازهٔ استفاده‌اش را دارید استفاده کنید.</p>
-    <div class="row">
-      <label for="cvKey"><span>کلید API سرویس ElevenLabs</span></label>
-      <input type="password" id="cvKey" dir="ltr" autocomplete="off" placeholder="sk_...">
-      <p class="hint">کلید فقط روی همین دستگاه ذخیره می‌شود و فقط به سرویس بالا فرستاده می‌شود.</p>
-    </div>
-    <div class="row">
-      <label for="cvName"><span>نام صدا</span></label>
-      <input type="text" id="cvName" dir="auto" maxlength="60" placeholder="مثلاً: صدای من">
-    </div>
-    <input type="file" id="cvFile" accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac,.aac,.webm" multiple hidden>
-    <div class="two row">
-      <button class="btn" id="cvPick" type="button">انتخاب فایل نمونه</button>
-      <button class="btn primary" id="cvMake" type="button" disabled>ساخت صدا</button>
-    </div>
-    <p class="hint" id="cvFiles"></p>
-    <p class="hint" id="cvMsg" aria-live="polite" style="margin-bottom:8px"></p>
-    <div id="cvList"></div>
-    <details style="margin-top:10px">
-      <summary class="hint">تنظیمات پیشرفته</summary>
-      <div class="row" style="margin-top:8px">
-        <label for="cvBase"><span>آدرس سرویس (اختیاری)</span></label>
-        <input type="text" id="cvBase" dir="ltr" placeholder="https://api.elevenlabs.io/v1">
-        <p class="hint">اگر سرویس سازگار با ElevenLabs یا واسطهٔ شخصی دارید، آدرس https آن را اینجا بگذارید.</p>
-      </div>
-    </details>
-  </details>
-
-  <details class="card" id="bgmBox">
-    <summary>موسیقی پس‌زمینه برای گفتار</summary>
-    <p class="hint" style="margin:8px 0">یک فایل موسیقی از گوشی انتخاب کنید تا همزمان با خواندن، آرام و پیوسته پخش شود. برای اینکه گفتار واضح بماند، موسیقی همیشه کم‌صدا پخش می‌شود، نوسان بلندی‌اش یکدست می‌شود و فرکانس‌های اصلی گفتار در آن کم می‌شود. با «توقف موقت» موسیقی هم آرام خاموش می‌شود.</p>
-    <input type="file" id="bgmFile" accept="audio/*" hidden>
-    <div class="two row">
-      <button class="btn" id="bgmPick" type="button">انتخاب موسیقی</button>
-      <button class="btn" id="bgmDel" type="button" disabled>حذف موسیقی</button>
-    </div>
-    <p class="hint" id="bgmName" style="margin-bottom:12px"></p>
-    <label class="chk" style="margin-bottom:12px"><input type="checkbox" id="bgmOn" checked> پخش موسیقی همراه با خواندن</label>
-    <div class="row">
-      <label for="bgmLvl"><span>میزان موسیقی</span><span id="bgmLvlV"></span></label>
-      <input type="range" class="rng" id="bgmLvl" min="0" max="100" step="1" value="60">
-    </div>
-    <button class="btn" id="bgmTry" type="button" disabled style="width:100%">پیش‌شنیدن موسیقی</button>
-  </details>
-
-  <details class="card" id="vfbox" hidden>
-    <summary>پوشهٔ ذخیرهٔ صداها (ذخیره و بارگذاری صداهای دانلودشده)</summary>
-    <p class="hint" style="margin:8px 0">یک پوشه روی گوشی انتخاب کنید تا صداهای دانلودشده به‌صورت فایل zip در آن ذخیره شوند. بعد از نصب دوبارهٔ برنامه یا روی گوشی دیگر، همان پوشه را انتخاب و صداها را بدون دانلود بارگذاری کنید.</p>
-    <p class="hint" id="vfName"></p>
-    <div class="two row">
-      <button class="btn" id="vfPick" type="button">انتخاب پوشه</button>
-      <button class="btn" id="vfSave" type="button" disabled>ذخیره در پوشه</button>
-    </div>
-    <button class="btn" id="vfLoad" type="button" disabled style="width:100%">بارگذاری صداها از پوشه</button>
-    <label class="chk" style="margin-top:8px"><input type="checkbox" id="vfAuto" checked> بعد از هر دانلود خودکار در پوشه ذخیره شود، و صداهای گم‌شده خودکار از پوشه بارگذاری شوند</label>
-    <p class="hint" id="vfMsg" aria-live="polite"></p>
-  </details>
-
-  <details class="card" id="txtbox" open>
-    <summary>تنظیمات متن PDF (سطربندی و آماده‌سازی برای گفتار)</summary>
-    <div class="row" style="margin-top:8px">
-      <label for="lnMode"><span>سطربندی</span></label>
-      <select id="lnMode">
-        <option value="auto">خودکار (تشخیص پایان بند)</option>
-        <option value="join">ادغام سطرها (متن پیوسته و کتاب)</option>
-        <option value="line">هر سطر جدا (شعر، فهرست، جدول)</option>
-      </select>
-    </div>
-    <div class="row">
-      <label for="encMode"><span>اصلاح کدگذاری متن (برای متنی مثل Ø§Ù„ یا ÇáÓá)</span></label>
-      <select id="encMode">
-        <option value="auto">خودکار (فقط اگر نتیجه بهتر شد)</option>
-        <option value="none">بدون تغییر</option>
-        <option value="utf-8">UTF-8</option>
-        <option value="windows-1256">Windows-1256 (فارسی/عربی)</option>
-        <option value="iso-8859-6">ISO-8859-6 (عربی)</option>
-      </select>
-    </div>
-    <label class="chk"><input type="checkbox" id="oPos"> مرتب‌سازی سطرها بر اساس موقعیت روی صفحه (برای فهرست و جدول)</label>
-    <label class="chk"><input type="checkbox" id="oCols"> تشخیص ستون‌بندی (متن دوستونی؛ همراه با گزینهٔ بالا)</label>
-    <label class="chk"><input type="checkbox" id="oDots" checked> حذف نقطه‌چین و خط‌چین‌های فهرست</label>
-    <label class="chk"><input type="checkbox" id="oHdr" checked> حذف سرصفحه و پاصفحهٔ تکراری و شمارهٔ صفحه</label>
-    <label class="chk"><input type="checkbox" id="oNorm" checked> یکدست‌سازی «ي ك ى» عربی به فارسی و حذف اعراب و کشیده</label>
-    <label class="chk"><input type="checkbox" id="oFix" checked> اصلاح فاصله‌گذاری: نیم‌فاصله، فاصله پیش و پس از ، ؛ ؟ و درون پرانتز و گیومه</label>
-    <label class="chk"><input type="checkbox" id="oScript" checked> کنار گذاشتن متن زبان‌های غیرفارسی و غیرلاتین (مثل ارمنی)</label>
-    <div class="row" style="margin-top:8px">
-      <label for="maxL"><span>بیشینهٔ طول هر تکه‌جمله (نویسه)</span><span id="maxV"></span></label>
-      <input type="range" id="maxL" min="60" max="220" step="10" value="100">
-    </div>
-    <div class="two row">
-      <div class="row"><label for="pgFrom"><span>از صفحهٔ</span></label><input type="number" id="pgFrom" min="1" inputmode="numeric" placeholder="ابتدا"></div>
-      <div class="row"><label for="pgTo"><span>تا صفحهٔ</span></label><input type="number" id="pgTo" min="1" inputmode="numeric" placeholder="انتها"></div>
-    </div>
-    <div class="row">
-      <label for="ocrMode"><span>OCR (خواندن از روی تصویر صفحه)</span></label>
-      <select id="ocrMode">
-        <option value="auto">خودکار: فقط صفحه‌های خراب یا بدون متن</option>
-        <option value="always">همیشه، برای همهٔ صفحه‌ها</option>
-        <option value="off">خاموش</option>
-      </select>
-    </div>
-    <div class="two row">
-      <div class="row"><label for="ocrLang"><span>زبان OCR</span></label>
-        <select id="ocrLang"><option value="fas+eng">فارسی + انگلیسی</option><option value="fas">فقط فارسی</option><option value="eng">فقط انگلیسی</option></select></div>
-      <div class="row"><label for="ocrQ"><span>کیفیت OCR</span></label>
-        <select id="ocrQ"><option value="1">سریع</option><option value="2" selected>متعادل</option><option value="3">دقیق (کندتر)</option></select></div>
-    </div>
-    <button class="btn" id="ocrBtn" type="button" disabled>اجرای OCR (از صفحهٔ فعلی)</button>
-    <p class="hint" id="ocrStat" aria-live="polite"></p>
-    <p class="hint" id="ocrSrc"></p>
-    <p class="hint">با وجود پوشه‌های ocr و lib کنار برنامه (ساختهٔ fetch-offline.sh)، OCR و نمایش PDF کاملاً آفلاین کار می‌کنند؛ وگرنه موتور از اینترنت گرفته می‌شود. نتیجهٔ OCR روی دستگاه ذخیره می‌شود.</p>
-    <button class="btn" id="txtReset" type="button" style="width:100%;margin-top:8px">بازنشانی تنظیمات متن</button>
-  </details>
-
-  <details class="card" id="fixbox" open>
-    <summary>تصحیح‌گر هوشمند گفتار (تشخیص و اصلاح اشکال‌های تلفظ)</summary>
-    <p class="hint" style="margin:8px 0 12px">پیش از خواندن هر جمله، متن را با حساسیت بالا بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، کسرهٔ اضافه (ۀ)، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع، کلمه‌های لاتین و سرواژه‌ها و مکث‌گذاری هوشمند و نشانه‌گذاری آهنگ جمله. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p>
-    <label class="chk"><input type="checkbox" id="fixOn" checked> تصحیح گفتار فعال باشد</label>
-    <label class="chk"><input type="checkbox" id="fixHi" checked> حساسیت بالا (حروف جداافتاده، تکرار و کشیدگی)</label>
-    <label class="chk"><input type="checkbox" id="fixPro" checked> مکث‌گذاری هوشمند (بر پایهٔ منطق جمله: پیش از پیوندها، پس از قیدهای آغازین، شکستن جملهٔ بلند)</label>
-    <p class="hint" id="fixStats" aria-live="polite" style="margin-top:10px"></p>
-    <p class="hint" id="fixBreak"></p>
-    <p class="hint" id="fixUnsHead" hidden>کلمه‌هایی که تلفظشان قطعی نبود و تقریبی ساخته شد. روی هر کلمه بزنید تا با تلفظ پیشنهادی به واژه‌نامه اضافه شود؛ بعد می‌توانید تلفظ را در واژه‌نامه ویرایش کنید.</p>
-    <div class="chips" id="fixChips"></div>
-    <p class="hint" id="fixMsg" aria-live="polite"></p>
-  </details>
-
-  <details class="card">
-    <summary>واژه‌نامهٔ تلفظ (اصلاح کلمه‌های غلط‌خوانده‌شده)</summary>
-    <p class="hint" style="margin-top:8px">در هر خط یک مورد بنویسید: «کلمه = تلفظ». مثال: <b>شیراز = شیراز</b> یا <b>ایلان ماسک = ایلان ماسک</b>. برای حذف یک کلمه از خواندن، سمت راست را خالی بگذارید. با هر تغییر، صدا از نو ساخته می‌شود.</p>
-    <textarea id="dict" dir="rtl" placeholder="مثلاً:&#10;خویش = خویش&#10;ChatGPT = چت جی پی تی"></textarea>
-  </details>
-
-  <div class="card">
-    <div class="rtools" id="rtools" hidden>
-      <button class="btn sm" id="fsDn" type="button" aria-label="کوچک‌تر کردن متن">آ−</button>
-      <button class="btn sm" id="fsUp" type="button" aria-label="بزرگ‌تر کردن متن">آ+</button>
-      <button class="btn sm" id="thBtn" type="button" aria-label="تغییر پوسته"></button>
-      <span class="sp"></span>
-      <input id="pgGo" type="text" inputmode="numeric" placeholder="صفحه" aria-label="شمارهٔ صفحه" autocomplete="off">
-      <button class="btn sm" id="pgBtn" type="button">برو</button>
-    </div>
-    <div class="rtools" id="rtools2" hidden>
-      <input id="qBox" type="search" placeholder="جستجو در متن" aria-label="جستجو در متن" autocomplete="off">
-      <button class="btn sm" id="qPrev" type="button" aria-label="نتیجهٔ قبلی">‹</button>
-      <button class="btn sm" id="qNext" type="button" aria-label="نتیجهٔ بعدی">›</button>
-    </div>
-    <div id="reader"><div class="empty">هنوز فایلی باز نشده است.</div></div>
-  </div>
+    </section>
+  </main>
 </div>
 
 <div id="fixTip" hidden></div>
 <div id="seekTip" hidden></div>
+<input type="file" id="file" accept="application/pdf,.pdf" hidden>
 
-<div class="bar">
-  <div class="bar-in">
-    <div class="prog"><span id="pos">—</span><span id="pageInfo"></span></div>
-    <input type="range" class="rng" id="seek" min="0" max="0" value="0" step="1" disabled aria-label="موقعیت در متن">
-    <div class="btns">
-      <button class="btn sm2" id="pgPrev" disabled aria-label="صفحهٔ قبل">صفحهٔ<br>قبل</button>
-      <button class="btn sm2" id="prev" disabled aria-label="جملهٔ قبل">جملهٔ<br>قبل</button>
-      <button class="btn primary" id="play" disabled>پخش</button>
-      <button class="btn sm2" id="next" disabled aria-label="جملهٔ بعد">جملهٔ<br>بعد</button>
-      <button class="btn sm2" id="pgNext" disabled aria-label="صفحهٔ بعد">صفحهٔ<br>بعد</button>
-    </div>
-    <div class="btns2">
-      <button class="btn sm2" id="spBtn" type="button" aria-label="تغییر سرعت"></button>
-      <button class="btn sm2" id="slBtn" type="button" aria-label="تایمر خواب">تایمر خواب</button>
-      <button class="btn sm2" id="locBtn" type="button" disabled aria-label="رفتن به محل خواندن">محل خواندن</button>
-      <button class="btn sm2" id="stop" disabled>توقف</button>
-    </div>
+<!-- ===================== منو ===================== -->
+<div class="scrim" id="scrim" aria-hidden="true"></div>
+<aside class="menu" id="menu" role="dialog" aria-modal="true" aria-labelledby="menuTitle" aria-hidden="true" inert>
+  <div class="mh">
+    <h2 id="menuTitle">منو</h2>
+    <button class="ibtn round" id="menuClose" type="button" aria-label="بستن منو">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
   </div>
-</div>
+  <div class="tabs" id="tabs" role="tablist" aria-label="بخش‌های منو">
+    <button class="tab" role="tab" data-tab="lib" aria-selected="true">کتابخانه</button>
+    <button class="tab" role="tab" data-tab="voice" aria-selected="false" tabindex="-1">صدا</button>
+    <button class="tab" role="tab" data-tab="text" aria-selected="false" tabindex="-1">متن</button>
+    <button class="tab" role="tab" data-tab="view" aria-selected="false" tabindex="-1">نمایش</button>
+  </div>
+
+  <div class="mbody" id="mbody">
+
+    <!-- کتابخانه -->
+    <div class="panel on" data-panel="lib" role="tabpanel">
+      <button class="btn primary wide" id="menuOpen" type="button">انتخاب فایل PDF از دستگاه</button>
+
+      <section class="grp" id="libBox">
+        <h3>PDFهای ذخیره‌شده <span id="libCount"></span></h3>
+        <p class="hint">هر PDF که باز می‌کنید در حافظهٔ خود برنامه ذخیره می‌شود تا دفعهٔ بعد بدون انتخاب دوبارهٔ فایل، از همین‌جا باز شود. جای خواندن هر فایل هم حفظ می‌شود.</p>
+        <label class="chk"><input type="checkbox" id="libAuto" checked> ذخیرهٔ خودکار PDFهایی که باز می‌کنم</label>
+        <div id="libList"></div>
+        <p class="hint" id="libMsg" aria-live="polite"></p>
+        <button class="btn wide" id="libClear" type="button" hidden>حذف همهٔ فایل‌های ذخیره‌شده</button>
+      </section>
+
+      <details class="acc" id="vfbox" hidden>
+        <summary>پوشهٔ ذخیرهٔ صداها</summary>
+        <div class="in">
+          <p class="hint">یک پوشه روی گوشی انتخاب کنید تا صداهای دانلودشده به‌صورت فایل zip در آن ذخیره شوند. بعد از نصب دوبارهٔ برنامه یا روی گوشی دیگر، همان پوشه را انتخاب و صداها را بدون دانلود بارگذاری کنید.</p>
+          <p class="hint" id="vfName"></p>
+          <div class="two">
+            <button class="btn" id="vfPick" type="button">انتخاب پوشه</button>
+            <button class="btn" id="vfSave" type="button" disabled>ذخیره در پوشه</button>
+          </div>
+          <button class="btn wide" id="vfLoad" type="button" disabled>بارگذاری صداها از پوشه</button>
+          <label class="chk"><input type="checkbox" id="vfAuto" checked> بعد از هر دانلود خودکار در پوشه ذخیره شود، و صداهای گم‌شده خودکار از پوشه بارگذاری شوند</label>
+          <p class="hint" id="vfMsg" aria-live="polite"></p>
+        </div>
+      </details>
+    </div>
+
+    <!-- صدا -->
+    <div class="panel" data-panel="voice" role="tabpanel">
+      <div id="nosupport" class="warn" hidden>مرورگر شما از تبدیل متن به گفتار پشتیبانی نمی‌کند. از Chrome یا Edge یا Safari استفاده کنید.</div>
+      <div id="novoice" class="warn" hidden>هیچ صدای فارسی روی این دستگاه پیدا نشد. صداهای سایر زبان‌ها نمایش داده شده‌اند، ولی فارسی را درست نمی‌خوانند. در تنظیمات سیستم‌عامل (Text-to-speech) می‌توانید صدای فارسی نصب کنید.</div>
+      <input type="hidden" id="engine" value="piper">
+
+      <section class="grp">
+        <h3>گوینده</h3>
+        <div id="piperbox" class="grp" hidden>
+          <button class="btn" id="pdl" type="button">دانلود صدای فارسی</button>
+          <p class="hint" id="pstat"></p>
+          <p class="hint" id="pperf"></p>
+          <label class="chk"><input type="checkbox" id="enh" checked> بهبود کیفیت صدا (وضوح و یکنواختی بلندی)</label>
+          <p class="hint">کاملاً رایگان و بدون سقف است و بعد از دانلود بدون اینترنت کار می‌کند. ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
+        </div>
+        <div class="two">
+          <div class="field">
+            <label for="gender"><span>نوع صدا</span></label>
+            <select id="gender">
+              <option value="all">همه</option>
+              <option value="f">زن</option>
+              <option value="m">مرد</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="voice"><span>گوینده</span></label>
+            <select id="voice"></select>
+          </div>
+        </div>
+        <p class="hint">مرورگر جنسیت صدا را اعلام نمی‌کند؛ تشخیص زن/مرد بر اساس نام صداست و ممکن است برای بعضی صداها «نامشخص» باشد.</p>
+        <label class="chk"><input type="checkbox" id="allLangs"> نمایش صداهای همهٔ زبان‌ها</label>
+      </section>
+
+      <section class="grp">
+        <h3>سرعت گفتار</h3>
+        <div class="field">
+          <label for="rate"><span>سرعت</span><span id="rateV"></span></label>
+          <div class="rwrap">
+            <button class="btn sm rstep" id="rateDn" type="button" aria-label="کندتر">−</button>
+            <input type="range" class="rng" id="rate" min="0.4" max="2.5" step="0.05" value="1">
+            <button class="btn sm rstep" id="rateUp" type="button" aria-label="تندتر">+</button>
+          </div>
+          <div class="chips rchips" id="rateChips"></div>
+          <p class="hint">سرعت کمتر از ۱× با کشش خود گفتار (بدون تغییر زیر و بمی) ساخته می‌شود و حین کشیدن نوار همان لحظه اثر می‌کند.</p>
+        </div>
+      </section>
+
+      <details class="acc" id="bgmBox">
+        <summary>موسیقی پس‌زمینه برای گفتار</summary>
+        <div class="in">
+          <p class="hint">یک فایل موسیقی از گوشی انتخاب کنید تا همزمان با خواندن، آرام و پیوسته پخش شود. برای اینکه گفتار واضح بماند، موسیقی همیشه کم‌صدا پخش می‌شود، نوسان بلندی‌اش یکدست می‌شود و فرکانس‌های اصلی گفتار در آن کم می‌شود. با «توقف موقت» موسیقی هم آرام خاموش می‌شود.</p>
+          <input type="file" id="bgmFile" accept="audio/*" hidden>
+          <div class="two">
+            <button class="btn" id="bgmPick" type="button">انتخاب موسیقی</button>
+            <button class="btn" id="bgmDel" type="button" disabled>حذف موسیقی</button>
+          </div>
+          <p class="hint" id="bgmName"></p>
+          <label class="chk"><input type="checkbox" id="bgmOn" checked> پخش موسیقی همراه با خواندن</label>
+          <div class="field">
+            <label for="bgmLvl"><span>میزان موسیقی</span><span id="bgmLvlV"></span></label>
+            <input type="range" class="rng" id="bgmLvl" min="0" max="100" step="1" value="60">
+          </div>
+          <button class="btn wide" id="bgmTry" type="button" disabled>پیش‌شنیدن موسیقی</button>
+        </div>
+      </details>
+
+      <details class="acc" id="matchBox">
+        <summary>صدای شخصی رایگان (نزدیک‌سازی به نمونهٔ صدا)</summary>
+        <div class="in">
+          <p class="hint">یک فایل صدای تمیز از گوینده (۱ تا ۳ دقیقه گفتار، بدون موسیقی) انتخاب کنید. برنامه زیر و بمی و رنگ کلی صدای نمونه را اندازه می‌گیرد و گفتار فارسی Piper را به آن نزدیک می‌کند. کاملاً رایگان و آفلاین است و نمونه از دستگاه بیرون نمی‌رود. این کلون واقعی نیست: شبیه‌شدن در حد زیر و بمی و رنگ صداست و لحن، تلفظ و سبک گوینده همان Piper می‌ماند.</p>
+          <div class="field">
+            <label for="mBase"><span>صدای پایه (Piper)</span></label>
+            <select id="mBase"></select>
+            <p class="hint">صدای پایه باید دانلود شده باشد. اگر نمونه صدای زن است، پایهٔ زن (مثلاً haaniye) نتیجهٔ بهتری می‌دهد.</p>
+          </div>
+          <div class="field">
+            <label for="mName"><span>نام صدا</span></label>
+            <input type="text" id="mName" dir="auto" maxlength="60" placeholder="مثلاً: صدای من">
+          </div>
+          <input type="file" id="mFile" accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac,.aac,.webm" multiple hidden>
+          <div class="two">
+            <button class="btn" id="mPick" type="button">انتخاب فایل نمونه</button>
+            <button class="btn primary" id="mMake" type="button" disabled>ساخت صدا</button>
+          </div>
+          <p class="hint" id="mFiles"></p>
+          <p class="hint" id="mMsg" aria-live="polite"></p>
+          <div id="mList"></div>
+          <div class="field">
+            <label for="mStr"><span>شدت نزدیک‌سازی</span></label>
+            <input type="range" id="mStr" min="0" max="100" step="5" value="100">
+            <p class="hint">اگر صدا مصنوعی یا کشیده شد، شدت را کمتر کنید.</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="acc" id="cloneBox">
+        <summary>کلون واقعی صدا با ElevenLabs (پولی، اختیاری)</summary>
+        <div class="in">
+          <p class="hint">یک فایل صدای تمیز (حدود ۱ تا ۳ دقیقه صحبت یک نفر، بدون موسیقی و نویز) انتخاب کنید تا از روی آن یک صدای شخصی ساخته شود و PDF با همان صدا خوانده شود. این بخش از سرویس ElevenLabs (مدل eleven_v3 که فارسی را پشتیبانی می‌کند) استفاده می‌کند؛ پس برخلاف صداهای Piper آفلاین نیست، به کلید API و حسابی که کلون صدا را دارد (معمولاً پلن پولی) نیاز دارد، و هر بخشی که خوانده شود از اعتبار حساب مصرف می‌کند. فایل نمونه و متن‌های خوانده‌شده به آن سرویس فرستاده می‌شوند. فقط از صدای خودتان یا صدایی که اجازهٔ استفاده‌اش را دارید استفاده کنید.</p>
+          <div class="field">
+            <label for="cvKey"><span>کلید API سرویس ElevenLabs</span></label>
+            <input type="password" id="cvKey" dir="ltr" autocomplete="off" placeholder="sk_...">
+            <p class="hint">کلید فقط روی همین دستگاه ذخیره می‌شود و فقط به سرویس بالا فرستاده می‌شود.</p>
+          </div>
+          <div class="field">
+            <label for="cvName"><span>نام صدا</span></label>
+            <input type="text" id="cvName" dir="auto" maxlength="60" placeholder="مثلاً: صدای من">
+          </div>
+          <input type="file" id="cvFile" accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac,.aac,.webm" multiple hidden>
+          <div class="two">
+            <button class="btn" id="cvPick" type="button">انتخاب فایل نمونه</button>
+            <button class="btn primary" id="cvMake" type="button" disabled>ساخت صدا</button>
+          </div>
+          <p class="hint" id="cvFiles"></p>
+          <p class="hint" id="cvMsg" aria-live="polite"></p>
+          <div id="cvList"></div>
+          <details class="sub">
+            <summary>تنظیمات پیشرفته</summary>
+            <div class="in">
+              <div class="field">
+                <label for="cvBase"><span>آدرس سرویس (اختیاری)</span></label>
+                <input type="text" id="cvBase" dir="ltr" placeholder="https://api.elevenlabs.io/v1">
+                <p class="hint">اگر سرویس سازگار با ElevenLabs یا واسطهٔ شخصی دارید، آدرس https آن را اینجا بگذارید.</p>
+              </div>
+            </div>
+          </details>
+        </div>
+      </details>
+    </div>
+
+    <!-- متن -->
+    <div class="panel" data-panel="text" role="tabpanel">
+      <details class="acc" id="txtbox" open>
+        <summary>تنظیمات متن PDF (سطربندی و آماده‌سازی برای گفتار)</summary>
+        <div class="in">
+          <div class="field">
+            <label for="lnMode"><span>سطربندی</span></label>
+            <select id="lnMode">
+              <option value="auto">خودکار (تشخیص پایان بند)</option>
+              <option value="join">ادغام سطرها (متن پیوسته و کتاب)</option>
+              <option value="line">هر سطر جدا (شعر، فهرست، جدول)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="encMode"><span>اصلاح کدگذاری متن (برای متنی مثل Ø§Ù„ یا ÇáÓá)</span></label>
+            <select id="encMode">
+              <option value="auto">خودکار (فقط اگر نتیجه بهتر شد)</option>
+              <option value="none">بدون تغییر</option>
+              <option value="utf-8">UTF-8</option>
+              <option value="windows-1256">Windows-1256 (فارسی/عربی)</option>
+              <option value="iso-8859-6">ISO-8859-6 (عربی)</option>
+            </select>
+          </div>
+          <label class="chk"><input type="checkbox" id="oPos"> مرتب‌سازی سطرها بر اساس موقعیت روی صفحه (برای فهرست و جدول)</label>
+          <label class="chk"><input type="checkbox" id="oCols"> تشخیص ستون‌بندی (متن دوستونی؛ همراه با گزینهٔ بالا)</label>
+          <label class="chk"><input type="checkbox" id="oDots" checked> حذف نقطه‌چین و خط‌چین‌های فهرست</label>
+          <label class="chk"><input type="checkbox" id="oHdr" checked> حذف سرصفحه و پاصفحهٔ تکراری و شمارهٔ صفحه</label>
+          <label class="chk"><input type="checkbox" id="oNorm" checked> یکدست‌سازی «ي ك ى» عربی به فارسی و حذف اعراب و کشیده</label>
+          <label class="chk"><input type="checkbox" id="oFix" checked> اصلاح فاصله‌گذاری: نیم‌فاصله، فاصله پیش و پس از ، ؛ ؟ و درون پرانتز و گیومه</label>
+          <label class="chk"><input type="checkbox" id="oScript" checked> کنار گذاشتن متن زبان‌های غیرفارسی و غیرلاتین (مثل ارمنی)</label>
+          <div class="field">
+            <label for="maxL"><span>بیشینهٔ طول هر تکه‌جمله (نویسه)</span><span id="maxV"></span></label>
+            <input type="range" class="rng" id="maxL" min="60" max="220" step="10" value="100">
+          </div>
+          <div class="two">
+            <div class="field"><label for="pgFrom"><span>از صفحهٔ</span></label><input type="number" id="pgFrom" min="1" inputmode="numeric" placeholder="ابتدا"></div>
+            <div class="field"><label for="pgTo"><span>تا صفحهٔ</span></label><input type="number" id="pgTo" min="1" inputmode="numeric" placeholder="انتها"></div>
+          </div>
+          <div class="field">
+            <label for="ocrMode"><span>OCR (خواندن از روی تصویر صفحه)</span></label>
+            <select id="ocrMode">
+              <option value="auto">خودکار: فقط صفحه‌های خراب یا بدون متن</option>
+              <option value="always">همیشه، برای همهٔ صفحه‌ها</option>
+              <option value="off">خاموش</option>
+            </select>
+          </div>
+          <div class="two">
+            <div class="field"><label for="ocrLang"><span>زبان OCR</span></label>
+              <select id="ocrLang"><option value="fas+eng">فارسی + انگلیسی</option><option value="fas">فقط فارسی</option><option value="eng">فقط انگلیسی</option></select></div>
+            <div class="field"><label for="ocrQ"><span>کیفیت OCR</span></label>
+              <select id="ocrQ"><option value="1">سریع</option><option value="2" selected>متعادل</option><option value="3">دقیق (کندتر)</option></select></div>
+          </div>
+          <button class="btn" id="ocrBtn" type="button" disabled>اجرای OCR (از صفحهٔ فعلی)</button>
+          <p class="hint" id="ocrStat" aria-live="polite"></p>
+          <p class="hint" id="ocrSrc"></p>
+          <p class="hint">با وجود پوشه‌های ocr و lib کنار برنامه (ساختهٔ fetch-offline.sh)، OCR و نمایش PDF کاملاً آفلاین کار می‌کنند؛ وگرنه موتور از اینترنت گرفته می‌شود. نتیجهٔ OCR روی دستگاه ذخیره می‌شود.</p>
+          <button class="btn wide" id="txtReset" type="button">بازنشانی تنظیمات متن</button>
+        </div>
+      </details>
+
+      <details class="acc" id="fixbox" open>
+        <summary>تصحیح‌گر هوشمند گفتار</summary>
+        <div class="in">
+          <p class="hint">پیش از خواندن هر جمله، متن را با حساسیت بالا بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، کسرهٔ اضافه (ۀ)، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع، کلمه‌های لاتین و سرواژه‌ها و مکث‌گذاری هوشمند و نشانه‌گذاری آهنگ جمله. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p>
+          <label class="chk"><input type="checkbox" id="fixOn" checked> تصحیح گفتار فعال باشد</label>
+          <label class="chk"><input type="checkbox" id="fixHi" checked> حساسیت بالا (حروف جداافتاده، تکرار و کشیدگی)</label>
+          <label class="chk"><input type="checkbox" id="fixPro" checked> مکث‌گذاری هوشمند (بر پایهٔ منطق جمله: پیش از پیوندها، پس از قیدهای آغازین، شکستن جملهٔ بلند)</label>
+          <p class="hint" id="fixStats" aria-live="polite"></p>
+          <p class="hint" id="fixBreak"></p>
+          <p class="hint" id="fixUnsHead" hidden>کلمه‌هایی که تلفظشان قطعی نبود و تقریبی ساخته شد. روی هر کلمه بزنید تا با تلفظ پیشنهادی به واژه‌نامه اضافه شود؛ بعد می‌توانید تلفظ را در واژه‌نامه ویرایش کنید.</p>
+          <div class="chips" id="fixChips"></div>
+          <p class="hint" id="fixMsg" aria-live="polite"></p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>واژه‌نامهٔ تلفظ</summary>
+        <div class="in">
+          <p class="hint">در هر خط یک مورد بنویسید: «کلمه = تلفظ». مثال: <b>شیراز = شیراز</b> یا <b>ایلان ماسک = ایلان ماسک</b>. برای حذف یک کلمه از خواندن، سمت راست را خالی بگذارید. با هر تغییر، صدا از نو ساخته می‌شود.</p>
+          <textarea id="dict" dir="rtl" placeholder="مثلاً:&#10;خویش = خویش&#10;ChatGPT = چت جی پی تی"></textarea>
+        </div>
+      </details>
+    </div>
+
+    <!-- نمایش -->
+    <div class="panel" data-panel="view" role="tabpanel">
+      <section class="grp">
+        <h3>پوسته</h3>
+        <div class="sw" id="thSw">
+          <button type="button" data-th="auto" aria-pressed="false"><i style="background:linear-gradient(135deg,#f4f6fb 50%,#0b1430 50%)"></i>خودکار</button>
+          <button type="button" data-th="light" aria-pressed="false"><i style="background:linear-gradient(135deg,#ffffff,#d5ddf0)"></i>روشن</button>
+          <button type="button" data-th="dark" aria-pressed="false"><i style="background:linear-gradient(135deg,#16224b,#050a19)"></i>تیره</button>
+          <button type="button" data-th="sepia" aria-pressed="false"><i style="background:linear-gradient(135deg,#f8efd9,#d8c8a0)"></i>کاغذی</button>
+        </div>
+      </section>
+
+      <section class="grp">
+        <h3>متن</h3>
+        <div class="fsrow">
+          <button class="btn sm" id="fsDn" type="button" aria-label="کوچک‌تر کردن متن">آ−</button>
+          <output id="fsV" aria-live="polite"></output>
+          <button class="btn sm" id="fsUp" type="button" aria-label="بزرگ‌تر کردن متن">آ+</button>
+        </div>
+        <div class="field">
+          <label for="rFont"><span>قلم متن</span></label>
+          <select id="rFont">
+            <option value="vazir">وزیرمتن (ساده و امروزی)</option>
+            <option value="naskh">نسخ (کتابی)</option>
+          </select>
+        </div>
+        <p class="sample" id="fsSample">نمونهٔ متن: صدای کتاب، جمله به جمله، دنبال می‌شود.</p>
+      </section>
+
+      <section class="grp" id="navGrp" hidden>
+        <h3>جستجو و رفتن به صفحه</h3>
+        <div class="navrow">
+          <input id="pgGo" type="text" inputmode="numeric" placeholder="شمارهٔ صفحه" aria-label="شمارهٔ صفحه" autocomplete="off">
+          <button class="btn" id="pgBtn" type="button">برو</button>
+        </div>
+        <div class="navrow">
+          <input id="qBox" type="search" placeholder="جستجو در متن" aria-label="جستجو در متن" autocomplete="off">
+          <button class="btn" id="qPrev" type="button" aria-label="نتیجهٔ قبلی">‹</button>
+          <button class="btn" id="qNext" type="button" aria-label="نتیجهٔ بعدی">›</button>
+        </div>
+      </section>
+    </div>
+
+  </div>
+</aside>
 
 <script src="piper.js"></script>
 <script src="lib/pdf.min.js"></script>
@@ -395,7 +671,7 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
   }
   showVals();
 
-  function status(t){ $('#status').textContent = t || ''; }
+  function status(t){ $('#status').textContent = t || ''; document.body.classList.toggle('is-prep', /^در حال آماده‌سازی/.test(t || '')); }
 
   /* ---------- voices ---------- */
   var piperVoices = [
@@ -1021,12 +1297,12 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
     return out;
   }
   function ocrTodo(){ return need.filter(function(p){ return ocrPages[p] == null; }); }
-  function ocrHint(){ var k = ocrTodo().length; return k ? ' — ' + nf.format(k) + ' صفحه متن خراب یا بدون متن دارد و نیاز به OCR دارد (بخش «تنظیمات متن PDF»)' : ''; }
+  function ocrHint(){ var k = ocrTodo().length; return k ? ' — ' + nf.format(k) + ' صفحه متن خراب یا بدون متن دارد و نیاز به OCR دارد (منو ‹ متن)' : ''; }
   function ocrInfo(){
     var k = ocrTodo().length, b = $('#ocrBtn');
     ocrLocal().then(function(l){ $('#ocrSrc').textContent = (l ? 'موتور و دادهٔ OCR: داخل برنامه (آفلاین)' : 'موتور و دادهٔ OCR: داخل برنامه نیست؛ از اینترنت بارگیری می‌شود') + ' — نمایش PDF: ' + (window.pdfLocal ? 'داخل برنامه (آفلاین)' : 'از اینترنت'); });
     b.disabled = !ocrBusy && !k; b.textContent = ocrBusy ? 'توقف OCR و استفاده از نتیجه' : 'اجرای OCR (از صفحهٔ فعلی)';
-    if (k && !ocrBusy) $('#txtbox').open = true;
+    uiOcrNote(k);
     $('#ocrStat').textContent = (O.ocr === 'off' ? 'OCR خاموش است. ' : k ? nf.format(k) + ' صفحه ' + (O.ocr === 'always' ? 'برای OCR انتخاب شده' : 'متن ناخوانا یا بدون متن دارد (کدگذاری فونت PDF درست نیست)') + '؛ با OCR از روی تصویر صفحه خوانده می‌شوند. ' : (rawItems.length ? 'صفحهٔ مشکل‌دار پیدا نشد. ' : '')) + (dropped ? nf.format(dropped) + ' جملهٔ غیرفارسی و غیرلاتین (مثل ارمنی) کنار گذاشته شد.' : '');
   }
   function process(keep){
@@ -1271,7 +1547,7 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
     if (ocrBusy) { ocrStop = true; while (ocrBusy) await new Promise(function(r){ setTimeout(r, 60); }); }
     curKey = '';
     stopAll();
-    status('در حال باز کردن فایل…');
+    status('در حال باز کردن فایل…'); setDocTitle(file.name); closeMenu();
     try {
       var buf = await file.arrayBuffer();
       if (pdfDoc) { try { pdfDoc.destroy(); } catch (e) {} }
@@ -1306,7 +1582,7 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
     var box = $('#reader'); box.textContent = '';
     pgObs = 'IntersectionObserver' in window ? new IntersectionObserver(function(es){
       es.forEach(function(en){ var q = +en.target.dataset.p; en.isIntersecting ? renderPage(q) : unrenderPage(q); });
-    }, { rootMargin: '1500px 0px' }) : null;
+    }, { root: $('#stage'), rootMargin: '1500px 0px' }) : null;
     pages.forEach(function(txt, pi){
       var paras = [];
       txt.split(/\n+/).forEach(function(par){
@@ -1324,7 +1600,7 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
     if (!sents.length) {
       var d2 = document.createElement('div');
       d2.className = 'empty';
-      d2.textContent = 'متنی در این PDF پیدا نشد. احتمالاً فایل اسکن‌شده (تصویری) است و به OCR نیاز دارد. از بخش «تنظیمات متن PDF» می‌توانید OCR را اجرا کنید.';
+      d2.textContent = 'متنی در این PDF پیدا نشد. احتمالاً فایل اسکن‌شده (تصویری) است و به OCR نیاز دارد. با دکمهٔ OCR یا از منو ‹ متن می‌توانید آن را اجرا کنید.';
       box.appendChild(d2);
       status('');
     }
@@ -2219,8 +2495,8 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
     }
   }
   function follow(el){
-    var r = el.getBoundingClientRect(), H = window.innerHeight;
-    if (r.top < 70 || r.bottom > H - 200) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    var r = el.getBoundingClientRect(), s = $('#stage').getBoundingClientRect(), dk = $('#dock').getBoundingClientRect();
+    if (r.top < s.top + 56 || r.bottom > dk.top - 12) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
   function ui(){
     var has = sents.length > 0 && canSpeak();
@@ -2232,9 +2508,11 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
     $('#pgPrev').disabled = !has;
     $('#pgNext').disabled = !has;
     $('#locBtn').disabled = !has;
-    $('#rtools').hidden = !sents.length;
-    $('#rtools2').hidden = !sents.length;
-    $('#play').textContent = playing ? 'توقف موقت' : 'پخش';
+    $('#navGrp').hidden = !sents.length;
+    document.body.classList.toggle('is-playing', !!playing);
+    document.body.classList.toggle('has-doc', !!pdfDoc);
+    $('#play').setAttribute('aria-label', playing ? 'توقف موقت' : 'پخش');
+    $('#play').title = playing ? 'توقف موقت (فاصله)' : 'پخش (فاصله)';
     musicSync();
     try { if (navigator.mediaSession) navigator.mediaSession.playbackState = playing ? 'playing' : 'paused'; } catch (e) {}
   }
@@ -2279,6 +2557,7 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
         nm.dir = 'auto'; nm.textContent = e.name;
         inf.textContent = [libSize(e.size || 0), e.pages ? nf.format(e.pages) + ' صفحه' : '', pr ? nf.format(pr) + '٪ خوانده شده' : '', new Date(e.opened || e.added || Date.now()).toLocaleDateString('fa-IR')].filter(Boolean).join('، ');
         ob.appendChild(nm); ob.appendChild(inf);
+        if (pr) { var bar = document.createElement('i'); bar.className = 'lib-pr'; bar.style.setProperty('--w', pr + '%'); ob.appendChild(bar); }
         ob.onclick = function(){ libOpen(e.id); };
         del.type = 'button'; del.className = 'btn sm lib-del'; del.textContent = 'حذف'; del.setAttribute('aria-label', 'حذف ' + e.name);
         del.onclick = function(){ if (confirm('«' + e.name + '» از کتابخانه حذف شود؟')) libDel(e.id); };
@@ -2400,7 +2679,7 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
     if (was) { clearTimeout(seekT); token++; cancelAll(); seekT = setTimeout(function(){ if (playing) start(); }, 300); }
   }
   var fs = Math.max(0.9, Math.min(2.2, +sget('fs', '1.15') || 1.15));
-  function applyFs(){ $('#reader').style.fontSize = fs + 'rem'; }
+  function applyFs(){ $('#reader').style.fontSize = fs + 'rem'; $('#fsSample').style.fontSize = fs + 'rem'; $('#fsV').textContent = nf.format(Math.round(fs * 100)) + '٪'; }
   applyFs();
   $('#fsUp').onclick = function(){ fs = Math.min(2.2, Math.round((fs + 0.1) * 100) / 100); sset('fs', fs); applyFs(); if (curEl) follow(curEl); };
   $('#fsDn').onclick = function(){ fs = Math.max(0.9, Math.round((fs - 0.1) * 100) / 100); sset('fs', fs); applyFs(); if (curEl) follow(curEl); };
@@ -2410,14 +2689,20 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
     for (var k = 0; k < sents.length; k++) if (sents[k].page >= n) { seekTo(k); $('#pgGo').blur(); return; }
     status('صفحهٔ ' + nf.format(n) + ' وجود ندارد.');
   }
-  var THEMES = ['auto', 'light', 'dark', 'sepia'], THN = { auto: 'خودکار', light: 'روشن', dark: 'تیره', sepia: 'کاغذی' };
+  var THEMES = ['auto', 'light', 'dark', 'sepia'];
   var theme = THEMES.indexOf(sget('theme', 'auto')) >= 0 ? sget('theme', 'auto') : 'auto';
   function applyTheme(){
     if (theme === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', theme);
-    $('#thBtn').textContent = 'پوسته: ' + THN[theme];
+    var b = document.querySelectorAll('#thSw button'), i;
+    for (i = 0; i < b.length; i++) b[i].setAttribute('aria-pressed', b[i].dataset.th === theme ? 'true' : 'false');
+    try { var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.content = (getComputedStyle(document.documentElement).getPropertyValue('--bg1') || '#0b1430').trim(); } catch (e) {}
   }
   applyTheme();
-  $('#thBtn').onclick = function(){ theme = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length]; sset('theme', theme); applyTheme(); };
+  (function(){
+    var b = document.querySelectorAll('#thSw button'), i;
+    for (i = 0; i < b.length; i++) b[i].onclick = function(){ theme = this.dataset.th; sset('theme', theme); applyTheme(); };
+    try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme); } catch (e) {}
+  })();
   var hits = [], hq = '';
   function nrm(t){ return normCh(digitsAscii(t)).toLowerCase(); }
   function findNext(dir){
@@ -2532,7 +2817,7 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
     TXT_IDS.forEach(function(id){ var e = $('#' + id); if (e.type === 'checkbox') e.checked = TXT_DEF[id]; else e.value = TXT_DEF[id]; try { localStorage.removeItem('o_' + id); } catch (x) {} });
     $('#maxL').oninput(); if (pdfDoc) process(true);
   };
-  $('#maxL').oninput = function(){ $('#maxV').textContent = nf.format(+this.value); };
+  $('#maxL').oninput = function(){ $('#maxV').textContent = nf.format(+this.value); fillRng(this); };
   $('#maxL').oninput(); O = opts();
   $('#ocrBtn').onclick = runOcr;
 
@@ -2554,6 +2839,117 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
       playing ? pause() : start();
     }
   });
+
+  /* ---------- رابط جدید: منو، نوار پخش، صفحهٔ آغاز ---------- */
+  var menuEl = $('#menu'), menuIsOpen = false, menuFocus = null, menuHist = false, menuSkip = 0, TAB_ORDER = ['lib', 'voice', 'text', 'view'];
+  function showTab(t){
+    var tabs = document.querySelectorAll('#menu .tab'), ps = document.querySelectorAll('#menu .panel'), i;
+    if (TAB_ORDER.indexOf(t) < 0) t = 'lib';
+    for (i = 0; i < tabs.length; i++) { var on = tabs[i].dataset.tab === t; tabs[i].setAttribute('aria-selected', on ? 'true' : 'false'); tabs[i].tabIndex = on ? 0 : -1; }
+    for (i = 0; i < ps.length; i++) ps[i].classList.toggle('on', ps[i].dataset.panel === t);
+    sset('tab', t); $('#mbody').scrollTop = 0;
+    if (t === 'lib') libRender();
+  }
+  function openMenu(t){
+    showTab(t || sget('tab', 'lib'));
+    if (menuIsOpen) return;
+    menuIsOpen = true; menuFocus = document.activeElement;
+    menuEl.removeAttribute('inert'); menuEl.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('menu-open');
+    $('#menuBtn').setAttribute('aria-expanded', 'true');
+    if (!menuHist) { try { history.pushState({ pdfMenu: 1 }, ''); menuHist = true; } catch (e) {} }
+    setTimeout(function(){ try { $('#menuClose').focus(); } catch (e) {} }, 80);
+  }
+  function closeMenu(fromPop){
+    if (!menuIsOpen) return;
+    menuIsOpen = false;
+    document.body.classList.remove('menu-open');
+    menuEl.setAttribute('aria-hidden', 'true'); menuEl.setAttribute('inert', '');
+    $('#menuBtn').setAttribute('aria-expanded', 'false');
+    if (menuHist) { menuHist = false; if (fromPop !== true) { menuSkip++; try { history.back(); } catch (e) { menuSkip--; } } }
+    try { if (menuFocus && menuFocus.focus) menuFocus.focus(); } catch (e) {}
+  }
+  window.addEventListener('popstate', function(){
+    if (menuSkip > 0) { menuSkip--; return; }
+    if (menuIsOpen) { menuHist = false; closeMenu(true); }
+  });
+  $('#menuBtn').onclick = function(){ if (menuIsOpen) closeMenu(); else openMenu(); };
+  $('#menuClose').onclick = function(){ closeMenu(); };
+  $('#scrim').onclick = function(){ closeMenu(); };
+  $('#menuOpen').onclick = function(){ fin.click(); };
+  $('#heroLib').onclick = function(){ openMenu('lib'); };
+  Array.prototype.forEach.call(document.querySelectorAll('#menu .tab'), function(b){ b.onclick = function(){ showTab(b.dataset.tab); }; });
+  $('#tabs').addEventListener('keydown', function(e){
+    var d = e.key === 'ArrowLeft' ? 1 : e.key === 'ArrowRight' ? -1 : 0; if (!d) return;
+    var cur = document.querySelector('#menu .tab[aria-selected="true"]'), n = (TAB_ORDER.indexOf(cur.dataset.tab) + d + TAB_ORDER.length) % TAB_ORDER.length;
+    e.preventDefault(); showTab(TAB_ORDER[n]); document.querySelector('#menu .tab[data-tab="' + TAB_ORDER[n] + '"]').focus();
+  });
+  document.addEventListener('keydown', function(e){
+    if (!menuIsOpen) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeMenu(); return; }
+    if (e.key !== 'Tab') return;
+    var f = Array.prototype.filter.call(menuEl.querySelectorAll('button,input,select,textarea,summary,[tabindex]'), function(x){ return !x.disabled && x.tabIndex >= 0 && x.type !== 'hidden' && x.offsetParent !== null; });
+    if (!f.length) return;
+    var a = f[0], z = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); }
+    else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
+  });
+  menuEl.setAttribute('inert', '');
+  showTab(sget('tab', 'lib'));
+
+  /* بستن منو بعد از جستجو یا رفتن به صفحه تا نتیجه دیده شود */
+  function afterNav(){ setTimeout(closeMenu, 150); }
+  $('#pgBtn').addEventListener('click', function(){ if ($('#pgGo').value.trim()) afterNav(); });
+  $('#qNext').addEventListener('click', function(){ if ($('#qBox').value.trim()) afterNav(); });
+  $('#qPrev').addEventListener('click', function(){ if ($('#qBox').value.trim()) afterNav(); });
+  $('#pgGo').addEventListener('keydown', function(e){ if (e.key === 'Enter' && this.value.trim()) afterNav(); });
+  $('#qBox').addEventListener('keydown', function(e){ if (e.key === 'Enter' && this.value.trim()) afterNav(); });
+
+  /* نوار پخش: کوچک و بزرگ شدن، و هماهنگی ارتفاع با کادر متن */
+  var dockMini = sget('dockMini', '0') === '1';
+  function applyMini(){ document.body.classList.toggle('dock-mini', dockMini); $('#dockTgl').setAttribute('aria-expanded', dockMini ? 'false' : 'true'); }
+  applyMini();
+  $('#dockTgl').onclick = function(){ dockMini = !dockMini; sset('dockMini', dockMini ? '1' : '0'); applyMini(); };
+  function syncDock(){ var h = $('#dock').offsetHeight; if (h) document.documentElement.style.setProperty('--dock-h', (h + 10) + 'px'); }
+  if (window.ResizeObserver) new ResizeObserver(syncDock).observe($('#dock'));
+  window.addEventListener('resize', syncDock); syncDock();
+
+  /* قلم متن */
+  var RFONTS = { vazir: 'var(--font)', naskh: '"Noto Naskh Arabic","Vazirmatn",Tahoma,serif' };
+  function applyRFont(){ var k = $('#rFont').value; document.documentElement.style.setProperty('--rfont', RFONTS[k] || RFONTS.vazir); }
+  $('#rFont').value = RFONTS[sget('rfont', 'vazir')] ? sget('rfont', 'vazir') : 'vazir';
+  $('#rFont').onchange = function(){ sset('rfont', this.value); applyRFont(); if (curEl) follow(curEl); };
+  applyRFont();
+
+  /* نوار لغزندهٔ بیشینهٔ طول جمله */
+  fillRng($('#maxL'));
+
+  /* عنوان فایل */
+  function setDocTitle(n){ var t = $('#docTitle'); t.textContent = (n || '').replace(/\.pdf$/i, ''); t.title = n || ''; }
+
+  /* یادداشت OCR روی کادر متن */
+  function uiOcrNote(k){
+    var n = $('#ocrNote'), t = $('#ocrNoteT'), b = $('#ocrNoteB');
+    if (ocrBusy) { t.textContent = 'OCR در حال اجراست…'; b.textContent = 'توقف'; n.hidden = false; return; }
+    if (k) { t.textContent = nf.format(k) + ' صفحه نیاز به OCR دارد'; b.textContent = 'اجرای OCR'; n.hidden = false; return; }
+    n.hidden = true;
+  }
+  $('#ocrNoteB').onclick = function(){ $('#ocrBtn').click(); };
+
+  /* رها کردن فایل در هر جای صفحه */
+  function hasFiles(e){ return !!(e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') >= 0); }
+  var dragN = 0;
+  document.addEventListener('dragenter', function(e){ if (hasFiles(e)) { dragN++; document.body.classList.add('dragging'); } });
+  document.addEventListener('dragleave', function(e){ if (hasFiles(e) && --dragN <= 0) { dragN = 0; document.body.classList.remove('dragging'); } });
+  document.addEventListener('dragover', function(e){ if (hasFiles(e)) e.preventDefault(); });
+  document.addEventListener('drop', function(e){
+    dragN = 0; document.body.classList.remove('dragging');
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    if (e.target.closest && e.target.closest('#drop')) return;
+    var f = e.dataTransfer.files[0]; if (f) loadFile(f);
+  });
+
   window.addEventListener('pagehide', function(){ cancelAll(); });
 })();
 </script>
