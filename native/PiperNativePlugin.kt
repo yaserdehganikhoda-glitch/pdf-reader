@@ -1,6 +1,17 @@
 package ir.sewingstats.app   // <-- تغییر بده به appId پروژهٔ خودت
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Base64
+import androidx.activity.result.ActivityResult
+import androidx.documentfile.provider.DocumentFile
+import com.getcapacitor.annotation.ActivityCallback
+import java.io.BufferedOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
@@ -25,6 +36,7 @@ import java.util.concurrent.Executors
 /**
  * Piper (VITS) فارسی به‌صورت بومی با sherpa-onnx.
  * متدها: ping, stored, download({id, urls}), synthesize({id, text}), remove({id})
+ * پوشهٔ دلخواه کاربر: pickFolder, folder, exportVoices({ids?}), importVoices({ids?, overwrite?})
  * رویداد: "progress" {loaded, total}
  *
  * مسیر ذخیرهٔ صداها (یک‌جا قابل تغییر): <externalFilesDir>/piper/<id>/
@@ -55,6 +67,136 @@ class PiperNativePlugin : Plugin() {
         val ids = org.json.JSONArray()
         root().listFiles()?.forEach { d -> if (File(d, ".ok").exists()) ids.put(d.name) }
         call.resolve(JSObject().put("ids", ids))
+    }
+
+
+    // ---------- پوشهٔ دلخواه کاربر (Storage Access Framework): هر صدا یک فایل piper-<id>.zip ----------
+    private val prefs get() = context.getSharedPreferences("piper_prefs", Context.MODE_PRIVATE)
+
+    private fun treeDoc(): DocumentFile? {
+        val s = prefs.getString("tree", null) ?: return null
+        val u = Uri.parse(s)
+        val ok = context.contentResolver.persistedUriPermissions.any { it.uri == u && it.isReadPermission && it.isWritePermission }
+        if (!ok) return null
+        val d = DocumentFile.fromTreeUri(context, u)
+        return if (d != null && d.exists() && d.canWrite()) d else null
+    }
+
+    private fun folderInfo(): JSObject {
+        val d = treeDoc()
+        val ids = org.json.JSONArray()
+        d?.listFiles()?.forEach { f ->
+            val n = f.name ?: ""
+            if (f.isFile && n.startsWith("piper-") && n.endsWith(".zip")) ids.put(n.removePrefix("piper-").removeSuffix(".zip"))
+        }
+        return JSObject().put("set", d != null).put("name", d?.name ?: "").put("ids", ids)
+    }
+
+    @PluginMethod
+    fun folder(call: PluginCall) {
+        io.execute { call.resolve(folderInfo()) }
+    }
+
+    @PluginMethod
+    fun pickFolder(call: PluginCall) {
+        val i = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).addFlags(
+            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+        )
+        startActivityForResult(call, i, "folderResult")
+    }
+
+    @ActivityCallback
+    private fun folderResult(call: PluginCall?, result: ActivityResult) {
+        if (call == null) return
+        val u = result.data?.data
+        if (result.resultCode != Activity.RESULT_OK || u == null) { call.reject("انتخاب پوشه لغو شد"); return }
+        try {
+            context.contentResolver.takePersistableUriPermission(
+                u, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+        } catch (e: Exception) { call.reject("دسترسی دائمی به پوشه داده نشد"); return }
+        prefs.edit().putString("tree", u.toString()).apply()
+        io.execute { call.resolve(folderInfo()) }
+    }
+
+    @PluginMethod
+    fun exportVoices(call: PluginCall) {
+        val want: List<String>? = try { call.getArray("ids")?.toList<String>() } catch (e: Exception) { null }
+        io.execute {
+            try {
+                val t = treeDoc() ?: throw IllegalStateException("پوشه انتخاب نشده یا دسترسی آن از بین رفته است")
+                val ids = (root().listFiles() ?: emptyArray())
+                    .filter { File(it, ".ok").exists() }.map { it.name }
+                    .filter { want == null || want.contains(it) }
+                var n = 0
+                for (id in ids) {
+                    val name = "piper-$id.zip"
+                    t.findFile(name)?.delete()
+                    val f = t.createFile("application/zip", name) ?: throw IllegalStateException("ساخت فایل در پوشه ممکن نشد")
+                    val dir = voiceDir(id)
+                    val os = context.contentResolver.openOutputStream(f.uri, "w") ?: throw IllegalStateException("نوشتن در پوشه ممکن نشد")
+                    ZipOutputStream(BufferedOutputStream(os, 1 shl 16)).use { z ->
+                        z.setLevel(1)
+                        dir.walkTopDown().filter { it.isFile && it.name != ".ok" }.forEach { file ->
+                            z.putNextEntry(ZipEntry(file.relativeTo(dir).path.replace('\\', '/')))
+                            file.inputStream().use { it.copyTo(z) }
+                            z.closeEntry()
+                        }
+                    }
+                    n++
+                    notifyListeners("progress", JSObject().put("stage", "export").put("n", n))
+                }
+                call.resolve(JSObject().put("count", n))
+            } catch (e: Throwable) {
+                call.reject("ذخیره در پوشه ناموفق: ${e.message}")
+            }
+        }
+    }
+
+    @PluginMethod
+    fun importVoices(call: PluginCall) {
+        val want: List<String>? = try { call.getArray("ids")?.toList<String>() } catch (e: Exception) { null }
+        val over = call.getBoolean("overwrite", false) ?: false
+        io.execute {
+            try {
+                val t = treeDoc() ?: throw IllegalStateException("پوشه انتخاب نشده یا دسترسی آن از بین رفته است")
+                val done = org.json.JSONArray()
+                var n = 0
+                for (f in t.listFiles()) {
+                    val nm = f.name ?: continue
+                    if (!f.isFile || !nm.startsWith("piper-") || !nm.endsWith(".zip")) continue
+                    val id = nm.removePrefix("piper-").removeSuffix(".zip").replace(Regex("[^A-Za-z0-9_.-]"), "_")
+                    if (want != null && !want.contains(id)) continue
+                    if (!over && okMark(id).exists()) continue
+                    if (ttsId == id) { tts?.release(); tts = null; ttsId = null }
+                    val dst = voiceDir(id)
+                    dst.deleteRecursively(); dst.mkdirs()
+                    try {
+                        val ins = context.contentResolver.openInputStream(f.uri) ?: throw IllegalStateException("خواندن از پوشه ممکن نشد")
+                        ZipInputStream(BufferedInputStream(ins, 1 shl 16)).use { z ->
+                            while (true) {
+                                val e = z.nextEntry ?: break
+                                val out = File(dst, e.name)
+                                if (!out.canonicalPath.startsWith(dst.canonicalPath)) continue   // جلوگیری از path traversal
+                                if (e.isDirectory) { out.mkdirs(); continue }
+                                out.parentFile?.mkdirs()
+                                FileOutputStream(out).use { z.copyTo(it) }
+                            }
+                        }
+                        if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists())
+                            throw IllegalStateException("فایل مدل کامل نیست")
+                        okMark(id).writeText("1")
+                        done.put(id); n++
+                    } catch (e: Exception) {
+                        dst.deleteRecursively()
+                    }
+                    notifyListeners("progress", JSObject().put("stage", "import").put("n", n))
+                }
+                call.resolve(JSObject().put("count", n).put("ids", done))
+            } catch (e: Throwable) {
+                call.reject("بارگذاری از پوشه ناموفق: ${e.message}")
+            }
+        }
     }
 
     @PluginMethod

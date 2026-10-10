@@ -50,6 +50,8 @@ if 'signingConfigs' not in s:
     s=re.sub(r"(android\s*\{)", r"\1\n    signingConfigs {\n        debug {\n            storeFile file('debug.keystore')\n            storePassword 'android'\n            keyAlias 'androiddebugkey'\n            keyPassword 'android'\n        }\n    }", s, count=1)
 if 'commons-compress' not in s:
     s=re.sub(r"(dependencies\s*\{)", r"\1\n    implementation 'org.apache.commons:commons-compress:1.26.2'", s, count=1)
+if 'documentfile' not in s:
+    s=re.sub(r"(dependencies\s*\{)", r"\1\n    implementation 'androidx.documentfile:documentfile:1.0.1'", s, count=1)
 open(p,'w').write(s)
 PY
 echo "inject-native: تمام شد"
