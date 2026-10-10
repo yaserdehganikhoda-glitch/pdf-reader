@@ -34,10 +34,17 @@ jobs:
           cp node_modules/tesseract.js/dist/tesseract.min.js node_modules/tesseract.js/dist/worker.min.js "$O/"
           find node_modules/tesseract.js-core -maxdepth 1 -name 'tesseract-core*' -type f -exec cp {} "$O/" \;
           for L in fas eng; do
-            curl -fL --retry 3 -o $L.traineddata "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/$L.traineddata"
+            curl -fL --retry 3 -o $L.traineddata "https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/main/$L.traineddata"
             gzip -9 -n -c $L.traineddata > "$O/lang/$L.traineddata.gz"
           done
           ls -la "$O" "$O/lang"
+      - name: Bundle pdf.js (offline)
+        continue-on-error: true
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/www/lib" /tmp/pdfjs && cd /tmp/pdfjs
+          npm init -y >/dev/null && npm i pdfjs-dist@3.11.174 --silent
+          cp node_modules/pdfjs-dist/build/pdf.min.js node_modules/pdfjs-dist/build/pdf.worker.min.js "$GITHUB_WORKSPACE/www/lib/"
+          ls -la "$GITHUB_WORKSPACE/www/lib"
       - name: Add Android platform
         run: npx cap add android
       - name: Allow TTS service queries
