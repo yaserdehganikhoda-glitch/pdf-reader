@@ -124,9 +124,10 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
 
   <details class="card" id="fixbox" open>
     <summary>تصحیح‌گر هوشمند گفتار (تشخیص و اصلاح اشکال‌های تلفظ)</summary>
-    <p class="hint" style="margin:8px 0 12px">پیش از خواندن هر جمله، متن را با حساسیت بالا بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، کسرهٔ اضافه (ۀ)، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع، کلمه‌های لاتین و سرواژه‌ها و مکث‌های دستوری. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p>
+    <p class="hint" style="margin:8px 0 12px">پیش از خواندن هر جمله، متن را با حساسیت بالا بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، کسرهٔ اضافه (ۀ)، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع، کلمه‌های لاتین و سرواژه‌ها و مکث‌گذاری هوشمند و نشانه‌گذاری آهنگ جمله. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p>
     <label class="chk"><input type="checkbox" id="fixOn" checked> تصحیح گفتار فعال باشد</label>
     <label class="chk"><input type="checkbox" id="fixHi" checked> حساسیت بالا (حروف جداافتاده، تکرار و کشیدگی)</label>
+    <label class="chk"><input type="checkbox" id="fixPro" checked> مکث‌گذاری هوشمند (بر پایهٔ منطق جمله: پیش از پیوندها، پس از قیدهای آغازین، شکستن جملهٔ بلند)</label>
     <p class="hint" id="fixStats" aria-live="polite" style="margin-top:10px"></p>
     <p class="hint" id="fixBreak"></p>
     <p class="hint" id="fixUnsHead" hidden>کلمه‌هایی که تلفظشان قطعی نبود و تقریبی ساخته شد. روی هر کلمه بزنید تا با تلفظ پیشنهادی به واژه‌نامه اضافه شود؛ بعد می‌توانید تلفظ را در واژه‌نامه ویرایش کنید.</p>
@@ -362,7 +363,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
 
   /* ---------- PDF -> text ---------- */
   function clean(t){
-    t = t.normalize('NFKC').replace(/[\u00ad\u200b\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '');
+    t = t.replace(/(?<=[\u0600-\u06FF.،؛:)»"])[\u00b2\u00b3\u00b9\u2070\u2074-\u2079\u2080-\u2089]+/g, '').normalize('NFKC').replace(/[\u00ad\u200b\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '');
     t = t.replace(/[ \t\u00a0]+/g, ' ').replace(/ *\n */g, '\n');
     var ls = t.split('\n'), ln = ls.map(function(l){ return l.length; }).filter(Boolean).sort(function(a, b){ return a - b; });
     var ref = ln.length ? ln[Math.floor(ln.length * 0.9)] : 0, out = '';
@@ -377,8 +378,30 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     return out.trim();
   }
   var ABR = /^(?:dr|mr|mrs|ms|prof|vs|fig|vol|pp|jr|sr|st|دکتر|مهندس)$/i;
+  var NB_AFTER = new Set('و یا که از به در با تا را برای بر بی چون اگر این آن هر همه یک چند نه هم نیز بین میان طی مثل مانند جز چه کدام آنچه اینکه آنکه چنان بسیار بیشتر کمتر بعضی برخی'.split(' '));
+  var NB_BEFORE = new Set('را ها های ای است بود شد می نمی هم نیز هست هستند باشد بودند شدند دارد دارند ام ایم اید اند ات اش مان تان شان تر ترین'.split(' '));
+  var BR_BEFORE = new Set('اما ولی لیکن بلکه زیرا بنابراین همچنین چون اگر وقتی هنگامی تا چنانچه هرچند اگرچه یعنی سپس'.split(' '));
+  function wcore(w){ return w.replace(/^[("«“\[]+/, '').replace(/[,;:.!?،؛؟…"»”')\]]+$/, ''); }
+  function cutPoint(s, MAXL){
+    var re = /\S+/g, m, toks = [], best = -1, bs = -1e9, ideal = Math.min(Math.round(s.length / 2), 70);
+    while ((m = re.exec(s))) toks.push({ w: m[0], e: m.index + m[0].length });
+    for (var k = 0; k + 1 < toks.length; k++) {
+      var p = toks[k].e;
+      if (p < 30 || s.length - p < 20) continue;
+      var a = wcore(toks[k].w), b = wcore(toks[k + 1].w), sc = 0;
+      if (/[،,؛;:]["»”')\]]*$/.test(toks[k].w)) sc += 100;
+      if (BR_BEFORE.has(b)) sc += 60; else if (b === 'و' && p >= 50) sc += 25; else if (b === 'که') sc += 10;
+      if (NB_AFTER.has(a)) sc -= 1000;
+      if (NB_BEFORE.has(b)) sc -= 1000;
+      sc -= Math.abs(p - ideal) * 0.4;
+      if (p > MAXL) sc -= (p - MAXL) * 3;
+      if (sc > bs) { bs = sc; best = p; }
+    }
+    if (best < 0) { var h = s.slice(0, MAXL), c = h.lastIndexOf(' '); best = c >= 20 ? c : MAXL; }
+    return best;
+  }
   function splitSentences(par){
-    var raw = [], res = [], re = /[.!?؟…؛]+["»”')\]]*(?=\s|$)/g, last = 0, m;
+    var raw = [], res = [], re = /[.!?؟…؛]+["»”')\]]*(?=\s|$)/g, last = 0, m, MAXL = 100;
     while ((m = re.exec(par))) {
       var end = m.index + m[0].length, head = par.slice(last, m.index);
       if (m[0][0] === '.' && !/[!?؟…؛]/.test(m[0])) {
@@ -391,14 +414,14 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     raw.forEach(function(s){
       s = s.trim();
       if (!s || !/[\p{L}\p{N}]/u.test(s)) return;
-      while (s.length > 90) {
-        var h = s.slice(0, 90), c = Math.max(h.lastIndexOf('،'), h.lastIndexOf(','), h.lastIndexOf('؛'), h.lastIndexOf(':'));
-        if (c < 28) c = h.lastIndexOf(' ');
-        if (c < 28) c = 89;
-        res.push(s.slice(0, c + 1).trim());
-        s = s.slice(c + 1).trim();
+      var parts = [];
+      while (s.length > MAXL) {
+        var p = cutPoint(s, MAXL);
+        parts.push(s.slice(0, p).trim());
+        s = s.slice(p).trim();
       }
-      if (s) res.push(s);
+      if (s) parts.push(s);
+      parts.forEach(function(x, k){ res.push({ t: x, c: k < parts.length - 1 }); });
     });
     return res;
   }
@@ -408,6 +431,26 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     L.forEach(function(ls){ var seen = {}; ls.forEach(function(l){ var k = key(l); if (l && l.length < 80 && !seen[k]) { seen[k] = 1; cnt[k] = (cnt[k] || 0) + 1; } }); });
     var th = Math.max(3, pg.length * 0.4);
     return L.map(function(ls){ return ls.filter(function(l){ return !(l && l.length < 80 && (cnt[key(l)] >= th || /^[-–\s\d۰-۹٠-٩]+$/.test(l))); }).join('\n'); });
+  }
+  var RTLCH = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
+  function joinItems(items){
+    var out = '', pv = null;
+    for (var q = 0; q < items.length; q++) {
+      var it = items[q], s = it.str;
+      if (!s) { if (it.hasEOL) { out += '\n'; pv = null; } continue; }
+      var tr = it.transform, sep = ' ';
+      if (pv && /\s$/.test(pv.s) || /^\s/.test(s)) sep = '';
+      else if (pv && tr && pv.tr && it.width >= 0) {
+        var fs = Math.max(Math.abs(tr[3]), Math.hypot(tr[0], tr[1])) || 0;
+        if (fs > 0 && Math.abs(tr[5] - pv.tr[5]) < fs * 0.35) {
+          var g = (RTLCH.test(s) || RTLCH.test(pv.s)) ? pv.tr[4] - (tr[4] + it.width) : tr[4] - (pv.tr[4] + pv.w);
+          if (g > -fs * 0.3 && g < fs * 0.12) sep = '';
+        }
+      }
+      out += (pv ? sep : '') + s;
+      if (it.hasEOL) { out += '\n'; pv = null; } else pv = { tr: tr, w: it.width, s: s };
+    }
+    return out;
   }
   async function loadFile(file){
     if (!window.pdfjsLib) { status('کتابخانهٔ PDF بارگذاری نشد. اتصال اینترنت را بررسی کنید.'); return; }
@@ -423,7 +466,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
         var page = await pdf.getPage(p);
         var tc = await page.getTextContent();
         var t = '';
-        tc.items.forEach(function(it){ t += it.str + (it.hasEOL ? '\n' : ' '); });
+        t = joinItems(tc.items);
         pages.push(t); page.cleanup();
         if (p % 8 === 0) await new Promise(function(r){ setTimeout(r, 0); });
       }
@@ -450,7 +493,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       var paras = [];
       txt.split(/\n+/).forEach(function(par){
         var ss = splitSentences(par), ids = [];
-        ss.forEach(function(t, k){ ids.push(sents.length); sents.push({ text: t, page: pi + 1, el: null, pe: k === ss.length - 1 }); });
+        ss.forEach(function(o, k){ ids.push(sents.length); sents.push({ text: o.t, cont: o.c, page: pi + 1, el: null, pe: k === ss.length - 1 }); });
         if (ids.length) paras.push(ids);
       });
       if (!paras.length) return;
@@ -532,10 +575,11 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   var MON_FA = ['','فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'],
       MON_EN = ['','ژانویه','فوریه','مارس','آوریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'],
       LET = {A:'ای',B:'بی',C:'سی',D:'دی',E:'ای',F:'اف',G:'جی',H:'اچ',I:'آی',J:'جی',K:'کی',L:'ال',M:'ام',N:'ان',O:'او',P:'پی',Q:'کیو',R:'آر',S:'اس',T:'تی',U:'یو',V:'وی',W:'دبلیو',X:'ایکس',Y:'وای',Z:'زد'},
-      UNIT = {'km/h':'کیلومتر بر ساعت',tb:'ترابایت',km:'کیلومتر',cm:'سانتی‌متر',mm:'میلی‌متر',kg:'کیلوگرم',mg:'میلی‌گرم',ml:'میلی‌لیتر',kb:'کیلوبایت',mb:'مگابایت',gb:'گیگابایت',hz:'هرتز',khz:'کیلوهرتز',mhz:'مگاهرتز',ghz:'گیگاهرتز'},
+      UNIT = {'km/h':'کیلومتر بر ساعت','m/s':'متر بر ثانیه',kbps:'کیلوبیت بر ثانیه',mbps:'مگابیت بر ثانیه',gbps:'گیگابیت بر ثانیه',kcal:'کیلوکالری',kwh:'کیلووات ساعت',kw:'کیلووات',rpm:'دور در دقیقه',fps:'فریم بر ثانیه',tb:'ترابایت',km:'کیلومتر',cm:'سانتی‌متر',mm:'میلی‌متر',kg:'کیلوگرم',mg:'میلی‌گرم',ml:'میلی‌لیتر',kb:'کیلوبایت',mb:'مگابایت',gb:'گیگابایت',hz:'هرتز',khz:'کیلوهرتز',mhz:'مگاهرتز',ghz:'گیگاهرتز'},
       L0 = '(?<![\\p{L}])', L1 = '(?![\\p{L}])',
       ABBR = [
         [new RegExp(L0 + 'صص?\\s*\\.?\\s*(?=\\d)', 'gu'), ' صفحه '], [new RegExp(L0 + 'پ\\s*\\.\\s*ن\\.?' + L1, 'gu'), ' پی نوشت '],
+        [/\(\s*عج\s*\)/g, ' عجل الله تعالی فرجه الشریف '], [new RegExp(L0 + 'چ\\s*\\.\\s*(?=\\d)', 'gu'), ' چاپ '], [new RegExp(L0 + 'ج\\s*\\.\\s*(?=\\d)', 'gu'), ' جلد '], [/(?<![\d۰-۹])(\d{4})\s*م(?:\.|(?=[\s،,.:؛)]|$))/g, '$1 میلادی '],
         [/\(\s*ع\s*\)/g, ' علیه السلام '], [/\(\s*ص\s*\)/g, ' صلی الله علیه و آله '], [/\(\s*س\s*\)/g, ' سلام الله علیها '],
         [/\(\s*ره\s*\)/g, ' رحمة الله علیه '], [/\(\s*رض\s*\)/g, ' رضی الله عنه '],
         [new RegExp(L0 + 'ه\\s*\\.\\s*ش\\.?' + L1, 'gu'), ' هجری شمسی '], [new RegExp(L0 + 'ه\\s*\\.\\s*ق\\.?' + L1, 'gu'), ' هجری قمری '],
@@ -553,7 +597,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       return ' ' + numFa(q[0]) + (q[1] ? ' ممیز ' + numFa(q[1]) : '') + ' ';
     });
   }
-  function dmy(d, m, y, mons){ return ' ' + numFa(String(+d)) + ' ' + mons[+m] + ' ' + numFa(y) + ' '; }
+  function dmy(d, m, y, mons){ return ' ' + ordFa(+d) + ' ' + mons[+m] + ' ' + numFa(String(+y)) + ' '; }
   var NEG_RE = /(?<!\d\s*)(?<![\p{L}\d\-–\/.])[-−](?=\d)/gu;
   var userDict = [];
   function normCh(t){ return t.replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/ة/g, 'ه'); }
@@ -566,15 +610,25 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       try { userDict.push({ re: new RegExp('(?<![\\p{L}\\p{N}\\u200c])' + a.replace(/[\\^$.*+?()[\]{}|\/]/g, '\\$&') + '(?![\\p{L}\\p{N}\\u200c])', /^[\x20-\x7e]+$/.test(a) ? 'giu' : 'gu'), to: b }); } catch (e) {}
     });
   }
-  function ttsBase(t, eng){
+  function dictIn(t){
+    for (var k = 0; k < userDict.length; k++) t = t.replace(userDict[k].re, String.fromCharCode(0xE100 + k));
+    return t;
+  }
+  function dictOut(t, num){
+    return t.replace(/[\uE100-\uF8FF]/g, function(c){
+      var d = userDict[c.charCodeAt(0) - 0xE100]; if (!d) return ' ';
+      return ' ' + (num ? faNums(digitsAscii(d.to)) : d.to) + ' ';
+    });
+  }
+  function endMark(t, cont){ return /[.!?;:,]$/.test(t) ? t : t + (cont ? ',' : '.'); }
+  function ttsBase(t, eng, cont, pre){
     eng = eng || engine();
     t = normCh(t).replace(/[\u0640\u064B-\u065F\u0670]/g, '').replace(/\u00A0/g, ' ')
       .replace(/[\u00ad\u200b\u200d-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '');
-    userDict.forEach(function(d){ t = t.replace(d.re, function(){ return d.to; }); });
+    if (!pre) t = dictIn(t);
     if (fixOn()) {
     t = digitsAscii(t).replace(/(?:https?:\/\/|www\.)\S+|\S+@\S+\.\S+/g, ' ')
       .replace(/\[\s*\d+(?:\s*[,،\-–]\s*\d+)*\s*\]|\(\s*\d{1,3}\s*\)/g, ' ');
-    ABBR.forEach(function(a){ t = t.replace(a[0], a[1]); });
     t = t.replace(NEG_RE, ' منفی ').replace(/(\d)\s*[%٪]/g, '$1 درصد ').replace(/(\d)\/(\d+)(?=\s*درصد)/g, '$1.$2')
       .replace(/(?<![\d\/.])(\d{1,2})\/(\d{1,2})(?![\d\/])/g, function(m, a, b){ a = +a; b = +b; return (a >= 1 && b >= 2 && b <= 10 && a < b) ? ' ' + numFa(String(a)) + ' ' + ordFa(b) + ' ' : m; })
       .replace(/(?<!\d)(1[34]\d\d)\s*[\/\-.]\s*(0?[1-9]|1[0-2])\s*[\/\-.]\s*(0?[1-9]|[12]\d|3[01])(?!\d)/g, function(_, y, m, d){ return dmy(d, m, y, MON_FA); })
@@ -582,20 +636,23 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       .replace(/(?<!\d)((?:19|20)\d\d)\s*[\/\-]\s*(0?[1-9]|1[0-2])\s*[\/\-]\s*(0?[1-9]|[12]\d|3[01])(?!\d)/g, function(_, y, m, d){ return dmy(d, m, y, MON_EN); })
       .replace(/(?<!\d)([01]?\d|2[0-3]):([0-5]\d)(?![\d:])/g, function(_, h, m){ return ' ' + numFa(String(+h)) + (+m ? ' و ' + numFa(String(+m)) + ' دقیقه' : '') + ' '; })
       .replace(/(?<![\d\-\/.])(\d{1,4})\s*[-–—]\s*(\d{1,4})(?![\d\-\/])/g, '$1 تا $2')
-      .replace(/(\d)\s*(km\/h|km|cm|mm|kg|mg|ml|kb|mb|gb|tb|khz|mhz|ghz|hz)(?![a-z])/gi, function(_, d, u){ return d + ' ' + UNIT[u.toLowerCase()] + ' '; })
+      .replace(/(\d)\s*(km|cm|mm|m)\s*([23])(?![\d\p{L}])/giu, function(_, d, u, p){ return d + ' ' + ({ km: 'کیلومتر', cm: 'سانتی‌متر', mm: 'میلی‌متر', m: 'متر' })[u.toLowerCase()] + (p === '2' ? ' مربع ' : ' مکعب '); })
+      .replace(/(\d)\s*(km\/h|m\/s|kbps|mbps|gbps|kcal|kwh|kw|rpm|fps|km|cm|mm|kg|mg|ml|kb|mb|gb|tb|khz|mhz|ghz|hz)(?![a-z])/gi, function(_, d, u){ return d + ' ' + UNIT[u.toLowerCase()] + ' '; })
+      .replace(/(\d)\s*([mg])(?![\p{L}\d\/²³])/gu, function(_, d, u){ return d + ' ' + (u === 'm' ? 'متر' : 'گرم') + ' '; })
       .replace(/(\d)\s*°\s*[Cc](?![a-z])/g, '$1 درجه سانتی‌گراد ').replace(/(\d)\s*°/g, '$1 درجه ')
       .replace(/\$\s*(\d+(?:\.\d+)?)/g, '$1 دلار ').replace(/€\s*(\d+(?:\.\d+)?)/g, '$1 یورو ')
       .replace(/(\d)\s*[\/\-–]\s*(?=\d)/g, '$1 ');
     t = faNums(t).replace(/(?<![A-Za-z])[A-Z]{2,5}(?![A-Za-z])/g, function(w){ return /^[IVX]+$/.test(w) ? w : ' ' + w.split('').map(function(c){ return LET[c]; }).join(' ') + ' '; });
-    t = t.replace(/([^\s,.;:!?؟،؛])\s+(اما|ولی|لیکن|بلکه|بنابراین|همچنین|زیرا|یعنی|درنتیجه|در نتیجه|با این حال|در حالی که|علاوه بر این|در عین حال|به عبارت دیگر|برای مثال|به همین دلیل|از این رو|هرچند|اگرچه)(?=\s)/g, '$1, $2');
     }
+    t = dictOut(t, fixOn());
     t = t.replace(/\u200c/g, '');
     t = t.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, ' ').replace(/\.{4,}/g, ', ').replace(/[_=\-–—]{3,}/g, ' ').replace(/&/g, ' و ')
       .replace(/[«»"“”]/g, '').replace(/\s*[(\[]\s*/g, ', ').replace(/\s*[)\]]\s*/g, ', ')
       .replace(/[•▪■◆●○◦*_#|~^<>{}\\\/]/g, ' ').replace(/\s*[–—]\s*/g, ', ')
       .replace(/،/g, ',').replace(/؛/g, ';').replace(/؟/g, '?').replace(/…/g, '...').replace(/\s+/g, ' ').replace(/\s+([,.;:!?])/g, '$1').replace(/^[,\s]+/, '').trim();
     t = t.replace(/,\s*([.!?;:])/g, '$1').replace(/,\s*,/g, ',');
-    return /[.!?;:,]$/.test(t) ? t : t + '.';
+    t = prosody(t);
+    return endMark(t, cont);
   }
   /* ---------- smart speech fixer (تصحیح‌گر هوشمند گفتار) ---------- */
   var CATS = { num: 'عدد/تاریخ/ساعت', ord: 'عدد ترتیبی و رومی', sym: 'نماد', ez: 'کسرهٔ اضافه', spell: 'املای پرخطا', acr: 'سرواژه', iso: 'حروف جداافتاده', elong: 'کشیدگی حروف', rep: 'تکرار', ref: 'پیوند و ارجاع', uns: 'نامطمئن', pause: 'مکث دستوری' };
@@ -681,17 +738,20 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       return ' ' + out.join(' ') + pl + ' ';
     }).replace(/\s+/g, ' ').replace(/\s+([,.;:!?])/g, '$1').trim();
   }
-  var RE_CONJ = /([^\s,.;:!?؟،؛])\s+(?:اما|ولی|لیکن|بلکه|بنابراین|همچنین|زیرا|یعنی|درنتیجه|در نتیجه|با این حال|در حالی که|علاوه بر این|در عین حال|به عبارت دیگر|برای مثال|به همین دلیل|از این رو|هرچند|اگرچه)(?=\s)/g;
-  function ttsText(t, eng, rep){
+  function sOn(){ return fixOn() && $('#fixPro').checked; }
+  function ttsText(t, eng, rep, cont){
     eng = eng || engine();
-    if (!fixOn()) return ttsBase(t, eng);
+    if (!fixOn()) return ttsBase(t, eng, cont);
     CUR = rep || null;
     if (CUR && !CUR.uns) CUR.uns = {};
     try {
       t = normCh(t);
       t = fxr(t, /(?:[\u0647\u06D5]\u0654|\u06C0|\u0647\u0621)/g, 'ez', 'ه\u200cی');
       t = fxr(t, /(?<=[\u0621-\u064A])(?:\u064B\u0627|\u0627\u064B|\u064B)/g, 'spell', 'ن');
-      t = t.replace(/[\u0640\u064B-\u065F\u0670]/g, '');
+      t = t.replace(/[\u0640\u064B-\u065F\u0670]/g, '').replace(/\u00A0/g, ' ').replace(/[\u00ad\u200b\u200d-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '');
+      t = dictIn(t);
+      t = digitsAscii(t);
+      ABBR.forEach(function(a){ t = t.replace(a[0], a[1]); });
       SPELL.forEach(function(r){ t = fxr(t, r[0], 'spell', r[1]); });
       if (fixHi()) {
         t = fxr(t, RE_ISO, 'iso', function(m){ return m.replace(/\s/g, ''); });
@@ -706,15 +766,84 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       t = fxr(t, RE_ACRO, 'acr', function(m){ return ' ' + ACRO_W[m] + ' '; });
       if (CUR) {
         CUR.num = (CUR.num || 0) + (t.match(/[\d۰-۹٠-٩]+(?:[.,٫٬][\d۰-۹٠-٩]+)*/g) || []).length;
-        CUR.sym = (CUR.sym || 0) + (t.match(/[%٪$€°&]|[\d۰-۹]\s*(?:km|cm|mm|kg|mg|ml|kb|mb|gb|tb|khz|mhz|ghz|hz)(?![a-z])/gi) || []).length;
+        CUR.sym = (CUR.sym || 0) + (t.match(new RegExp('[%٪$€°&]|[\\d۰-۹]\\s*(?:' + UNIT_RE + ')(?![a-z])', 'gi')) || []).length;
         CUR.ref = (CUR.ref || 0) + (t.match(/(?:https?:\/\/|www\.)\S+|\S+@\S+\.\S+|\[\s*[\d۰-۹]+(?:\s*[,،\-–]\s*[\d۰-۹]+)*\s*\]/g) || []).length;
-        CUR.pause = (CUR.pause || 0) + (t.match(RE_CONJ) || []).length;
         CUR.acr = (CUR.acr || 0) + (t.match(/(?<![A-Za-z])[A-Z]{2,5}(?![A-Za-z])/g) || []).filter(function(x){ return !romanVal(x); }).length;
       }
-      t = ttsBase(t, eng);
+      t = ttsBase(t, eng, cont, true);
       t = latinPass(t);
-      return /[.!?;:,]$/.test(t) ? t : t + '.';
+      return endMark(t, cont);
     } finally { CUR = null; }
+  }
+
+  /* ---------- smart pausing (مکث‌گذاری هوشمند) ---------- */
+  var UNIT_RE = Object.keys(UNIT).sort(function(a, b){ return b.length - a.length; }).map(function(k){ return k.replace(/[\/]/g, '\\/'); }).join('|');
+  var NUMW = {};
+  ON.concat(TN, HN, SC, ['ممیز', 'منفی', 'درصد', 'دقیقه']).forEach(function(w){ if (w) NUMW[w] = 1; });
+  function pkw(w){ return w.replace(/[,;:.!?]+$/, ''); }
+  function hasP(w){ return /[,;:.!?]$/.test(w); }
+  function mkPh(str){
+    var out = [];
+    str.split('|').forEach(function(p){ out.push(p); if (/اینکه|آنکه/.test(p)) out.push(p.replace(/اینکه/g, 'این که').replace(/آنکه/g, 'آن که')); });
+    return out.map(function(p){ return p.split(' '); }).sort(function(a, b){ return b.length - a.length; });
+  }
+  var PH_INIT = mkPh('بنابراین|همچنین|البته|در واقع|درواقع|به طور کلی|علاوه بر این|افزون بر این|با این حال|با این وجود|با این همه|از این رو|به عبارت دیگر|به عبارتی|برای مثال|مثلن|متاسفانه|متأسفانه|خوشبختانه|از سوی دیگر|از طرف دیگر|از یک سو|از یک طرف|به علاوه|در این صورت|در غیر این صورت|به هر حال|به هر روی|در عین حال|در حقیقت|به طور خلاصه|آری|بله|خب|امروزه|به نظر من|اولن|ثانین|ثالثن|رابعن');
+  var PH_STRONG = mkPh('اما|ولی|لیکن|بلکه|زیرا|بنابراین');
+  var PH_WEAK = mkPh('همچنین|یعنی|اگرچه|اگر چه|هرچند|هر چند|در حالی که|در حالیکه|با این حال|با این وجود|با این همه|علاوه بر این|افزون بر این|در عین حال|به عبارت دیگر|به عبارتی|برای مثال|به همین دلیل|به همین علت|از این رو|چرا که|از آنجا که|از آنجایی که|به طوری که|ضمن اینکه|با اینکه|حال آنکه|مگر اینکه|مگر آنکه|در صورتی که|به شرطی که|پیش از اینکه|پس از اینکه|بدون اینکه|به جای اینکه|به محض اینکه|در نتیجه|درنتیجه');
+  var NOCOMMA_PREV = { 'و': 1, 'که': 1, 'یا': 1, 'تا': 1, 'چون': 1, 'اگر': 1, 'از': 1, 'به': 1, 'در': 1, 'با': 1, 'برای': 1, 'نیز': 1, 'هم': 1 };
+  var P_SPLIT = { 'تا': 40, 'چون': 40, 'اگر': 40, 'وقتی': 40, 'زیرا': 50, 'ولی': 50, 'اما': 50, 'بلکه': 50, 'سپس': 30, 'همچنین': 30, 'هنگامی': 30, 'چنانچه': 40 };
+  var TA_SKIP = /^(?:حدی|حدودی|کنون|حال|آنجا|زمانی|زمان|چند|اندازه‌ای|اندازهای|آن|به|همین|آخر|ابد|پایان|امروز|دیروز|فردا|اینجا|اینکه)$/;
+  var P_LIM = 15;
+  function phAt(ws, i, phs){
+    for (var k = 0; k < phs.length; k++) {
+      var p = phs[k], ok = i + p.length <= ws.length, j;
+      for (j = 0; ok && j < p.length; j++) if (pkw(ws[i + j]) !== p[j]) ok = false;
+      for (j = 0; ok && j < p.length - 1; j++) if (hasP(ws[i + j])) ok = false;
+      if (ok) return p.length;
+    }
+    return 0;
+  }
+  function longBreak(ws, a, b, depth){
+    var len = b - a;
+    if (len <= P_LIM || depth > 3) return;
+    var best = -1, bs = -1e9, mid = a + len / 2, i, w, sc, j, bad;
+    for (i = a + 5; i <= b - 5; i++) {
+      w = pkw(ws[i]); sc = -1e9;
+      if (P_SPLIT[w]) {
+        sc = P_SPLIT[w];
+        if (w === 'تا') {
+          if (NUMW[pkw(ws[i + 1] || '')] || TA_SKIP.test(pkw(ws[i + 1] || ''))) continue;
+          bad = false; for (j = Math.max(a, i - 5); j < i; j++) if (pkw(ws[j]) === 'از') bad = true;
+          if (bad) continue;
+        }
+        if (NOCOMMA_PREV[pkw(ws[i - 1])]) continue;
+      } else if (w === 'و' && len > 20 && i - a >= 7 && b - i >= 7 && !NUMW[pkw(ws[i - 1])] && !NUMW[pkw(ws[i + 1] || '')]) sc = 10;
+      else continue;
+      sc -= Math.abs(i - mid);
+      if (sc > bs) { bs = sc; best = i; }
+    }
+    if (best < 0) return;
+    ws[best - 1] += ','; bump('pause');
+    longBreak(ws, a, best, depth + 1); longBreak(ws, best, b, depth + 1);
+  }
+  function prosody(t){
+    if (!sOn()) return t;
+    return t.split(/(?<=[.!?])\s+/).map(function(sg){
+      var ws = sg.split(/\s+/).filter(Boolean), n = ws.length, i, run = 0, L, ls, lw;
+      if (n < 4) return sg;
+      L = phAt(ws, 0, PH_INIT);
+      if (L && L < n && !hasP(ws[L - 1])) { ws[L - 1] += ','; bump('pause'); }
+      for (i = 0; i < n; i++) {
+        if (i > 0 && !hasP(ws[i - 1]) && !NOCOMMA_PREV[pkw(ws[i - 1])]) {
+          ls = phAt(ws, i, PH_STRONG); lw = ls ? 0 : phAt(ws, i, PH_WEAK);
+          if (((ls && run >= 2) || (lw && run >= 4)) && i + (ls || lw) < n) { ws[i - 1] += ','; bump('pause'); run = 0; }
+        }
+        run = hasP(ws[i]) ? 0 : run + 1;
+      }
+      var a = 0;
+      for (i = 0; i < n; i++) if (hasP(ws[i]) || i === n - 1) { longBreak(ws, a, i + 1, 0); a = i + 1; }
+      return ws.join(' ');
+    }).join(' ');
   }
 
   var fixRun = 0;
@@ -731,7 +860,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       var end = Math.min(N, i + 150);
       for (; i < end; i++) {
         var r = { uns: {} }, s = sents[i];
-        ttsText(s.text, 'device', r);
+        ttsText(s.text, 'device', r, s.cont);
         Object.keys(r).forEach(function(k){ if (k !== 'uns') tot[k] = (tot[k] || 0) + r[k]; });
         Object.keys(r.uns).forEach(function(w){ var e = uns[w] || (uns[w] = { s: r.uns[w], n: 0 }); e.n++; });
         s.risk = !!(Object.keys(r.uns).length || r.iso || r.rep || r.elong);
@@ -765,7 +894,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   var lpT = 0, lpDone = 0;
   function showTip(i){
     var s = sents[i]; if (!s) return;
-    var r = { uns: {} }, out = ttsText(s.text, engine(), r), tip = $('#fixTip');
+    var r = { uns: {} }, out = ttsText(s.text, engine(), r, s.cont), tip = $('#fixTip');
     tip.textContent = '';
     function row(l, v){ var d = document.createElement('div'), b = document.createElement('b'); b.textContent = l + ': '; d.appendChild(b); d.appendChild(document.createTextNode(v)); tip.appendChild(d); }
     row('متن', s.text); row('خوانده می‌شود', out);
@@ -789,9 +918,11 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   document.addEventListener('pointerdown', function(e){ if (e.target.closest && !e.target.closest('span.risk')) $('#fixTip').hidden = true; });
   $('#fixOn').checked = sget('fixon', '1') !== '0';
   $('#fixHi').checked = sget('fixhi', '1') !== '0';
-  $('#fixOn').onchange = function(){ sset('fixon', this.checked ? '1' : '0'); $('#fixHi').disabled = !this.checked; changed(); analyze(); };
+  $('#fixPro').checked = sget('fixpro', '1') !== '0';
+  $('#fixOn').onchange = function(){ sset('fixon', this.checked ? '1' : '0'); $('#fixHi').disabled = !this.checked; $('#fixPro').disabled = !this.checked; changed(); analyze(); };
+  $('#fixPro').onchange = function(){ sset('fixpro', this.checked ? '1' : '0'); changed(); analyze(); };
   $('#fixHi').onchange = function(){ sset('fixhi', this.checked ? '1' : '0'); changed(); analyze(); };
-  $('#fixHi').disabled = !$('#fixOn').checked;
+  $('#fixHi').disabled = !$('#fixOn').checked; $('#fixPro').disabled = !$('#fixOn').checked;
   analyze();
 
 
@@ -886,12 +1017,12 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     var e = i, len = sents[i].text.length;
     while (lim > 1 && !sents[e].pe && e + 1 < sents.length && sents[e + 1].page === sents[i].page && len + 1 + sents[e + 1].text.length <= lim) { e++; len += 1 + sents[e].text.length; }
     var t = [];
-    for (var k = i; k <= e; k++) t.push(ttsText(sents[k].text));
-    return { start: i, end: e, text: t.join(' ') };
+    for (var k = i; k <= e; k++) t.push(ttsText(sents[k].text, undefined, undefined, sents[k].cont));
+    return { start: i, end: e, text: t.join(' '), mid: !!sents[e].cont };
   }
   function perf(){
     var el = $('#pperf'); if (!el) return;
-    var a = ['نسخه ۶', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
+    var a = ['نسخه ۷ (گفتار طبیعی)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
     if (npOK) a.push('موتور بومی (sherpa-onnx)');
     if (npErr && !npOK) a.push('پلاگین بومی در این APK فعال نیست: ' + npErr);
     if (pwBad && !npOK) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
@@ -926,7 +1057,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     h.setUint32(24, sr, true); h.setUint32(28, sr * 2, true); h.setUint16(32, 2, true); h.setUint16(34, 16, true); w(36, 'data'); h.setUint32(40, n, true);
     return h.buffer;
   }
-  function polish(blob){
+  function polish(blob, mid){
     return blob.arrayBuffer().then(function(ab){
       var dv = new DataView(ab);
       if (ab.byteLength < 48 || dv.getUint32(0) !== 0x52494646 || dv.getUint16(20, true) !== 1 || dv.getUint16(22, true) !== 1 || dv.getUint16(34, true) !== 16) return blob;
@@ -944,9 +1075,18 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       while (a < n && Math.abs(x[a]) < th) a++;
       while (b > a && Math.abs(x[b]) < th) b--;
       if (b - a < sr * 0.1) return blob;
-      a = Math.max(0, a - Math.round(sr * 0.03)); b = Math.min(n - 1, b + Math.round(sr * 0.09));
-      var len = b - a + 1, g = Math.min(3, 27000 / pk), out = new Int16Array(len);
-      for (i = 0; i < len; i++) out[i] = Math.max(-32768, Math.min(32767, x[a + i] * g));
+      a = Math.max(0, a - Math.round(sr * 0.03)); b = Math.min(n - 1, b + Math.round(sr * (mid ? 0.04 : 0.09)));
+      var len = b - a + 1, out = new Int16Array(len), mean = 0, ss = 0, pk2 = 1;
+      for (i = 0; i < len; i++) mean += x[a + i];
+      mean /= len;
+      for (i = 0; i < len; i++) { var v = x[a + i] - mean, av = Math.abs(v); ss += v * v; if (av > pk2) pk2 = av; }
+      /* یکنواختی بلندی بر پایهٔ RMS (نه قلهٔ موج) + محدودکنندهٔ نرم */
+      var rms = Math.sqrt(ss / len) || 1, g = Math.max(0.5, Math.min(5, 4800 / rms, 40000 / pk2)), KN = 22000, RG = 10000;
+      for (i = 0; i < len; i++) {
+        var y = (x[a + i] - mean) * g, ay = Math.abs(y);
+        if (ay > KN) { ay = KN + RG * Math.tanh((ay - KN) / RG); y = y < 0 ? -ay : ay; }
+        out[i] = y;
+      }
       var fi = Math.min(len, Math.round(sr * 0.004)), fo = Math.min(len, Math.round(sr * 0.012));
       for (i = 0; i < fi; i++) out[i] = out[i] * i / fi;
       for (i = 0; i < fo; i++) out[len - 1 - i] = out[len - 1 - i] * i / fo;
@@ -995,7 +1135,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
         perf();
         return b;
       });
-    }).then(function(b){ return polish(b).catch(function(){ return b; }); }).then(function(b){ return URL.createObjectURL(b); });
+    }).then(function(b){ return polish(b, c.mid).catch(function(){ return b; }); }).then(function(b){ return URL.createObjectURL(b); });
     L.q = pr.catch(function(){});
     pr.then(function(){ L.b--; }, function(){ L.b--; });
     pr.catch(function(){ delete cache[ck]; });
@@ -1039,11 +1179,17 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     mark(true);
     speakNow();
   }
+  function pauseMs(i){
+    var q = sents[i]; if (!q) return 0;
+    var t = q.text, r = Math.max(0.5, +$('#rate').value || 1), ms,
+        strong = /[.!?؟…]["»”')\]]*$/.test(t), soft = /[:؛;]$/.test(t);
+    if (q.pe) ms = (!strong && !soft && t.length < 80) ? 720 : (/[?؟]["»”')\]]*$/.test(t) ? 470 : 410);
+    else if (q.cont && !strong) ms = 60;
+    else ms = strong ? 170 : soft ? 130 : 160;
+    return Math.round(ms / Math.pow(r, 0.6));
+  }
   function gap(my){
-    var q = sents[idx], ms = 80;
-    if (q && q.pe) ms = (q.text.length < 70 && !/[.!?؟…:؛]$/.test(q.text)) ? 500 : (/[?؟!]$/.test(q.text) ? 320 : 260);
-    else if (q && !/[.!?؟…:؛]$/.test(q.text)) ms = 0;
-    setTimeout(function(){ advance(my); }, ms);
+    setTimeout(function(){ advance(my); }, pauseMs(idx));
   }
   function fail(my, msg){
     if (my !== token) return;
@@ -1075,8 +1221,12 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       idx = c.end;
       var n = nxt;
       if (n && n.url && n.my === my && my === token && playing && !sents[c.end].pe && c.end + 1 < sents.length) {
-        cn++; lastLen = n.c.text.length; idx = n.c.start; mark(true);
-        playEl(n.el, n.c, n.url, my);
+        var go = function(){
+          if (nxt !== n || my !== token || !playing) return;
+          cn++; lastLen = n.c.text.length; idx = n.c.start; mark(true);
+          playEl(n.el, n.c, n.url, my);
+        }, pm = pauseMs(c.end);
+        if (pm > 0) setTimeout(go, pm); else go();
         return;
       }
       gap(my);
