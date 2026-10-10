@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b1430">
 <title>خوانندهٔ صوتی PDF</title>
+<script>
+/* سطح جلوه‌های بصری پیش از نخستین نقاشی: کامل | سبک | حداقل. بار اول روی دستگاه‌های ضعیف یا با «کاهش حرکت» خودکار «سبک» */
+try{var _f=localStorage.getItem('fx');if(_f!=='full'&&_f!=='lite'&&_f!=='off'){var _m=navigator.deviceMemory,_c=navigator.hardwareConcurrency,_r=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;_f=(_r||(_m&&_m<=3)||(_c&&_c<=4))?'lite':'full'}document.documentElement.setAttribute('data-fx',_f)}catch(e){document.documentElement.setAttribute('data-fx','full')}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;800&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
@@ -277,10 +281,51 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
 @media (prefers-reduced-motion:reduce){
 *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important}
 .star path,.star circle{stroke-dashoffset:0}.star circle.dot{opacity:1}}
+
+/* ===== انتخاب متن و افزودن سریع به واژه‌نامه ===== */
+.selbar{position:fixed;z-index:30;inset-inline:0;margin:0 auto;width:max-content;max-width:calc(100% - 24px);bottom:calc(var(--dock-h) + 14px);display:flex;gap:8px;padding:6px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-line);box-shadow:var(--shadow)}
+.selbar[hidden],.dqsheet[hidden]{display:none}
+.dqsheet{position:fixed;inset:0;z-index:60;display:grid;align-items:end;justify-items:center;background:var(--scrim)}
+.dqin{width:100%;max-width:520px;display:grid;gap:10px;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 0 0;background:var(--paper);border:1px solid var(--glass-line);box-shadow:var(--shadow)}
+.dqin h3{margin:0;font-size:.95rem;font-weight:800}
+
+/* ===== جلوه‌های بصری: سبک و حداقل (html[data-fx]) ===== */
+/* سبک: پس‌زمینهٔ ثابت، بدون تاری شیشه‌ای، بدون درخشش و نبض متحرک */
+:root[data-fx="lite"],:root[data-fx="off"]{--glass:color-mix(in srgb,var(--card) 97%,transparent);--dock-bg:var(--glass);--dock-in:0 0 0 0 transparent;--card-sh:0 0 0 0 transparent}
+:root[data-fx="lite"] *,:root[data-fx="lite"] *::before,:root[data-fx="lite"] *::after,
+:root[data-fx="off"] *,:root[data-fx="off"] *::before,:root[data-fx="off"] *::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root[data-fx="lite"] .aura,:root[data-fx="off"] .aura{animation:none;inset:0}
+:root[data-fx="lite"] .is-playing #reader span.cur,:root[data-fx="lite"] .is-playing .play .ring,
+:root[data-fx="off"] .is-playing #reader span.cur,:root[data-fx="off"] .is-playing .play .ring{animation:none!important}
+:root[data-fx="lite"] #reader span.cur,:root[data-fx="off"] #reader span.cur{box-shadow:0 0 0 3px var(--hl)}
+/* حداقل: علاوه بر سبک، هیچ انیمیشن و گذار و حرکت نرم صفحه */
+:root[data-fx="off"] *,:root[data-fx="off"] *::before,:root[data-fx="off"] *::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important;scroll-behavior:auto!important}
+:root[data-fx="off"] .aura{background:linear-gradient(180deg,var(--bg1),var(--bg0))}
+:root[data-fx="off"] .aura::after{display:none}
+:root[data-fx="off"] .star path,:root[data-fx="off"] .star circle{stroke-dashoffset:0}
+:root[data-fx="off"] .star circle.dot{opacity:1}
+:root[data-fx="off"] .is-prep .play::after{animation:spin 1s linear infinite!important}
 </style>
 </head>
 <body>
 <div class="aura" aria-hidden="true"></div>
+
+<div id="selBar" class="selbar" hidden role="toolbar" aria-label="عملیات روی متن انتخاب‌شده">
+  <button type="button" class="btn sm primary" id="selAdd">افزودن به واژه‌نامه</button>
+  <button type="button" class="btn sm" id="selCopy">کپی</button>
+</div>
+<div id="dqSheet" class="dqsheet" hidden>
+  <div class="dqin" role="dialog" aria-modal="true" aria-labelledby="dqT">
+    <h3 id="dqT">افزودن به واژه‌نامهٔ تلفظ</h3>
+    <div class="field"><label for="dqW"><span>واژه</span></label><input id="dqW" type="text" dir="rtl" autocomplete="off"></div>
+    <div class="field"><label for="dqP"><span>تلفظ</span></label><input id="dqP" type="text" dir="rtl" autocomplete="off"></div>
+    <div class="field"><label for="dqS"><span>ثبت برای</span></label>
+      <select id="dqS"><option value="pdf">این فایل</option><option value="all">همهٔ فایل‌ها</option></select>
+    </div>
+    <p class="hint" id="dqMsg" aria-live="polite"></p>
+    <div class="two"><button class="btn primary" id="dqOk" type="button">ثبت</button><button class="btn" id="dqNo" type="button">انصراف</button></div>
+  </div>
+</div>
 
 <div class="app">
   <header class="top">
@@ -571,6 +616,15 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
         <summary>واژه‌نامهٔ تلفظ</summary>
         <div class="in">
           <p class="hint">در هر خط یک مورد بنویسید: «کلمه = تلفظ». برای حذف یک کلمه از خواندن، سمت راست را خالی بگذارید. پس از زدن «ثبت و ذخیره»، تغییرها اعمال می‌شوند و صدا از نو ساخته می‌شود.</p>
+          <div class="field">
+            <label for="dictScope"><span>واژه‌نامهٔ</span></label>
+            <select id="dictScope">
+              <option value="pdf">این فایل</option>
+              <option value="all">همهٔ فایل‌ها</option>
+            </select>
+          </div>
+          <p class="hint" id="dictWho"></p>
+          <p class="hint">واژه‌نامهٔ «این فایل» با نام همین PDF ذخیره می‌شود و هر بار که همان فایل را باز کنید خودکار برمی‌گردد. در متن هم می‌توانید کلمه را انتخاب (هایلایت) کنید و «افزودن به واژه‌نامه» را بزنید.</p>
           <textarea id="dict" dir="rtl" placeholder="مثلاً:&#10;خویش = خویش&#10;ChatGPT = چت جی پی تی"></textarea>
           <button class="btn primary wide" id="dictSave" type="button" disabled>ثبت و ذخیرهٔ واژه‌ها</button>
           <p class="hint" id="dictMsg" aria-live="polite"></p>
@@ -588,6 +642,19 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
           <button type="button" data-th="dark" aria-pressed="false"><i style="background:linear-gradient(135deg,#16224b,#050a19)"></i>تیره</button>
           <button type="button" data-th="sepia" aria-pressed="false"><i style="background:linear-gradient(135deg,#f8efd9,#d8c8a0)"></i>کاغذی</button>
         </div>
+      </section>
+
+      <section class="grp">
+        <h3>جلوه‌های بصری</h3>
+        <div class="sw" id="fxSw" style="grid-template-columns:repeat(3,1fr)">
+          <button type="button" data-fx="full" aria-pressed="false"><i style="background:linear-gradient(135deg,#8ea2ee,#4cbdb0 52%,#f0c466)"></i>کامل</button>
+          <button type="button" data-fx="lite" aria-pressed="false"><i style="background:linear-gradient(135deg,#8ea2ee,#4cbdb0)"></i>سبک</button>
+          <button type="button" data-fx="off" aria-pressed="false"><i style="background:var(--line)"></i>حداقل</button>
+        </div>
+        <details class="sub hintbox"><summary>توضیحات</summary><div class="in">
+          <p class="hint">کامل: همهٔ جلوه‌ها. سبک: پس‌زمینهٔ ثابت، بدون تاری شیشه‌ای و بدون درخشش و نبض متحرک؛ بیشترین کمک را به گوشی‌های کند می‌کند. حداقل: علاوه بر سبک، همهٔ انیمیشن‌ها و حرکت نرم صفحه هم خاموش می‌شود.</p>
+          <p class="hint">بار اول، روی گوشی‌های ضعیف یا وقتی «کاهش حرکت» در سیستم روشن است، خودکار «سبک» انتخاب می‌شود.</p>
+        </div></details>
       </section>
 
       <section class="grp">
@@ -640,6 +707,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   /* ---------- settings (best-effort) ---------- */
   function sget(k, d){ try { var v = localStorage.getItem(k); return v === null ? d : v; } catch(e){ return d; } }
   function sset(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
+  function fxLevel(){ return document.documentElement.getAttribute('data-fx') || 'full'; }
   $('#rate').value = sget('rate', '1');
   $('#gender').value = sget('gender', 'all');
   function fillRng(el){ var mn = +el.min, mx = +el.max, p = mx > mn ? (el.value - mn) / (mx - mn) * 100 : 0; el.style.setProperty('--p', Math.max(0, Math.min(100, p)) + '%'); }
@@ -1192,6 +1260,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     curKey = '';
     stopAll();
     status('در حال باز کردن فایل…'); setDocTitle(file.name); closeMenu();
+    docName = file.name; dictP = sget('dict:' + docName, ''); parseDict(); dictShow();   /* واژه‌نامهٔ همین فایل */
     try {
       var buf = await file.arrayBuffer();
       if (pdfDoc) { try { pdfDoc.destroy(); } catch (e) {} }
@@ -1337,11 +1406,12 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   }
   function dmy(d, m, y, mons){ return ' ' + ordFa(+d) + ' ' + mons[+m] + ' ' + numFa(String(+y)) + ' '; }
   var NEG_RE = /(?<!\d\s*)(?<![\p{L}\d\-–\/.])[-−](?=\d)/gu;
-  var userDict = [];
+  var userDict = [], dictG = '', dictP = '', docName = '';
   function normCh(t){ return t.replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/ة/g, 'ه'); }
   function parseDict(){
     userDict = [];
-    ($('#dict').value || '').split('\n').forEach(function(l){
+    /* واژه‌نامهٔ همین فایل اول می‌آید تا بر واژه‌نامهٔ همهٔ فایل‌ها اولویت داشته باشد */
+    (dictP + '\n' + dictG).split('\n').forEach(function(l){
       var p = l.indexOf('='); if (p < 1) return;
       var a = normCh(l.slice(0, p).trim()), b = l.slice(p + 1).trim();
       if (!a) return;
@@ -1633,17 +1703,61 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     return { ok: ok, bad: bad };
   }
   var dictSaved = '';
+  function dictScopeNow(){ return (sget('dictScope', 'pdf') === 'pdf' && docName) ? 'pdf' : 'all'; }
+  function dictKeyOf(sc){ return sc === 'pdf' ? 'dict:' + docName : 'dict'; }
+  function dictTextOf(sc){ return sc === 'pdf' ? dictP : dictG; }
+  function dictSetText(sc, v){
+    if (sc === 'pdf') dictP = v; else dictG = v;
+    if (v) sset(dictKeyOf(sc), v); else { try { localStorage.removeItem(dictKeyOf(sc)); } catch (e) {} }
+  }
+  function shortName(n){ n = String(n || '').replace(/\.pdf$/i, ''); return n.length > 28 ? n.slice(0, 27) + '…' : n; }
+  function dictShow(){
+    var sc = dictScopeNow(), d = $('#dict'), op = $('#dictScope option[value="pdf"]'), op2 = $('#dqS option[value="pdf"]');
+    op.disabled = !docName; op2.disabled = !docName;
+    op.textContent = op2.textContent = docName ? 'این فایل: ' + shortName(docName) : 'این فایل (ابتدا فایلی باز کنید)';
+    $('#dictScope').value = sc;
+    d.value = dictTextOf(sc); dictSaved = d.value; dictUi();
+  }
   function dictUi(note){
-    var d = $('#dict'), dirty = d.value !== dictSaved, st = dictStat(d.value), m = $('#dictMsg');
+    var d = $('#dict'), dirty = d.value !== dictSaved, st = dictStat(d.value), m = $('#dictMsg'), sc = dictScopeNow(),
+        where = sc === 'pdf' ? 'واژه‌نامهٔ این فایل' : 'واژه‌نامهٔ همهٔ فایل‌ها';
     $('#dictSave').disabled = !dirty;
+    $('#dictWho').textContent = (docName ? 'این فایل: ' + nf.format(dictStat(dictP).ok) + ' واژه · ' : '') + 'همهٔ فایل‌ها: ' + nf.format(dictStat(dictG).ok) + ' واژه' + (docName ? ' (واژه‌های این فایل اولویت دارند)' : '');
     if (dirty) m.textContent = 'تغییرها هنوز ذخیره نشده‌اند. «ثبت و ذخیرهٔ واژه‌ها» را بزنید.' + (st.bad ? ' ' + nf.format(st.bad) + ' سطر بدون «=» نادیده گرفته می‌شود.' : '');
-    else m.textContent = (note ? note + ' ' : '') + (st.ok ? nf.format(st.ok) + ' واژه در واژه‌نامه ثبت است.' : 'واژه‌ای ثبت نشده است.') + (st.bad ? ' ' + nf.format(st.bad) + ' سطر بدون «=» نادیده گرفته می‌شود.' : '');
+    else m.textContent = (note ? note + ' ' : '') + (st.ok ? nf.format(st.ok) + ' واژه در ' + where + ' ثبت است.' : 'واژه‌ای در ' + where + ' ثبت نشده است.') + (st.bad ? ' ' + nf.format(st.bad) + ' سطر بدون «=» نادیده گرفته می‌شود.' : '');
+  }
+  function dictKeyW(t){ return normCh(String(t).trim()).toLowerCase(); }
+  /* پیدا کردن واژه در واژه‌نامه‌ها (اول این فایل، بعد همهٔ فایل‌ها) */
+  function dictFind(w){
+    var k = dictKeyW(w), scs = ['pdf', 'all'], i, j, ls, p;
+    for (i = 0; i < scs.length; i++) {
+      if (scs[i] === 'pdf' && !docName) continue;
+      ls = dictTextOf(scs[i]).split('\n');
+      for (j = 0; j < ls.length; j++) { p = ls[j].indexOf('='); if (p > 0 && dictKeyW(ls[j].slice(0, p)) === k) return { sc: scs[i], v: ls[j].slice(p + 1).trim() }; }
+    }
+    return null;
+  }
+  /* افزودن یا ویرایش یک سطر «واژه = تلفظ»؛ بلافاصله ذخیره و اعمال می‌شود */
+  function dictAddLine(sc, w, v){
+    if (sc === 'pdf' && !docName) sc = 'all';
+    w = String(w).replace(/[\r\n=]+/g, ' ').trim(); v = String(v).replace(/[\r\n]+/g, ' ').trim();
+    if (!w) return false;
+    var shown = dictScopeNow() === sc, base = shown ? $('#dict').value : dictTextOf(sc), line = w + ' = ' + v, k = dictKeyW(w), done = false, i, p,
+        ls = base.trim() ? base.replace(/\s+$/, '').split('\n') : [];
+    for (i = 0; i < ls.length; i++) {
+      p = ls[i].indexOf('=');
+      if (p > 0 && dictKeyW(ls[i].slice(0, p)) === k) { if (!done) { ls[i] = line; done = true; } else { ls.splice(i--, 1); } }
+    }
+    if (!done) ls.push(line);
+    var out = ls.join('\n');
+    dictSetText(sc, out);
+    if (shown) { $('#dict').value = out; dictSaved = out; }
+    parseDict(); changed(); analyze(); dictUi();
+    return true;
   }
   function addDict(w, v){
-    var d = $('#dict'), cur = d.value.replace(/\s+$/, '');
-    d.value = (cur ? cur + '\n' : '') + w + ' = ' + v;
-    sset('dict', d.value); dictSaved = d.value; parseDict(); changed(); analyze(); dictUi();
-    $('#fixMsg').textContent = '«' + w + '» با تلفظ «' + v + '» به واژه‌نامه اضافه شد؛ می‌توانید آن را در بخش واژه‌نامه ویرایش کنید.';
+    var sc = dictScopeNow();
+    if (dictAddLine(sc, w, v)) $('#fixMsg').textContent = '«' + w + '» با تلفظ «' + v + '» به ' + (sc === 'pdf' ? 'واژه‌نامهٔ این فایل' : 'واژه‌نامهٔ همهٔ فایل‌ها') + ' اضافه شد؛ می‌توانید آن را در بخش واژه‌نامه ویرایش کنید.';
   }
   var lpT = 0, lpDone = 0;
   function showTip(i){
@@ -2186,7 +2300,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   }
   function follow(el){
     var r = el.getBoundingClientRect(), s = $('#stage').getBoundingClientRect(), dk = $('#dock').getBoundingClientRect();
-    if (r.top < s.top + 56 || r.bottom > dk.top - 12) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    if (r.top < s.top + 56 || r.bottom > dk.top - 12) el.scrollIntoView({ block: 'center', behavior: fxLevel() === 'off' ? 'auto' : 'smooth' });
   }
   function ui(){
     var has = sents.length > 0 && canSpeak();
@@ -2410,6 +2524,15 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     try { var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.content = (getComputedStyle(document.documentElement).getPropertyValue('--bg1') || '#0b1430').trim(); } catch (e) {}
   }
   applyTheme();
+  function applyFx(){
+    var f = fxLevel(), b = document.querySelectorAll('#fxSw button'), i;
+    for (i = 0; i < b.length; i++) b[i].setAttribute('aria-pressed', b[i].dataset.fx === f ? 'true' : 'false');
+  }
+  applyFx();
+  (function(){
+    var b = document.querySelectorAll('#fxSw button'), i;
+    for (i = 0; i < b.length; i++) b[i].onclick = function(){ document.documentElement.setAttribute('data-fx', this.dataset.fx); sset('fx', this.dataset.fx); applyFx(); };
+  })();
   (function(){
     var b = document.querySelectorAll('#thSw button'), i;
     for (i = 0; i < b.length; i++) b[i].onclick = function(){ theme = this.dataset.th; sset('theme', theme); applyTheme(); };
@@ -2487,12 +2610,13 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     slL = setInterval(slLabel, 20000); slLabel();
     status('تایمر خواب: ' + nf.format(m) + ' دقیقه');
   };
-  $('#locBtn').onclick = function(){ if (curEl) curEl.scrollIntoView({ block: 'center', behavior: 'smooth' }); };
+  $('#locBtn').onclick = function(){ if (curEl) curEl.scrollIntoView({ block: 'center', behavior: fxLevel() === 'off' ? 'auto' : 'smooth' }); };
   $('#prev').onclick = function(){ seekTo(idx - 1); };
   $('#next').onclick = function(){ seekTo(idx + 1); };
   $('#stop').onclick = stopAll;
   $('#reader').addEventListener('click', function(e){
     var t = e.target.closest('span[data-i]');
+    if (window.getSelection && String(window.getSelection()).trim()) return;   /* انتخاب متن، جملهٔ دیگری را شروع نکند */
     if (t) { if (Date.now() - lpDone < 700) return; if (playing) seekTo(+t.dataset.i); else start(+t.dataset.i); }
   });
 
@@ -2515,13 +2639,78 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   $('#smartPace').checked = sget('smartPace', '1') !== '0';
   $('#smartPace').onchange = function(){ sset('smartPace', this.checked ? '1' : '0'); changed(); warmPiper(); };
   $('#enh').onchange = function(){ sset('enh', this.checked ? '1' : '0'); setupFx(); wireFx(engine() === 'piper'); };
-  $('#dict').value = sget('dict', ''); dictSaved = $('#dict').value; parseDict(); dictUi();
+  dictG = sget('dict', ''); parseDict(); dictShow();
   $('#dict').oninput = function(){ dictUi(); };
+  $('#dictScope').onchange = function(){
+    if ($('#dict').value !== dictSaved) { this.value = dictScopeNow(); dictUi(); $('#dictMsg').textContent = 'ابتدا تغییرهای این واژه‌نامه را ذخیره کنید.'; return; }
+    sset('dictScope', this.value); dictShow();
+  };
   $('#dictSave').onclick = function(){
-    var v = $('#dict').value.replace(/[ \t]+$/gm, '').replace(/\s+$/, '');
-    $('#dict').value = v; sset('dict', v); dictSaved = v; parseDict(); changed(); analyze();
+    var v = $('#dict').value.replace(/[ \t]+$/gm, '').replace(/\s+$/, ''), sc = dictScopeNow();
+    $('#dict').value = v; dictSetText(sc, v); dictSaved = v; parseDict(); changed(); analyze();
     dictUi('ذخیره شد.');
   };
+
+  /* ---------- انتخاب کلمه در متن → افزودن سریع به واژه‌نامه / کپی ---------- */
+  var selTxt = '', selT = 0, selHide = 0;
+  function selInfo(){
+    var s = window.getSelection ? window.getSelection() : null;
+    if (!s || s.isCollapsed || !s.rangeCount) return '';
+    var n = s.getRangeAt(0).commonAncestorContainer; n = n.nodeType === 1 ? n : n.parentNode;
+    if (!n || !$('#reader').contains(n)) return '';
+    return String(s).replace(/\s+/g, ' ').trim();
+  }
+  function selUpdate(){
+    var t = selInfo(), bar = $('#selBar');
+    if (t && !$('#dqSheet').hidden) return;
+    if (!t) { clearTimeout(selHide); selHide = setTimeout(function(){ bar.hidden = true; }, 450); return; }
+    clearTimeout(selHide); selTxt = t;
+    $('#selAdd').hidden = t.length > 60; $('#selCopy').textContent = 'کپی';
+    bar.hidden = false;
+  }
+  document.addEventListener('selectionchange', function(){ clearTimeout(selT); selT = setTimeout(selUpdate, 180); });
+  function dqSuggest(w){
+    try {
+      var r = { uns: {} }, out = ttsText(w, engine(), r, false), ks = Object.keys(r.uns);
+      if (ks.length && r.uns[ks[0]] && r.uns[ks[0]].s) return r.uns[ks[0]].s;
+      out = String(out || '').replace(/^[\s.,،؛:!?؟…]+|[\s.,،؛:!?؟…]+$/g, '').trim();
+      return out && out !== w ? out : '';
+    } catch (e) { return ''; }
+  }
+  function openDq(raw){
+    var w = String(raw || '').replace(/\s+/g, ' ').replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '').trim();
+    if (!w) return;
+    var f = dictFind(w);
+    $('#dqW').value = w;
+    $('#dqP').value = f ? f.v : (dqSuggest(w) || w);
+    $('#dqS').value = f ? f.sc : dictScopeNow();
+    $('#dqMsg').textContent = f ? 'این واژه از قبل ثبت شده است؛ ثبت دوباره، تلفظ را ویرایش می‌کند.' : 'تلفظ را همان‌طور که باید خوانده شود بنویسید. برای حذف کلمه از خواندن، تلفظ را خالی بگذارید.';
+    $('#selBar').hidden = true; $('#dqSheet').hidden = false;
+    setTimeout(function(){ try { $('#dqP').focus(); $('#dqP').select(); } catch (e) {} }, 60);
+  }
+  function closeDq(){ $('#dqSheet').hidden = true; }
+  $('#selAdd').onclick = function(){ openDq(selTxt); };
+  $('#selCopy').onclick = function(){
+    var t = selTxt, b = this, ok = function(){ b.textContent = 'کپی شد'; setTimeout(function(){ b.textContent = 'کپی'; }, 1400); };
+    var fb = function(){
+      try { var ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;opacity:0;top:0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); ok(); } catch (e) {}
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, fb); else fb();
+  };
+  $('#dqOk').onclick = function(){
+    var w = $('#dqW').value.trim(), v = $('#dqP').value;
+    if (!w) { $('#dqMsg').textContent = 'واژه را بنویسید.'; return; }
+    if (w.indexOf('=') >= 0) { $('#dqMsg').textContent = 'علامت «=» در واژه مجاز نیست.'; return; }
+    var sc = $('#dqS').value;
+    if (dictAddLine(sc, w, v)) {
+      closeDq();
+      try { window.getSelection().removeAllRanges(); } catch (e) {}
+      status('«' + w + '» به ' + (sc === 'pdf' && docName ? 'واژه‌نامهٔ این فایل' : 'واژه‌نامهٔ همهٔ فایل‌ها') + ' اضافه شد.');
+    }
+  };
+  $('#dqNo').onclick = closeDq;
+  $('#dqSheet').addEventListener('click', function(e){ if (e.target === this) closeDq(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !$('#dqSheet').hidden) { e.preventDefault(); closeDq(); } });
   if ('mediaSession' in navigator) { try {
     navigator.mediaSession.metadata = new MediaMetadata({ title: 'خوانندهٔ صوتی PDF' });
     [['play', function(){ if (!playing) start(); }], ['pause', function(){ if (playing) pause(); }], ['previoustrack', function(){ seekTo(idx - 1); }], ['nexttrack', function(){ seekTo(idx + 1); }]].forEach(function(a){ navigator.mediaSession.setActionHandler(a[0], a[1]); });
