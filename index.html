@@ -290,7 +290,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
         .then(function(r){ done(); return r; }, function(e){ done(); throw e; });
     },
     predict: function(o){
-      return NP.synthesize({ id: o.voiceId, text: o.text }).then(function(r){ pNativeMs = r.ms || 0; return b64Blob(r.wav, 'audio/wav'); });
+      return NP.synthesize({ id: o.voiceId, text: o.text }).then(function(r){ return b64Blob(r.wav, 'audio/wav'); });
     }
   };
 
@@ -482,7 +482,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   /* ---------- playback ---------- */
   var audio = new Audio(), curUtt = null;
   audio.preservesPitch = true; audio.webkitPreservesPitch = true;
-  var cache = {}, nid = 0, curNid = '', gen = 0, cn = 0, seekT = 0, pSpeed = 18, pSamples = 0, pPatched = 0, pBoot = 0, pFirst = 0, pInfo = null, pNativeMs = 0, plan = {}, lastLen = 0;
+  var cache = {}, nid = 0, curNid = '', gen = 0, cn = 0, seekT = 0, pSpeed = 18, pSamples = 0, pPatched = 0, pBoot = 0, pFirst = 0, pInfo = null, plan = {}, lastLen = 0;
   var SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
   function cancelAll(){
     gen++;
@@ -728,7 +728,6 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       a.push('آخرین ساخت: ' + nf.format(pInfo.n) + ' نویسه در ' + nf.format(Math.round(pInfo.sec * 10) / 10) + ' ثانیه (صدا ' + nf.format(Math.round(pInfo.aud * 10) / 10) + ' ثانیه، ' + nf.format(Math.round(r * 10) / 10) + '× زمان واقعی)');
       if (r > 1.1) a.push('این گوشی از پخش زنده کندتر است');
     }
-    if (pNativeMs) a.push('زمان موتور بومی: ' + nf.format(pNativeMs) + ' میلی‌ثانیه');
     el.textContent = a.join(' — ');
   }
   function firstLim(){ return Math.max(40, Math.min(72, Math.round(pSpeed * 2.5))); }
