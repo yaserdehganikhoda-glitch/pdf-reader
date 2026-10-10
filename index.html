@@ -97,6 +97,7 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
 .lib-open b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lib-open span{display:block;font-size:.78rem;color:var(--muted)}
 .lib-del{flex:none}
+.cvItem{display:flex;gap:8px;align-items:center;margin-top:8px}.cvItem span{flex:1;word-break:break-word}
 </style>
 </head>
 <body>
@@ -162,6 +163,63 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
     </div>
     <label class="chk"><input type="checkbox" id="allLangs"> نمایش صداهای همهٔ زبان‌ها</label>
   </div>
+
+  <details class="card" id="matchBox">
+    <summary>صدای شخصی رایگان (نزدیک‌سازی به نمونهٔ صدا)</summary>
+    <p class="hint" style="margin:8px 0">یک فایل صدای تمیز از گوینده (۱ تا ۳ دقیقه گفتار، بدون موسیقی) انتخاب کنید. برنامه زیر و بمی و رنگ کلی صدای نمونه را اندازه می‌گیرد و گفتار فارسی Piper را به آن نزدیک می‌کند. کاملاً رایگان و آفلاین است و نمونه از دستگاه بیرون نمی‌رود. این کلون واقعی نیست: شبیه‌شدن در حد زیر و بمی و رنگ صداست و لحن، تلفظ و سبک گوینده همان Piper می‌ماند.</p>
+    <div class="row">
+      <label for="mBase"><span>صدای پایه (Piper)</span></label>
+      <select id="mBase"></select>
+      <p class="hint">صدای پایه باید دانلود شده باشد. اگر نمونه صدای زن است، پایهٔ زن (مثلاً haaniye) نتیجهٔ بهتری می‌دهد.</p>
+    </div>
+    <div class="row">
+      <label for="mName"><span>نام صدا</span></label>
+      <input type="text" id="mName" dir="auto" maxlength="60" placeholder="مثلاً: صدای من">
+    </div>
+    <input type="file" id="mFile" accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac,.aac,.webm" multiple hidden>
+    <div class="two row">
+      <button class="btn" id="mPick" type="button">انتخاب فایل نمونه</button>
+      <button class="btn primary" id="mMake" type="button" disabled>ساخت صدا</button>
+    </div>
+    <p class="hint" id="mFiles"></p>
+    <p class="hint" id="mMsg" aria-live="polite" style="margin-bottom:8px"></p>
+    <div id="mList"></div>
+    <div class="row" style="margin-top:10px">
+      <label for="mStr"><span>شدت نزدیک‌سازی</span></label>
+      <input type="range" id="mStr" min="0" max="100" step="5" value="100">
+      <p class="hint">اگر صدا مصنوعی یا کشیده شد، شدت را کمتر کنید.</p>
+    </div>
+  </details>
+
+  <details class="card" id="cloneBox">
+    <summary>کلون واقعی صدا با ElevenLabs (پولی، اختیاری)</summary>
+    <p class="hint" style="margin:8px 0">یک فایل صدای تمیز (حدود ۱ تا ۳ دقیقه صحبت یک نفر، بدون موسیقی و نویز) انتخاب کنید تا از روی آن یک صدای شخصی ساخته شود و PDF با همان صدا خوانده شود. این بخش از سرویس ElevenLabs (مدل eleven_v3 که فارسی را پشتیبانی می‌کند) استفاده می‌کند؛ پس برخلاف صداهای Piper آفلاین نیست، به کلید API و حسابی که کلون صدا را دارد (معمولاً پلن پولی) نیاز دارد، و هر بخشی که خوانده شود از اعتبار حساب مصرف می‌کند. فایل نمونه و متن‌های خوانده‌شده به آن سرویس فرستاده می‌شوند. فقط از صدای خودتان یا صدایی که اجازهٔ استفاده‌اش را دارید استفاده کنید.</p>
+    <div class="row">
+      <label for="cvKey"><span>کلید API سرویس ElevenLabs</span></label>
+      <input type="password" id="cvKey" dir="ltr" autocomplete="off" placeholder="sk_...">
+      <p class="hint">کلید فقط روی همین دستگاه ذخیره می‌شود و فقط به سرویس بالا فرستاده می‌شود.</p>
+    </div>
+    <div class="row">
+      <label for="cvName"><span>نام صدا</span></label>
+      <input type="text" id="cvName" dir="auto" maxlength="60" placeholder="مثلاً: صدای من">
+    </div>
+    <input type="file" id="cvFile" accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac,.aac,.webm" multiple hidden>
+    <div class="two row">
+      <button class="btn" id="cvPick" type="button">انتخاب فایل نمونه</button>
+      <button class="btn primary" id="cvMake" type="button" disabled>ساخت صدا</button>
+    </div>
+    <p class="hint" id="cvFiles"></p>
+    <p class="hint" id="cvMsg" aria-live="polite" style="margin-bottom:8px"></p>
+    <div id="cvList"></div>
+    <details style="margin-top:10px">
+      <summary class="hint">تنظیمات پیشرفته</summary>
+      <div class="row" style="margin-top:8px">
+        <label for="cvBase"><span>آدرس سرویس (اختیاری)</span></label>
+        <input type="text" id="cvBase" dir="ltr" placeholder="https://api.elevenlabs.io/v1">
+        <p class="hint">اگر سرویس سازگار با ElevenLabs یا واسطهٔ شخصی دارید، آدرس https آن را اینجا بگذارید.</p>
+      </div>
+    </details>
+  </details>
 
   <details class="card" id="bgmBox">
     <summary>موسیقی پس‌زمینه برای گفتار</summary>
@@ -343,6 +401,12 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
   var piperVoices = [
     { id: 'fa_IR-gyro-medium', name: 'gyro (medium)', lang: 'fa-IR', gender: '?', fa: true }
   ];
+  var cloneVoices = [];
+  function cloneEntry(o){ return { id: 'clone:' + o.vid, vid: o.vid, nm: o.nm, name: o.nm, lang: 'fa-IR', gender: '?', fa: true, clone: true }; }
+  try { cloneVoices = (JSON.parse(sget('cloneVoices', '[]')) || []).filter(function(o){ return o && o.nm && /^[A-Za-z0-9]{8,64}$/.test(o.vid || ''); }).map(cloneEntry); } catch (e) {}
+  var matchVoices = [];
+  function matchEntry(o){ return { id: 'match:' + o.uid, uid: o.uid, nm: o.nm, base: o.base, f0: o.f0, lt: o.lt, name: o.nm, lang: 'fa-IR', gender: '?', fa: true, match: true }; }
+  try { matchVoices = (JSON.parse(sget('matchVoices', '[]')) || []).filter(function(o){ return o && o.nm && o.base && o.f0 > 0 && o.lt && o.lt.length === 20 && /^[a-z0-9]+$/.test(o.uid || ''); }).map(matchEntry); } catch (e) {}
   var FEM = /female|woman|dilara|zira|hazel|samantha|victoria|karen|moira|tessa|fiona|susan|heera|aria|jenny|sara|zuzana|elena|katya|milena|ava/i;
   var MALE = /\bmale\b|farid|david|mark|george|daniel|alex|fred|ravi|guy|ryan|thomas|jorge|diego|yuri|pavel/i;
   function genderOf(name){
@@ -352,7 +416,7 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
   }
   function engine(){ return 'piper'; }
   function canSpeak(){ return true; }
-  function allVoices(){ return piperVoices; }
+  function allVoices(){ return piperVoices.concat(matchVoices, cloneVoices); }
   function renderVoices(){
     var pp = true, cloud = true;
     $('#piperbox').hidden = false;
@@ -372,10 +436,11 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
     list.forEach(function(v){
       var o = document.createElement('option');
       o.value = v.id;
-      o.textContent = v.name + ' (' + v.lang + ') — ' + (v.gender === 'f' ? 'زن' : v.gender === 'm' ? 'مرد' : 'نامشخص');
+      o.textContent = v.match ? '🎚 ' + v.nm + ' — صدای شخصی (رایگان)' : v.clone ? '🎙 ' + v.nm + ' — صدای شخصی' : v.name + ' (' + v.lang + ') — ' + (v.gender === 'f' ? 'زن' : v.gender === 'm' ? 'مرد' : 'نامشخص');
       sel.appendChild(o);
     });
     if (prev && list.some(function(v){ return v.id === prev; })) sel.value = prev;
+    mFillBase();
     if (pp) updatePiperStatus();
   }
   function currentVoice(){
@@ -463,13 +528,14 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
     }).catch(function(){});
   }
   function updatePiperStatus(){
-    var st = $('#pstat'), btn = $('#pdl');
+    var st = $('#pstat'), btn = $('#pdl'), cv0 = currentVoice();
+    if (cv0 && cv0.clone) { st.textContent = 'صدای شخصی (ElevenLabs): برای ساخت هر بخش گفتار به اینترنت نیاز است و از اعتبار حساب شما مصرف می‌شود.'; btn.hidden = true; return; }
     if (!window.PiperTTS) st.textContent = 'در حال بارگذاری موتور Piper…';
     ensurePiper().then(function(ok){
       if (!ok) { st.textContent = 'موتور Piper بارگذاری نشد. اینترنت یا VPN را بررسی کنید.'; btn.hidden = true; return; }
       loadPiper();
       return PiperTTS.stored().then(function(a){
-        var v = currentVoice();
+        var v = engVoice();
         var done = !!v && (a || []).indexOf(v.id) >= 0;
         st.textContent = done ? 'صدا دانلود شده و آفلاین کار می‌کند.' : 'این صدا هنوز دانلود نشده است (حدود ۶۰ مگابایت؛ فقط بار اول اینترنت لازم است).';
         btn.hidden = done;
@@ -478,7 +544,7 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
     }).catch(function(){ st.textContent = ''; });
   }
   $('#pdl').onclick = function(){
-    var v = currentVoice(), btn = $('#pdl'), st = $('#pstat');
+    var v = engVoice(), btn = $('#pdl'), st = $('#pstat');
     if (!v) return;
     btn.disabled = true;
     ensurePiper().then(function(ok){ if (!ok) throw new Error('موتور Piper بارگذاری نشد.'); return PiperTTS.download(v.id, function(pr){
@@ -491,6 +557,352 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
       st.textContent = 'دانلود ناموفق بود: ' + (e && e.message ? e.message : e) + ' (ممکن است به VPN نیاز باشد)';
     }).then(function(){ btn.disabled = false; });
   };
+  /* ==DSP-BEGIN== تطبیق زیر و بمی و رنگ صدا با نمونه (آفلاین) */
+  var MB = (function(){ var e = [], i; for (i = 0; i <= 20; i++) e.push(100 * Math.pow(70, i / 20)); return e; })();
+  var fftTw = {}, hanns = {};
+  function hannN(N){ if (hanns[N]) return hanns[N]; var w = new Float64Array(N), i; for (i = 0; i < N; i++) w[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / N); return (hanns[N] = w); }
+  function fftIn(re, im){
+    var n = re.length, i, j, k, m, t, tr, ti, a, b, c, d, h, st, bit, w = fftTw[n];
+    if (!w) { w = fftTw[n] = { c: new Float64Array(n / 2), s: new Float64Array(n / 2) }; for (i = 0; i < n / 2; i++) { w.c[i] = Math.cos(2 * Math.PI * i / n); w.s[i] = -Math.sin(2 * Math.PI * i / n); } }
+    for (i = 1, j = 0; i < n; i++) {
+      bit = n >> 1; for (; j & bit; bit >>= 1) j ^= bit; j ^= bit;
+      if (i < j) { t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; }
+    }
+    for (m = 2; m <= n; m <<= 1) {
+      h = m >> 1; st = n / m;
+      for (k = 0; k < n; k += m) for (j = 0; j < h; j++) {
+        c = w.c[j * st]; d = w.s[j * st]; a = k + j; b = a + h;
+        tr = re[b] * c - im[b] * d; ti = re[b] * d + im[b] * c;
+        re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti;
+      }
+    }
+  }
+  function medianOf(a){ var s = a.slice().sort(function(x, y){ return x - y; }); return s.length ? s[s.length >> 1] : 0; }
+  function f0Of(x, sr){
+    var d = Math.max(1, Math.round(sr / 11025)), sd = sr / d, lim = Math.min(Math.floor(x.length / d), Math.round(sd * 60)), y = new Float32Array(lim), i, j, s, l, p, e1, best, rs, a, b, c;
+    for (i = 0; i < lim; i++) { s = 0; for (j = 0; j < d; j++) s += x[i * d + j]; y[i] = s / d; }
+    var F = Math.round(sd * 0.035), hop = Math.round(sd * 0.03), lmin = Math.floor(sd / 400), lmax = Math.ceil(sd / 70), fr = [], mean = 0, out = [];
+    for (p = 0; p + F + lmax + 1 <= lim; p += hop) { e1 = 0; for (i = 0; i < F; i++) e1 += y[p + i] * y[p + i]; fr.push([p, e1]); mean += e1; }
+    if (!fr.length) return out;
+    mean /= fr.length;
+    fr.forEach(function(f){
+      if (f[1] < mean * 0.5) return;
+      var q = f[0]; rs = new Float32Array(lmax + 2); best = 0;
+      for (l = lmin; l <= lmax; l++) {
+        s = 0; e1 = 0;
+        for (i = 0; i < F; i++) { s += y[q + i] * y[q + i + l]; e1 += y[q + i + l] * y[q + i + l]; }
+        rs[l] = s / Math.sqrt(f[1] * e1 + 1e-12); if (rs[l] > best) best = rs[l];
+      }
+      if (best < 0.6) return;
+      for (l = lmin + 1; l < lmax; l++) if (rs[l] >= best * 0.9 && rs[l] >= rs[l - 1] && rs[l] >= rs[l + 1]) {
+        a = rs[l - 1]; b = rs[l]; c = rs[l + 1];
+        var dn = a - 2 * b + c, off = dn ? 0.5 * (a - c) / dn : 0;
+        out.push(sd / (l + Math.max(-1, Math.min(1, off))));
+        return;
+      }
+    });
+    return out;
+  }
+  function ltasOf(x, sr){
+    var N = 1024, H = 512, nb = MB.length - 1, win = hannN(N), re = new Float64Array(N), im = new Float64Array(N), fr = [], i, k, e, pos, lim = Math.min(x.length, Math.round(sr * 60));
+    for (pos = 0; pos + N <= lim; pos += H) { e = 0; for (i = 0; i < N; i++) e += x[pos + i] * x[pos + i]; fr.push([pos, e]); }
+    if (fr.length < 4) return null;
+    var thr = medianOf(fr.map(function(f){ return f[1]; })), acc = new Float64Array(N / 2 + 1), cnt = 0;
+    fr.forEach(function(f){
+      if (f[1] < thr || f[1] <= 0) return;
+      for (i = 0; i < N; i++) { re[i] = x[f[0] + i] * win[i]; im[i] = 0; }
+      fftIn(re, im);
+      for (k = 0; k <= N / 2; k++) acc[k] += re[k] * re[k] + im[k] * im[k];
+      cnt++;
+    });
+    if (!cnt) return null;
+    var out = [], mean = 0, hz = sr / N, lo, hi, s, c;
+    for (i = 0; i < nb; i++) {
+      lo = Math.ceil(MB[i] / hz); hi = Math.min(N / 2, Math.ceil(MB[i + 1] / hz) - 1); if (hi < lo) hi = lo;
+      s = 0; c = 0; for (k = lo; k <= hi; k++) { s += acc[k]; c++; }
+      out.push(10 * Math.log10(s / c / cnt + 1e-12)); mean += out[i];
+    }
+    mean /= nb;
+    return out.map(function(v){ return v - mean; });
+  }
+  function buildGains(ref, src){
+    var nb = ref.length, g = [], i, o = [];
+    for (i = 0; i < nb; i++) g.push(Math.max(-9, Math.min(9, ref[i] - src[i])));
+    for (i = 0; i < nb; i++) o.push(0.8 * (0.25 * g[Math.max(0, i - 1)] + 0.5 * g[i] + 0.25 * g[Math.min(nb - 1, i + 1)]));
+    return o;
+  }
+  function eqApply(x, sr, g){
+    var N = 1024, H = 256, n = x.length, win = hannN(N), re = new Float64Array(N), im = new Float64Array(N), nb = g.length, gl = new Float64Array(N / 2 + 1), cen = [], i, k, f, db, t, pos;
+    for (i = 0; i < nb; i++) cen.push(Math.sqrt(MB[i] * MB[i + 1]));
+    for (k = 0; k <= N / 2; k++) {
+      f = k * sr / N;
+      if (f <= cen[0]) db = g[0]; else if (f >= cen[nb - 1]) db = g[nb - 1];
+      else { i = 0; while (f > cen[i + 1]) i++; t = Math.log(f / cen[i]) / Math.log(cen[i + 1] / cen[i]); db = g[i] + (g[i + 1] - g[i]) * t; }
+      gl[k] = Math.pow(10, db / 20);
+    }
+    var xp = new Float32Array(n + 2 * N), op = new Float32Array(n + 2 * N); xp.set(x, N);
+    for (pos = 0; pos + N <= xp.length; pos += H) {
+      for (i = 0; i < N; i++) { re[i] = xp[pos + i] * win[i]; im[i] = 0; }
+      fftIn(re, im);
+      for (k = 0; k <= N / 2; k++) { re[k] *= gl[k]; im[k] *= gl[k]; if (k > 0 && k < N / 2) { re[N - k] *= gl[k]; im[N - k] *= gl[k]; } }
+      for (i = 0; i < N; i++) im[i] = -im[i];
+      fftIn(re, im);
+      for (i = 0; i < N; i++) op[pos + i] += re[i] / N * win[i] / 1.5;
+    }
+    return op.subarray(N, N + n);
+  }
+  function resampleStep(x, r){
+    var n = Math.max(0, Math.floor((x.length - 1) / r)), y = new Float32Array(n), i, p, q, f;
+    for (i = 0; i < n; i++) { p = i * r; q = p | 0; f = p - q; y[i] = x[q] * (1 - f) + x[q + 1] * f; }
+    return y;
+  }
+  function shiftPitch(x, sr, r){
+    if (Math.abs(r - 1) < 0.03) return Promise.resolve(x);
+    var y = resampleStep(x, r);
+    return stretchPcm(y, sr, 1 / r).then(function(o){ return (o && o.length) ? o : x; });
+  }
+  /* ==DSP-END== */
+  /* ---------- صدای شخصی رایگان: تطبیق با نمونه (Piper + زیر و بمی + رنگ صدا) ---------- */
+  var CAL_TEXT = 'سلام، امروز هوا خیلی خوب است و ما با هم درباره‌ی کتاب‌های تازه و فیلم‌های جالب صحبت می‌کنیم. سپس شام می‌خوریم و کمی قدم می‌زنیم.';
+  var mvPicked = [], mcalMem = {};
+  function matchById(id){ for (var i = 0; i < matchVoices.length; i++) if (matchVoices[i].id === id) return matchVoices[i]; return null; }
+  function engVoice(){
+    var v = currentVoice(), i;
+    if (v && v.match) { for (i = 0; i < piperVoices.length; i++) if (piperVoices[i].id === v.base) return piperVoices[i]; return { id: v.base, name: v.base }; }
+    return v;
+  }
+  function mvSave(){ sset('matchVoices', JSON.stringify(matchVoices.map(function(v){ return { uid: v.uid, nm: v.nm, base: v.base, f0: v.f0, lt: v.lt }; }))); }
+  function mvMsg(t){ $('#mMsg').textContent = t || ''; }
+  function mvUi(){ $('#mMake').disabled = !mvPicked.length; }
+  function mFillBase(){
+    var sel = $('#mBase'), prev = sel.value || sget('mBase', '');
+    sel.textContent = '';
+    piperVoices.forEach(function(v){
+      var o = document.createElement('option'); o.value = v.id;
+      o.textContent = v.name + ' — ' + (v.gender === 'f' ? 'زن' : v.gender === 'm' ? 'مرد' : 'نامشخص');
+      sel.appendChild(o);
+    });
+    if (prev && piperVoices.some(function(v){ return v.id === prev; })) sel.value = prev;
+  }
+  function pcmOf(w){ var f = new Float32Array(w.x.length), i; for (i = 0; i < f.length; i++) f[i] = w.x[i] / 32768; return f; }
+  function blobOf(f, sr){
+    var o = new Int16Array(f.length), i, v;
+    for (i = 0; i < f.length; i++) { v = Math.round(f[i] * 32768); o[i] = v > 32767 ? 32767 : v < -32768 ? -32768 : v; }
+    return new Blob([wavHdr(sr, o.length * 2), o], { type: 'audio/wav' });
+  }
+  function decodeFile(file){
+    return file.arrayBuffer().then(function(ab){
+      var AC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      if (!AC) throw new Error('no-audio');
+      var ctx = new AC(1, 22050, 22050);
+      return new Promise(function(res, rej){ var p = ctx.decodeAudioData(ab, res, rej); if (p && p.catch) p.catch(rej); });
+    }).then(function(buf){
+      var n = buf.length, ch = buf.numberOfChannels, m = new Float32Array(n), c, i, d;
+      for (c = 0; c < ch; c++) { d = buf.getChannelData(c); for (i = 0; i < n; i++) m[i] += d[i] / ch; }
+      return { x: m, sr: buf.sampleRate };
+    });
+  }
+  function mvAnalyze(files){
+    var f0s = [], lts = [];
+    return files.reduce(function(pr, f){
+      return pr.then(function(){ return decodeFile(f); }).then(function(a){
+        return new Promise(function(ok){ setTimeout(function(){
+          f0Of(a.x, a.sr).forEach(function(v){ f0s.push(v); });
+          var l = ltasOf(a.x, a.sr); if (l) lts.push(l);
+          ok();
+        }, 0); });
+      });
+    }, Promise.resolve()).then(function(){
+      if (f0s.length < 15 || !lts.length) throw new Error('زیر و بمی صدا در نمونه تشخیص داده نشد؛ نمونه‌ای با گفتار واضح و بدون موسیقی انتخاب کنید.');
+      return { f0: Math.round(medianOf(f0s) * 10) / 10, lt: lts[0].map(function(_, i){ var s = 0; lts.forEach(function(l){ s += l[i]; }); return Math.round(s / lts.length * 10) / 10; }) };
+    });
+  }
+  function mvCal(mv){
+    var key = 'mcal:' + mv.uid + ':' + mv.base, c0;
+    if (mcalMem[key]) return mcalMem[key];
+    try { c0 = JSON.parse(sget(key, 'null')); } catch (e) { c0 = null; }
+    if (c0 && c0.g && c0.g.length === MB.length - 1) return (mcalMem[key] = Promise.resolve(c0));
+    var pr = piperPredict(CAL_TEXT, mv.base, 0).then(function(b){ return b.arrayBuffer(); }).then(function(ab){
+      var w = wavPcm(ab); if (!w || !w.x.length) throw new Error('ساخت نمونهٔ سنجش ناموفق بود.');
+      var x = pcmOf(w), f = medianOf(f0Of(x, w.sr)), r = f ? Math.max(0.65, Math.min(1.6, mv.f0 / f)) : 1;
+      return shiftPitch(x, w.sr, r).then(function(y){
+        var l = ltasOf(y, w.sr), c = { r: Math.round(r * 1000) / 1000, g: l ? buildGains(mv.lt, l).map(function(v){ return Math.round(v * 10) / 10; }) : new Array(MB.length - 1).fill(0) };
+        sset(key, JSON.stringify(c));
+        return c;
+      });
+    });
+    pr.catch(function(){ delete mcalMem[key]; });
+    return (mcalMem[key] = pr);
+  }
+  function matchBlob(b, cal){
+    var s = Math.max(0, Math.min(1, (+sget('mStr', '100')) / 100));
+    return b.arrayBuffer().then(function(ab){
+      var w = wavPcm(ab); if (!w || !w.x.length) return b;
+      var r = Math.pow(cal.r, s), g = cal.g.map(function(v){ return v * s; });
+      return shiftPitch(pcmOf(w), w.sr, r).then(function(y){ var o = blobOf(eqApply(y, w.sr, g), w.sr); o.sr = w.sr; return o; });
+    }).catch(function(){ return b; });
+  }
+  function matchPredict(text, id, l){
+    var mv = matchById(id);
+    if (!mv) return Promise.reject(new Error('صدای شخصی پیدا نشد.'));
+    return mvCal(mv).then(function(cal){ return piperPredict(text, mv.base, l).then(function(b){ return matchBlob(b, cal); }); });
+  }
+  function mvRender(){
+    var box = $('#mList'); box.textContent = '';
+    matchVoices.forEach(function(v){
+      var d = document.createElement('div'), s = document.createElement('span'), t = document.createElement('button'), x = document.createElement('button');
+      d.className = 'cvItem'; s.textContent = v.nm + ' (' + nf.format(Math.round(v.f0)) + ' هرتز)';
+      t.type = x.type = 'button'; t.className = x.className = 'btn sm'; t.textContent = 'آزمایش'; x.textContent = 'حذف';
+      t.onclick = function(){
+        if (playing) pause();
+        t.disabled = true; mvMsg('در حال ساخت نمونهٔ آزمایشی…');
+        ensurePiper().then(function(ok){
+          if (!ok) throw new Error('موتور Piper بارگذاری نشد.');
+          return piperPredict('سلام. این صدای شخصی من است و دارم یک متن فارسی را می‌خوانم.', v.id, 0);
+        }).then(function(b){ return polish(b, false).catch(function(){ return b; }); }).then(function(b){
+          var u = URL.createObjectURL(b), a = new Audio(u);
+          a.onended = a.onerror = function(){ URL.revokeObjectURL(u); };
+          mvMsg(''); return a.play();
+        }).catch(function(e){ mvMsg(em(e)); }).then(function(){ t.disabled = false; });
+      };
+      x.onclick = function(){
+        if (!confirm('«' + v.nm + '» حذف شود؟')) return;
+        matchVoices = matchVoices.filter(function(o){ return o.uid !== v.uid; }); mvSave();
+        try { Object.keys(localStorage).forEach(function(k){ if (k.indexOf('mcal:' + v.uid + ':') === 0) localStorage.removeItem(k); }); } catch (e) {}
+        Object.keys(mcalMem).forEach(function(k){ if (k.indexOf('mcal:' + v.uid + ':') === 0) delete mcalMem[k]; });
+        renderVoices(); mvRender(); $('#voice').onchange(); mvMsg('حذف شد.');
+      };
+      d.appendChild(s); d.appendChild(t); d.appendChild(x); box.appendChild(d);
+    });
+  }
+  $('#mStr').value = sget('mStr', '100');
+  $('#mStr').onchange = function(){ sset('mStr', this.value); clearCache(); changed(); };
+  $('#mBase').onchange = function(){ sset('mBase', this.value); };
+  $('#mPick').onclick = function(){ $('#mFile').click(); };
+  $('#mFile').onchange = function(){
+    var fs = Array.prototype.slice.call(this.files || []).slice(0, 5);
+    this.value = '';
+    if (!fs.length) return;
+    mvPicked = fs; $('#mFiles').textContent = fs.map(function(f){ return f.name; }).join('، '); mvMsg(''); mvUi();
+  };
+  $('#mMake').onclick = function(){
+    var nm = (($('#mName').value || '').trim() || mvPicked[0].name.replace(/\.[^.]+$/, '')).slice(0, 60), base = $('#mBase').value;
+    if (!base) { mvMsg('یک صدای پایه انتخاب کنید.'); return; }
+    this.disabled = true; mvMsg('در حال تحلیل نمونهٔ صدا…');
+    mvAnalyze(mvPicked).then(function(a){
+      var o = { uid: Date.now().toString(36), nm: nm, base: base, f0: a.f0, lt: a.lt };
+      matchVoices.push(matchEntry(o)); mvSave();
+      mvPicked = []; $('#mFiles').textContent = ''; $('#mName').value = '';
+      renderVoices(); mvRender(); $('#voice').value = 'match:' + o.uid; $('#voice').onchange();
+      mvMsg('صدا ساخته و انتخاب شد (زیر و بمی نمونه: ' + nf.format(Math.round(a.f0)) + ' هرتز). با «آزمایش» بشنوید؛ صدای پایه باید دانلود شده باشد.');
+    }).catch(function(e){ mvMsg(/no-audio|decode|EncodingError/i.test(em(e)) ? 'خواندن فایل صدا ممکن نشد؛ فرمت mp3 یا wav یا m4a را امتحان کنید.' : em(e)); }).then(mvUi);
+  };
+  mvRender(); mvUi();
+
+  /* ---------- صدای شخصی از روی نمونهٔ صدا (ElevenLabs) ---------- */
+  var CV_MODEL = 'eleven_v3', CV_SR = 24000, CV_MAX = 10 * 1048576, cvPicked = [];
+  function cvBase(){ var u = ($('#cvBase').value || '').trim().replace(/\/+$/, ''); return /^https:\/\/\S+$/.test(u) ? u : 'https://api.elevenlabs.io/v1'; }
+  function cvKey(){ return ($('#cvKey').value || '').trim(); }
+  function cvMsg(t){ $('#cvMsg').textContent = t || ''; }
+  function cvSave(){ sset('cloneVoices', JSON.stringify(cloneVoices.map(function(v){ return { vid: v.vid, nm: v.nm }; }))); }
+  function cvUi(){ $('#cvMake').disabled = !(cvPicked.length && cvKey()); }
+  function netErr(){ throw new Error('اتصال به سرویس برقرار نشد؛ اینترنت را بررسی کنید (ممکن است سرویس از شبکهٔ شما در دسترس نباشد).'); }
+  function cvErr(r){
+    return r.text().then(function(t){
+      var j = null, d, m = '', fa;
+      try { j = JSON.parse(t); } catch (e) {}
+      d = j && j.detail;
+      m = d ? (typeof d === 'string' ? d : d.message || (d[0] && d[0].msg) || '') : '';
+      fa = r.status === 401 ? 'کلید API نادرست است.'
+        : (r.status === 402 || /quota|credit/i.test(m)) ? 'اعتبار حساب ElevenLabs کافی نیست.'
+        : r.status === 403 ? 'پلن یا دسترسی حساب اجازهٔ این کار (کلون صدا) را نمی‌دهد.'
+        : r.status === 429 ? 'تعداد درخواست همزمان از حد مجاز حساب بیشتر شد؛ کمی بعد دوباره امتحان کنید.' : '';
+      throw new Error(fa || ('خطای سرویس (' + r.status + ')' + (m ? ': ' + m : '')));
+    });
+  }
+  function cvSpeak(text, vid){
+    var k = cvKey();
+    if (!k) return Promise.reject(new Error('کلید API در بخش «صدای شخصی» وارد نشده است.'));
+    var url = cvBase() + '/text-to-speech/' + encodeURIComponent(vid) + '?output_format=pcm_' + CV_SR,
+        body = JSON.stringify({ text: text.replace(/[\[\]]/g, ' '), model_id: CV_MODEL });
+    function go(n){
+      return fetch(url, { method: 'POST', headers: { 'xi-api-key': k, 'Content-Type': 'application/json' }, body: body }).then(function(r){
+        if (r.status === 429 && n < 2) return new Promise(function(ok){ setTimeout(ok, 1500 * (n + 1)); }).then(function(){ return go(n + 1); });
+        return r.ok ? r.arrayBuffer() : cvErr(r);
+      }, netErr);
+    }
+    return go(0).then(function(ab){
+      var n = ab.byteLength & ~1;
+      if (n < 2000) throw new Error('سرویس صدایی برنگرداند.');
+      var b = new Blob([wavHdr(CV_SR, n), ab.slice(0, n)], { type: 'audio/wav' }); b.sr = CV_SR;
+      return b;
+    });
+  }
+  function cvCreate(name, files){
+    var k = cvKey(); if (!k) return Promise.reject(new Error('ابتدا کلید API را وارد کنید.'));
+    var fd = new FormData(); fd.append('name', name);
+    files.forEach(function(f){ fd.append('files', f, f.name); });
+    return fetch(cvBase() + '/voices/add', { method: 'POST', headers: { 'xi-api-key': k }, body: fd })
+      .then(function(r){ return r.ok ? r.json() : cvErr(r); }, netErr)
+      .then(function(j){ if (!j || !j.voice_id) throw new Error('پاسخ نامعتبر از سرویس.'); return j.voice_id; });
+  }
+  function cvDelete(vid){
+    return fetch(cvBase() + '/voices/' + encodeURIComponent(vid), { method: 'DELETE', headers: { 'xi-api-key': cvKey() } })
+      .then(function(r){ return (r.ok || r.status === 404) ? true : cvErr(r); }, netErr);
+  }
+  function cvSelect(){ renderVoices(); cvRender(); $('#voice').onchange(); }
+  function cvRender(){
+    var box = $('#cvList'); box.textContent = '';
+    cloneVoices.forEach(function(v){
+      var d = document.createElement('div'), s = document.createElement('span'), t = document.createElement('button'), x = document.createElement('button');
+      d.className = 'cvItem'; s.textContent = v.nm;
+      t.type = x.type = 'button'; t.className = x.className = 'btn sm'; t.textContent = 'آزمایش'; x.textContent = 'حذف';
+      t.onclick = function(){
+        if (playing) pause();
+        t.disabled = true; cvMsg('در حال ساخت نمونهٔ آزمایشی…');
+        cvSpeak('سلام. این صدای شخصی من است و دارم یک متن فارسی را می‌خوانم.', v.vid).then(function(b){
+          var u = URL.createObjectURL(b), a = new Audio(u);
+          a.onended = a.onerror = function(){ URL.revokeObjectURL(u); };
+          cvMsg(''); return a.play();
+        }).catch(function(e){ cvMsg(em(e)); }).then(function(){ t.disabled = false; });
+      };
+      x.onclick = function(){
+        if (!confirm('«' + v.nm + '» حذف شود؟' + (cvKey() ? ' صدا از حساب ElevenLabs هم پاک می‌شود.' : ''))) return;
+        x.disabled = true;
+        (cvKey() ? cvDelete(v.vid) : Promise.resolve()).then(function(){
+          cloneVoices = cloneVoices.filter(function(o){ return o.vid !== v.vid; }); cvSave(); cvSelect();
+          cvMsg(cvKey() ? 'حذف شد.' : 'از فهرست برنامه حذف شد (بدون کلید API، صدا از حساب ElevenLabs پاک نشد).');
+        }, function(e){ cvMsg(em(e) + ' — صدا هنوز در فهرست مانده است.'); x.disabled = false; });
+      };
+      d.appendChild(s); d.appendChild(t); d.appendChild(x); box.appendChild(d);
+    });
+  }
+  $('#cvKey').value = sget('cvKey', ''); $('#cvBase').value = sget('cvBase', '');
+  $('#cvKey').oninput = function(){ sset('cvKey', this.value.trim()); cvUi(); };
+  $('#cvBase').onchange = function(){ sset('cvBase', this.value.trim()); };
+  $('#cvPick').onclick = function(){ $('#cvFile').click(); };
+  $('#cvFile').onchange = function(){
+    var fs = Array.prototype.slice.call(this.files || []), big;
+    this.value = '';
+    if (!fs.length) return;
+    big = fs.filter(function(f){ return f.size > CV_MAX; }).length;
+    cvPicked = fs.filter(function(f){ return f.size <= CV_MAX; }).slice(0, 25);
+    $('#cvFiles').textContent = cvPicked.map(function(f){ return f.name; }).join('، ');
+    cvMsg(big ? nf.format(big) + ' فایل بزرگ‌تر از ۱۰ مگابایت بود و کنار گذاشته شد.' : '');
+    cvUi();
+  };
+  $('#cvMake').onclick = function(){
+    var nm = (($('#cvName').value || '').trim() || cvPicked[0].name.replace(/\.[^.]+$/, '')).slice(0, 60);
+    this.disabled = true; cvMsg('در حال فرستادن نمونه و ساخت صدا… (ممکن است تا یک دقیقه طول بکشد)');
+    cvCreate(nm, cvPicked).then(function(vid){
+      cloneVoices = cloneVoices.filter(function(o){ return o.vid !== vid; }); cloneVoices.push(cloneEntry({ vid: vid, nm: nm })); cvSave();
+      cvPicked = []; $('#cvFiles').textContent = ''; $('#cvName').value = '';
+      renderVoices(); cvRender(); $('#voice').value = 'clone:' + vid; $('#voice').onchange();
+      cvMsg('صدا ساخته و انتخاب شد. با «آزمایش» بشنوید یا PDF را با آن بخوانید.');
+    }).catch(function(e){ cvMsg(em(e)); }).then(cvUi);
+  };
+  cvRender(); cvUi();
+
   loadVoices();
   setTimeout(loadVoices, 600);
 
@@ -1404,6 +1816,8 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
   }
   var mainKit = null;
   function piperPredict(text, id, l){
+    if (/^match:/.test(id)) return matchPredict(text, id, l);
+    if (/^clone:/.test(id)) return withTimeout(cvSpeak(text, id.slice(6)), 90000, 'ساخت صدای شخصی بیش از حد طول کشید.');
     if (npOK) return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: text, voiceId: id })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.');
     var w = getWorker(l || 0), n = ++pwId;
     var main = function(){
@@ -1428,7 +1842,7 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
   }
   function perf(){
     var el = $('#pperf'); if (!el) return;
-    var a = ['نسخه ۷ (گفتار طبیعی)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
+    var a = ['نسخه ۸ (گفتار طبیعی + صدای شخصی)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
     if (npOK) a.push('موتور بومی (sherpa-onnx)');
     if (npErr && !npOK) a.push('پلاگین بومی در این APK فعال نیست: ' + npErr);
     if (pwBad && !npOK) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
@@ -1624,7 +2038,7 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
 
   function piperFetch(c){
     var v = currentVoice();
-    if (!window.PiperTTS || !v) return Promise.reject(new Error('موتور Piper در این نسخه موجود نیست.'));
+    if (!v || (!v.clone && !window.PiperTTS)) return Promise.reject(new Error('موتور Piper در این نسخه موجود نیست.'));
     if (!/[\p{L}\p{N}]/u.test(c.text)) return Promise.resolve(SILENT);
     var ck = ['piper', v.id, c.start, c.end].join('|');
     if (cache[ck]) return cache[ck];
@@ -1639,7 +2053,7 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
         var sec = (Date.now() - t0) / 1000;
         if (!pFirst) pFirst = sec;
         if (c.start >= 0 && sec > 0.15) {
-          pInfo = { n: c.text.length, sec: sec, aud: Math.max(0, b.size - 44) / 44100 };
+          pInfo = { n: c.text.length, sec: sec, aud: Math.max(0, b.size - 44) / ((b.sr || 22050) * 2) };
           if (++pSamples > 1) { var sp = c.text.length / sec; pSpeed = pSamples === 2 ? sp : pSpeed * 0.5 + sp * 0.5; }
         }
         perf();
@@ -1662,8 +2076,8 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
   }
   function warmPiper(){
     if (engine() !== 'piper') return;
-    var v = currentVoice();
-    if (!v) return;
+    var cv1 = currentVoice(), v = engVoice();
+    if (!v || (cv1 && cv1.clone)) return;
     ensurePiper().then(function(ok){ return ok ? PiperTTS.stored() : []; }).then(function(a){
       if ((a || []).indexOf(v.id) < 0) return;
       if (!sents.length) { piperFetch({ start: -1, end: -1, text: 'سلام.' }).catch(function(){}); return; }
@@ -1755,14 +2169,15 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
     cn++; lastLen = c.text.length;
     status('در حال آماده‌سازی صدا…');
     var t0 = Date.now(), tk = setInterval(function(){ if (my !== token || !playing) clearInterval(tk); else status('در حال آماده‌سازی صدا (' + nf.format(c.text.length) + ' نویسه)… ' + nf.format(Math.round((Date.now() - t0) / 1000)) + ' ثانیه'); }, 1000);
-    ensurePiper().then(function(){ var pf = piperAudio(c); prefetchPiper(c.end + 1, 2, c.text.length); return pf; }).then(function(a){
+    var cv = currentVoice();
+    (cv && cv.clone ? Promise.resolve() : ensurePiper()).then(function(){ var pf = piperAudio(c); prefetchPiper(c.end + 1, 2, c.text.length); return pf; }).then(function(a){
       clearInterval(tk);
       if (my !== token || !playing) return;
       status('');
       playEl(audio, c, a.url, my, a.baked);
     }).catch(function(e){
       clearInterval(tk);
-      fail(my, 'خطا در صدای Piper: ' + (e && e.message ? e.message : e));
+      fail(my, (cv && cv.clone ? 'خطا در صدای شخصی: ' : 'خطا در صدای Piper: ') + (e && e.message ? e.message : e));
     });
   }
   function start(i){
