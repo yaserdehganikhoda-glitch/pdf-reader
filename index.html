@@ -44,6 +44,16 @@ input[type=range]{accent-color:var(--accent)}
 #reader span{cursor:pointer;border-radius:5px;padding:1px 0;transition:background .15s}
 #reader span:hover{background:color-mix(in srgb,var(--hl) 40%,transparent)}
 #reader span.cur{background:var(--hl);color:var(--hl-ink)}
+#reader span.fx{text-decoration:underline dotted var(--accent);text-underline-offset:5px}
+#reader p.ph{font-weight:700;font-size:1.22rem;margin:1.1em 0 .5em;line-height:2;text-align:start}
+#reader p{text-align:justify;text-justify:inter-word}
+.fxl{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font:inherit;font-size:.8rem;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:3px 10px;cursor:pointer;min-height:32px}
+.chip:hover{border-color:var(--accent)}
+.chip:disabled{opacity:.45}
+.chip small{color:var(--muted);margin-inline-start:4px}
+.fxs{font-size:.82rem;color:var(--muted);margin:8px 0 0}
+.fxs b{color:var(--ink)}
 .pg{font-size:.78rem;color:var(--accent);border-bottom:1px solid var(--line);margin:1.2em 0 .6em;padding-bottom:2px;font-weight:600}
 .pg:first-child{margin-top:0}
 .bar{position:fixed;inset-inline:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px))}
@@ -127,6 +137,16 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     <textarea id="dict" dir="rtl" placeholder="مثلاً:&#10;خویش = خویش&#10;ChatGPT = چت جی پی تی"></textarea>
   </details>
 
+  <details class="card" id="fxbox">
+    <summary>تصحیح‌گر هوشمند گفتار (تشخیص و اصلاح اشکال‌های تلفظ)</summary>
+    <p class="hint" style="margin-top:8px">پیش از خواندن هر جمله، متن را با حساسیت بالا بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، کسرهٔ اضافه (هٔ)، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع، کلمه‌های لاتین و سرواژه‌ها و مکث‌های دستوری. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p>
+    <label class="chk" style="margin-top:8px"><input type="checkbox" id="fxon" checked> تصحیح گفتار فعال باشد</label>
+    <label class="chk"><input type="checkbox" id="fxhi" checked> حساسیت بالا (حروف جداافتاده، تکرار و کشیدگی)</label>
+    <div class="fxs" id="fxsum">پس از باز کردن فایل، گزارش اینجا نمایش داده می‌شود.</div>
+    <p class="hint" id="fxhint" hidden style="margin-top:8px">کلمه‌هایی که تلفظشان قطعی نبود و تقریبی ساخته شد. روی هر کلمه بزنید تا با تلفظ پیشنهادی به واژه‌نامه اضافه شود؛ بعد می‌توانید تلفظ را در واژه‌نامه ویرایش کنید.</p>
+    <div class="fxl" id="fxunk"></div>
+  </details>
+
   <div class="card">
     <div id="reader"><div class="empty">هنوز فایلی باز نشده است.</div></div>
   </div>
@@ -146,6 +166,422 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
 
 <script src="piper.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+/* ===== PTE: موتور متن فارسی (نمایش استاندارد + تصحیح‌گر گفتار) — بدون وابستگی به DOM ===== */
+(function(g){
+  'use strict';
+  var ZW = '\u200c', HM = '\uE000', PH = '\uE001';
+  var PL = '\\u0621-\\u063A\\u0641-\\u064A\\u067E\\u0686\\u0698\\u06A9\\u06AF\\u06CC\\u0671\\u06C0';
+  var RX_PL = new RegExp('[' + PL + ']'), RX_PLg = new RegExp('[' + PL + ']', 'g');
+  var DG = '0-9۰-۹٠-٩';
+  function cnt(t, re){ var m = t.match(re); return m ? m.length : 0; }
+  function isFa(t){ return cnt(t, RX_PLg) > 0 && cnt(t, RX_PLg) >= cnt(t, /[A-Za-z]/g); }
+  function rx(s, f){ return new RegExp(s.replace(/\{PL\}/g, PL).replace(/\{DG\}/g, DG), f); }
+
+  /* ---------------- اعداد ---------------- */
+  var ON = ['صفر','یک','دو','سه','چهار','پنج','شش','هفت','هشت','نه','ده','یازده','دوازده','سیزده','چهارده','پانزده','شانزده','هفده','هجده','نوزده'],
+      TN = ['','','بیست','سی','چهل','پنجاه','شصت','هفتاد','هشتاد','نود'],
+      HN = ['','صد','دویست','سیصد','چهارصد','پانصد','ششصد','هفتصد','هشتصد','نهصد'],
+      SC = ['','هزار','میلیون','میلیارد','تریلیون'];
+  function numFa(d){
+    if (d.length > 15 || (d.length > 1 && d[0] === '0')) return d.split('').map(function(x){ return ON[+x]; }).join(' ');
+    var n = +d; if (!n) return ON[0];
+    var gr = [], i;
+    while (n > 0) { gr.push(n % 1000); n = Math.floor(n / 1000); }
+    var out = [];
+    for (i = gr.length - 1; i >= 0; i--) {
+      if (!gr[i]) continue;
+      var x = gr[i], w = [], r = x % 100;
+      if (x >= 100) w.push(HN[Math.floor(x / 100)]);
+      if (r) w.push(r < 20 ? ON[r] : TN[Math.floor(r / 10)] + (r % 10 ? ' و ' + ON[r % 10] : ''));
+      out.push(i === 1 && x === 1 ? 'هزار' : w.join(' و ') + (SC[i] ? ' ' + SC[i] : ''));
+    }
+    return out.join(' و ');
+  }
+  function ordFa(d){
+    var n = +d, w = numFa(d);
+    if (n === 1) return 'یکم';
+    if (/سه$/.test(w)) return w.replace(/سه$/, 'سوم');
+    if (/ی$/.test(w)) return w + ZW + 'ام';
+    return w + 'م';
+  }
+  var ROM = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+  function romanVal(s){
+    var v = 0, i, a, b;
+    for (i = 0; i < s.length; i++) { a = ROM[s[i]]; b = ROM[s[i + 1]] || 0; v += a < b ? -a : a; }
+    return v;
+  }
+  function validRoman(s){ return /^M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/.test(s) && s.length > 0; }
+
+  /* ---------------- نرمال‌سازی استاندارد نمایش ---------------- */
+  var HAMZA = [[/مسئله/g, 'مساله'], [/مسئول/g, 'مسئول'], [/مؤسس/g, 'موسس'], [/مؤمن/g, 'مومن'], [/مؤثر/g, 'موثر'], [/سؤال/g, 'سوال'], [/جزء(?![{PL}])/g, 'جز']];
+  function fa(t, o){
+    o = o || {};
+    t = t.normalize('NFKC').replace(/[\u00ad\u200b\u200d\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff\u0640]/g, '')
+      .replace(/\u00a0/g, ' ');
+    t = t.replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/ة/g, 'ه').replace(/ۀ/g, 'هٔ').replace(/ە/g, 'ه');
+    t = t.replace(/[٠-٩]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) + 144); });
+    var P = isFa(t);
+    if (P) {
+      t = t.replace(/(?<![A-Za-z\d._\/:]|[A-Za-z]-)(\d+(?:[.,:\/\-]\d+)*)(?![A-Za-z\d])/g, function(m){ return m.replace(/\d/g, function(c){ return String.fromCharCode(c.charCodeAt(0) + 1728); }); });
+    }
+        if (P) t = t.replace(/([۰-۹])\s*%/g, '$1٪');
+    t = t.replace(/[ \t]+/g, ' ').replace(/\u200c*\s+\u200c*/g, ' ').replace(/\u200c{2,}/g, ZW);
+    if (P) {
+      t = t.replace(rx('([{PL}])\\s*,\\s*', 'g'), '$1، ')
+        .replace(rx('([{DG}\\)\\]»])\\s*,(?=\\s+[{PL}])', 'g'), '$1،')
+        .replace(rx('([{PL}{DG}\\)])\\s*;', 'g'), '$1؛')
+        .replace(rx('([{PL}{DG}\\)»”])\\s*\\?', 'g'), '$1؟')
+        .replace(/“\s*([^”]{1,300}?)\s*”/g, '«$1»')
+        .replace(/"\s*([^"\n]{1,300}?)\s*"/g, '«$1»');
+    }
+    t = t.replace(/\.{4,}/g, '…').replace(/(?<![.])\.\.(?![.])/g, '.');
+    t = t.replace(/([،؛])\s*([،؛])+/g, '$1').replace(/،\s*([.؟!؛:])/g, '$1').replace(/([!؟?])\1+/g, '$1');
+    t = t.replace(/\s+([،؛:؟!.…\)\]»])/g, '$1').replace(/([\(\[«])\s+/g, '$1');
+    t = t.replace(rx('([،؛؟!])(?=[{PL}A-Za-z{DG}«\\(])', 'g'), function(m, a, off, s){
+      var prev = s[off - 1], nx = s[off + 1];
+      return (a === '،' && /[{DG}]/.test(prev || '') && /[{DG}]/.test(nx || '')) ? a : a + ' ';
+    });
+    t = t.replace(rx('([{PL}\\)»])([.:])(?=[{PL}])', 'g'), '$1$2 ').replace(rx('([{PL}{DG}])(?=[\\(«])', 'g'), '$1 ')
+      .replace(rx('([\\)»])(?=[{PL}{DG}])', 'g'), '$1 ');
+    t = t.replace(/(\S) [-‐‑] (\S)/g, '$1 – $2');
+    /* نیم‌فاصله‌های املایی */
+    t = t.replace(rx('(^|[\\s«\\(])(ن?می)\\s+(?=[{PL}]{2,})', 'g'), '$1$2' + ZW)
+      .replace(rx('([{PL}]{2,})\\s+(ها|های|هایی|هایم|هایت|هایش|هایمان|هایتان|هایشان|ام|ات|اش|مان|تان|شان|ترین)(?![{PL}])', 'g'), function(m, w, s){
+        if (/^(ام|ات|اش|مان|تان|شان)$/.test(s) && !/[ه]$/.test(w) && !/[او]$/.test(w)) return m;
+        return w + ZW + s;
+      })
+      .replace(rx('([{PL}]{3,})\\s+تر(?![{PL}])', 'g'), function(m, w){ return /^(است|هست|چرا|پس|بعد|نیز|ولی|اما|اگر|چون|هر|هیچ|بیش|کم|خیلی)$/.test(w) ? m : w + ZW + 'تر'; })
+      .replace(rx('([{PL}]ه)\\s+(ی|ای)(?![{PL}])', 'g'), '$1' + ZW + '$2');
+    HAMZA.forEach(function(h){ if (o.hamza) t = t.replace(h[0], h[1]); });
+    return t.replace(/\s+/g, ' ').trim();
+  }
+
+  /* ---------------- استخراج: چیدمان آیتم‌های pdf.js ---------------- */
+  function layout(items){
+    var lines = [], cur = null, pv = null;
+    function flush(){ if (cur && cur.s.trim()) lines.push(cur); cur = null; pv = null; }
+    items.forEach(function(it){
+      var s = it.str || '', nl = false;
+      if (pv && s && Math.abs(it.y - pv.y) > Math.max(it.h, pv.h, 1) * 0.5) nl = true;
+      if (nl) flush();
+      if (!cur) {
+        if (!s.trim()) { return; }
+        cur = { s: '', y: it.y, h: 0, x0: 1e9, x1: -1e9 };
+      }
+      if (!s.trim()) { if (s && !/\s$/.test(cur.s)) cur.s += ' '; if (it.eol) flush(); return; }
+      if (pv) {
+        var gr = pv.x - (it.x + it.w), gl = it.x - (pv.x + pv.w), gp = Math.max(gr, gl), fs = Math.max(it.h, pv.h, 1);
+        if (gp > fs * 0.16 && !/\s$/.test(cur.s) && !/^\s/.test(s)) cur.s += ' ';
+        else if (gp < -fs * 3 && !/\s$/.test(cur.s) && !/^\s/.test(s)) cur.s += ' ';
+      }
+      cur.s += s; cur.h = Math.max(cur.h, it.h); cur.x0 = Math.min(cur.x0, it.x); cur.x1 = Math.max(cur.x1, it.x + it.w);
+      pv = it;
+      if (it.eol) flush();
+    });
+    flush();
+    if (!lines.length) return '';
+    function med(a){ a = a.slice().sort(function(x, y){ return x - y; }); return a[Math.floor(a.length / 2)] || 0; }
+    var bodyH = med(lines.map(function(l){ return l.h; }).filter(Boolean));
+    var dys = [], i;
+    for (i = 1; i < lines.length; i++) { var d = Math.abs(lines[i].y - lines[i - 1].y); if (d > 0 && d < bodyH * 4) dys.push(d); }
+    var sm = dys.length ? med(dys) : 0, out = [];
+    lines.forEach(function(l, k){
+      var head = bodyH && l.h > bodyH * 1.18 && l.s.length < 120;
+      var dy = k ? Math.abs(l.y - lines[k - 1].y) : 0;
+      var brk = k && (head || lines[k - 1].head || (sm && dy > sm * 1.45));
+      l.head = head;
+      if (brk) out.push('');
+      out.push((head ? HM : '') + l.s.trim());
+    });
+    return out.join('\n');
+  }
+
+  /* ---------------- تشخیص و اصلاح متن وارونه ---------------- */
+  var COMMON = ['است','این','برای','شده','های','کرد','بود','شود','دارد','باشد','کند','خود','آن','را','که','با','از','در','به','می','یک','نیز','تا','هر','بر'];
+  function rev(s){ return s.split('').reverse().join(''); }
+  function detectReversed(text){
+    var f = 0, r = 0, words = text.match(rx('[{PL}]+', 'g')) || [], set = {}, rset = {};
+    COMMON.forEach(function(w){ if (w.length >= 3) { set[w] = 1; rset[rev(w)] = 1; } });
+    words.forEach(function(w){ if (set[w]) f++; if (rset[w]) r++; });
+    return r >= 8 && r > f * 3;
+  }
+  var MIR = { '(': ')', ')': '(', '[': ']', ']': '[', '«': '»', '»': '«', '{': '}', '}': '{', '<': '>', '>': '<' };
+  function unreverse(page){
+    return page.split('\n').map(function(l){
+      var hm = l[0] === HM; if (hm) l = l.slice(1);
+      var r = rev(l).replace(/[()\[\]«»{}<>]/g, function(c){ return MIR[c]; })
+        .replace(/[0-9۰-۹]+(?:[.,٫٬][0-9۰-۹]+)*|[A-Za-z]+(?:[ \-'][A-Za-z]+)*/g, function(m){ return rev(m); });
+      return (hm ? HM : '') + r;
+    }).join('\n');
+  }
+
+  /* ---------------- حذف سرصفحه/پاصفحهٔ تکراری ---------------- */
+  function dropRepeats(pg){
+    var key = function(l){ return l.replace(/[\d۰-۹٠-٩]+/g, '#'); }, cnt2 = {};
+    var L = pg.map(function(t){ return t.split('\n').map(function(l){ return l.trim(); }); });
+    L.forEach(function(ls){ var seen = {}; ls.forEach(function(l){ var k = key(l); if (l && l.length < 80 && !seen[k]) { seen[k] = 1; cnt2[k] = (cnt2[k] || 0) + 1; } }); });
+    var th = Math.max(3, pg.length * 0.4);
+    return L.map(function(ls){ return ls.filter(function(l){ return !(l && l.length < 80 && (cnt2[key(l)] >= th || /^[-–\s\d۰-۹٠-٩]+$/.test(l.replace(HM, '')))); }).join('\n'); });
+  }
+
+  /* ---------------- پاک‌سازی و بازسازی بندها ---------------- */
+  var LIST = /^(?:[•▪■◆●○◦▫‣\-–—*]|[\d۰-۹]{1,3}\s*[.)\-–]|\([\d۰-۹]{1,3}\)|[A-Za-z]\))\s+/;
+  function clean(t){
+    t = t.normalize('NFKC').replace(/[\u00ad\u200b\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '');
+    t = t.replace(/[ \t\u00a0]+/g, ' ').replace(/ *\n */g, '\n');
+    var ls = t.split('\n'), ln = ls.map(function(l){ return l.replace(HM, '').length; }).filter(Boolean).sort(function(a, b){ return a - b; });
+    var ref = ln.length ? ln[Math.floor(ln.length * 0.9)] : 0, paras = [], buf = '', i;
+    function flush(){ if (buf.trim()) paras.push(buf.trim()); buf = ''; }
+    for (i = 0; i < ls.length; i++) {
+      var l = ls[i];
+      if (!l) { flush(); continue; }
+      if (l[0] === HM) { flush(); paras.push(l); continue; }
+      if (LIST.test(l) && buf) flush();
+      if (!buf) buf = l;
+      else if (/[A-Za-z]-$/.test(buf) && /^[a-z]/.test(l)) buf = buf.slice(0, -1) + l;
+      else if (/\u200c$/.test(buf)) buf += l;
+      else buf += ' ' + l;
+      var nx = ls[i + 1];
+      var short = ref >= 40 && l.length < ref * 0.62;
+      if (nx !== undefined && nx !== '' && nx[0] !== HM && /[.!?؟…]["»”')\]]*$/.test(l) && short) flush();
+      else if (nx !== undefined && nx !== '' && nx[0] !== HM && ref >= 40 && l.length < ref * 0.4 && !/[،,:؛]$/.test(l)) flush();
+    }
+    flush();
+    return paras.join('\n');
+  }
+
+  /* ---------------- جمله‌بندی استاندارد ---------------- */
+  var ABR_EN = /^(?:dr|mr|mrs|ms|prof|vs|fig|figs|vol|pp|no|nos|jr|sr|st|inc|ltd|co|etc|eg|ie|al|approx|dept|est|ed|eds|cf|ch|sec|eq|ref|rev|gen|col|lt|sgt|capt|mt|ave|blvd|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)$/i;
+  var ABR_FA = /^(?:دکتر|مهندس|استاد|پروفسور|آقای|خانم|سرهنگ|سرتیپ|سردار|شهید|مرحوم|حجت‌الاسلام|ص|ج|ش|ق|م|ه|ر|ک|ع|ره|رض|س|بی|ا|ب|ت|ث|ح|خ|د|ذ|ز|ژ|ط|ظ|غ|ف|ل|ن|و|ی|ه‌ش|ه‌ق|ق‌م|ر‌ک)$/;
+  var WEAK_END = /(?:^|\s)(و|که|از|به|در|با|تا|بر|برای|یا|اما|ولی|اگر|چون|زیرا|را|هم|نیز|پس|بلکه|چه|هر|این|آن|یک|مانند|مثل|بین|میان|درباره|طی|طبق|جز|بدون|علیه|نزد|روی|زیر|پیش|همراه|همچون|چنانچه|هرچند|اگرچه|ی|های|ها)$/;
+  var WEAK_END_RX = new RegExp(WEAK_END.source);
+  var CONJ = /^(و|اما|ولی|که|زیرا|چون|تا|اگر|بنابراین|همچنین|یعنی|بلکه|درحالی|هرچند|اگرچه|لذا|پس|سپس|آنگاه|وقتی|هنگامی|چنانچه|مگر|ضمناً|ضمنا|علاوه|بااین)$/;
+  var SPEECH_V = /^(گفت|گفتم|گفتی|گفتند|پرسید|پرسیدم|پرسیدند|فریاد|جواب|پاسخ|ادامه|افزود|اضافه|نوشت|نوشتم|اظهار|تأکید|تاکید|خواند|زمزمه|تکرار|پرسید[.،]?|توضیح|خندید|گریست|داد)$/;
+  function depth(s){
+    return (cnt(s, /[«(\[]/g) - cnt(s, /[»)\]]/g)) + ((cnt(s, /“/g) - cnt(s, /”/g)));
+  }
+  function splitLong(s, max){
+    var out = [];
+    while (s.length > max) {
+      var best = -1, bs = -1e9, i;
+      var lo = Math.min(30, Math.floor(max * 0.35)), hi = Math.min(s.length - 1, Math.floor(max * 1.15));
+      for (i = lo; i <= hi; i++) {
+        if (s[i] !== ' ') continue;
+        var a = s.slice(0, i), b = s.slice(i + 1), lw = (a.match(/\S+$/) || [''])[0], nw = (b.match(/^\S+/) || [''])[0], sc = 0;
+        if (/[،,]$/.test(a)) sc += 6; else if (/[؛;:]$/.test(a)) sc += 8; else if (/[–—]$/.test(a)) sc += 5;
+        if (CONJ.test(nw)) sc += nw === 'و' ? 2 : (nw === 'که' || nw === 'اما' || nw === 'ولی') ? 5 : 4;
+        if (!/[،,؛;:–—]$/.test(a) && WEAK_END_RX.test(a)) sc -= 10;
+        if (/^ن?می$/.test(lw) || /ن?می$/.test(lw) && lw.length <= 4) sc -= 20;
+        if (depth(a) > 0) sc -= 15;
+        if (b.length < 22 && b.length <= max) sc -= 8;
+        if (/^[({\[«]/.test(nw) === false && /\d$/.test(lw) && /^\d/.test(nw)) sc -= 4;
+        sc += (i / max) * 3 - Math.abs(i - max * 0.8) * 0.02;
+        if (sc > bs) { bs = sc; best = i; }
+      }
+      if (best < 0) { best = s.lastIndexOf(' ', max); if (best < 20) { best = s.indexOf(' ', max); if (best < 0) break; } }
+      out.push(s.slice(0, best).trim()); s = s.slice(best + 1).trim();
+    }
+    if (s) out.push(s);
+    return out;
+  }
+  function splitSentences(par, max){
+    max = max || 100;
+    var raw = [], res = [], re = /[.!?؟…]+["»”')\]]*(?=\s|$)/g, last = 0, m;
+    while ((m = re.exec(par))) {
+      var end = m.index + m[0].length, head = par.slice(last, m.index), seg = par.slice(last, end);
+      var after = par.slice(end).trimStart(), nxw = (after.match(/^[^\s،.؟!…]+/) || [''])[0];
+      var strong = /[!?؟…]/.test(m[0]);
+      if (!strong) {
+        var tok = (head.match(/\S+$/) || [''])[0].replace(/^[("«“\[]+/, '');
+        if ((tok.length === 1 && /\p{L}/u.test(tok)) || /^(?:\p{L}{1,2}\.)+\p{L}{1,2}$/u.test(tok) || ABR_EN.test(tok) || ABR_FA.test(tok) || /^[\d۰-۹٠-٩]{1,3}$/.test(head.trim())) continue;
+        if (/^[a-z]/.test(after) && /[A-Za-z]/.test(tok)) continue;
+        if (/^[\d۰-۹]+$/.test(tok) && /^[a-z]/.test(after)) continue;
+      } else {
+        if (/^[a-z]/.test(after)) continue;
+        if (/[»”"]$/.test(m[0]) && SPEECH_V.test(nxw)) continue;
+      }
+      if (depth(seg) > 0 && seg.length < 260) continue;
+      raw.push(par.slice(last, end)); last = end;
+    }
+    if (last < par.length) raw.push(par.slice(last));
+    var tmp = [];
+    raw.forEach(function(s){
+      s = s.trim();
+      if (!s || !/[\p{L}\p{N}]/u.test(s)) return;
+      if (tmp.length && /^[\d۰-۹]{1,3}\s*[.)\-–]$/.test(tmp[tmp.length - 1].t)) { tmp[tmp.length - 1].t += ' ' + s; return; }
+      tmp.push({ t: s });
+    });
+    tmp.forEach(function(o){
+      var parts = splitLong(o.t, max);
+      parts.forEach(function(p, k){
+        var fin = k === parts.length - 1;
+        res.push({ text: p, k: fin ? 's' : 'c' });
+      });
+    });
+    return res;
+  }
+
+  /* ================= تصحیح‌گر هوشمند گفتار ================= */
+  var LABEL = { dict: 'واژه‌نامهٔ کاربر', broken: 'حروف جداافتاده', dup: 'تکرار کلمه', elong: 'کشیدگی حروف', ezafe: 'کسرهٔ اضافه', num: 'عدد/تاریخ/ساعت', roman: 'عدد رومی', abbr: 'اختصار', latin: 'کلمهٔ لاتین', acro: 'سرواژه', sym: 'نماد', noise: 'نویسهٔ ناخوانا/پیوند', pause: 'مکث دستوری', lex: 'املای پرخطا', unk: 'نامطمئن' };
+  var GLOSS = {
+    internet:'اینترنت', online:'آنلاین', offline:'آفلاین', email:'ایمیل', 'e-mail':'ایمیل', google:'گوگل', windows:'ویندوز', android:'اندروید', iphone:'آیفون', ios:'آی او اس', apple:'اپل', microsoft:'مایکروسافت', facebook:'فیسبوک', instagram:'اینستاگرام', telegram:'تلگرام', whatsapp:'واتس‌اپ', youtube:'یوتیوب', twitter:'توییتر', linkedin:'لینکدین', chatgpt:'چت جی پی تی', openai:'اوپن ای آی', claude:'کلود', anthropic:'آنتروپیک', gemini:'جمینای', amazon:'آمازون', netflix:'نتفلیکس', tesla:'تسلا', samsung:'سامسونگ', huawei:'هوآوی', xiaomi:'شیائومی', nokia:'نوکیا', sony:'سونی', intel:'اینتل', nvidia:'انویدیا', amd:'ای ام دی',
+    web:'وب', website:'وب‌سایت', app:'اپ', apps:'اپ‌ها', software:'نرم‌افزار', hardware:'سخت‌افزار', linux:'لینوکس', python:'پایتون', java:'جاوا', javascript:'جاوااسکریپت', github:'گیت‌هاب', git:'گیت', wifi:'وای‌فای', 'wi-fi':'وای‌فای', bluetooth:'بلوتوث', ok:'اوکی', okay:'اوکی', covid:'کووید', 'covid-19':'کووید نوزده', nasa:'ناسا', unesco:'یونسکو', unicef:'یونیسف', nato:'ناتو', opec:'اوپک', fifa:'فیفا', laptop:'لپ‌تاپ', mobile:'موبایل', smartphone:'اسمارت‌فون', tablet:'تبلت', server:'سرور', cloud:'کلود', data:'دیتا', database:'دیتابیس', file:'فایل', link:'لینک', click:'کلیک', login:'لاگین', password:'پسورد', user:'یوزر', username:'یوزرنیم', download:'دانلود', upload:'آپلود', video:'ویدیو', audio:'آدیو', podcast:'پادکست', blog:'وبلاگ', hashtag:'هشتگ', post:'پست', story:'استوری', live:'لایو', like:'لایک', share:'شیر', follow:'فالو', channel:'کانال', group:'گروه', chat:'چت', message:'پیام', team:'تیم', manager:'منیجر', marketing:'مارکتینگ', brand:'برند', startup:'استارتاپ', business:'بیزنس', plan:'پلن', project:'پروژه', office:'آفیس', word:'ورد', excel:'اکسل', powerpoint:'پاورپوینت', pdf:'پی دی اف', ai:'ای آی', vs:'در برابر', etc:'و غیره', 'e.g.':'برای مثال', 'i.e.':'یعنی', am:'ای ام', pm:'پی ام', kg:'کیلوگرم', km:'کیلومتر', cm:'سانتی‌متر', mm:'میلی‌متر', gb:'گیگابایت', mb:'مگابایت', kb:'کیلوبایت', tb:'ترابایت', hz:'هرتز', 'ph':'پی اچ', ceo:'سی ای او', cto:'سی تی او', phd:'پی اچ دی', mba:'ام بی ای', usa:'ایالات متحده', uk:'بریتانیا', eu:'اتحادیه اروپا', un:'سازمان ملل', iran:'ایران', ram:'رم', ssd:'اس اس دی', cpu:'سی پی یو', gpu:'جی پی یو', usb:'یو اس بی', gps:'جی پی اس', sms:'اس ام اس', tv:'تی وی', dvd:'دی وی دی', pc:'پی سی', html:'اچ تی ام ال', css:'سی اس اس', sql:'اس کیو ال', api:'ای پی آی', url:'یو آر ال', http:'اچ تی تی پی', https:'اچ تی تی پی اس', wifi6:'وای‌فای شش', '4k':'فور کی', '3d':'سه بعدی', '2d':'دو بعدی'
+  };
+  var LET = {A:'ای',B:'بی',C:'سی',D:'دی',E:'ای',F:'اف',G:'جی',H:'اچ',I:'آی',J:'جی',K:'کی',L:'ال',M:'ام',N:'ان',O:'او',P:'پی',Q:'کیو',R:'آر',S:'اس',T:'تی',U:'یو',V:'وی',W:'دبلیو',X:'ایکس',Y:'وای',Z:'زد'};
+  var MON_FA = ['','فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'],
+      MON_EN = ['','ژانویه','فوریه','مارس','آوریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'],
+      UNIT = {km:'کیلومتر',cm:'سانتی‌متر',mm:'میلی‌متر',kg:'کیلوگرم',mg:'میلی‌گرم',ml:'میلی‌لیتر',kb:'کیلوبایت',mb:'مگابایت',gb:'گیگابایت',tb:'ترابایت',hz:'هرتز',khz:'کیلوهرتز',mhz:'مگاهرتز',ghz:'گیگاهرتز'};
+  var L0 = '(?<![\\p{L}])', L1 = '(?![\\p{L}])';
+  var ABBR = [
+    [/\(\s*ع\s*\)/g, ' علیه السلام '], [/\(\s*ص\s*\)/g, ' صلی الله علیه و آله '], [/\(\s*س\s*\)/g, ' سلام الله علیها '],
+    [/\(\s*ره\s*\)/g, ' رحمة الله علیه '], [/\(\s*رض\s*\)/g, ' رضی الله عنه '],
+    [new RegExp(L0 + 'ه\\s*\\.\\s*ش\\.?' + L1, 'gu'), ' هجری شمسی '], [new RegExp(L0 + 'ه\\s*\\.\\s*ق\\.?' + L1, 'gu'), ' هجری قمری '],
+    [new RegExp(L0 + 'ق\\s*\\.\\s*م\\.?' + L1, 'gu'), ' قبل از میلاد '], [new RegExp(L0 + 'ق\\s*\\.\\s*ظ\\.?' + L1, 'gu'), ' قبل از ظهر '],
+    [new RegExp(L0 + 'ب\\s*\\.\\s*ظ\\.?' + L1, 'gu'), ' بعد از ظهر '], [new RegExp(L0 + 'ر\\s*\\.\\s*ک\\.?' + L1, 'gu'), ' رجوع کنید به '],
+    [new RegExp(L0 + 'ج\\s*\\.\\s*ا\\s*\\.\\s*ا\\.?' + L1, 'gu'), ' جمهوری اسلامی ایران '], [/\bDr\.?(?=\s)/g, 'دکتر '],
+    [new RegExp('(?<![\\p{L}])ص\\s*\\.?\\s+(?=\\d)', 'gu'), 'صفحه' + PH + 'ی '], [new RegExp('(?<![\\p{L}])صص\\s*\\.?\\s+(?=\\d)', 'gu'), 'صفحه‌های '],
+    [new RegExp('(?<![\\p{L}])ج\\s*\\.?\\s+(?=\\d)', 'gu'), 'جلد '], [/\be\.g\./gi, ' برای مثال '], [/\bi\.e\./gi, ' یعنی '], [/\betc\.?/gi, ' و غیره '], [/\bvs\.?(?=\s)/gi, ' در برابر ']
+  ];
+  var LATIN_MAP = [['sch','ش'],['tch','چ'],['sh','ش'],['ch','چ'],['kh','خ'],['th','ت'],['ph','ف'],['gh','گ'],['ck','ک'],['qu','کو'],['oo','و'],['ee','ی'],['ea','ی'],['ou','او'],['ow','او'],['ai','ی'],['ay','ی'],['ey','ی'],['oa','و'],['ie','ی'],['ei','ی'],['au','ا'],['aw','ا'],['igh','ای'],['tion','شن'],['sion','ژن'],['x','کس'],['q','ک'],['w','و'],['y','ی'],['j','ج'],['v','و'],['z','ز'],['b','ب'],['d','د'],['f','ف'],['h','ه'],['k','ک'],['l','ل'],['m','م'],['n','ن'],['p','پ'],['r','ر'],['s','س'],['t','ت'],['g','گ'],['c','ک']];
+  function translit(w){
+    var s = w.toLowerCase(), out = '', i = 0, k, hit, V = 'aeiou';
+    var mapSorted = LATIN_MAP.slice().sort(function(a, b){ return b[0].length - a[0].length; });
+    while (i < s.length) {
+      hit = false;
+      if (V.indexOf(s[i]) >= 0) {
+        if (i === 0) { out += s[i] === 'a' ? 'آ' : s[i] === 'u' ? 'آ' : 'ا'; if (s[i] === 'o') out = 'ا'; }
+        else if (i === s.length - 1 && s[i] === 'e') { /* e ساکت پایانی */ }
+        else if (s[i] === 'i' && i < s.length - 1) out += 'ی';
+        else if ((s[i] === 'o' || s[i] === 'u') && i < s.length - 1 && !V.includes(s[i + 1])) out += 'و';
+        else if (s[i] === 'a' && i === s.length - 1) out += 'ا';
+        else if (s[i] === 'y') out += 'ی';
+        i++; continue;
+      }
+      for (k = 0; k < mapSorted.length; k++) {
+        if (s.substr(i, mapSorted[k][0].length) === mapSorted[k][0]) {
+          var key = mapSorted[k][0], v = mapSorted[k][1];
+          if (key === 'c' && /[eiy]/.test(s[i + 1] || '')) v = 'س';
+          if (key === 'g' && /[ei]/.test(s[i + 1] || '') && s.length > 3) v = 'ج';
+          out += v; i += key.length; hit = true; break;
+        }
+      }
+      if (!hit) i++;
+    }
+    return out || w;
+  }
+
+  function mk(fixes){
+    return function(t, re, fn, type){
+      return t.replace(re, function(){
+        var a = arguments, m = a[0], r = typeof fn === 'function' ? fn.apply(null, a) : fn.replace(/\$(\d)/g, function(_, d){ return a[+d] || ''; });
+        if (r !== m && fixes && type) fixes.push({ t: type, a: m.trim(), b: String(r).replace(new RegExp(PH, 'g'), ZW).trim() });
+        return r;
+      });
+    };
+  }
+
+  function speech(raw, o){
+    o = o || {};
+    var smart = !o.off, fixes = [], R = mk(fixes), eng = o.engine || 'device', high = smart && o.high !== false, t = raw;
+    t = t.normalize('NFKC').replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/ة/g, 'ه').replace(/\u00A0/g, ' ')
+      .replace(/[\u00ad\u200b\u200d-\u200f\u202a-\u202e\u2066-\u2069\ufeff\u0640]/g, '');
+    /* جملهٔ غالباً لاتین: تبدیل فارسی انجام نمی‌شود (فقط پاک‌سازی ساده) */
+    var nLat = cnt(t, /[A-Za-z]+/g), nFa = cnt(t, RX_PLg);
+    if (nLat >= 3 && cnt(t, /[A-Za-z]/g) > 2 * nFa) {
+      (o.dict || []).forEach(function(d){ t = R(t, d.re, function(){ return d.to; }, 'dict'); });
+      t = t.replace(/(?:https?:\/\/|www\.)\S+|\S+@\S+\.\S+/g, ' ').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, ' ')
+        .replace(/[«»"“”_#|~^<>{}\\]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!/[.!?;:]$/.test(t)) t = t.replace(/[,;:]$/, '') + (o.kind === 'c' ? ',' : '.');
+      return { text: t, fixes: fixes };
+    }
+    /* کسرهٔ اضافه: «هٔ» و «ۀ» باید «ه‌ی» تلفظ شود (پیش از حذف علامت‌ها) */
+    if (smart) t = R(t, /(?:ه\u0654|هٔ|ۀ)/g, 'ه' + PH + 'ی', 'ezafe');
+    t = t.replace(/[\u064B-\u065F\u0670]/g, '');
+    (o.dict || []).forEach(function(d){ t = R(t, d.re, function(){ return d.to; }, 'dict'); });
+    if (smart) {
+      HAMZA.forEach(function(h){ t = R(t, h[0], h[1], 'lex'); });
+      t = R(t, /أ|إ/g, 'ا', 'lex'); t = R(t, /ؤ/g, 'و', 'lex'); t = R(t, rx('(?<=[{PL}])ئ(?=[{PL}])', 'g'), 'ی', 'lex');
+      t = R(t, /إن شاء الله|ان‌شاءالله|انشاءالله|ان شاءالله/g, 'ان شاء الله', 'lex');
+    }
+    /* حروف جداافتاده: «ک ت ا ب» → «کتاب» */
+    if (high) t = R(t, rx('(?<![{PL}\\uE001])(?:[{PL}]\\s){3,}[{PL}](?![{PL}])', 'g'), function(m){ if (/^(?:و\s)+و$/.test(m)) return m; return /\sو$/.test(m) && m.length > 9 ? m.slice(0, -2).replace(/\s/g, '') + ' و' : m.replace(/\s/g, ''); }, 'broken');
+    /* کشیدگی بی‌دلیل حروف: «سلاااام» */
+    if (high) t = R(t, rx('([{PL}])\\1{2,}', 'g'), '$1', 'elong');
+    /* تکرار تصادفی کلمات نقشی */
+    if (high) t = R(t, rx('(?<![{PL}])(و|در|به|از|که|را|با|این|آن|بر|تا|برای|است|یا|هم)(\\s+\\1)+(?![{PL}])', 'g'), '$1', 'dup');
+    /* پیوند، ایمیل، ارجاع */
+    t = R(t, /(?:https?:\/\/|www\.)\S+/g, ' ', 'noise'); t = R(t, /\S+@\S+\.\S+/g, ' ', 'noise');
+    var asc = function(s){ return s.replace(/[۰-۹]/g, function(c){ return c.charCodeAt(0) - 1776; }).replace(/(\d)٫(?=\d)/g, '$1.').replace(/(\d)[,٬،](?=\d{3}(?!\d))/g, '$1'); };
+    t = asc(t);
+    t = R(t, /\[\s*\d+(?:\s*[,،\-–]\s*\d+)*\s*\]|\(\s*\d{1,3}\s*\)/g, ' ', 'noise');
+    ABBR.forEach(function(a){ t = R(t, a[0], a[1], 'abbr'); });
+    /* اعداد، تاریخ، ساعت */
+    var dmy = function(d, m, y, mons){ return ' ' + numFa(String(+d)) + ' ' + mons[+m] + ' ' + numFa(y) + ' '; };
+    t = t.replace(/(\d)\s*[%٪]/g, '$1 درصد ').replace(/(\d)\/(\d+)(?=\s*درصد)/g, '$1.$2');
+    t = R(t, /(?<!\d)(1[34]\d\d)\s*[\/\-.]\s*(0?[1-9]|1[0-2])\s*[\/\-.]\s*(0?[1-9]|[12]\d|3[01])(?!\d)/g, function(_, y, m, d){ return dmy(d, m, y, MON_FA); }, 'num');
+    t = R(t, /(?<!\d)(0?[1-9]|[12]\d|3[01])\s*[\/\-.]\s*(0?[1-9]|1[0-2])\s*[\/\-.]\s*(1[34]\d\d)(?!\d)/g, function(_, d, m, y){ return dmy(d, m, y, MON_FA); }, 'num');
+    t = R(t, /(?<!\d)((?:19|20)\d\d)\s*[\/\-]\s*(0?[1-9]|1[0-2])\s*[\/\-]\s*(0?[1-9]|[12]\d|3[01])(?!\d)/g, function(_, y, m, d){ return dmy(d, m, y, MON_EN); }, 'num');
+    t = R(t, /(?<!\d)([01]?\d|2[0-3]):([0-5]\d)(?![\d:])/g, function(_, h, m, off, s){ return (/ساعت\s*$/.test(s.slice(Math.max(0, off - 8), off)) ? ' ' : ' ساعت ') + numFa(String(+h)) + (+m ? ' و ' + numFa(String(+m)) + ' دقیقه' : '') + ' '; }, 'num');
+    t = R(t, rx('(\\d+)\\s*ام(?![{PL}])', 'g'), function(_, d){ return ' ' + ordFa(d) + ' '; }, 'num');
+    t = R(t, /(?<![\d\-\/.])(\d{1,4})\s*[-–—]\s*(\d{1,4})(?![\d\-\/])/g, '$1 تا $2', 'num');
+    t = R(t, /(\d)\s*(km|cm|mm|kg|mg|ml|kb|mb|gb|tb|khz|mhz|ghz|hz)(?![a-z])/gi, function(_, d, u){ return d + ' ' + UNIT[u.toLowerCase()] + ' '; }, 'num');
+    t = t.replace(/(\d)\s*°\s*[Cc](?![a-z])/g, '$1 درجه سانتی‌گراد ').replace(/(\d)\s*°/g, '$1 درجه ');
+    t = R(t, /\$\s*(\d+(?:\.\d+)?)/g, '$1 دلار ', 'sym'); t = R(t, /€\s*(\d+(?:\.\d+)?)/g, '$1 یورو ', 'sym');
+    t = t.replace(/(\d)\s*[\/\-–]\s*(?=\d)/g, '$1 ');
+    /* اعداد رومی در بافت مناسب */
+    if (smart) t = R(t, rx('((?:قرن|فصل|بخش|جلد|لویی|هنری|ناپلئون|پاپ|ملکه|فریدریک|جنگ جهانی|جنگ‌جهانی|ماده|بند|شمارهٔ?|جدول|شکل)\\s+)([IVXLCDM]{1,8})(?![A-Za-z])', 'g'), function(m, pre, r){
+      if (!validRoman(r)) return m;
+      var n = String(romanVal(r)), cardinal = /^(?:ماده|بند|شمارهٔ?|جدول|شکل)/.test(pre.trim());
+      return pre + (cardinal ? numFa(n) : ordFa(n));
+    }, 'roman');
+    /* نمادها */
+    if (smart) t = R(t, rx('(?<=[\\dA-Za-z{PL}])\\s*\\+\\s*(?=[\\dA-Za-z{PL}])', 'g'), ' به علاوه' + PH + 'ی ', 'sym');
+    t = R(t, /(\d)\s*[×xX*]\s*(\d)/g, '$1 ضربدر $2', 'sym'); t = R(t, /(\d)\s*÷\s*(\d)/g, '$1 تقسیم بر $2', 'sym');
+    if (smart) { t = R(t, /\s=\s/g, ' مساوی ', 'sym'); t = R(t, /≥/g, ' بزرگتر یا مساوی ', 'sym'); t = R(t, /≤/g, ' کوچکتر یا مساوی ', 'sym'); t = R(t, /≠/g, ' نامساوی ', 'sym'); t = R(t, /@(?=\w)/g, ' اَت ', 'sym'); }
+    /* ارقام و سرواژه */
+    var faNums = function(s){
+      return s.replace(/\d+(?:\.\d+)?/g, function(m){ var q = m.split('.'); return ' ' + numFa(q[0]) + (q[1] ? ' ممیز ' + numFa(q[1]) : '') + ' '; });
+    };
+    t = R(t, /\d+(?:\.\d+)?/g, function(m){ var q = m.split('.'); return ' ' + numFa(q[0]) + (q[1] ? ' ممیز ' + numFa(q[1]) : '') + ' '; }, 'num');
+    /* کلمات لاتین: واژه‌نامهٔ داخلی، سرواژه، تلفظ تقریبی */
+    t = R(t, /(?<![A-Za-z])[A-Za-z][A-Za-z\-']*(?:\.[A-Za-z]\.?)*(?![A-Za-z])/g, function(w){
+      var lw = w.toLowerCase().replace(/\.$/, '');
+      var r;
+      if (!smart) return /^[A-Z]{2,5}$/.test(w) && !/^[IVX]+$/.test(w) ? ' ' + w.split('').map(function(c){ return LET[c]; }).join(' ') + ' ' : w;
+      if (GLOSS[lw]) r = GLOSS[lw];
+      else if (/^[IVX]+$/.test(w) && validRoman(w) && w.length > 1) return w;
+      else if (/^[A-Z]{2,6}$/.test(w)) r = w.split('').map(function(c){ return LET[c]; }).join(' ');
+      else if (w.length === 1) r = LET[w.toUpperCase()] || w;
+      else { r = translit(w.replace(/[-']/g, '')); fixes.push({ t: 'unk', a: w, b: r }); return ' ' + r + ' '; }
+      fixes.push({ t: /^[A-Z]{2,6}$/.test(w) && !GLOSS[lw] ? 'acro' : 'latin', a: w, b: r });
+      return ' ' + r + ' ';
+    }, null);
+    /* نویسه‌های ناخوانا و تزئینی */
+    t = t.replace(/\uE000/g, '');
+    t = R(t, /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{FFFD}\uFFFC]/gu, ' ', 'noise');
+    t = t.replace(/\.{4,}/g, ', ').replace(/[_=\-–—]{3,}/g, ' ').replace(/&/g, ' و ')
+      .replace(/[«»"“”]/g, '').replace(/\s*[(\[]\s*/g, ', ').replace(/\s*[)\]]\s*/g, ', ')
+      .replace(/[•▪■◆●○◦*_#|~^<>{}\\\/]/g, ' ').replace(/\s*[–—]\s*/g, ', ');
+    /* مکث‌های دستوری (فقط وقتی بند پیشین به اندازهٔ کافی بلند است) */
+    t = t.replace(/،/g, ',').replace(/؛/g, ';').replace(/؟/g, '?').replace(/…/g, '...').replace(/\s+/g, ' ');
+    if (smart) t = R(t, /([^\s,.;:!?])\s+(اما|ولی|لیکن|بلکه|بنابراین|همچنین|زیرا|یعنی|درنتیجه|در نتیجه|با این حال|در حالی که|علاوه بر این|در عین حال|به عبارت دیگر|برای مثال|به همین دلیل|از این رو|هرچند|اگرچه|لذا)(?=\s)/g, function(m, p, c, off, s){
+      var seg = s.slice(0, off + 1), cut = Math.max(seg.lastIndexOf(','), seg.lastIndexOf('.'), seg.lastIndexOf(';'), seg.lastIndexOf(':'), seg.lastIndexOf('?'), seg.lastIndexOf('!'));
+      return (seg.length - cut - 1) >= 18 ? p + ', ' + c : m;
+    }, 'pause');
+    if (eng !== 'azure') t = t.replace(/\u200c/g, '').replace(new RegExp(PH, 'g'), ' ');
+    else t = t.replace(new RegExp(PH, 'g'), ZW);
+    t = t.replace(/\s+/g, ' ').replace(/\s+([,.;:!?])/g, '$1').replace(/^[,\s]+/, '').trim();
+    t = t.replace(/,\s*([.!?;:])/g, '$1').replace(/,\s*,/g, ',').replace(/([.!?;:])\1+/g, '$1');
+    var k = o.kind;
+    if (!/[.!?;:]$/.test(t)) t = t.replace(/[,;:]$/, '') + (k === 'c' ? ',' : '.');
+    return { text: t, fixes: fixes };
+  }
+
+  g.PTE = { fa: fa, layout: layout, clean: clean, dropRepeats: dropRepeats, detectReversed: detectReversed, unreverse: unreverse, splitSentences: splitSentences, speech: speech, numFa: numFa, LABEL: LABEL, HM: HM, ZW: ZW, isFa: isFa };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
 <script>
 (function(){
   var $ = function(s){ return document.querySelector(s); };
@@ -249,66 +685,33 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   loadNative();
   setTimeout(loadNative, 1500);
-  setTimeout(function(){ perf(); if (NP) ensurePiper().then(function(){ perf(); }); }, 0);
-
-  /* ---------- Piper native (sherpa-onnx via Capacitor plugin "PiperNative") ---------- */
-  var NP = null, npOK = false, npTry = null, npErr = '';
-  var CAP = window.Capacitor, capPlat = '';
-  try { capPlat = CAP && CAP.getPlatform ? String(CAP.getPlatform()) : ''; } catch (e) {}
-  var onNative = false;
-  try { onNative = !!((CAP && CAP.isNativePlatform && CAP.isNativePlatform()) || window.androidBridge || (capPlat && capPlat !== 'web')); } catch (e) {}
-  try {
-    if (onNative) {
-      if (CAP && CAP.registerPlugin) NP = CAP.registerPlugin('PiperNative');
-      else if (CAP && CAP.Plugins && CAP.Plugins.PiperNative) NP = CAP.Plugins.PiperNative;
-    }
-  } catch (e) {}
-  var NP_MODEL_URLS = function(id){
-    var f = 'vits-piper-' + id + '.tar.bz2';
-    return [
-      'https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/' + f,
-      'https://ghfast.top/https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/' + f
-    ];
-  };
-  function b64Blob(b64, type){
-    var bin = atob(b64), n = bin.length, u = new Uint8Array(n);
-    for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
-    return new Blob([u], { type: type });
-  }
-  var NATIVE_PIPER = {
-    voices: function(){
-      return Promise.resolve([
-        { key: 'fa_IR-amir-medium', name: 'amir', quality: 'medium', language: { family: 'fa' } },
-        { key: 'fa_IR-gyro-medium', name: 'gyro', quality: 'medium', language: { family: 'fa' } }
-      ]);
-    },
-    stored: function(){ return NP.stored().then(function(r){ return (r && r.ids) || []; }); },
-    download: function(id, cb){
-      var h = null, done = function(){ try { if (h && h.remove) h.remove(); } catch (e) {} };
-      return Promise.resolve(NP.addListener('progress', function(e){ if (cb) cb({ loaded: e.loaded, total: e.total, stage: e.stage, n: e.n }); }))
-        .then(function(x){ h = x; return NP.download({ id: id, urls: NP_MODEL_URLS(id) }); })
-        .then(function(r){ done(); return r; }, function(e){ done(); throw e; });
-    },
-    predict: function(o){
-      return NP.synthesize({ id: o.voiceId, text: o.text }).then(function(r){ return b64Blob(r.wav, 'audio/wav'); });
-    }
-  };
 
   var piperLoading = null, piperVoicesLoaded = false;
-  function ensurePiper(){
-    if (npOK) return Promise.resolve(true);
-    if (NP) {
-      if (!npTry) npTry = NP.ping().then(function(){ npOK = true; window.PiperTTS = NATIVE_PIPER; return true; }, function(e){ npErr = String((e && (e.message || e.errorMessage || e.code)) || e || 'unknown'); NP = null; perf(); return false; });
-      return npTry.then(function(ok){ return ok ? true : ensurePiperWeb(); });
-    }
-    return ensurePiperWeb();
+  var PN = null, pnOk = false, MODEL_BASE = 'https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-';
+  try { if (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) PN = Capacitor.registerPlugin('PiperNative'); } catch (e) {}
+  function initNative(){
+    if (!PN) return Promise.resolve(false);
+    if (pnOk) return Promise.resolve(true);
+    return PN.ping().then(function(){ pnOk = true; pPatched = 3; perf(); renderVoices(); return true; }).catch(function(){ return false; });
   }
-  function ensurePiperWeb(){
-    if (window.PiperTTS) return Promise.resolve(true);
+  function pStored(){ return pnOk ? PN.stored().then(function(r){ return (r && r.ids) || []; }) : PiperTTS.stored(); }
+  function nDownload(id, cb){
+    var h = null, done = function(){ try { if (h && h.remove) h.remove(); } catch (e) {} };
+    return Promise.resolve(PN.addListener('progress', function(e){
+      if (e && e.stage === 'extract') $('#pstat').textContent = 'در حال استخراج مدل…'; else cb(e);
+    })).then(function(x){ h = x; return PN.download({ id: id, urls: [MODEL_BASE + id + '.tar.bz2'] }); }).then(done, function(e){ done(); throw e; });
+  }
+  function b64wav(r){
+    var bin = atob(r.wav), n = bin.length, u = new Uint8Array(n);
+    for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
+    return new Blob([u], { type: 'audio/wav' });
+  }
+  function ensurePiper(){
+    if (pnOk || window.PiperTTS) return Promise.resolve(true);
     if (!piperLoading) {
-      piperLoading = import('https://esm.sh/@diffusionstudio/vits-web').then(function(m){
-        window.PiperTTS = m;
-        return true;
+      piperLoading = initNative().then(function(ok){
+        if (ok) return true;
+        return import('https://esm.sh/@diffusionstudio/vits-web').then(function(m){ window.PiperTTS = m; return true; });
       }).catch(function(){ piperLoading = null; return false; });
     }
     return piperLoading;
@@ -331,7 +734,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     ensurePiper().then(function(ok){
       if (!ok) { st.textContent = 'موتور Piper بارگذاری نشد. اینترنت یا VPN را بررسی کنید.'; btn.hidden = true; return; }
       loadPiper();
-      return PiperTTS.stored().then(function(a){
+      return pStored().then(function(a){
         var v = currentVoice();
         var done = !!v && (a || []).indexOf(v.id) >= 0;
         st.textContent = done ? 'صدا دانلود شده و آفلاین کار می‌کند.' : 'این صدا هنوز دانلود نشده است (حدود ۶۰ مگابایت؛ فقط بار اول اینترنت لازم است).';
@@ -342,12 +745,11 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   $('#pdl').onclick = function(){
     var v = currentVoice(), btn = $('#pdl'), st = $('#pstat');
-    if (!v) return;
+    if (!v || (!window.PiperTTS && !pnOk)) return;
     btn.disabled = true;
-    ensurePiper().then(function(ok){ if (!ok) throw new Error('موتور Piper بارگذاری نشد.'); return PiperTTS.download(v.id, function(pr){
-      if (pr && pr.stage === 'extract') { st.textContent = 'در حال آماده‌سازی فایل‌های صدا… (فایل ' + nf.format(pr.n || 0) + ') — تا چند دقیقه صبر کنید'; return; }
+    (pnOk ? nDownload : PiperTTS.download)(v.id, function(pr){
       if (pr && pr.total) st.textContent = 'در حال دانلود: ' + nf.format(Math.round(pr.loaded * 100 / pr.total)) + '٪';
-    }); }).then(function(){
+    }).then(function(){
       st.textContent = 'در حال آزمایش صدا…';
       return piperPredict('سلام.', v.id);
     }).then(function(){ updatePiperStatus(); warmPiper(); }).catch(function(e){
@@ -357,56 +759,9 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   if (synth && !isNative) { synth.onvoiceschanged = loadVoices; }
   loadVoices();
   setTimeout(loadVoices, 600);
+  initNative();
 
-  /* ---------- PDF -> text ---------- */
-  function clean(t){
-    t = t.normalize('NFKC').replace(/[\u00ad\u200b\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '');
-    t = t.replace(/[ \t\u00a0]+/g, ' ').replace(/ *\n */g, '\n');
-    var ls = t.split('\n'), ln = ls.map(function(l){ return l.length; }).filter(Boolean).sort(function(a, b){ return a - b; });
-    var ref = ln.length ? ln[Math.floor(ln.length * 0.9)] : 0, out = '';
-    ls.forEach(function(l, i){
-      var nx = ls[i + 1];
-      if (nx === undefined) { out += l; return; }
-      if (!l || !nx) { out += l + '\n'; return; }
-      if (/[A-Za-z]-$/.test(l) && /^[a-z]/.test(nx)) { out += l.slice(0, -1); return; }
-      var brk = /[.!?؟…؛:]["»”')\]]*$/.test(l) || (ref >= 40 && l.length < ref * 0.45 && !/[،,]$/.test(l));
-      out += l + (brk ? '\n' : ' ');
-    });
-    return out.trim();
-  }
-  var ABR = /^(?:dr|mr|mrs|ms|prof|vs|fig|vol|pp|jr|sr|st|دکتر|مهندس)$/i;
-  function splitSentences(par){
-    var raw = [], res = [], re = /[.!?؟…؛]+["»”')\]]*(?=\s|$)/g, last = 0, m;
-    while ((m = re.exec(par))) {
-      var end = m.index + m[0].length, head = par.slice(last, m.index);
-      if (m[0][0] === '.' && !/[!?؟…؛]/.test(m[0])) {
-        var tok = (head.match(/\S+$/) || [''])[0].replace(/^[("«“\[]+/, '');
-        if ((tok.length === 1 && /\p{L}/u.test(tok)) || /^(?:\p{L}{1,2}\.)+\p{L}{1,2}$/u.test(tok) || ABR.test(tok) || /^[\d۰-۹٠-٩]{1,3}$/.test(head.trim())) continue;
-      }
-      raw.push(par.slice(last, end)); last = end;
-    }
-    if (last < par.length) raw.push(par.slice(last));
-    raw.forEach(function(s){
-      s = s.trim();
-      if (!s || !/[\p{L}\p{N}]/u.test(s)) return;
-      while (s.length > 90) {
-        var h = s.slice(0, 90), c = Math.max(h.lastIndexOf('،'), h.lastIndexOf(','), h.lastIndexOf('؛'), h.lastIndexOf(':'));
-        if (c < 28) c = h.lastIndexOf(' ');
-        if (c < 28) c = 89;
-        res.push(s.slice(0, c + 1).trim());
-        s = s.slice(c + 1).trim();
-      }
-      if (s) res.push(s);
-    });
-    return res;
-  }
-  function dropRepeats(pg){
-    var key = function(l){ return l.replace(/[\d۰-۹٠-٩]+/g, '#'); }, cnt = {};
-    var L = pg.map(function(t){ return t.split('\n').map(function(l){ return l.trim(); }); });
-    L.forEach(function(ls){ var seen = {}; ls.forEach(function(l){ var k = key(l); if (l && l.length < 80 && !seen[k]) { seen[k] = 1; cnt[k] = (cnt[k] || 0) + 1; } }); });
-    var th = Math.max(3, pg.length * 0.4);
-    return L.map(function(ls){ return ls.filter(function(l){ return !(l && l.length < 80 && (cnt[key(l)] >= th || /^[-–\s\d۰-۹٠-٩]+$/.test(l))); }).join('\n'); });
-  }
+  /* ---------- PDF -> text (موتور PTE) ---------- */
   async function loadFile(file){
     if (!window.pdfjsLib) { status('کتابخانهٔ PDF بارگذاری نشد. اتصال اینترنت را بررسی کنید.'); return; }
     stopAll();
@@ -419,15 +774,21 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
         status('استخراج متن: صفحهٔ ' + nf.format(p) + ' از ' + nf.format(pdf.numPages));
         var page = await pdf.getPage(p);
         var tc = await page.getTextContent();
-        var t = '';
-        tc.items.forEach(function(it){ t += it.str + (it.hasEOL ? '\n' : ' '); });
+        var its = tc.items.filter(function(it){ return typeof it.str === 'string'; }).map(function(it){
+          var tr = it.transform || [0, 0, 0, 0, 0, 0];
+          return { str: it.str, x: tr[4], y: tr[5], w: it.width || 0, h: Math.abs(it.height) || Math.abs(tr[3]) || 0, eol: !!it.hasEOL };
+        });
+        var t = PTE.layout(its);
+        if (!t && its.length) { t = ''; its.forEach(function(it){ t += it.str + (it.eol ? '\n' : ' '); }); }
         pages.push(t); page.cleanup();
         if (p % 8 === 0) await new Promise(function(r){ setTimeout(r, 0); });
       }
-      pages = dropRepeats(pages).map(clean); pdf.destroy();
+      var wasRev = PTE.detectReversed(pages.join('\n'));
+      if (wasRev) pages = pages.map(PTE.unreverse);
+      pages = PTE.dropRepeats(pages).map(PTE.clean); pdf.destroy();
       build(pages); warmPiper();
       try { if (navigator.mediaSession) navigator.mediaSession.metadata = new MediaMetadata({ title: file.name }); } catch (e) {}
-      if (sents.length) status(file.name + ' — ' + nf.format(pdf.numPages) + ' صفحه، ' + nf.format(sents.length) + ' جمله');
+      if (sents.length) status(file.name + ' — ' + nf.format(pdf.numPages) + ' صفحه، ' + nf.format(sents.length) + ' جمله' + (wasRev ? ' (ترتیب حروف وارونه بود و اصلاح شد)' : ''));
     } catch (e) {
       status('خواندن فایل ناموفق بود: ' + (e && e.message ? e.message : e));
     }
@@ -443,9 +804,13 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     pages.forEach(function(txt, pi){
       var paras = [];
       txt.split(/\n+/).forEach(function(par){
-        var ss = splitSentences(par), ids = [];
-        ss.forEach(function(t, k){ ids.push(sents.length); sents.push({ text: t, page: pi + 1, el: null, pe: k === ss.length - 1 }); });
-        if (ids.length) paras.push(ids);
+        var h = par.charAt(0) === PTE.HM;
+        if (h) par = par.slice(1);
+        par = PTE.fa(par);
+        if (!par) return;
+        var ss = PTE.splitSentences(par, h ? 400 : 100), ids = [];
+        ss.forEach(function(o, k){ ids.push(sents.length); sents.push({ text: o.text, page: pi + 1, el: null, pe: k === ss.length - 1, k: o.k, h: h, fx: null }); });
+        if (ids.length) paras.push({ ids: ids, h: h });
       });
       if (!paras.length) return;
       pageParas[pi + 1] = paras;
@@ -461,14 +826,22 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       box.appendChild(d2);
       status('');
     }
-    ui(); mark(false);
+    ui(); mark(false); scanFix();
+  }
+  function fxTitle(q){
+    if (!q.fx || !q.fx.length) return '';
+    return q.fx.slice(0, 6).map(function(f){ return PTE.LABEL[f.t] + ': ' + f.a + ' ← ' + f.b; }).join('\n');
   }
   function renderPage(q){
     var d = pgEls[q]; if (!d || d.firstChild) return;
     var h = document.createElement('div'); h.className = 'pg'; h.textContent = 'صفحهٔ ' + nf.format(q); d.appendChild(h);
-    pageParas[q].forEach(function(ids){
-      var el = document.createElement('p');
-      ids.forEach(function(i){ var sp = document.createElement('span'); sp.textContent = sents[i].text + ' '; sp.dataset.i = i; sents[i].el = sp; el.appendChild(sp); });
+    pageParas[q].forEach(function(p){
+      var el = document.createElement('p'); if (p.h) el.className = 'ph';
+      p.ids.forEach(function(i){
+        var sp = document.createElement('span'); sp.textContent = sents[i].text + ' '; sp.dataset.i = i; sents[i].el = sp;
+        if (sents[i].fx && sents[i].fx.length) { sp.className = 'fx'; sp.title = fxTitle(sents[i]); }
+        el.appendChild(sp);
+      });
       d.appendChild(el);
     });
     d.style.minHeight = '';
@@ -476,13 +849,13 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   function unrenderPage(q){
     var d = pgEls[q]; if (!d || !d.firstChild || (sents[idx] && sents[idx].page === q)) return;
     d.style.minHeight = d.offsetHeight + 'px'; d.textContent = '';
-    pageParas[q].forEach(function(ids){ ids.forEach(function(i){ sents[i].el = null; }); });
+    pageParas[q].forEach(function(p){ p.ids.forEach(function(i){ sents[i].el = null; }); });
   }
 
   /* ---------- playback ---------- */
   var audio = new Audio(), curUtt = null;
   audio.preservesPitch = true; audio.webkitPreservesPitch = true;
-  var cache = {}, nid = 0, curNid = '', gen = 0, cn = 0, seekT = 0, pSpeed = 18, pSamples = 0, pPatched = 0, pBoot = 0, pFirst = 0, pInfo = null, plan = {}, lastLen = 0;
+  var cache = {}, nid = 0, curNid = '', gen = 0, cn = 0, seekT = 0, pSpeed = 18, pSamples = 0, pPatched = 0, pBoot = 0, pFirst = 0, pInfo = null, pNativeMs = 0, plan = {}, lastLen = 0;
   var SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
   function cancelAll(){
     gen++;
@@ -507,7 +880,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     if (cache[ck]) return cache[ck];
     var r = Math.round((+$('#rate').value - 1) * 100), pt = Math.round((+$('#pitch').value - 1) * 100);
     var ssml = '<speak version="1.0" xml:lang="fa-IR" xmlns="http://www.w3.org/2001/10/synthesis"><voice name="' + v.id +
-      '"><prosody rate="' + (r >= 0 ? '+' : '') + r + '%" pitch="' + (pt >= 0 ? '+' : '') + pt + '%">' + esc(ttsText(sents[i].text)) + '</prosody></voice></speak>';
+      '"><prosody rate="' + (r >= 0 ? '+' : '') + r + '%" pitch="' + (pt >= 0 ? '+' : '') + pt + '%">' + esc(speechOf(i, 'azure')) + '</prosody></voice></speak>';
     var send = function(n){ return fetch('https://' + reg + '.tts.speech.microsoft.com/cognitiveservices/v1', {
       method: 'POST',
       headers: {
@@ -537,51 +910,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     });
   }
   var PIPER_TO = 'ساخت صدا بیش از حد طول کشید. موتور Piper برای اجرا فایل‌های کمکی (ONNX/WASM) را از cdnjs می‌گیرد؛ اینترنت یا VPN را روشن کنید و دوباره امتحان کنید.';
-  var ON = ['صفر','یک','دو','سه','چهار','پنج','شش','هفت','هشت','نه','ده','یازده','دوازده','سیزده','چهارده','پانزده','شانزده','هفده','هجده','نوزده'],
-      TN = ['','','بیست','سی','چهل','پنجاه','شصت','هفتاد','هشتاد','نود'],
-      HN = ['','صد','دویست','سیصد','چهارصد','پانصد','ششصد','هفتصد','هشتصد','نهصد'],
-      SC = ['','هزار','میلیون','میلیارد','تریلیون'];
-  function numFa(d){
-    if (d.length > 15 || (d.length > 1 && d[0] === '0')) return d.split('').map(function(x){ return ON[+x]; }).join(' ');
-    var n = +d; if (!n) return ON[0];
-    var g = [], i;
-    while (n > 0) { g.push(n % 1000); n = Math.floor(n / 1000); }
-    var out = [];
-    for (i = g.length - 1; i >= 0; i--) {
-      if (!g[i]) continue;
-      var x = g[i], w = [], r = x % 100;
-      if (x >= 100) w.push(HN[Math.floor(x / 100)]);
-      if (r) w.push(r < 20 ? ON[r] : TN[Math.floor(r / 10)] + (r % 10 ? ' و ' + ON[r % 10] : ''));
-      var txt = w.join(' و ');
-      out.push(i === 1 && x === 1 ? 'هزار' : txt + (SC[i] ? ' ' + SC[i] : ''));
-    }
-    return out.join(' و ');
-  }
-  var MON_FA = ['','فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'],
-      MON_EN = ['','ژانویه','فوریه','مارس','آوریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'],
-      LET = {A:'ای',B:'بی',C:'سی',D:'دی',E:'ای',F:'اف',G:'جی',H:'اچ',I:'آی',J:'جی',K:'کی',L:'ال',M:'ام',N:'ان',O:'او',P:'پی',Q:'کیو',R:'آر',S:'اس',T:'تی',U:'یو',V:'وی',W:'دبلیو',X:'ایکس',Y:'وای',Z:'زد'},
-      UNIT = {km:'کیلومتر',cm:'سانتی‌متر',mm:'میلی‌متر',kg:'کیلوگرم',mg:'میلی‌گرم',ml:'میلی‌لیتر',kb:'کیلوبایت',mb:'مگابایت',gb:'گیگابایت',hz:'هرتز',khz:'کیلوهرتز',mhz:'مگاهرتز',ghz:'گیگاهرتز'},
-      L0 = '(?<![\\p{L}])', L1 = '(?![\\p{L}])',
-      ABBR = [
-        [/\(\s*ع\s*\)/g, ' علیه السلام '], [/\(\s*ص\s*\)/g, ' صلی الله علیه و آله '], [/\(\s*س\s*\)/g, ' سلام الله علیها '],
-        [/\(\s*ره\s*\)/g, ' رحمة الله علیه '], [/\(\s*رض\s*\)/g, ' رضی الله عنه '],
-        [new RegExp(L0 + 'ه\\s*\\.\\s*ش\\.?' + L1, 'gu'), ' هجری شمسی '], [new RegExp(L0 + 'ه\\s*\\.\\s*ق\\.?' + L1, 'gu'), ' هجری قمری '],
-        [new RegExp(L0 + 'ق\\s*\\.\\s*م\\.?' + L1, 'gu'), ' قبل از میلاد '], [new RegExp(L0 + 'ق\\s*\\.\\s*ظ\\.?' + L1, 'gu'), ' قبل از ظهر '],
-        [new RegExp(L0 + 'ب\\s*\\.\\s*ظ\\.?' + L1, 'gu'), ' بعد از ظهر '], [new RegExp(L0 + 'ر\\s*\\.\\s*ک\\.?' + L1, 'gu'), ' رجوع کنید به '],
-        [new RegExp(L0 + 'ج\\s*\\.\\s*ا\\s*\\.\\s*ا\\.?' + L1, 'gu'), ' جمهوری اسلامی ایران '], [/\bDr\.?(?=\s)/g, 'دکتر']
-      ];
-  function digitsAscii(t){
-    return t.replace(/[۰-۹]/g, function(c){ return c.charCodeAt(0) - 1776; }).replace(/[٠-٩]/g, function(c){ return c.charCodeAt(0) - 1632; })
-      .replace(/(\d)٫(?=\d)/g, '$1.').replace(/(\d)[,٬،](?=\d{3}(?!\d))/g, '$1');
-  }
-  function faNums(t){
-    return t.replace(/\d+(?:\.\d+)?/g, function(m){
-      var q = m.split('.');
-      return ' ' + numFa(q[0]) + (q[1] ? ' ممیز ' + numFa(q[1]) : '') + ' ';
-    });
-  }
-  function dmy(d, m, y, mons){ return ' ' + numFa(String(+d)) + ' ' + mons[+m] + ' ' + numFa(y) + ' '; }
-  var userDict = [];
+  var userDict = [], fixOn = true, fixHi = true;
   function normCh(t){ return t.replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/ة/g, 'ه'); }
   function parseDict(){
     userDict = [];
@@ -592,34 +921,61 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       try { userDict.push({ re: new RegExp('(?<![\\p{L}\\p{N}\\u200c])' + a.replace(/[\\^$.*+?()[\]{}|\/]/g, '\\$&') + '(?![\\p{L}\\p{N}\\u200c])', 'gu'), to: b }); } catch (e) {}
     });
   }
-  function ttsText(t, eng){
-    eng = eng || engine();
-    t = normCh(t).replace(/[\u0640\u064B-\u065F\u0670]/g, '').replace(/\u00A0/g, ' ')
-      .replace(/[\u00ad\u200b\u200d-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '');
-    userDict.forEach(function(d){ t = t.replace(d.re, function(){ return d.to; }); });
-    t = digitsAscii(t).replace(/(?:https?:\/\/|www\.)\S+|\S+@\S+\.\S+/g, ' ')
-      .replace(/\[\s*\d+(?:\s*[,،\-–]\s*\d+)*\s*\]|\(\s*\d{1,3}\s*\)/g, ' ');
-    ABBR.forEach(function(a){ t = t.replace(a[0], a[1]); });
-    t = t.replace(/(\d)\s*[%٪]/g, '$1 درصد ').replace(/(\d)\/(\d+)(?=\s*درصد)/g, '$1.$2')
-      .replace(/(?<!\d)(1[34]\d\d)\s*[\/\-.]\s*(0?[1-9]|1[0-2])\s*[\/\-.]\s*(0?[1-9]|[12]\d|3[01])(?!\d)/g, function(_, y, m, d){ return dmy(d, m, y, MON_FA); })
-      .replace(/(?<!\d)(0?[1-9]|[12]\d|3[01])\s*[\/\-.]\s*(0?[1-9]|1[0-2])\s*[\/\-.]\s*(1[34]\d\d)(?!\d)/g, function(_, d, m, y){ return dmy(d, m, y, MON_FA); })
-      .replace(/(?<!\d)((?:19|20)\d\d)\s*[\/\-]\s*(0?[1-9]|1[0-2])\s*[\/\-]\s*(0?[1-9]|[12]\d|3[01])(?!\d)/g, function(_, y, m, d){ return dmy(d, m, y, MON_EN); })
-      .replace(/(?<!\d)([01]?\d|2[0-3]):([0-5]\d)(?![\d:])/g, function(_, h, m){ return ' ' + numFa(String(+h)) + (+m ? ' و ' + numFa(String(+m)) + ' دقیقه' : '') + ' '; })
-      .replace(/(?<![\d\-\/.])(\d{1,4})\s*[-–—]\s*(\d{1,4})(?![\d\-\/])/g, '$1 تا $2')
-      .replace(/(\d)\s*(km|cm|mm|kg|mg|ml|kb|mb|gb|khz|mhz|ghz|hz)(?![a-z])/gi, function(_, d, u){ return d + ' ' + UNIT[u.toLowerCase()] + ' '; })
-      .replace(/(\d)\s*°\s*[Cc](?![a-z])/g, '$1 درجه سانتی‌گراد ').replace(/(\d)\s*°/g, '$1 درجه ')
-      .replace(/\$\s*(\d+(?:\.\d+)?)/g, '$1 دلار ').replace(/€\s*(\d+(?:\.\d+)?)/g, '$1 یورو ')
-      .replace(/(\d)\s*[\/\-–]\s*(?=\d)/g, '$1 ');
-    t = faNums(t).replace(/(?<![A-Za-z])[A-Z]{2,5}(?![A-Za-z])/g, function(w){ return /^[IVX]+$/.test(w) ? w : ' ' + w.split('').map(function(c){ return LET[c]; }).join(' ') + ' '; });
-    t = t.replace(/([^\s,.;:!?؟،؛])\s+(اما|ولی|لیکن|بلکه|بنابراین|همچنین|زیرا|یعنی|درنتیجه|در نتیجه|با این حال|در حالی که|علاوه بر این|در عین حال|به عبارت دیگر|برای مثال|به همین دلیل|از این رو|هرچند|اگرچه)(?=\s)/g, '$1, $2');
-    if (eng !== 'azure') t = t.replace(/\u200c/g, '');
-    t = t.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, ' ').replace(/\.{4,}/g, ', ').replace(/[_=\-–—]{3,}/g, ' ').replace(/&/g, ' و ')
-      .replace(/[«»"“”]/g, '').replace(/\s*[(\[]\s*/g, ', ').replace(/\s*[)\]]\s*/g, ', ')
-      .replace(/[•▪■◆●○◦*_#|~^<>{}\\\/]/g, ' ').replace(/\s*[–—]\s*/g, ', ')
-      .replace(/،/g, ',').replace(/؛/g, ';').replace(/؟/g, '?').replace(/…/g, '...').replace(/\s+/g, ' ').replace(/\s+([,.;:!?])/g, '$1').replace(/^[,\s]+/, '').trim();
-    t = t.replace(/,\s*([.!?;:])/g, '$1').replace(/,\s*,/g, ',');
-    return /[.!?;:]$/.test(t) ? t : t.replace(/,$/, '') + '.';
+  /* متن گفتار یک واحد، با تصحیح‌گر هوشمند */
+  function speechOf(i, eng){
+    var q = sents[i];
+    return PTE.speech(q.text, { engine: eng || engine(), dict: userDict, high: fixHi, kind: (q.h || q.pe) ? 'p' : q.k, off: !fixOn }).text;
   }
+
+  /* ---------- گزارش تصحیح‌گر ---------- */
+  var RISK = { unk: 1, broken: 1, dup: 1, elong: 1, noise: 1 };
+  var scanTk = 0;
+  function scanFix(){
+    var my = ++scanTk, i = 0, n = sents.length, cntT = {}, unk = {}, flagged = 0;
+    $('#fxunk').textContent = ''; $('#fxhint').hidden = true;
+    if (!n) { $('#fxsum').textContent = 'پس از باز کردن فایل، گزارش اینجا نمایش داده می‌شود.'; return; }
+    if (!fixOn) {
+      $('#fxsum').textContent = 'تصحیح گفتار خاموش است.';
+      sents.forEach(function(q){ q.fx = null; if (q.el) { q.el.className = ''; q.el.title = ''; } });
+      return;
+    }
+    function step(){
+      if (my !== scanTk) return;
+      var end = Math.min(n, i + 60);
+      for (; i < end; i++) {
+        var q = sents[i], r = PTE.speech(q.text, { engine: 'device', dict: userDict, high: fixHi, kind: q.k }), risky = false;
+        q.fx = null;
+        r.fixes.forEach(function(f){
+          cntT[f.t] = (cntT[f.t] || 0) + 1;
+          if (f.t === 'unk') { var k = f.a.toLowerCase(); if (!unk[k]) unk[k] = { w: f.a, to: f.b, n: 0 }; unk[k].n++; }
+          if (RISK[f.t]) risky = true;
+        });
+        if (risky) { q.fx = r.fixes.filter(function(f){ return RISK[f.t]; }); flagged++; }
+        if (q.el) { q.el.className = q.fx ? 'fx' : ''; q.el.title = q.fx ? fxTitle(q) : ''; }
+      }
+      var tot = 0, parts = [];
+      Object.keys(cntT).forEach(function(t){ tot += cntT[t]; });
+      ['num', 'abbr', 'roman', 'sym', 'ezafe', 'lex', 'latin', 'acro', 'broken', 'dup', 'elong', 'noise', 'unk', 'pause'].forEach(function(t){ if (cntT[t]) parts.push(PTE.LABEL[t] + ' ' + nf.format(cntT[t])); });
+      if (i < n) { $('#fxsum').textContent = 'در حال بررسی… ' + nf.format(Math.round(i / n * 100)) + '٪'; setTimeout(step, 0); return; }
+      $('#fxsum').innerHTML = '<b>' + nf.format(tot) + '</b> مورد در <b>' + nf.format(n) + '</b> جمله بررسی و اصلاح شد' +
+        (flagged ? ' (<b>' + nf.format(flagged) + '</b> جملهٔ پرخطر با خط‌چین مشخص شده؛ روی آن‌ها نگه دارید تا جزئیات را ببینید)' : '') +
+        (parts.length ? '<br>' + parts.join(' · ') : '') + '.';
+      var list = Object.keys(unk).map(function(k){ return unk[k]; }).sort(function(a, b){ return b.n - a.n; }).slice(0, 40), box = $('#fxunk');
+      $('#fxhint').hidden = !list.length;
+      list.forEach(function(u){
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = u.w;
+        var sm = document.createElement('small'); sm.textContent = '← ' + u.to; b.appendChild(sm);
+        b.onclick = function(){
+          var ta = $('#dict'), v = ta.value.replace(/\s+$/, '');
+          ta.value = (v ? v + '\n' : '') + u.w + ' = ' + u.to;
+          sset('dict', ta.value); parseDict(); b.disabled = true; changed(); scanFix();
+        };
+        box.appendChild(b);
+      });
+    }
+    step();
+  }
+
   var pws = [], pwBad = false, pwId = 0, pwWait = {};
   function killWorker(){
     pwBad = true; pws.forEach(function(w){ try { w.terminate(); } catch (e) {} }); pws = [];
@@ -692,7 +1048,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   var mainKit = null;
   function piperPredict(text, id, l){
-    if (npOK) return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: text, voiceId: id })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.');
+    if (pnOk) return withTimeout(PN.synthesize({ id: id, text: text }).then(function(r){ pNativeMs = r.ms || 0; return b64wav(r); }), 120000, PIPER_TO);
     var w = getWorker(l || 0), n = ++pwId;
     var main = function(){
       mainKit = mainKit || piperKit();
@@ -709,18 +1065,16 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   function chunkAt(i, lim){
     var e = i, len = sents[i].text.length;
-    while (lim > 1 && !sents[e].pe && e + 1 < sents.length && sents[e + 1].page === sents[i].page && len + 1 + sents[e + 1].text.length <= lim) { e++; len += 1 + sents[e].text.length; }
+    while (lim > 1 && !sents[e].pe && !sents[e].h && e + 1 < sents.length && !sents[e + 1].h && sents[e + 1].page === sents[i].page && len + 1 + sents[e + 1].text.length <= lim) { e++; len += 1 + sents[e].text.length; }
     var t = [];
-    for (var k = i; k <= e; k++) t.push(ttsText(sents[k].text));
+    for (var k = i; k <= e; k++) t.push(speechOf(k));
     return { start: i, end: e, text: t.join(' ') };
   }
   function perf(){
     var el = $('#pperf'); if (!el) return;
-    var a = ['نسخه ۵', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
-    if (npOK) a.push('موتور بومی (sherpa-onnx)');
-    if (npErr && !npOK) a.push('پلاگین بومی در این APK فعال نیست: ' + npErr);
-    if (pwBad && !npOK) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
-    if (pPatched) a.push(pPatched === 1 ? 'بهینه‌سازی: فعال' : 'بهینه‌سازی: غیرفعال');
+    var a = [], r = 0;
+    if (pwBad) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
+    if (pPatched) a.push(pPatched === 3 ? 'Piper بومی (سریع)' : pPatched === 1 ? 'بهینه‌سازی: فعال' : 'بهینه‌سازی: غیرفعال');
     if (pBoot) a.push('بارگذاری موتور: ' + nf.format(Math.round(pBoot / 1000)) + ' ثانیه');
     if (pFirst) a.push('اولین ساخت: ' + nf.format(Math.round(pFirst)) + ' ثانیه');
     if (pInfo) {
@@ -728,6 +1082,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
       a.push('آخرین ساخت: ' + nf.format(pInfo.n) + ' نویسه در ' + nf.format(Math.round(pInfo.sec * 10) / 10) + ' ثانیه (صدا ' + nf.format(Math.round(pInfo.aud * 10) / 10) + ' ثانیه، ' + nf.format(Math.round(r * 10) / 10) + '× زمان واقعی)');
       if (r > 1.1) a.push('این گوشی از پخش زنده کندتر است');
     }
+    if (pNativeMs) a.push('زمان موتور بومی: ' + nf.format(pNativeMs) + ' میلی‌ثانیه');
     el.textContent = a.join(' — ');
   }
   function firstLim(){ return Math.max(40, Math.min(72, Math.round(pSpeed * 2.5))); }
@@ -799,7 +1154,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   }
   function piperFetch(c){
     var v = currentVoice();
-    if (!window.PiperTTS || !v) return Promise.reject(new Error('موتور Piper در این نسخه موجود نیست.'));
+    if ((!window.PiperTTS && !pnOk) || !v) return Promise.reject(new Error('موتور Piper در این نسخه موجود نیست.'));
     if (!/[\p{L}\p{N}]/u.test(c.text)) return Promise.resolve(SILENT);
     var ck = ['piper', v.id, c.start, c.end].join('|');
     if (cache[ck]) return cache[ck];
@@ -839,7 +1194,7 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     if (engine() !== 'piper') return;
     var v = currentVoice();
     if (!v) return;
-    ensurePiper().then(function(ok){ return ok ? PiperTTS.stored() : []; }).then(function(a){
+    ensurePiper().then(function(ok){ return ok ? pStored() : []; }).then(function(a){
       if ((a || []).indexOf(v.id) < 0) return;
       if (!sents.length) { piperFetch({ start: -1, end: -1, text: 'سلام.' }).catch(function(){}); return; }
       var c0 = planChunk(0, true); piperFetch(c0).catch(function(){}); prefetchPiper(c0.end + 1, 1, c0.text.length);
@@ -865,8 +1220,11 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     speakNow();
   }
   function gap(my){
-    var q = sents[idx], ms = 80;
-    if (q && q.pe) ms = (q.text.length < 70 && !/[.!?؟…:؛]$/.test(q.text)) ? 500 : (/[?؟!]$/.test(q.text) ? 320 : 260);
+    var q = sents[idx], ms = 90;
+    if (q && q.h) ms = 650;
+    else if (q && q.pe) ms = (q.text.length < 70 && !/[.!?؟…:؛]$/.test(q.text)) ? 500 : (/[?؟!]$/.test(q.text) ? 340 : 280);
+    else if (q && q.k === 's') ms = /[?؟!]["»”')\]]*$/.test(q.text) ? 260 : 200;
+    else if (q) ms = /[،,؛;:]$/.test(q.text) ? 150 : 90;
     setTimeout(function(){ advance(my); }, ms);
   }
   function fail(my, msg){
@@ -918,14 +1276,14 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
     }
     if (isNative) {
       var vi = v ? parseInt(v.id, 10) : -1;
-      var opts = { text: ttsText(sents[idx].text), lang: v && v.lang ? v.lang : 'fa-IR', rate: +$('#rate').value, pitch: +$('#pitch').value, volume: 1.0, queueStrategy: 0 };
+      var opts = { text: speechOf(idx), lang: v && v.lang ? v.lang : 'fa-IR', rate: +$('#rate').value, pitch: +$('#pitch').value, volume: 1.0, queueStrategy: 0 };
       if (vi >= 0) opts.voice = vi;
       TTSP.speak(opts).then(function(){ gap(my); }).catch(function(e){
         fail(my, 'خطا در صدای دستگاه: ' + (e && e.message ? e.message : ''));
       });
       return;
     }
-    var u = curUtt = new SpeechSynthesisUtterance(ttsText(sents[idx].text, 'device'));
+    var u = curUtt = new SpeechSynthesisUtterance(speechOf(idx, 'device'));
     if (v) {
       var all = synth.getVoices() || [];
       for (var k = 0; k < all.length; k++) if (all[k].voiceURI === v.id) { u.voice = all[k]; break; }
@@ -1021,8 +1379,12 @@ textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9p
   };
   $('#enh').checked = sget('enh', '1') !== '0';
   $('#enh').onchange = function(){ sset('enh', this.checked ? '1' : '0'); setupFx(); wireFx(engine() === 'piper'); };
+  fixOn = sget('fxon', '1') !== '0'; fixHi = sget('fxhi', '1') !== '0';
+  $('#fxon').checked = fixOn; $('#fxhi').checked = fixHi;
+  $('#fxon').onchange = function(){ fixOn = this.checked; sset('fxon', fixOn ? '1' : '0'); changed(); scanFix(); };
+  $('#fxhi').onchange = function(){ fixHi = this.checked; sset('fxhi', fixHi ? '1' : '0'); changed(); scanFix(); };
   $('#dict').value = sget('dict', ''); parseDict();
-  $('#dict').onchange = function(){ sset('dict', this.value); parseDict(); changed(); };
+  $('#dict').onchange = function(){ sset('dict', this.value); parseDict(); changed(); scanFix(); };
   if ('mediaSession' in navigator) { try {
     navigator.mediaSession.metadata = new MediaMetadata({ title: 'خوانندهٔ صوتی PDF' });
     [['play', function(){ if (!playing) start(); }], ['pause', function(){ if (playing) pause(); }], ['previoustrack', function(){ seekTo(idx - 1); }], ['nexttrack', function(){ seekTo(idx + 1); }]].forEach(function(a){ navigator.mediaSession.setActionHandler(a[0], a[1]); });
