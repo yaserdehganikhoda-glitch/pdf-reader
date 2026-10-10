@@ -62,7 +62,7 @@ input[type=range]{accent-color:var(--accent)}
 details summary{cursor:pointer;font-weight:600;min-height:32px}
 textarea#dict{width:100%;min-height:110px;margin-top:8px;font:inherit;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
 .empty{color:var(--muted);text-align:center;padding:20px 0}
-.row input[type=text],.row input[type=password]{width:100%;font:inherit;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:44px;direction:ltr;text-align:left}
+.row input[type=text],.row input[type=password],.row input[type=number]{width:100%;font:inherit;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:44px;direction:ltr;text-align:left}
 #reader span.risk{text-decoration:underline dashed;text-decoration-color:var(--warn-ink);text-underline-offset:6px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chip{font:inherit;font-size:.95rem;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 14px;cursor:pointer;min-height:44px}
@@ -158,13 +158,19 @@ html,body{overflow-x:hidden}
       </select>
     </div>
     <label class="chk"><input type="checkbox" id="oPos"> مرتب‌سازی سطرها بر اساس موقعیت روی صفحه (برای فهرست و جدول)</label>
+    <label class="chk"><input type="checkbox" id="oCols"> تشخیص ستون‌بندی (متن دوستونی؛ همراه با گزینهٔ بالا)</label>
     <label class="chk"><input type="checkbox" id="oDots" checked> حذف نقطه‌چین و خط‌چین‌های فهرست</label>
     <label class="chk"><input type="checkbox" id="oHdr" checked> حذف سرصفحه و پاصفحهٔ تکراری و شمارهٔ صفحه</label>
     <label class="chk"><input type="checkbox" id="oNorm" checked> یکدست‌سازی «ي ك ى» عربی به فارسی و حذف اعراب و کشیده</label>
+    <label class="chk"><input type="checkbox" id="oFix" checked> اصلاح فاصله‌گذاری: نیم‌فاصله، فاصله پیش و پس از ، ؛ ؟ و درون پرانتز و گیومه</label>
     <label class="chk"><input type="checkbox" id="oScript" checked> کنار گذاشتن متن زبان‌های غیرفارسی و غیرلاتین (مثل ارمنی)</label>
     <div class="row" style="margin-top:8px">
       <label for="maxL"><span>بیشینهٔ طول هر تکه‌جمله (نویسه)</span><span id="maxV"></span></label>
       <input type="range" id="maxL" min="60" max="220" step="10" value="100">
+    </div>
+    <div class="two row">
+      <div class="row"><label for="pgFrom"><span>از صفحهٔ</span></label><input type="number" id="pgFrom" min="1" inputmode="numeric" placeholder="ابتدا"></div>
+      <div class="row"><label for="pgTo"><span>تا صفحهٔ</span></label><input type="number" id="pgTo" min="1" inputmode="numeric" placeholder="انتها"></div>
     </div>
     <div class="row">
       <label for="ocrMode"><span>OCR (خواندن از روی تصویر صفحه)</span></label>
@@ -174,10 +180,17 @@ html,body{overflow-x:hidden}
         <option value="off">خاموش</option>
       </select>
     </div>
+    <div class="two row">
+      <div class="row"><label for="ocrLang"><span>زبان OCR</span></label>
+        <select id="ocrLang"><option value="fas+eng">فارسی + انگلیسی</option><option value="fas">فقط فارسی</option><option value="eng">فقط انگلیسی</option></select></div>
+      <div class="row"><label for="ocrQ"><span>کیفیت OCR</span></label>
+        <select id="ocrQ"><option value="1">سریع</option><option value="2" selected>متعادل</option><option value="3">دقیق (کندتر)</option></select></div>
+    </div>
     <button class="btn" id="ocrBtn" type="button" disabled>اجرای OCR (از صفحهٔ فعلی)</button>
     <p class="hint" id="ocrStat" aria-live="polite"></p>
     <p class="hint" id="ocrSrc"></p>
-    <p class="hint">اگر پوشهٔ ocr همراه برنامه باشد، OCR کاملاً آفلاین کار می‌کند؛ در غیر این صورت بار اول موتور و دادهٔ زبان از اینترنت بارگیری می‌شود. هر صفحه روی گوشی چند ثانیه زمان می‌برد و نتیجه روی دستگاه ذخیره می‌شود.</p>
+    <p class="hint">با وجود پوشه‌های ocr و lib کنار برنامه (ساختهٔ fetch-offline.sh)، OCR و نمایش PDF کاملاً آفلاین کار می‌کنند؛ وگرنه موتور از اینترنت گرفته می‌شود. نتیجهٔ OCR روی دستگاه ذخیره می‌شود.</p>
+    <button class="btn" id="txtReset" type="button" style="width:100%;margin-top:8px">بازنشانی تنظیمات متن</button>
   </details>
 
   <details class="card" id="fixbox" open>
@@ -240,7 +253,8 @@ html,body{overflow-x:hidden}
 </div>
 
 <script src="piper.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="lib/pdf.min.js"></script>
+<script>window.pdfLocal = !!window.pdfjsLib; if (!window.pdfjsLib) document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"><\/script>');</script>
 <script>
 (function(){
   var $ = function(s){ return document.querySelector(s); };
@@ -248,7 +262,7 @@ html,body{overflow-x:hidden}
   var sents = [], idx = 0, playing = false, token = 0, voices = [], curEl = null;
 
   if (window.pdfjsLib) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = window.pdfLocal ? new URL('lib/pdf.worker.min.js', location.href).href : 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   }
 
   /* ---------- settings (best-effort) ---------- */
@@ -451,8 +465,8 @@ html,body{overflow-x:hidden}
   $('#vfLoad').onclick = function(){ vfMsg('در حال بارگذاری از پوشه…'); NP.importVoices({}).then(function(r){ vfMsg(r.count ? nf.format(r.count) + ' صدا از پوشه بارگذاری شد.' : 'صدای جدیدی برای بارگذاری نبود؛ صداهای موجود دست‌نخورده می‌مانند.'); updatePiperStatus(); }, function(e){ vfMsg(em(e)); }); };
 
   /* ---------- text settings / OCR ---------- */
-  var O = { ln: 'auto', maxl: 100, script: true, ocr: 'auto' }, pdfDoc = null, rawItems = [], ocrPages = {}, ocrKey = '', need = [], dropped = 0, ocrBusy = false, ocrStop = false, tessP = null;
-  function opts(){ var g = function(i){ return $('#' + i); }; return { ln: g('lnMode').value, dots: g('oDots').checked, hdr: g('oHdr').checked, norm: g('oNorm').checked, script: g('oScript').checked, pos: g('oPos').checked, maxl: +g('maxL').value, ocr: g('ocrMode').value, enc: g('encMode').value }; }
+  var O = { ln: 'auto', maxl: 100, script: true, ocr: 'auto' }, pdfDoc = null, rawItems = [], ocrPages = {}, ocrKey = '', need = [], dropped = 0, ocrBusy = false, ocrStop = false, tessP = null, rawImg = [];
+  function opts(){ var g = function(i){ return $('#' + i); }; return { ln: g('lnMode').value, dots: g('oDots').checked, hdr: g('oHdr').checked, norm: g('oNorm').checked, script: g('oScript').checked, pos: g('oPos').checked, cols: g('oCols').checked, fix: g('oFix').checked, from: Math.max(0, +g('pgFrom').value || 0), to: Math.max(0, +g('pgTo').value || 0), maxl: +g('maxL').value, ocr: g('ocrMode').value, enc: g('encMode').value }; }
   var CW = new Set('و در به از که این را با است برای آن یک تا هم بر یا هر شد می'.split(' '));
   function bad(t){
     var s = t.replace(/\s/g, ''), n = s.length; if (n < 30) return false;
@@ -489,11 +503,11 @@ html,body{overflow-x:hidden}
     if ((o.t.match(/[\p{Script=Arabic}\p{Script=Latin}]/gu) || []).length / L >= 0.3) return true;
     dropped++; return false;
   }
-  function lineSort(items){
-    var a = items.filter(function(it){ return it.str && it.transform; }), rows = [], out = [];
-    if (!a.length) return items;
+  function fsOf(it){ return Math.abs(it.transform[3]) || Math.hypot(it.transform[0], it.transform[1]) || 10; }
+  function rowSort(a){
+    var rows = [], out = [];
     a.slice().sort(function(p, q){ return q.transform[5] - p.transform[5]; }).forEach(function(it){
-      var fs = Math.abs(it.transform[3]) || Math.hypot(it.transform[0], it.transform[1]) || 10, r = rows[rows.length - 1];
+      var fs = fsOf(it), r = rows[rows.length - 1];
       if (r && Math.abs(r.y - it.transform[5]) < fs * 0.5) r.a.push(it); else rows.push({ y: it.transform[5], a: [it] });
     });
     rows.forEach(function(r){
@@ -503,64 +517,167 @@ html,body{overflow-x:hidden}
     });
     return out;
   }
+  function colBands(a){
+    var fs = a.map(fsOf).sort(function(p, q){ return p - q; }), mf = fs[fs.length >> 1] || 10, x0 = Infinity, x1 = -Infinity;
+    a.forEach(function(it){ var l = it.transform[4], r = l + (it.width || 0); if (l < x0) x0 = l; if (r > x1) x1 = r; });
+    var W = x1 - x0; if (a.length < 12 || W < mf * 12) return [a];
+    var bw = mf / 3, nb = Math.ceil(W / bw) + 1, cnt = new Array(nb).fill(0), sh = a.filter(function(it){ return (it.width || 0) < W * 0.6; });
+    if (sh.length < 10) return [a];
+    sh.forEach(function(it){ var l = it.transform[4], b0 = Math.floor((l - x0) / bw), b1 = Math.floor((l + (it.width || 0) - x0) / bw); for (var b = Math.max(0, b0); b <= Math.min(nb - 1, b1); b++) cnt[b]++; });
+    var lim = Math.floor(sh.length * 0.01), lo = Math.floor(nb * 0.25), hi = Math.ceil(nb * 0.75), bs = 0, be = -1, st = -1;
+    for (var b = lo; b <= hi; b++) {
+      if (cnt[b] <= lim) { if (st < 0) st = b; if (b - st + 1 > be - bs + 1 || be < 0) { bs = st; be = b; } } else st = -1;
+    }
+    if (be < 0 || (be - bs + 1) * bw < mf * 1.2) return [a];
+    var g0 = x0 + bs * bw, g1 = x0 + (be + 1) * bw, gm = (g0 + g1) / 2;
+    var nl = sh.filter(function(it){ return it.transform[4] + (it.width || 0) / 2 < gm; }).length;
+    if (nl < sh.length * 0.25 || nl > sh.length * 0.75) return [a];
+    var rtl = a.filter(function(it){ return RTLCH.test(it.str); }).length * 2 >= a.length, bands = [], L = [], R = [];
+    var flush = function(){ (rtl ? [R, L] : [L, R]).forEach(function(c){ if (c.length) bands.push(c); }); L = []; R = []; };
+    a.slice().sort(function(p, q){ return q.transform[5] - p.transform[5]; }).forEach(function(it){
+      var l = it.transform[4], r = l + (it.width || 0);
+      if (l < g0 && r > g1) { flush(); bands.push([it]); } else if ((l + r) / 2 < gm) L.push(it); else R.push(it);
+    });
+    flush();
+    return bands;
+  }
+  function lineSort(items){
+    var a = items.filter(function(it){ return it.str && it.transform; }), out = [];
+    if (!a.length) return items;
+    (O.cols ? colBands(a) : [a]).forEach(function(b){ out = out.concat(rowSort(b)); });
+    return out;
+  }
   function ocrTodo(){ return need.filter(function(p){ return ocrPages[p] == null; }); }
   function ocrHint(){ var k = ocrTodo().length; return k ? ' — ' + nf.format(k) + ' صفحه متن خراب یا بدون متن دارد و نیاز به OCR دارد (بخش «تنظیمات متن PDF»)' : ''; }
   function ocrInfo(){
     var k = ocrTodo().length, b = $('#ocrBtn');
-    ocrLocal().then(function(l){ $('#ocrSrc').textContent = l ? 'موتور و دادهٔ OCR: داخل برنامه (آفلاین)' : 'موتور و دادهٔ OCR: داخل برنامه نیست؛ از اینترنت بارگیری می‌شود'; });
+    ocrLocal().then(function(l){ $('#ocrSrc').textContent = (l ? 'موتور و دادهٔ OCR: داخل برنامه (آفلاین)' : 'موتور و دادهٔ OCR: داخل برنامه نیست؛ از اینترنت بارگیری می‌شود') + ' — نمایش PDF: ' + (window.pdfLocal ? 'داخل برنامه (آفلاین)' : 'از اینترنت'); });
     b.disabled = !ocrBusy && !k; b.textContent = ocrBusy ? 'توقف OCR و استفاده از نتیجه' : 'اجرای OCR (از صفحهٔ فعلی)';
     if (k && !ocrBusy) $('#txtbox').open = true;
     $('#ocrStat').textContent = (O.ocr === 'off' ? 'OCR خاموش است. ' : k ? nf.format(k) + ' صفحه ' + (O.ocr === 'always' ? 'برای OCR انتخاب شده' : 'متن ناخوانا یا بدون متن دارد (کدگذاری فونت PDF درست نیست)') + '؛ با OCR از روی تصویر صفحه خوانده می‌شوند. ' : (rawItems.length ? 'صفحهٔ مشکل‌دار پیدا نشد. ' : '')) + (dropped ? nf.format(dropped) + ' جملهٔ غیرفارسی و غیرلاتین (مثل ارمنی) کنار گذاشته شد.' : '');
   }
   function process(keep){
     var kp = keep && sents[idx] ? sents[idx].page : 0, n = rawItems.length, emp = [], badp = [];
+    var inR = function(p){ return (!O.from || p >= O.from) && (!O.to || p <= O.to); };
     O = opts(); stopAll(); clearCache();
     var pg = rawItems.map(function(it, i){ return ocrPages[i + 1] != null ? ocrPages[i + 1] : joinItems(O.pos ? lineSort(it) : it); });
     if (O.enc !== 'none') pg = pg.map(function(t, i){ return ocrPages[i + 1] != null ? t : O.enc === 'auto' ? pickEnc(t) : reenc(t, O.enc); });
     pg.forEach(function(t, i){ if (ocrPages[i + 1] != null) return; if (t.replace(/\s/g, '').length < 3) emp.push(i + 1); else if (bad(t)) badp.push(i + 1); });
     if (badp.length > n * 0.3) { badp = []; emp = []; pg.forEach(function(t, i){ if (ocrPages[i + 1] == null) badp.push(i + 1); }); }
-    need = O.ocr === 'off' ? [] : O.ocr === 'always' ? pg.map(function(t, i){ return i + 1; }) : badp.concat(emp.length > n * 0.5 ? emp : []);
+    var imgp = emp.filter(function(p){ return rawImg[p]; }), pure = emp.filter(function(p){ return !rawImg[p]; });
+    need = (O.ocr === 'off' ? [] : O.ocr === 'always' ? pg.map(function(t, i){ return i + 1; }) : badp.concat(imgp, pure.length > n * 0.5 ? pure : [])).filter(inR);
     if (O.ocr !== 'off') badp.forEach(function(q){ pg[q - 1] = ''; });
     if (O.hdr) pg = dropRepeats(pg);
-    pg = pg.map(function(t){ return clean(prep(t), O.ln); });
+    pg = pg.map(function(t, i){ return inR(i + 1) ? tidy(clean(prep(t), O.ln)) : ''; });
     build(pg); warmPiper(); analyze(); ocrInfo();
     if (kp) { for (var i = 0; i < sents.length; i++) if (sents[i].page >= kp) { idx = i; break; } mark(true); }
   }
-  var ocrLoc = null, OCR_CDN = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+  var ocrLoc = null, OCR_CDN = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js', OCR_LANG_CDN = 'https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0_best';
   function absUrl(u){ return new URL(u, location.href).href; }
+  function probe(u, gz){
+    return fetch(absUrl(u)).then(function(r){
+      var ok = r.ok && !/html/i.test(r.headers.get('content-type') || '');
+      if (!ok || !gz || !r.body || !r.body.getReader) { try { if (r.body) r.body.cancel(); } catch (e) {} return ok; }
+      var rd = r.body.getReader();
+      return rd.read().then(function(x){ try { rd.cancel(); } catch (e) {} var v = x.value; return !!(v && v[0] === 0x1f && v[1] === 0x8b); });
+    }).catch(function(){ return false; });
+  }
   function ocrLocal(){
-    return ocrLoc || (ocrLoc = fetch(absUrl('ocr/lang/fas.traineddata.gz'), { method: 'HEAD' }).then(function(r){ return r.ok && !/html/i.test(r.headers.get('content-type') || ''); }, function(){ return false; }));
+    return ocrLoc || (ocrLoc = Promise.all([probe('ocr/lang/fas.traineddata.gz', true), probe('ocr/lang/eng.traineddata.gz', true), probe('ocr/tesseract.min.js'), probe('ocr/worker.min.js')]).then(function(a){ return a.every(Boolean); }));
   }
   function addScript(src){
     return new Promise(function(res, rej){ var el = document.createElement('script'); el.src = src; el.onload = res; el.onerror = function(){ el.remove(); rej(new Error('script')); }; document.head.appendChild(el); });
   }
   function loadTess(){
-    return tessP || (tessP = (window.Tesseract ? Promise.resolve() : ocrLocal().then(function(l){ return l ? addScript(absUrl('ocr/tesseract.min.js')) : Promise.reject(new Error('nolocal')); }).catch(function(){ return addScript(OCR_CDN); })).catch(function(){ tessP = null; throw new Error('موتور OCR در برنامه نیست و اینترنت هم در دسترس نیست (پوشهٔ ocr را اضافه کنید).'); }));
+    return tessP || (tessP = (window.Tesseract ? Promise.resolve() : ocrLocal().then(function(l){ return l ? addScript(absUrl('ocr/tesseract.min.js')) : Promise.reject(new Error('nolocal')); }).catch(function(){ return addScript(OCR_CDN); })).catch(function(){ tessP = null; throw new Error('موتور OCR در برنامه نیست و اینترنت هم در دسترس نیست (پوشهٔ ocr را با fetch-offline.sh بسازید).'); }));
+  }
+  var OCRQ = { '1': 1500, '2': 2000, '3': 2600 };
+  function enhance(cv, cx){
+    var w = cv.width, h = cv.height, n = w * h, im = cx.getImageData(0, 0, w, h), d = im.data, hist = new Uint32Array(256), i, g, a = 0, lo = 0, hi = 255;
+    for (i = 0; i < n; i++) { g = (d[4 * i] * 77 + d[4 * i + 1] * 150 + d[4 * i + 2] * 29) >> 8; d[4 * i] = g; hist[g]++; }
+    for (i = 0; i < 256; i++) { a += hist[i]; if (a >= n * 0.005) { lo = i; break; } }
+    for (i = 0, a = 0; i < 256; i++) { a += hist[i]; if (a >= n * 0.995) { hi = i; break; } }
+    if (hi - lo < 8) return;
+    var k = 255 / (hi - lo), lut = new Uint8Array(256);
+    for (i = 0; i < 256; i++) lut[i] = Math.max(0, Math.min(255, Math.round((i - lo) * k)));
+    for (i = 0; i < n; i++) { g = lut[d[4 * i]]; d[4 * i] = d[4 * i + 1] = d[4 * i + 2] = g; d[4 * i + 3] = 255; }
+    cx.putImageData(im, 0, 0);
+  }
+  function ocrText(d){
+    var ls = (d && d.lines) || [], out = [], py = null, pend = false;
+    if (!ls.length) return (d && d.text) || '';
+    var hs = ls.map(function(l){ return l.bbox ? l.bbox.y1 - l.bbox.y0 : 0; }).filter(Boolean).sort(function(p, q){ return p - q; }), mh = hs.length ? hs[hs.length >> 1] : 0;
+    ls.forEach(function(l){
+      var t = (l.text || '').replace(/[|¦_~]{2,}/g, ' ').replace(/\s+/g, ' ').trim(), nl = (t.match(/\p{L}/gu) || []).length, c = l.confidence == null ? 100 : l.confidence;
+      if (l.bbox && py !== null && mh && l.bbox.y0 - py > mh * 0.9) pend = true;
+      if (l.bbox) py = l.bbox.y1;
+      if (!/[\p{L}\p{N}]/u.test(t) || c < 25 || (c < 50 && nl < 4)) return;
+      if (pend && out.length) out.push('');
+      pend = false; out.push(t);
+    });
+    return out.length ? out.join('\n') : (d.text || '');
   }
   async function runOcr(){
     if (ocrBusy) { ocrStop = true; return; }
-    var cur = sents[idx] ? sents[idx].page : 1, n = rawItems.length, L = [], w = null, done = 0;
-    for (var k = 0; k < n; k++) { var p0 = ((cur - 1 + k) % n) + 1; if (need.indexOf(p0) >= 0 && ocrPages[p0] == null) L.push(p0); }
-    if (!L.length || !pdfDoc) return;
+    var doc = pdfDoc, key = ocrKey, pages = ocrPages, cur = sents[idx] ? sents[idx].page : 1, n = rawItems.length, L = [], W = [], done = 0, err = '', qi = 0;
+    for (var k = 0; k < n; k++) { var p0 = ((cur - 1 + k) % n) + 1; if (need.indexOf(p0) >= 0 && pages[p0] == null) L.push(p0); }
+    if (!L.length || !doc) return;
     stopAll(); ocrBusy = true; ocrStop = false; ocrInfo();
     try {
       status('بارگذاری موتور OCR…'); await loadTess();
-      var loc = await ocrLocal();
-      w = await Tesseract.createWorker('fas+eng', 1, loc ? { workerPath: absUrl('ocr/worker.min.js'), corePath: absUrl('ocr'), langPath: absUrl('ocr/lang'), workerBlobURL: false, cacheMethod: 'none' } : { langPath: 'https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0_fast' });
-      for (var j = 0; j < L.length && !ocrStop; j++) {
-        status('OCR صفحهٔ ' + nf.format(L[j]) + ' (' + nf.format(j + 1) + ' از ' + nf.format(L.length) + ')…');
-        var page = await pdfDoc.getPage(L[j]), v1 = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: Math.max(1, Math.min(3, 1700 / v1.width)) });
-        var cv = document.createElement('canvas'); cv.width = vp.width; cv.height = vp.height;
-        await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
-        ocrPages[L[j]] = (await w.recognize(cv)).data.text || ''; done++;
-        cv.width = 0; page.cleanup();
-        if (done % 3 === 0) sset(ocrKey, JSON.stringify(ocrPages));
-        if (!playing && !ocrStop && (done === 2 || done % 8 === 0)) { process(true); ocrInfo(); }
+      var loc = await ocrLocal(), lang = $('#ocrLang').value || 'fas+eng', tw = OCRQ[$('#ocrQ').value] || 2000;
+      var nw = (L.length > 1 && (navigator.hardwareConcurrency || 2) >= 6 && (navigator.deviceMemory || 4) >= 4) ? 2 : 1;
+      var cfg = loc ? { workerPath: absUrl('ocr/worker.min.js'), corePath: absUrl('ocr'), langPath: absUrl('ocr/lang'), workerBlobURL: false, cacheMethod: 'none' } : { langPath: OCR_LANG_CDN };
+      for (var q = 0; q < nw; q++) {
+        var wk = await Tesseract.createWorker(lang, 1, cfg); W.push(wk);
+        try { await wk.setParameters({ tessedit_pageseg_mode: '3', preserve_interword_spaces: '1', user_defined_dpi: '300' }); } catch (e) {}
       }
-    } catch (e) { status('OCR ناموفق بود: ' + (e && e.message ? e.message : e)); }
-    try { if (w) await w.terminate(); } catch (e) {}
-    sset(ocrKey, JSON.stringify(ocrPages)); ocrBusy = false;
-    if (done) { process(true); status('OCR برای ' + nf.format(done) + ' صفحه انجام شد.' + ocrHint()); } else ocrInfo();
+      var loop = async function(wk){
+        while (!ocrStop && qi < L.length) {
+          var pn = L[qi++];
+          status('OCR صفحهٔ ' + nf.format(pn) + ' (' + nf.format(done + 1) + ' از ' + nf.format(L.length) + ')…');
+          var page = await doc.getPage(pn), v1 = page.getViewport({ scale: 1 }), sc = Math.max(0.75, Math.min(4, tw / v1.width, 4800 / Math.max(v1.width, v1.height))), vp = page.getViewport({ scale: sc });
+          var cv = document.createElement('canvas'); cv.width = Math.ceil(vp.width); cv.height = Math.ceil(vp.height);
+          var cx = cv.getContext('2d', { willReadFrequently: true }); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+          await page.render({ canvasContext: cx, viewport: vp, background: '#fff' }).promise;
+          enhance(cv, cx);
+          var r = await wk.recognize(cv);
+          pages[pn] = ocrText(r.data); done++;
+          cv.width = 0; page.cleanup();
+          if (done % 3 === 0) ocrSave(key, pages);
+          if (!playing && !ocrStop && doc === pdfDoc && (done === 2 || done % 8 === 0)) { process(true); ocrInfo(); }
+        }
+      };
+      await Promise.all(W.map(loop));
+    } catch (e) { ocrStop = true; err = em(e); }
+    for (var z = 0; z < W.length; z++) { try { await W[z].terminate(); } catch (e) {} }
+    await ocrSave(key, pages); ocrBusy = false;
+    if (doc !== pdfDoc) return;
+    var msg = err ? 'OCR ناموفق بود: ' + err : '';
+    if (done) { process(true); status('OCR برای ' + nf.format(done) + ' صفحه انجام شد.' + (msg ? ' ' + msg : '') + ocrHint()); } else { ocrInfo(); if (msg) status(msg); }
+  }
+
+  /* ---------- OCR storage (IndexedDB, fallback localStorage) ---------- */
+  var kvDB = null;
+  function kvOpen(){
+    return kvDB || (kvDB = new Promise(function(res){
+      try { var r = indexedDB.open('pdfreader', 1); r.onupgradeneeded = function(){ r.result.createObjectStore('kv'); }; r.onsuccess = function(){ res(r.result); }; r.onerror = r.onblocked = function(){ res(null); }; } catch (e) { res(null); }
+    }));
+  }
+  function kvGet(k){
+    return kvOpen().then(function(db){ return db ? new Promise(function(res){ try { var q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = function(){ res(q.result); }; q.onerror = function(){ res(undefined); }; } catch (e) { res(undefined); } }) : undefined; });
+  }
+  function kvSet(k, v){
+    return kvOpen().then(function(db){ return db ? new Promise(function(res){ try { var tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = function(){ res(true); }; tx.onerror = tx.onabort = function(){ res(false); }; } catch (e) { res(false); } }) : false; });
+  }
+  function ocrSave(k, o){
+    return kvSet(k, o).then(function(ok){ if (!ok) sset(k, JSON.stringify(o)); else { try { localStorage.removeItem(k); } catch (e) {} } });
+  }
+  function ocrLoad(k){
+    return kvGet(k).then(function(v){
+      if (v && typeof v === 'object') return v;
+      try { return JSON.parse(sget(k, '{}')) || {}; } catch (e) { return {}; }
+    });
   }
 
   /* ---------- PDF -> text ---------- */
@@ -574,10 +691,21 @@ html,body{overflow-x:hidden}
       if (nx === undefined) { out += l; return; }
       if (!l || !nx) { out += l + '\n'; return; }
       if (/[A-Za-z]-$/.test(l) && /^[a-z]/.test(nx)) { out += l.slice(0, -1); return; }
+      if (/\u200c$/.test(l) && /^\p{L}/u.test(nx)) { out += l; return; }
       var brk = mode === 'line' || (mode !== 'join' && (/[.!?؟…؛:]["»”')\]]*$/.test(l) || (ref >= 40 && l.length < ref * 0.45 && !/[،,]$/.test(l))));
       out += l + (brk ? '\n' : ' ');
     });
     return out.trim();
+  }
+  function tidy(t){
+    if (!O.fix) return t;
+    return t.split('\n').map(function(l){
+      return l.replace(/\s*\u200c\s*/g, '\u200c').replace(/\u200c{2,}/g, '\u200c')
+        .replace(/(?<![\p{L}])\u200c|\u200c(?![\p{L}])/gu, '')
+        .replace(/[ \t]+([،؛؟!?])/g, '$1').replace(/(\p{L})[ \t]+([.:])(?=\s|$)/gu, '$1$2')
+        .replace(/([،؛؟])(?=[\p{L}\p{N}])/gu, '$1 ').replace(/[،]{2,}/g, '،')
+        .replace(/\([ \t]+/g, '(').replace(/[ \t]+\)/g, ')').replace(/«[ \t]+/g, '«').replace(/[ \t]+»/g, '»').trim();
+    }).join('\n');
   }
   var ABR = /^(?:dr|mr|mrs|ms|prof|vs|fig|vol|pp|jr|sr|st|دکتر|مهندس)$/i;
   var NB_AFTER = new Set('و یا که از به در با تا را برای بر بی چون اگر این آن هر همه یک چند نه هم نیز بین میان طی مثل مانند جز چه کدام آنچه اینکه آنکه چنان بسیار بیشتر کمتر بعضی برخی'.split(' '));
@@ -630,9 +758,14 @@ html,body{overflow-x:hidden}
   function dropRepeats(pg){
     var key = function(l){ return l.replace(/[\d۰-۹٠-٩]+/g, '#'); }, cnt = {};
     var L = pg.map(function(t){ return t.split('\n').map(function(l){ return l.trim(); }); });
-    L.forEach(function(ls){ var seen = {}; ls.forEach(function(l){ var k = key(l); if (l && l.length < 80 && !seen[k]) { seen[k] = 1; cnt[k] = (cnt[k] || 0) + 1; } }); });
+    var E = L.map(function(ls){
+      var e = {}, c = 0, i; for (i = 0; i < ls.length && c < 3; i++) if (ls[i]) { e[i] = 1; c++; }
+      for (c = 0, i = ls.length - 1; i >= 0 && c < 3; i--) if (ls[i]) { e[i] = 1; c++; }
+      return e;
+    });
+    L.forEach(function(ls, p){ var seen = {}; ls.forEach(function(l, i){ var k = key(l); if (E[p][i] && l.length < 80 && !seen[k]) { seen[k] = 1; cnt[k] = (cnt[k] || 0) + 1; } }); });
     var th = Math.max(3, pg.length * 0.4);
-    return L.map(function(ls){ return ls.filter(function(l){ return !(l && l.length < 80 && (cnt[key(l)] >= th || /^[-–\s\d۰-۹٠-٩]+$/.test(l))); }).join('\n'); });
+    return L.map(function(ls, p){ return ls.filter(function(l, i){ return !(E[p][i] && l && l.length < 80 && (cnt[key(l)] >= th || /^[-–\s\d۰-۹٠-٩]+$/.test(l))); }).join('\n'); });
   }
   var RTLCH = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
   function joinItems(items){
@@ -654,8 +787,15 @@ html,body{overflow-x:hidden}
     }
     return out;
   }
+  async function hasImg(page){
+    try {
+      var ol = await page.getOperatorList(), o = pdfjsLib.OPS, set = new Set([o.paintImageXObject, o.paintInlineImageXObject, o.paintImageMaskXObject, o.paintJpegXObject].filter(Boolean));
+      return ol.fnArray.some(function(f){ return set.has(f); });
+    } catch (e) { return true; }
+  }
   async function loadFile(file){
-    if (!window.pdfjsLib) { status('کتابخانهٔ PDF بارگذاری نشد. اتصال اینترنت را بررسی کنید.'); return; }
+    if (!window.pdfjsLib) { status('کتابخانهٔ PDF بارگذاری نشد (پوشهٔ lib را با fetch-offline.sh بسازید یا اینترنت را روشن کنید).'); return; }
+    if (ocrBusy) { ocrStop = true; while (ocrBusy) await new Promise(function(r){ setTimeout(r, 60); }); }
     curKey = '';
     stopAll();
     status('در حال باز کردن فایل…');
@@ -663,15 +803,17 @@ html,body{overflow-x:hidden}
       var buf = await file.arrayBuffer();
       if (pdfDoc) { try { pdfDoc.destroy(); } catch (e) {} }
       pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
-      var pdf = pdfDoc; rawItems = [];
+      var pdf = pdfDoc; rawItems = []; rawImg = [];
       for (var p = 1; p <= pdf.numPages; p++) {
         status('استخراج متن: صفحهٔ ' + nf.format(p) + ' از ' + nf.format(pdf.numPages));
         var page = await pdf.getPage(p);
-        rawItems.push((await page.getTextContent()).items); page.cleanup();
+        var its = (await page.getTextContent()).items; rawItems.push(its);
+        if (!its.some(function(x){ return x.str && x.str.trim(); })) rawImg[p] = await hasImg(page);
+        page.cleanup();
         if (p % 8 === 0) await new Promise(function(r){ setTimeout(r, 0); });
       }
       ocrKey = 'ocr:' + file.name + ':' + file.size;
-      try { ocrPages = JSON.parse(sget(ocrKey, '{}')) || {}; } catch (e) { ocrPages = {}; }
+      ocrPages = await ocrLoad(ocrKey);
       process();
       curKey = 'pos:' + file.name + ':' + file.size;
       var sv = parseInt(sget(curKey, '0'), 10);
@@ -1627,11 +1769,17 @@ html,body{overflow-x:hidden}
     [['play', function(){ if (!playing) start(); }], ['pause', function(){ if (playing) pause(); }], ['previoustrack', function(){ seekTo(idx - 1); }], ['nexttrack', function(){ seekTo(idx + 1); }]].forEach(function(a){ navigator.mediaSession.setActionHandler(a[0], a[1]); });
   } catch (e) {} }
 
-  ['lnMode','oDots','oHdr','oNorm','oScript','oPos','maxL','ocrMode','encMode'].forEach(function(id){
-    var e = $('#' + id), c = e.type === 'checkbox', v = sget('o_' + id, null);
+  var TXT_IDS = ['lnMode','oDots','oHdr','oNorm','oFix','oScript','oPos','oCols','maxL','pgFrom','pgTo','ocrMode','ocrLang','ocrQ','encMode'], TXT_DEF = {};
+  TXT_IDS.forEach(function(id){
+    var e = $('#' + id), c = e.type === 'checkbox'; TXT_DEF[id] = c ? e.checked : e.value;
+    var v = sget('o_' + id, null);
     if (v !== null) { if (c) e.checked = v === '1'; else e.value = v; }
     e.onchange = function(){ sset('o_' + id, c ? (e.checked ? '1' : '0') : e.value); if (pdfDoc) process(true); };
   });
+  $('#txtReset').onclick = function(){
+    TXT_IDS.forEach(function(id){ var e = $('#' + id); if (e.type === 'checkbox') e.checked = TXT_DEF[id]; else e.value = TXT_DEF[id]; try { localStorage.removeItem('o_' + id); } catch (x) {} });
+    $('#maxL').oninput(); if (pdfDoc) process(true);
+  };
   $('#maxL').oninput = function(){ $('#maxV').textContent = nf.format(+this.value); };
   $('#maxL').oninput(); O = opts();
   $('#ocrBtn').onclick = runOcr;
