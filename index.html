@@ -480,6 +480,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
             </select>
           </div>
           <label class="chk"><input type="checkbox" id="smartPace" checked> سرعت هوشمند (کمی آهسته‌تر روی جمله‌های سنگین، کلمه‌های بلند و لاتین)</label>
+          <label class="chk"><input type="checkbox" id="phFa" checked> تلفظ پیشرفتهٔ فارسی (نیم‌فاصله‌ها برای موتور آوایی حفظ شود و «هٔ» اضافه درست خوانده شود)</label>
         </div>
         <label class="chk"><input type="checkbox" id="allLangs"> نمایش صداهای همهٔ زبان‌ها</label>
         <details class="sub hintbox"><summary>توضیحات</summary><div class="in">
@@ -790,14 +791,21 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
       'https://ghfast.top/https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/' + f
     ];
   };
-  var NEGAR_PATH = 'karim23657/persian-tts-vits/resolve/main/persian-tts-female1-vits-coqui/';
-  var NP_MODEL_FILES = {
-    'coqui-fa-negar': function(){
-      return ['model.onnx', 'tokens.txt'].map(function(n){
-        return { name: n, urls: ['https://huggingface.co/' + NEGAR_PATH + n, 'https://hf-mirror.com/' + NEGAR_PATH + n] };
-      });
-    }
+  /* صداهای زنِ Coqui (VITS آوایی؛ به espeak نیاز دارند) از مخزن karim23657/persian-tts-vits */
+  var CQ = {
+    'coqui-fa-negar': 'persian-tts-female1-vits-coqui',
+    'coqui-fa-shiva': 'female-GPTInformal-coqui-vits',
+    'coqui-fa-mahtab': 'female-female-coqui-vits'
   };
+  var NP_MODEL_FILES = {};
+  Object.keys(CQ).forEach(function(id){
+    NP_MODEL_FILES[id] = function(){
+      var p = 'karim23657/persian-tts-vits/resolve/main/' + CQ[id] + '/';
+      return ['model.onnx', 'tokens.txt'].map(function(n){
+        return { name: n, urls: ['https://huggingface.co/' + p + n, 'https://hf-mirror.com/' + p + n] };
+      });
+    };
+  });
   function b64Blob(b64, type){
     var bin = atob(b64), n = bin.length, u = new Uint8Array(n);
     for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
@@ -810,7 +818,9 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
         { key: 'fa_IR-ganji-medium', name: 'ganji', quality: 'medium', language: { family: 'fa' } },
         { key: 'fa_IR-ganji_adabi-medium', name: 'ganji_adabi', quality: 'medium', language: { family: 'fa' } },
         { key: 'fa_en-rezahedayatfar-ibrahimwalk-medium', name: 'reza_ibrahim (fa+en)', quality: 'medium', language: { family: 'fa' } },
-        { key: 'coqui-fa-negar', name: 'negar', quality: 'coqui', mb: 114, language: { family: 'fa' } }
+        { key: 'coqui-fa-negar', name: 'نگار', quality: 'coqui', mb: 114, language: { family: 'fa' } },
+        { key: 'coqui-fa-shiva', name: 'شیوا', quality: 'coqui', mb: 114, language: { family: 'fa' } },
+        { key: 'coqui-fa-mahtab', name: 'مهتاب', quality: 'coqui', mb: 114, language: { family: 'fa' } }
       ]);
     },
     stored: function(){ return NP.stored().then(function(r){ return (r && r.ids) || []; }); },
@@ -852,7 +862,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
         if (/amir/i.test(v.key || '')) return false;
         return (v.language && v.language.family === 'fa') || /^fa_/.test(v.key || '');
       }).map(function(v){
-        return { id: v.key, name: (v.name || v.key) + (v.quality ? ' (' + v.quality + ')' : ''), lang: 'fa-IR', gender: /gyro|ganji|amir|rezahedayatfar|ibrahim/i.test(v.key || '') ? 'm' : /negar/i.test(v.key || '') ? 'f' : '?', mb: v.mb || 0, fa: true };
+        return { id: v.key, name: (v.name || v.key) + (v.quality ? ' (' + v.quality + ')' : ''), lang: 'fa-IR', gender: /gyro|ganji|amir|rezahedayatfar|ibrahim/i.test(v.key || '') ? 'm' : /negar|shiva|mahtab/i.test(v.key || '') ? 'f' : '?', mb: v.mb || 0, fa: true };
       });
       if (fa.length) { piperVoices = fa; renderVoices(); }
     }).catch(function(){});
@@ -1429,8 +1439,11 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     });
   }
   function endMark(t, cont){ return /[.!?;:,]$/.test(t) ? t : t + (cont ? ',' : '.'); }
+  /* تلفظ پیشرفتهٔ فارسی: espeak (موتور آوانگار همهٔ صداها) برای «می، نمی، ها، ام، ات، اش، ای، اید، اند، تر…» وقتی با نیم‌فاصله جدا باشند واژهٔ بی‌تکیه و درست می‌شناسد، و «ۀ» را «-eje» می‌خواند */
+  function phFa(){ var e = document.getElementById('phFa'); return !e || e.checked; }
   function ttsBase(t, eng, cont, pre){
     eng = eng || engine();
+    if (phFa()) t = t.replace(/\u0647\u0654/g, '\u06C0');
     t = normCh(t).replace(/[\u0640\u064B-\u065F\u0670]/g, '').replace(/\u00A0/g, ' ')
       .replace(/[\u00ad\u200b\u200d-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '');
     if (!pre) t = dictIn(t);
@@ -1453,7 +1466,10 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     t = faNums(t).replace(/(?<![A-Za-z])[A-Z]{2,5}(?![A-Za-z])/g, function(w){ return /^[IVX]+$/.test(w) ? w : ' ' + w.split('').map(function(c){ return LET[c]; }).join(' ') + ' '; });
     }
     t = dictOut(t, fixOn());
-    t = t.replace(/\u200c/g, '');
+    if (phFa()) {
+      t = t.replace(/\u0647\u200c\u06CC(?![\p{L}\u200c])/gu, '\u06C0')
+        .replace(/\u200c+/g, '\u200c').replace(/(?<![\p{L}\p{M}])\u200c|\u200c(?![\p{L}\p{M}])/gu, '');
+    } else t = t.replace(/\u200c/g, '');
     t = t.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, ' ').replace(/\.{4,}/g, ', ').replace(/[_=\-–—]{3,}/g, ' ').replace(/&/g, ' و ')
       .replace(/[«»"“”]/g, '').replace(/\s*[(\[]\s*/g, ', ').replace(/\s*[)\]]\s*/g, ', ')
       .replace(/[•▪■◆●○◦*_#|~^<>{}\\\/]/g, ' ').replace(/\s*[–—]\s*/g, ', ')
@@ -1579,7 +1595,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     if (CUR && !CUR.uns) CUR.uns = {};
     try {
       t = normCh(t);
-      t = fxr(t, /(?:[\u0647\u06D5]\u0654|\u06C0|\u0647\u0621)/g, 'ez', 'ه\u200cی');
+      t = fxr(t, /(?:[\u0647\u06D5]\u0654|\u06C0|\u0647\u0621)/g, 'ez', function(){ return phFa() ? '\u06C0' : 'ه\u200cی'; });
       t = fxr(t, /(?<=[\u0621-\u064A])(?:\u064B\u0627|\u0627\u064B|\u064B)/g, 'spell', 'ن');
       t = t.replace(/[\u0640\u064B-\u065F\u0670]/g, '').replace(/\u00A0/g, ' ').replace(/[\u00ad\u200b\u200d-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '');
       t = dictIn(t);
@@ -1934,7 +1950,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   }
   function perf(){
     var el = $('#pperf'); if (!el) return;
-    var a = ['نسخه ۱۰ (کیفیت صدا)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
+    var a = ['نسخه ۱۱ (تلفظ و صداهای زن)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
     if (npOK) a.push('موتور بومی (sherpa-onnx)');
     if (npErr && !npOK) a.push('پلاگین بومی در این APK فعال نیست: ' + npErr);
     if (pwBad && !npOK) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
@@ -2667,6 +2683,8 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   $('#vstyle').value = sget('vstyle', 'balanced'); if (!STYLES[$('#vstyle').value]) $('#vstyle').value = 'balanced';
   $('#vstyle').onchange = function(){ sset('vstyle', this.value); changed(); warmPiper(); };
   $('#smartPace').checked = sget('smartPace', '1') !== '0';
+  $('#phFa').checked = sget('phFa', '1') !== '0';
+  $('#phFa').onchange = function(){ sset('phFa', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   $('#smartPace').onchange = function(){ sset('smartPace', this.checked ? '1' : '0'); changed(); warmPiper(); };
   $('#enh').onchange = function(){ sset('enh', this.checked ? '1' : '0'); setupFx(); wireFx(engine() === 'piper'); };
   dictG = sget('dict', ''); parseDict(); dictShow();
