@@ -552,12 +552,31 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
             <option value="lively" data-short="پرحالت" data-desc="پرحال‌تر و پرتنوع‌تر؛ مناسب داستان و گفت‌وگو.">گویا (پرحالت‌تر)</option>
           </select>
         </div>
+        <div class="field">
+          <span class="flab">حذف نویز و صداهای اضافه</span>
+          <select id="vclean" data-seg aria-label="حذف نویز و صداهای اضافه">
+            <option value="0" data-short="خاموش" data-desc="صدا دقیقاً همان خروجی خام مدل است.">خاموش</option>
+            <option value="1" data-short="ملایم" data-desc="کاهش ملایم خش‌خش زمینه و حذف «تق» مرز جمله‌ها؛ کمترین دخالت در صدا.">ملایم</option>
+            <option value="2" data-short="متعادل" data-desc="حذف خش‌خش و نویز زمینه، غرّش کم‌صدا، نفس و «تق» مرز جمله‌ها و مکث‌های تمیز، بدون دست‌زدن به وضوح گفتار (پیشنهادی).">متعادل (پیشنهادی)</option>
+            <option value="3" data-short="قوی" data-desc="پاک‌سازی بیشتر نویز؛ اگر گفتار کمی «خفه» شد به حالت متعادل برگردید.">قوی</option>
+          </select>
+        </div>
+        <div class="field">
+          <span class="flab">شفافیت و رسایی صدا</span>
+          <select id="vclarity" data-seg aria-label="شفافیت و رسایی صدا">
+            <option value="0" data-short="خاموش" data-desc="بدون ارتقا؛ ترازِ خود مدل.">خاموش</option>
+            <option value="1" data-short="ملایم" data-desc="صامت‌های کم‌صدا (ف، ه، ث…) و پایان کلمه‌ها کمی واضح‌تر.">ملایم</option>
+            <option value="2" data-short="متعادل" data-desc="صامت‌های ضعیف واضح‌تر، «س» و «ش» تند نرم‌تر و پایان کلمه‌ها رساتر؛ ترازِ بهتر میان واکه‌ها و صامت‌ها (پیشنهادی).">متعادل (پیشنهادی)</option>
+            <option value="3" data-short="قوی" data-desc="وضوح و رسایی بیشتر؛ مناسب هنگام گوش‌دادن در محیط شلوغ یا با بلندگوی ضعیف.">قوی</option>
+          </select>
+        </div>
         <div class="slist">
           <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است؛ مثل نفس‌گیری گوینده. سرعت خود صدا تغییر نمی‌کند.</small></span></label>
           <label class="chk"><input type="checkbox" id="smartPace"><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
           <label class="chk"><input type="checkbox" id="ezAuto" checked><span class="st"><b>کسرهٔ اضافهٔ خودکار</b><small>مثل «صدای کتاب». اگر جایی اشتباه خواند، این گزینه را خاموش کنید.</small></span></label>
           <label class="chk"><input type="checkbox" id="phFa" checked><span class="st"><b>تلفظ پیشرفتهٔ فارسی</b><small>نیم‌فاصله‌ها برای موتور آوایی حفظ می‌شود و «هٔ» اضافه درست خوانده می‌شود.</small></span></label>
           <label class="chk"><input type="checkbox" id="proLex" checked><span class="st"><b>گفتار حرفه‌ای</b><small>ساعت به شیوهٔ گوینده («ده و نیم») و پوشش کامل‌تر کسرهٔ اضافه.</small></span></label>
+          <label class="chk"><input type="checkbox" id="phLex" checked><span class="st"><b>واژه‌نامهٔ آوایی داخلی</b><small>برای صدها واژهٔ پرکاربرد، کوتاه‌مصوت‌ها (َ ِ ُ) را مشخص می‌کند تا تلفظ دقیق‌تر شود. اگر جایی عجیب خوانده شد خاموشش کنید.</small></span></label>
           <label class="chk"><input type="checkbox" id="enh" checked><span class="st"><b>بهبود کیفیت صدا</b><small>گرمی و وضوح بیشتر، نرم‌کردن «س» و «ش» تند و یکنواختی بلندی؛ تنظیم خودکار برای هر گوینده.</small></span></label>
         </div>
       </section>
@@ -602,6 +621,11 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
         <div class="in">
           <label class="chk"><input type="checkbox" id="allLangs"><span class="st"><b>نمایش صداهای همهٔ زبان‌ها</b></span></label>
           <p class="hint" id="pperf"></p>
+          <p class="hint" id="pcInfo">حافظهٔ نهان صدا: فقط در اپ اندروید با موتور بومی کار می‌کند.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <select id="pcLimit" aria-label="حداکثر حجم حافظهٔ نهان صدا"><option value="200">حداکثر ۲۰۰ مگابایت</option><option value="600">حداکثر ۶۰۰ مگابایت</option><option value="1500">حداکثر ۱٫۵ گیگابایت</option><option value="3000">حداکثر ۳ گیگابایت</option></select>
+            <button type="button" class="btn sm" id="pcClear">پاک‌کردن حافظهٔ نهان صدا</button>
+          </div>
         </div>
       </details>
     </div>
@@ -862,6 +886,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
 
   /* ---------- Piper native (sherpa-onnx via Capacitor plugin "PiperNative") ---------- */
   var NP = null, npOK = false, npTry = null, npErr = '';
+  var npPlay = false, npCur = 0, npCurC = null, npMy = 0, npLs = false;   /* پخش بومی (AudioTrack) */
   var CAP = window.Capacitor, capPlat = '';
   try { capPlat = CAP && CAP.getPlatform ? String(CAP.getPlatform()) : ''; } catch (e) {}
   var onNative = false;
@@ -901,6 +926,18 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   }
   var VOICE_TEMPOS = { 'fa_IR-gyro-medium': 0.92 };   /* ضریب سرعت اختصاصی هر گوینده در ساخت صدا (بدون کشیدن صدا)؛ کمتر از ۱ = کندتر. گوینده‌ای که اینجا نیست با سرعت اصلی خودش می‌خواند */
   var VOICE_TEMPO = 1;   /* ۱ = سرعت اصلی و دست‌نخوردهٔ مدل، همان لحظهٔ نصب صدا */
+  var PART_GAP = 0.12;   /* ثانیه: سکوت بین جمله‌های یک تکه (هر جمله جدا ساخته و در حافظهٔ نهان نگه داشته می‌شود) */
+  function npCancel(){ try { if (npOK && NP && NP.cancel) NP.cancel().catch(function(){}); } catch (e) {} }   /* کارهای صف‌شده و در حال ساختِ کهنه را فوری رها می‌کند */
+  function isNp(u){ return typeof u === 'string' && u.indexOf('np:') === 0; }
+  function npH(u){ return +u.slice(3); }
+  function npListen(){
+    if (npLs) return; npLs = true;
+    var on = function(ev, fn){ try { Promise.resolve(NP.addListener(ev, fn)).catch(function(){ npPlay = false; }); } catch (e) { npPlay = false; } };
+    on('playerStart', function(e){ npStarted(e.h); });
+    on('playerPos', function(e){ if (e.h === npCur && npCurC && playing) followFrac(npCurC, e.p); });
+    on('playerEnd', function(e){ npEnded(e.h); });
+    on('playerError', function(e){ if (e.h === npCur) fail(npMy, 'پخش صدا ناموفق بود: ' + (e.msg || '')); });
+  }
   var NATIVE_PIPER = {
     voices: function(){
       return Promise.resolve([
@@ -919,8 +956,9 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     },
     predict: function(o){
       /* ضریب پایه برای همهٔ گوینده‌ها یکسان است (۱ = سرعت اصلی مدل) */
-      var tempo = VOICE_TEMPOS[o.voiceId] || VOICE_TEMPO;
-      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], speed: Math.min(1.5, (o.sp || 1) * tempo) }).then(function(r){ var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; return b; });
+      var tempo = VOICE_TEMPOS[o.voiceId] || VOICE_TEMPO, fxp = $('#enh').checked ? fxProf(o.voiceId) : null;
+      var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo) }; }) : undefined;
+      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cleanLevel(), clarity: clarityLevel(), keep: npPlay, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0 }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; return b; });
     }
   };
 
@@ -928,7 +966,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   function ensurePiper(){
     if (npOK) return Promise.resolve(true);
     if (NP) {
-      if (!npTry) npTry = NP.ping().then(function(){ npOK = true; window.PiperTTS = NATIVE_PIPER; try { ['mimic3-fa-haaniye_low', 'coqui-fa-negar', 'coqui-fa-shiva', 'coqui-fa-mahtab'].forEach(function(x){ NP.remove({ id: x }).catch(function(){}); }); } catch (e) {} return true; }, function(e){ npErr = String((e && (e.message || e.errorMessage || e.code)) || e || 'unknown'); NP = null; perf(); return false; });
+      if (!npTry) npTry = NP.ping().then(function(r){ npOK = true; try { npPlay = !!(r && r.player); if (npPlay) npListen(); } catch (e) { npPlay = false; } window.PiperTTS = NATIVE_PIPER; try { ['mimic3-fa-haaniye_low', 'coqui-fa-negar', 'coqui-fa-shiva', 'coqui-fa-mahtab'].forEach(function(x){ NP.remove({ id: x }).catch(function(){}); }); } catch (e) {} return true; }, function(e){ npErr = String((e && (e.message || e.errorMessage || e.code)) || e || 'unknown'); NP = null; perf(); return false; });
       return npTry.then(function(ok){ return ok ? true : ensurePiperWeb(); });
     }
     return ensurePiperWeb();
@@ -1459,10 +1497,11 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   var SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
   function cancelAll(){
     gen++; nxt = null; curC = null;
+    if (npPlay) { npCur = 0; try { NP.playerStop().catch(function(){}); } catch (e) {} }
     [audioA, audioB].forEach(function(a){ try { a.onended = null; a.onerror = null; a.ontimeupdate = null; a.pause(); } catch (e) {} });
   }
   function clearCache(){
-    gen++; plan = {};
+    gen++; plan = {}; npCancel();
     Object.keys(cache).forEach(function(k){
       cache[k].then(dropRaw).catch(function(){});
       delete cache[k];
@@ -1575,6 +1614,33 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   var EZ_VB = /(?:کنید|شوید|باشید|بروید|ببینید|بدهید|بگویید|بیایید|دارید|خواهید|بگیرید|بدانید|بخوانید|بنویسید|بخورید|ببرید|بیاورید|ندارید|نکنید|نشوید|نباشید|نروید|نگویید|گفتید|دیدید|شنیدید|کردید|بودید|رفتید|آمدید|داشتید|خوردید|دادید|گرفتید)$/;
   var EZ_NDOK = /(?:مند|بلند|پسند|کمند|چند|فرزند|پیوند|سوگند|خرسند|دربند|بند)$/;
   var EZ_A = /^[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC\u0622\u200c]+$/;
+  /* ---------- شناسایی فعل برای کسرهٔ اضافه (برچسب‌گذار سبک مبتنی بر قاعده) ----------
+     فعل هیچ‌وقت کسرهٔ اضافه نمی‌گیرد و پیش از فعل هم کسره نمی‌آید («او کتاب بخواند»، «علی نرفت»). این‌جا صرف فعل‌های رایج
+     (التزامی، امری، گذشتهٔ منفی و شکل‌های ادبی) ساخته می‌شود تا ezAuto کلمهٔ فعلی را تشخیص دهد. شکل‌های دوم‌شخص مفرد (ـی)
+     عمداً نیستند، چون با اسم‌هایی مثل «بدهی» اشتباه می‌شوند. */
+  var EZ_V = {};
+  (function(){
+    var put = function(w){ EZ_V[w] = 1; };
+    var ends = ['م', 'یم', 'ید', 'ند', 'د'];
+    ('کن گو خور بین ده گیر شو باش دار خوان نویس پرس فهم دان خواه آموز ساز یاب مان پذیر ریز فرست رس پرداز بخش افت نشین ایست گذار گذر بند بخواب').split(' ').forEach(function(st){
+      var vow = /[ووا]$/.test(st);
+      ['ب', 'ن'].forEach(function(pf){
+        ends.forEach(function(e){
+          put(pf + st + e);
+          if (vow && e !== 'د') put(pf + st + 'ی' + e.replace(/^ی/, ''));
+        });
+      });
+    });
+    ('رو').split(' ').forEach(function(st){ ['ب', 'ن'].forEach(function(pf){ ends.forEach(function(e){ put(pf + st + e); }); }); });
+    'بیایم بیاید بیایند بیاییم بیایید بیاورم بیاورد بیاورند بیاوریم بیاورید نیایم نیاید نیایند نیاییم نیایید نیاورم نیاورد نیاورند نیاوریم نیاورید بدانم بدانند بدانید بتوانم بتواند بتوانند بتوانیم بتوانید نتوانم نتواند نتوانند نتوانیم نتوانید بخواهم بخواهد بخواهند بخواهیم بخواهید نخواهم نخواهد نخواهند نخواهیم نخواهید'.split(' ').forEach(put);
+    'کند کنند کنم کنیم کنید گوید گویند گویم آید آیند آیم آییم آیید باشد باشند باشم باشیم باشید شود شوند شوم شویم شوید دارد دارند دارم داریم دارید خواهد خواهند خواهم خواهیم خواهید دهد دهند دهم دهیم دهید گیرد گیرند بیند بینند تواند توانند توانم توانیم توانید داند دانند دانم دانیم دانید'.split(' ').forEach(put);
+    'بکن بگو برو بیا بده بگیر بشو باش بخور ببین بخوان بنویس بیاور ببر بپرس بدان نکن نگو نرو نیا نده نگیر نشو نباش نخور نبین نخوان ننویس نپرس نکنید نگویید نروید نیایید ندهید نگیرید بکنید بگویید بروید بیایید بدهید بگیرید بخورید ببینید بخوانید بنویسید'.split(' ').forEach(put);
+    /* گذشتهٔ منفی: «نکرد»، «نرفتند»؛ «نبرد» و «نزد» اسم/حرف اضافه‌اند و جدا می‌مانند */
+    'کرد بود شد رفت گفت داشت دید داد گرفت آمد خورد خواست توانست خواند ماند نوشت شنید پرسید فهمید رسید آورد ساخت یافت دانست نشست ایستاد افتاد گذشت خرید دوید خوابید کشید ریخت سوخت ترسید پرید بخشید پذیرفت شناخت فرستاد پرداخت آموخت'.split(' ').forEach(function(st){
+      ['', 'ند', 'م', 'یم', 'ید'].forEach(function(e){ put('ن' + st + e); });
+    });
+    delete EZ_V['نبرد']; delete EZ_V['نزد']; delete EZ_V['نشان']; delete EZ_V['نماند'];
+  })();
   function ezBad(w, cur){
     var c = w.replace(/\u200c/g, '');
     if (c.length < (cur ? 3 : 2) || EZ_STOP[w] || EZ_VB.test(w) || (lexOn() && (EZ_STOP2[w] || EZ_VBX[w]))) return true;
@@ -1592,6 +1658,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       if (a === 'ماه' && EZ_MON[ws[i + 1].replace(/[,.;:!?،؛؟]+$/, '')]) { ws[i] = a + EZ_K; n++; continue; }   /* «ماهِ مرداد» */
       if (!EZ_A.test(a) || ezBad(a, true)) continue;
       b = ws[i + 1].replace(/[,.;:!?،؛؟]+$/, ''); if (!EZ_A.test(b) || ezBad(b, false)) continue;
+      if (lexOn() && (EZ_V[a] || EZ_V[b])) continue;   /* فعل کسره نمی‌گیرد و پیش از فعل هم کسره نمی‌آید */
       if (EZ_NAME[a] && EZ_NAME[b]) continue;
       if (EZ_MON[b] && /(?:م|ام)$/.test(a)) continue;
       if ((a === 'نفر' || a === 'تن') && EZ_STOP[prevW(ws, i)]) continue;   /* «هزار نفر شرکت کردند»: واحد شمارش بعد از عدد کسره نمی‌گیرد */   /* «دوازدهم مرداد»، نه «دوازدهمِ مرداد» */
@@ -1599,6 +1666,42 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     }
     while (n-- > 0) bump('ez');
     return ws.join(' ');
+  }
+  /* ---------- واژه‌نامهٔ آوایی داخلی (اعرابِ کوتاه‌مصوت‌ها) ----------
+     فارسی بدون اعراب نوشته می‌شود و موتور آوایی کوتاه‌مصوت‌ها را برای واژه‌های پرکاربرد گاهی اشتباه حدس می‌زند.
+     این‌جا برای همین واژه‌ها شکل اعرابدار می‌گذاریم. نشانه‌ها (بعد از حرف): a = فتحه ، e = کسره ، o = ضمه.
+     واژه‌نامهٔ کاربر همیشه اولویت دارد (چون پیش از این مرحله با نشانگر جایگزین شده). برای افزودن واژه، فقط به LEX_SRC اضافه کنید. */
+  function phLexOn(){ var e = document.getElementById('phLex'); return !e || e.checked; }
+  var LEX_SRC = 'کeتاب کeشوaر مaدرeسه دانeشگاه دانeش مaردoم زaمان زaمین جaهان اeنسان اeجتeماع اeقتeصاد سیاسaت حoکومaت دaولaت قoدرaت عaدالaت حoقوق حaق مaسئaله مoشکeل رaوeش هaفته ساعaت دaقیقه قaرن نaتیجه دaلیل عeلaت هaدaف بaرنامه سیستeم اeطلاعات تaحقیق پoژوهeش مoطالeعه آموزeش دانeشجو مoعaلeم اoستاد دانeشمaند نویسaنده شاعeر کeتابخانه خانeواده پeدaر مادaر فaرزaند بaرادaر دoشمaن عeشق زeندگی مaرگ زaن کoدaک جaوان بoزoرگ کوچaک سaخت مoهeم لازeم مoمکeن دoرoست غaلaط اeشتeباه واقeعی حaقیقaت واقeعیaت مaفهوم کaلeمه جoمله صaفحه مaتن فaصل بaخش قeسمaت نaوع شaکل رaنگ صeدا صaوت گویaنده نeگاه چaشم دaست قaلب دeل جeسم بaدaن مaغز آتaش دaریا جaنگaل دaرaخت گoل غaذا قaهوه رeستوران فaلافeل تeهران اeصفaهان مaشهaد تaبریز خoراسان زaبان اaدaبیات شeعر رoمان هoنaر نaقاشی عeلم پeزeشک پeزeشکی بیمارeستان دaرمان سaلامaت بaهداشت وaرزeش موسابeقه شoغل شeرکaت مoدیر مoدیریaت تaولید فoروش خaرید قeیمaت هaزینه دaرآمaد تeجارaت صaنعaت کeشاوaرزی لeباس نaخ چaرخ مaسیر سaفaر موسافeر هoتل قeطار هaواپeیما بeسیار هaمه چaند چaندین بaعضی بaرخی دیگaر هaمین هaمان چaنین چaنان مeثل مانaند مeثال نaمونه هaمیشه هaنوز اaکنون هaرگز هaمواره بaعد قaبل بaین طaبaق عeلاوه کaمتaر بeهتaر بaدتaر تaمام کامeل چeطور چeگونه چaقدر کoجا کoدام هaر هیچکaس هaمگی وaقت دaفعه مaرتaبه کoل پoر پoل پoشت خoد خoدaم خoدeت خoدeش خoدeمان خoدeتان خoدeشان شoکر عoذر ذeکر فeکر ذeهن صaبر عoمر عaصر شoهرaت ثaروaت گaرم سaرد سaبز سoرخ زaرد سeفید قeرمeز نارaنجی بaنaفش بoلند کوشeش تaند سaریع نeشان نeشانه نaقش نoقطه نaظaر نeظام مeللaت مeللی مaذهaب خoدا خoداوaند پیامبaر قoرآن اoمید غaم خaشم تaرس مeهرaبان مeهر اaصل اaساس اeرتeباط اeجازه اeستeفاده اaهaمیaت اeمکان اeحتeمال اeطلاع اeعتeماد اeقدام اeنتeخاب اeنتeظار اaرزeش اaثaر اeدامه اeبتeدا اeنتeها اaکثaر اaکثaریaت اeجرا اeصلاح اeضافه اaفزایeش رoشد توسeعه تaوaجoه تaفاوoت تaغییر تaصمیم تaجرoبه تeعداد تaلاش تaرکیب تaرجoمه جeهaت جaدید قaدیمی موختaلeف موشابeه موستaقیم موناسeب مaجموعه مoحیط مaحصول مaنبaع مaوقeعیaت مaسئول مaسئولیaت موشارeکaت مaعمولی مaعرeفی مeعیار مaنطeق مaنطeقه نaسل نeسبaت نeظارaت وaضع وaضعیaت وoجود وaظیفه هaدaف هaمکاری هaمراه مoحaمaد عaلی حaسaن حoسeین رeضا مaهدی اaحمaد اaمیر مaحمود اeبراهیم اeسماعیل یوسoف جaعفaر کاظeم باقeر تaقی هادی صادeق سaعید حaمید مaجید فaرهاد بaهرام کامران پaرویز شaهرام فاطeمه زaهرا مaریaم زaینaب';
+  var LEX = null, LEX_SUF = {};
+  'ها های هایی هایم هایت هایش هایمان هایتان هایشان ام ات اش مان تان شان ای ایم اید اند تر ترین'.split(' ').forEach(function(w){ LEX_SUF[w] = 1; });
+  var LEX_RUN = /[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC\u06C0\u0622\u200c]+/g;
+  function lexInit(){
+    var skip = {}, add = function(w){ if (w) skip[w] = 1; };
+    LEX = {};
+    /* واژه‌هایی که مکث‌گذاری و تحلیل دستوری با شکل ساده‌شان کار می‌کند، دست نمی‌خورند */
+    [NOCOMMA_PREV, P_SPLIT, NUMW].forEach(function(o){ Object.keys(o).forEach(add); });
+    [PH_INIT, PH_INIT_H, PH_STRONG, PH_WEAK].forEach(function(l){ l.forEach(function(p){ p.forEach(add); }); });
+    TA_SKIP.source.replace(/^\^\(\?:|\)\$$/g, '').split('|').forEach(add);
+    LEX_SRC.split(/\s+/).forEach(function(v){
+      var k = v.replace(/[aeo]/g, '');
+      if (!k || skip[k] || LEX[k]) return;
+      LEX[k] = v.replace(/a/g, '\u064E').replace(/e/g, '\u0650').replace(/o/g, '\u064F');
+    });
+  }
+  function lexApply(t){
+    if (!LEX) lexInit();
+    return t.replace(LEX_RUN, function(w){
+      var v = LEX[w], i, b, m;
+      if (v) return v;
+      if (w.charCodeAt(w.length - 1) === 0x06C0) { v = LEX[w.slice(0, -1) + '\u0647']; return v ? v.slice(0, -1) + '\u06C0' : w; }   /* «خانهٔ» */
+      if (/\u0647\u200c\u06CC$/.test(w)) { v = LEX[w.slice(0, -2)]; return v ? v + '\u200c\u06CC' : w; }                              /* «خانه‌ی» */
+      m = /^(.{2,}?)(ها|های)$/.exec(w);
+      if (m && LEX[m[1]]) return LEX[m[1]] + m[2];                                                                                     /* «کشورها» بدون نیم‌فاصله */
+      i = w.indexOf('\u200c');
+      if (i > 0) { b = LEX[w.slice(0, i)]; if (b && LEX_SUF[w.slice(i + 1)]) return b + w.slice(i); }                                  /* «کتاب‌ها»، «کشورمان» با نیم‌فاصله */
+      return w;
+    });
   }
   function ttsBase(t, eng, cont, pre){
     eng = eng || engine();
@@ -1625,6 +1728,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     t = faNums(t).replace(/(?<![A-Za-z])[A-Z]{2,5}(?![A-Za-z])/g, function(w){ return /^[IVX]+$/.test(w) ? w : ' ' + w.split('').map(function(c){ return LET[c]; }).join(' ') + ' '; });
     }
     if (ezOn()) t = ezAuto(t);
+    if (phLexOn()) t = lexApply(t);
     t = dictOut(t, fixOn());
     if (phFa()) {
       t = t.replace(/\u0647\u200c\u06CC(?![\p{L}\u200c])/gu, '\u06C0')
@@ -2071,6 +2175,9 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   /* ---------- سبک گفتار و سرعت هوشمند (نسخهٔ بومی) ---------- */
   var STYLES = { stable: [0.5, 0.6], balanced: [0.6, 0.7], natural: [0.667, 0.8], lively: [0.75, 0.9] };   /* «انسانی» = مقدار پیش‌فرض خودِ مدل‌های Piper */
   function styleParams(){ return STYLES[$('#vstyle').value] || STYLES.natural; }
+  function lvl03(id){ var v = +$(id).value; return v >= 0 && v <= 3 ? v : 2; }
+  function cleanLevel(){ return lvl03('#vclean'); }     /* حذف نویز و صداهای اضافه در موتور بومی: ۰ خاموش … ۳ قوی */
+  function clarityLevel(){ return lvl03('#vclarity'); } /* شفافیت و رسایی: ۰ خاموش … ۳ قوی */
   /* سرعت نسبی ۰٫۹۱ تا ۱: هرچه جمله سنگین‌تر (کلمهٔ بلند، عدد، لاتین، نشانه‌گذاری زیاد)، کمی آهسته‌تر */
   function paceSpeed(t){
     var smart = $('#smartPace').checked;
@@ -2091,16 +2198,16 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     return Math.round(sp * 100) / 100;
   }
   var mainKit = null;
-  function piperPredict(text, id, l){
+  function piperPredict(text, id, l, parts){
     if (npOK) {
-      var nat = function(tx){ return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: tx, voiceId: id, st: styleParams(), sp: paceSpeed(tx) })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.'); };
+      var nat = function(tx, pts){ return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: tx, voiceId: id, st: styleParams(), sp: paceSpeed(tx), parts: pts })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.'); };
       /* خطای گذرا یا نویسهٔ عجیب در یک جمله کل خواندن را متوقف نکند: یک بار دیگر با متن ساده‌شده (فقط حرف، عدد و نشانه‌های رایج) */
-      return nat(text).catch(function(e){
+      return nat(text, parts).catch(function(e){
         var m = String((e && e.message) || e);
-        if (/دانلود نشده|آماده نشده|espeak|مدل پیدا نشد|بیش از حد/.test(m)) throw e;
+        if (/دانلود نشده|آماده نشده|espeak|مدل پیدا نشد|بیش از حد|NATIVE_CANCELLED/.test(m)) throw e;
         var simple = text.replace(/[^\p{L}\p{N}\s.,;:!?'\-]/gu, ' ').replace(/\s+/g, ' ').trim();
         if (!/[\p{L}\p{N}]/u.test(simple)) throw e;
-        return nat(simple);
+        return nat(simple, null);
       });
     }
     var w = getWorker(l || 0), n = ++pwId;
@@ -2122,7 +2229,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     while (lim > 1 && !sents[e].pe && e + 1 < sents.length && sents[e + 1].page === sents[i].page && len + 1 + sents[e + 1].text.length <= lim) { e++; len += 1 + sents[e].text.length; }
     var t = [];
     for (var k = i; k <= e; k++) t.push(ttsText(sents[k].text, undefined, undefined, sents[k].cont));
-    return { start: i, end: e, text: t.join(' '), mid: !!sents[e].cont };
+    return { start: i, end: e, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x){ return { t: x, s: paceSpeed(x) }; }) };   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   function perf(){
     var el = $('#pperf'); if (!el) return;
@@ -2201,7 +2308,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   }
   var actx = null, fxSrcs = [], fxIn = null;
   function setupFx(){
-    if (actx || !$('#enh').checked) return;
+    if (actx || npOK || !$('#enh').checked) return;   /* در موتور بومی، EQ و لیمیتر در Kotlin اعمال می‌شود */
     var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     try {
       actx = new AC(); fxSrcs = [actx.createMediaElementSource(audioA), actx.createMediaElementSource(audioB)];
@@ -2222,6 +2329,10 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   /* پروفایل تقویت صدا برای هر گوینده: صداهای کم‌کیفیت‌تر نویز زیر/بالا دارند، پس بالابَر نرم‌تر و حذف فرکانس‌های بالای بی‌فایده */
   var FXD = { pk: 2, hs: 0.8, lp: 10500 }, fxN = null,
       FXP = [];
+  function fxProf(id){
+    var i; if (id) for (i = 0; i < FXP.length; i++) if (FXP[i][0].test(id)) return FXP[i][1];
+    return FXD;
+  }
   function applyFxProfile(){
     if (!actx || !fxN) return;
     var v = currentVoice(), p = FXD, i, t = actx.currentTime;
@@ -2321,6 +2432,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   var rawBlob = {}, sTab = {};
   function dropRaw(u){
     if (!u || u === SILENT) return;
+    if (isNp(u)) { try { NP.release({ handle: npH(u) }).catch(function(){}); } catch (e) {} return; }
     try { URL.revokeObjectURL(u); } catch (e) {}
     delete rawBlob[u];
     var t = sTab[u]; delete sTab[u];
@@ -2343,6 +2455,14 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   }
 
   function piperFetch(c){
+    var g0 = gen;
+    return piperFetchRaw(c).catch(function(e){
+      /* اگر لغوِ بومی (مثلاً هنگام پرش) همین تکه را که هنوز لازم است گرفت، یک بار دوباره بساز */
+      if (/NATIVE_CANCELLED/.test(String((e && e.message) || e)) && g0 === gen) return piperFetchRaw(c);
+      throw e;
+    });
+  }
+  function piperFetchRaw(c){
     var v = currentVoice();
     if (!v || !window.PiperTTS) return Promise.reject(new Error('موتور Piper در این نسخه موجود نیست.'));
     if (!/[\p{L}\p{N}]/u.test(c.text)) return Promise.resolve(SILENT);
@@ -2355,17 +2475,17 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     var pr = L.q.then(function(){
       if (g !== gen) throw new Error('cancelled');
       var t0 = Date.now();
-      return piperPredict(c.text, v.id, ln).then(function(b){
+      return piperPredict(c.text, v.id, ln, c.parts).then(function(b){
         var sec = (Date.now() - t0) / 1000;
         if (!pFirst) pFirst = sec;
-        if (c.start >= 0 && sec > 0.15) {
+        if (c.start >= 0 && sec > 0.15 && !(b.hit > 0)) {   /* تکهٔ کش‌شده سرعت واقعی ساخت را نشان نمی‌دهد */
           pInfo = { n: c.text.length, sec: sec, aud: Math.max(0, b.size - 44) / ((b.sr || 22050) * 2), gen: b.gen || 0 };
           if (++pSamples > 1) { var sp = c.text.length / sec; pSpeed = pSamples === 2 ? sp : pSpeed * 0.5 + sp * 0.5; }
         }
         perf();
         return b;
       });
-    }).then(function(b){ return typeof b.gen === 'number' ? b : polish(b, c.mid).catch(function(){ return b; }); }).then(function(b){ var u = URL.createObjectURL(b); rawBlob[u] = b; return u; });
+    }).then(function(b){ return typeof b.gen === 'number' ? b : polish(b, c.mid).catch(function(){ return b; }); }).then(function(b){ if (b.nh) return 'np:' + b.nh; var u = URL.createObjectURL(b); rawBlob[u] = b; return u; });
     L.q = pr.catch(function(){});
     pr.then(function(){ L.b--; }, function(){ L.b--; });
     pr.catch(function(){ delete cache[ck]; });
@@ -2392,10 +2512,14 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   }
   function followChunk(c){
     var d = audio.duration;
-    if (!d || !isFinite(d) || c.end === c.start) return;
+    if (!d || !isFinite(d)) return;
+    followFrac(c, audio.currentTime / d);
+  }
+  function followFrac(c, f){
+    if (c.end === c.start) return;
     var total = 0, k;
     for (k = c.start; k <= c.end; k++) total += sents[k].text.length;
-    var pos = (audio.currentTime / d) * total, acc = 0, t = c.end;
+    var pos = f * total, acc = 0, t = c.end;
     for (k = c.start; k <= c.end; k++) {
       acc += sents[k].text.length;
       if (pos < acc) { t = k; break; }
@@ -2441,6 +2565,11 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     prefetchPiper(nc.end + 1, rtf() > 0.7 ? 2 : 1, nc.text.length);
     piperAudio(nc).then(function(a){
       if (nxt !== n || my !== token || !playing) return;
+      if (isNp(a.url)) {   /* پخش بومی: تکهٔ بعدی در صف بومی می‌رود تا بی‌وقفه و حتی با صفحهٔ خاموش ادامه یابد */
+        n.url = a.url; n.b = 1; n.h = npH(a.url);
+        NP.playerQueue({ handle: n.h, gapMs: pauseMs(c.end) }).catch(function(){});
+        return;
+      }
       el.onended = null; el.ontimeupdate = null; el.onerror = null;
       try { el.pause(); } catch (e) {}
       el._b = a.baked; n.b = a.baked;
@@ -2449,7 +2578,27 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       n.url = a.url;
     }).catch(function(){});
   }
+  function playNp(c, url, my, chained){
+    curC = c; npCur = npH(url); npCurC = c; npMy = my;
+    if (!chained) NP.playerPlay({ handle: npCur, rate: +$('#rate').value || 1 }).catch(function(e){ fail(my, 'پخش صدا ناموفق بود: ' + ((e && e.message) || e)); });
+    setTimeout(musicSync, 400);
+    trimCache(c.start);
+    primeNext(c, my);
+  }
+  function npStarted(h){
+    if (h === npCur) return;
+    var n = nxt;
+    if (!n || n.h !== h || n.my !== token || !playing) return;
+    cn++; lastLen = n.c.text.length; idx = n.c.start; mark(true);
+    playNp(n.c, n.url, n.my, true);
+  }
+  function npEnded(h){
+    if (h !== npCur || !npCurC || npMy !== token || !playing) return;
+    idx = npCurC.end;
+    gap(npMy);
+  }
   function playEl(el, c, url, my, baked){
+    if (isNp(url)) { playNp(c, url, my, false); return; }
     var other = el === audioA ? audioB : audioA;
     other.onended = null; other.ontimeupdate = null; other.onerror = null;
     audio = el; curC = c; el._b = baked || 1;
@@ -2508,6 +2657,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     token++;
     var my = token;
     cn = 0; lastLen = 0;
+    if (typeof i === 'number') npCancel();   /* پرش به جای دیگر: ساخت‌های کهنهٔ صف را رها کن تا شروع جدید معطل نماند */
     cancelAll();
     setupFx();
     [audioA, audioB].forEach(function(a){ a.src = SILENT; a.play().catch(function(){}); });
@@ -2832,7 +2982,8 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     v = Math.round(Math.max(RMIN, Math.min(RMAX, +v || 1)) / RSTEP) * RSTEP; v = Math.round(v * 100) / 100;
     $('#rate').value = v; showVals(); sset('rate', v);
     [audioA, audioB].forEach(applyRate);
-    clearTimeout(rpT); rpT = setTimeout(function(){ if (playing && curC) primeNext(curC, token); }, 250);
+    if (npPlay) { try { NP.playerRate({ rate: +$('#rate').value || 1 }).catch(function(){}); } catch (e) {} }
+    clearTimeout(rpT); rpT = setTimeout(function(){ if (!npPlay && playing && curC) primeNext(curC, token); }, 250);
   }
   [0.5, 0.75, 1, 1.25, 1.5, 2].forEach(function(v){
     var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.dataset.v = v; b.textContent = nf.format(v) + '×';
@@ -2894,6 +3045,10 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   if (sget('vstyleV', '') !== '2') { sset('vstyle', 'natural'); sset('vstyleV', '2'); }   /* سبک «انسانی» پیش‌فرض تازه */
   $('#vstyle').value = sget('vstyle', 'natural'); if (!STYLES[$('#vstyle').value]) $('#vstyle').value = 'natural';
   $('#vstyle').onchange = function(){ sset('vstyle', this.value); changed(); warmPiper(); };
+  ['vclean', 'vclarity'].forEach(function(id){
+    var el = $('#' + id); el.value = sget(id, '2'); if (['0', '1', '2', '3'].indexOf(el.value) < 0) el.value = '2';
+    el.onchange = function(){ sset(id, this.value); changed(); warmPiper(); };   /* کش خام بومی می‌ماند؛ پس تغییر سطح سریع اعمال می‌شود */
+  });
   if (sget('smartV', '') !== '1') { sset('smartV', '1'); sset('smartPace', '0'); }   /* سرعت صدا دقیقاً مثل حالت اولیه؛ فقط با تیک‌زدن دستی فعال می‌شود */
   $('#smartPace').checked = sget('smartPace', '0') === '1';
   $('#ezAuto').checked = sget('ezAuto', '1') !== '0';
@@ -2902,10 +3057,25 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   $('#humPace').onchange = function(){ sset('humPace', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   $('#proLex').checked = sget('proLex', '1') !== '0';
   $('#proLex').onchange = function(){ sset('proLex', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
+  $('#phLex').checked = sget('phLex', '1') !== '0';
+  $('#phLex').onchange = function(){ sset('phLex', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
+  /* حافظهٔ نهان صدای بومی: نمایش حجم، سقف و پاک‌کردن */
+  function pcFmt(b){ return b >= 1048576 ? nf.format(Math.round(b / 104857.6) / 10) + ' مگابایت' : nf.format(Math.max(0, Math.round(b / 1024))) + ' کیلوبایت'; }
+  function pcRefresh(){
+    var el = $('#pcInfo'); if (!el) return;
+    if (!npOK || !NP || !NP.cacheInfo) { el.textContent = 'حافظهٔ نهان صدا: فقط در اپ اندروید با موتور بومی کار می‌کند.'; return; }
+    NP.cacheInfo().then(function(r){
+      el.textContent = 'حافظهٔ نهان صدا: ' + pcFmt(r.bytes || 0) + ' از حداکثر ' + pcFmt(r.max || 0) + ' (' + nf.format(r.files || 0) + ' جمله). باز کردن دوبارهٔ همین کتاب با همین گوینده و تنظیمات، فوری می‌شود.';
+      var mb = String(Math.round((r.max || 0) / 1048576)), o = $('#pcLimit'); if (o && o.querySelector('option[value="' + mb + '"]')) o.value = mb;
+    }).catch(function(){ el.textContent = 'این APK هنوز حافظهٔ نهان صدا ندارد؛ پلاگین Kotlin جدید را در پروژه بگذارید و دوباره بسازید.'; });
+  }
+  $('#advBox').addEventListener('toggle', function(){ if (this.open) pcRefresh(); });
+  $('#pcClear').onclick = function(){ if (!npOK || !NP || !NP.cacheClear) { pcRefresh(); return; } NP.cacheClear().then(pcRefresh, pcRefresh); };
+  $('#pcLimit').onchange = function(){ if (!npOK || !NP || !NP.cacheLimit) return; NP.cacheLimit({ mb: +this.value }).then(pcRefresh, pcRefresh); };
   $('#phFa').checked = sget('phFa', '1') !== '0';
   $('#phFa').onchange = function(){ sset('phFa', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   $('#smartPace').onchange = function(){ sset('smartPace', this.checked ? '1' : '0'); changed(); warmPiper(); };
-  $('#enh').onchange = function(){ sset('enh', this.checked ? '1' : '0'); setupFx(); wireFx(engine() === 'piper'); };
+  $('#enh').onchange = function(){ sset('enh', this.checked ? '1' : '0'); if (npOK) { changed(); return; } setupFx(); wireFx(engine() === 'piper'); };
   dictG = sget('dict', ''); parseDict(); dictShow();
   $('#dict').oninput = function(){ dictUi(); };
   $('#dictScope').onchange = function(){
