@@ -469,9 +469,12 @@ class PiperNativePlugin : Plugin() {
         cpu.execute {
             try {
                 if (!okMark(id).exists()) throw IllegalStateException("این صدا هنوز دانلود نشده است")
-                val a = engineFor(id, ns, nw).generate(text = text, sid = 0, speed = sp)
+                val eng = engineFor(id, ns, nw)
+                val t0 = System.nanoTime()
+                val a = eng.generate(text = text, sid = 0, speed = sp)
+                val genMs = (System.nanoTime() - t0) / 1_000_000L   // زمان خالص مدل (بدون صیقل و انتقال)
                 val wav = toWav(polish(a.samples, a.sampleRate), a.sampleRate)
-                call.resolve(JSObject().put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", a.sampleRate))
+                call.resolve(JSObject().put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", a.sampleRate).put("genMs", genMs))
             } catch (e: Throwable) {
                 call.reject("خطای موتور بومی: ${e.message}")
             }
@@ -491,9 +494,9 @@ class PiperNativePlugin : Plugin() {
         var e = f.size - 1
         while (e > s && kotlin.math.abs(f[e]) < thr) e--
         if (e - s < sr / 10) return f
-        // ابتدا ۴۵ میلی‌ثانیه و انتها ۱۴۰ میلی‌ثانیه سکوت طبیعی نگه داشته می‌شود (مکث بین جمله‌ها را خود برنامه می‌گذارد)
+        // ابتدا ۴۵ میلی‌ثانیه و انتها ۷۰ میلی‌ثانیه سکوت طبیعی نگه داشته می‌شود (مکث بین جمله‌ها را خود برنامه می‌گذارد)
         s = kotlin.math.max(0, s - (sr * 0.045).toInt())
-        e = kotlin.math.min(f.size - 1, e + (sr * 0.14).toInt())
+        e = kotlin.math.min(f.size - 1, e + (sr * 0.07).toInt())
         val out = f.copyOfRange(s, e + 1)
         // بلندی یکنواخت: بر پایهٔ RMS نمونه‌های غیرسکوت؛ قله‌های اضافه با محدودکنندهٔ نرم (tanh) و نه بریدن سخت مهار می‌شوند
         var sum = 0.0; var cnt = 0; var pk = 0f
