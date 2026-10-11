@@ -790,14 +790,12 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
       'https://ghfast.top/https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/' + f
     ];
   };
-  /* مدل‌های بدون آرشیو tar.bz2: چند فایل جدا (فقط در نسخهٔ بومی) */
+  var NEGAR_PATH = 'karim23657/persian-tts-vits/resolve/main/persian-tts-female1-vits-coqui/';
   var NP_MODEL_FILES = {
     'coqui-fa-negar': function(){
-      var p = 'karim23657/persian-tts-vits/resolve/main/persian-tts-female1-vits-coqui/';
-      return [
-        { name: 'tokens.txt', urls: ['https://huggingface.co/' + p + 'tokens.txt', 'https://hf-mirror.com/' + p + 'tokens.txt'] },
-        { name: 'model.onnx', urls: ['https://huggingface.co/' + p + 'model.onnx', 'https://hf-mirror.com/' + p + 'model.onnx'] }
-      ];
+      return ['model.onnx', 'tokens.txt'].map(function(n){
+        return { name: n, urls: ['https://huggingface.co/' + NEGAR_PATH + n, 'https://hf-mirror.com/' + NEGAR_PATH + n] };
+      });
     }
   };
   function b64Blob(b64, type){
@@ -811,6 +809,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
         { key: 'fa_IR-gyro-medium', name: 'gyro', quality: 'medium', language: { family: 'fa' } },
         { key: 'fa_IR-ganji-medium', name: 'ganji', quality: 'medium', language: { family: 'fa' } },
         { key: 'fa_IR-ganji_adabi-medium', name: 'ganji_adabi', quality: 'medium', language: { family: 'fa' } },
+        { key: 'fa_en-rezahedayatfar-ibrahimwalk-medium', name: 'reza_ibrahim (fa+en)', quality: 'medium', language: { family: 'fa' } },
         { key: 'coqui-fa-negar', name: 'negar', quality: 'coqui', mb: 114, language: { family: 'fa' } }
       ]);
     },
@@ -822,7 +821,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
         .then(function(r){ done(); return r; }, function(e){ done(); throw e; });
     },
     predict: function(o){
-      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], speed: o.sp || 1 }).then(function(r){ return b64Blob(r.wav, 'audio/wav'); });
+      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], speed: o.sp || 1 }).then(function(r){ var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; return b; });
     }
   };
 
@@ -853,7 +852,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
         if (/amir/i.test(v.key || '')) return false;
         return (v.language && v.language.family === 'fa') || /^fa_/.test(v.key || '');
       }).map(function(v){
-        return { id: v.key, name: (v.name || v.key) + (v.quality ? ' (' + v.quality + ')' : ''), lang: 'fa-IR', gender: /negar/i.test(v.key || '') ? 'f' : /gyro|ganji|amir/i.test(v.key || '') ? 'm' : '?', mb: v.mb || 0, fa: true };
+        return { id: v.key, name: (v.name || v.key) + (v.quality ? ' (' + v.quality + ')' : ''), lang: 'fa-IR', gender: /gyro|ganji|amir|rezahedayatfar|ibrahim/i.test(v.key || '') ? 'm' : /negar/i.test(v.key || '') ? 'f' : '?', mb: v.mb || 0, fa: true };
       });
       if (fa.length) { piperVoices = fa; renderVoices(); }
     }).catch(function(){});
@@ -1381,7 +1380,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   var MON_FA = ['','فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'],
       MON_EN = ['','ژانویه','فوریه','مارس','آوریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'],
       LET = {A:'ای',B:'بی',C:'سی',D:'دی',E:'ای',F:'اف',G:'جی',H:'اچ',I:'آی',J:'جی',K:'کی',L:'ال',M:'ام',N:'ان',O:'او',P:'پی',Q:'کیو',R:'آر',S:'اس',T:'تی',U:'یو',V:'وی',W:'دبلیو',X:'ایکس',Y:'وای',Z:'زد'},
-      UNIT = {'km/h':'کیلومتر بر ساعت','m/s':'متر بر ثانیه',kbps:'کیلوبیت بر ثانیه',mbps:'مگابیت بر ثانیه',gbps:'گیگابیت بر ثانیه',kcal:'کیلوکالری',kwh:'کیلووات ساعت',kw:'کیلووات',rpm:'دور در دقیقه',fps:'فریم بر ثانیه',tb:'ترابایت',km:'کیلومتر',cm:'سانتی‌متر',mm:'میلی‌متر',kg:'کیلوگرم',mg:'میلی‌گرم',ml:'میلی‌لیتر',kb:'کیلوبایت',mb:'مگابایت',gb:'گیگابایت',hz:'هرتز',khz:'کیلوهرتز',mhz:'مگاهرتز',ghz:'گیگاهرتز'},
+      UNIT = {'km/h':'کیلومتر بر ساعت','m/s':'متر بر ثانیه',kbps:'کیلوبیت بر ثانیه',mbps:'مگابیت بر ثانیه',gbps:'گیگابیت بر ثانیه',kcal:'کیلوکالری',kwh:'کیلووات ساعت',kw:'کیلووات',rpm:'دور در دقیقه',fps:'فریم بر ثانیه',tb:'ترابایت',km:'کیلومتر',cm:'سانتی‌متر',mm:'میلی‌متر',kg:'کیلوگرم',mg:'میلی‌گرم',ml:'میلی‌لیتر',kb:'کیلوبایت',mb:'مگابایت',gb:'گیگابایت',mmhg:'میلی‌متر جیوه',bpm:'ضربان در دقیقه',hz:'هرتز',khz:'کیلوهرتز',mhz:'مگاهرتز',ghz:'گیگاهرتز'},
       L0 = '(?<![\\p{L}])', L1 = '(?![\\p{L}])',
       ABBR = [
         [new RegExp(L0 + 'صص?\\s*\\.?\\s*(?=\\d)', 'gu'), ' صفحه '], [new RegExp(L0 + 'پ\\s*\\.\\s*ن\\.?' + L1, 'gu'), ' پی نوشت '],
@@ -1391,7 +1390,9 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
         [new RegExp(L0 + 'ه\\s*\\.\\s*ش\\.?' + L1, 'gu'), ' هجری شمسی '], [new RegExp(L0 + 'ه\\s*\\.\\s*ق\\.?' + L1, 'gu'), ' هجری قمری '],
         [new RegExp(L0 + 'ق\\s*\\.\\s*م\\.?' + L1, 'gu'), ' قبل از میلاد '], [new RegExp(L0 + 'ق\\s*\\.\\s*ظ\\.?' + L1, 'gu'), ' قبل از ظهر '],
         [new RegExp(L0 + 'ب\\s*\\.\\s*ظ\\.?' + L1, 'gu'), ' بعد از ظهر '], [new RegExp(L0 + 'ر\\s*\\.\\s*ک\\.?' + L1, 'gu'), ' رجوع کنید به '],
-        [new RegExp(L0 + 'ج\\s*\\.\\s*ا\\s*\\.\\s*ا\\.?' + L1, 'gu'), ' جمهوری اسلامی ایران '], [/\bDr\.?(?=\s)/g, 'دکتر']
+        [new RegExp(L0 + 'ج\\s*\\.\\s*ا\\s*\\.\\s*ا\\.?' + L1, 'gu'), ' جمهوری اسلامی ایران '], [/\bDr\.?(?=\s)/g, 'دکتر'],
+        [/(?<![A-Za-z])etc\.?(?![A-Za-z])/gi, ' و غیره '], [/(?<![A-Za-z])e\.\s?g\.?(?![A-Za-z])/gi, ' برای مثال '], [/(?<![A-Za-z])i\.\s?e\.?(?![A-Za-z])/gi, ' یعنی '],
+        [/(?<![A-Za-z])vs\.?(?![A-Za-z])/gi, ' در برابر '], [/(?<![A-Za-z])Mr\.?(?=\s)/g, 'آقای'], [/(?<![A-Za-z])(?:Mrs|Ms)\.?(?=\s)/g, 'خانم'], [/(?<![A-Za-z])No\.\s*(?=\d)/g, 'شماره ']
       ];
   function digitsAscii(t){
     return t.replace(/[۰-۹]/g, function(c){ return c.charCodeAt(0) - 1776; }).replace(/[٠-٩]/g, function(c){ return c.charCodeAt(0) - 1632; })
@@ -1444,7 +1445,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
       .replace(/(?<!\d)([01]?\d|2[0-3]):([0-5]\d)(?![\d:])/g, function(_, h, m){ return ' ' + numFa(String(+h)) + (+m ? ' و ' + numFa(String(+m)) + ' دقیقه' : '') + ' '; })
       .replace(/(?<![\d\-\/.])(\d{1,4})\s*[-–—]\s*(\d{1,4})(?![\d\-\/])/g, '$1 تا $2')
       .replace(/(\d)\s*(km|cm|mm|m)\s*([23])(?![\d\p{L}])/giu, function(_, d, u, p){ return d + ' ' + ({ km: 'کیلومتر', cm: 'سانتی‌متر', mm: 'میلی‌متر', m: 'متر' })[u.toLowerCase()] + (p === '2' ? ' مربع ' : ' مکعب '); })
-      .replace(/(\d)\s*(km\/h|m\/s|kbps|mbps|gbps|kcal|kwh|kw|rpm|fps|km|cm|mm|kg|mg|ml|kb|mb|gb|tb|khz|mhz|ghz|hz)(?![a-z])/gi, function(_, d, u){ return d + ' ' + UNIT[u.toLowerCase()] + ' '; })
+      .replace(/(\d)\s*(km\/h|m\/s|kbps|mbps|gbps|kcal|kwh|kw|rpm|fps|mmhg|bpm|km|cm|mm|kg|mg|ml|kb|mb|gb|tb|khz|mhz|ghz|hz)(?![a-z])/gi, function(_, d, u){ return d + ' ' + UNIT[u.toLowerCase()] + ' '; })
       .replace(/(\d)\s*([mg])(?![\p{L}\d\/²³])/gu, function(_, d, u){ return d + ' ' + (u === 'm' ? 'متر' : 'گرم') + ' '; })
       .replace(/(\d)\s*°\s*[Cc](?![a-z])/g, '$1 درجه سانتی‌گراد ').replace(/(\d)\s*°/g, '$1 درجه ')
       .replace(/\$\s*(\d+(?:\.\d+)?)/g, '$1 دلار ').replace(/€\s*(\d+(?:\.\d+)?)/g, '$1 یورو ')
@@ -1546,6 +1547,31 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     }).replace(/\s+/g, ' ').replace(/\s+([,.;:!?])/g, '$1').trim();
   }
   function sOn(){ return fixOn() && $('#fixPro').checked; }
+  /* پیش‌اصلاحِ نمادها پیش از تبدیل عدد: ارز پسوندی، ریاضی، توان، شماره تلفن، «COVID-19»، «سازمان ملل (UN)» */
+  function preFix(t){
+    t = t.replace(/(?:https?:\/\/|www\.)\S+|\S+@\S+\.\S+/g, ' ').replace(/@(?=[A-Za-z0-9_])/g, ' ');
+    t = t.replace(/(?<=[\u0600-\u06FF\u200c])\s*\(\s*[A-Z]{2,6}s?\s*\)/g, ' ');
+    t = t.replace(/(?<![A-Za-z])COVID[-–\s]?19(?!\d)/gi, ' کووید نوزده ').replace(/(?<![A-Za-z])Wi-?Fi(?![A-Za-z])/gi, ' وای فای ');
+    t = t.replace(/([A-Za-z])[-–](?=\d)/g, '$1 ');
+    t = t.replace(/(\d+)\s*\/\s*(\d+)(?=\s*mm\s?Hg)/gi, '$1 روی $2').replace(/mm\s+Hg/gi, 'mmHg');
+    t = t.replace(/(?<=\d\s*(?:km|cm|mm|m))²/g, '2').replace(/(?<=\d\s*(?:km|cm|mm|m))³/g, '3');
+    t = t.replace(/(\d)\s*\$/g, '$1 دلار ').replace(/(\d)\s*€/g, '$1 یورو ');
+    t = t.replace(/([\p{L}\d)])²/gu, '$1 به توان دو ').replace(/([\p{L}\d)])³/gu, '$1 به توان سه ');
+    t = t.replace(/\s*×\s*/g, ' ضربدر ').replace(/\s*÷\s*/g, ' تقسیم بر ').replace(/\s*≠\s*/g, ' نامساوی ')
+      .replace(/\s*≤\s*/g, ' کوچک‌تر یا مساوی ').replace(/\s*≥\s*/g, ' بزرگ‌تر یا مساوی ').replace(/√\s*/g, ' جذر ')
+      .replace(/(?<=[\p{L}\d)])\s*=\s*(?=[\p{L}\d(√\-])/gu, ' مساوی ')
+      .replace(/(?<=[\p{L}\d)])\s+>\s+(?=[\p{L}\d(])/gu, ' بزرگ‌تر از ').replace(/(?<=[\p{L}\d)])\s+<\s+(?=[\p{L}\d(])/gu, ' کوچک‌تر از ')
+      .replace(/(?<=[\p{L}\d)])\s*\+\s*(?=[\p{L}\d(])/gu, ' به علاوه ').replace(/(?<=[\p{L}\d])\s*−\s*(?=[\p{L}\d])/gu, ' منهای ');
+    return t;
+  }
+  /* شمارهٔ تلفن با پیش‌شمارهٔ +: پیش‌شماره عددی، بقیه رقم‌به‌رقم و گروه‌به‌گروه */
+  function phoneFix(t){
+    return t.replace(/\+(\d{1,3})((?:[ \-]\d{2,4}){2,4})(?!\d)/g, function(_, cc, rest){
+      return ' ' + numFa(cc) + ', ' + rest.trim().split(/[ \-]+/).map(function(g){ return g.split('').map(function(x){ return ON[+x]; }).join(' '); }).join(', ') + ' ';
+    });
+  }
+  /* عبارت دوتکراری مثل «سازمان ملل, سازمان ملل» (توضیح داخل پرانتز) را یکی کن */
+  function dedupe(t){ return t.replace(/(\S+(?:\s+\S+)+),\s+\1(?=[,.;:!?]|\s|$)/g, '$1'); }
   function ttsText(t, eng, rep, cont){
     eng = eng || engine();
     if (!fixOn()) return ttsBase(t, eng, cont);
@@ -1558,6 +1584,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
       t = t.replace(/[\u0640\u064B-\u065F\u0670]/g, '').replace(/\u00A0/g, ' ').replace(/[\u00ad\u200b\u200d-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '');
       t = dictIn(t);
       t = digitsAscii(t);
+      t = preFix(t);
       ABBR.forEach(function(a){ t = t.replace(a[0], a[1]); });
       SPELL.forEach(function(r){ t = fxr(t, r[0], 'spell', r[1]); });
       if (fixHi()) {
@@ -1571,6 +1598,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
       t = fxr(t, /(?<![\d۰-۹٠-٩.])([\d۰-۹٠-٩]{1,4})\s*\u200c?(?:ام|مین)(?![\p{L}])/gu, 'ord', function(_, n){ return ' ' + ordFa(+digitsAscii(n)) + ' '; });
       t = fxr(t, /(قرن|فصل|بخش|جلد|بند|ماده|فرمان|پاپ|لویی|لوئی|هنری|ناپلئون|کتاب)\s+([IVXLC]{1,6})(?![A-Za-z])/g, 'ord', function(m, w, r){ var v = romanVal(r); return v ? w + ' ' + ordFa(v) : m; });
       t = fxr(t, RE_ACRO, 'acr', function(m){ return ' ' + ACRO_W[m] + ' '; });
+      t = phoneFix(t);
       if (CUR) {
         CUR.num = (CUR.num || 0) + (t.match(/[\d۰-۹٠-٩]+(?:[.,٫٬][\d۰-۹٠-٩]+)*/g) || []).length;
         CUR.sym = (CUR.sym || 0) + (t.match(new RegExp('[%٪$€°&]|[\\d۰-۹]\\s*(?:' + UNIT_RE + ')(?![a-z])', 'gi')) || []).length;
@@ -1578,7 +1606,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
         CUR.acr = (CUR.acr || 0) + (t.match(/(?<![A-Za-z])[A-Z]{2,5}(?![A-Za-z])/g) || []).filter(function(x){ return !romanVal(x); }).length;
       }
       t = ttsBase(t, eng, cont, true);
-      t = latinPass(t);
+      t = dedupe(latinPass(t));
       return endMark(t, cont);
     } finally { CUR = null; }
   }
@@ -1619,7 +1647,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
       if (P_SPLIT[w]) {
         sc = P_SPLIT[w];
         if (w === 'تا') {
-          if (NUMW[pkw(ws[i + 1] || '')] || TA_SKIP.test(pkw(ws[i + 1] || ''))) continue;
+          if (NUMW[pkw(ws[i + 1] || '')] || NUMW[pkw(ws[i - 1] || '')] || TA_SKIP.test(pkw(ws[i + 1] || ''))) continue;
           bad = false; for (j = Math.max(a, i - 5); j < i; j++) if (pkw(ws[j]) === 'از') bad = true;
           if (bad) continue;
         }
@@ -1906,7 +1934,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   }
   function perf(){
     var el = $('#pperf'); if (!el) return;
-    var a = ['نسخه ۹ (گفتار طبیعی)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
+    var a = ['نسخه ۱۰ (کیفیت صدا)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
     if (npOK) a.push('موتور بومی (sherpa-onnx)');
     if (npErr && !npOK) a.push('پلاگین بومی در این APK فعال نیست: ' + npErr);
     if (pwBad && !npOK) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
@@ -1988,15 +2016,16 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
       var hs = actx.createBiquadFilter(); hs.type = 'highshelf'; hs.frequency.value = 6000; hs.gain.value = 2;
       var lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 20000; lp.Q.value = 0.707;
       var cp = actx.createDynamicsCompressor(); cp.threshold.value = -22; cp.knee.value = 24; cp.ratio.value = 3; cp.attack.value = 0.005; cp.release.value = 0.15;
-      var gn = actx.createGain(); gn.gain.value = 1.15;
-      hp.connect(pk); pk.connect(hs); hs.connect(lp); lp.connect(cp); cp.connect(gn); gn.connect(actx.destination);
+      var gn = actx.createGain(); gn.gain.value = 1.1;
+      var lm = actx.createDynamicsCompressor(); lm.threshold.value = -2; lm.knee.value = 0; lm.ratio.value = 20; lm.attack.value = 0.001; lm.release.value = 0.08;
+      hp.connect(pk); pk.connect(hs); hs.connect(lp); lp.connect(cp); cp.connect(gn); gn.connect(lm); lm.connect(actx.destination);
       fxIn = hp; fxN = { pk: pk, hs: hs, lp: lp };
       applyFxProfile();
     } catch (e) { actx = null; fxN = null; }
   }
   /* پروفایل تقویت صدا برای هر گوینده: صداهای کم‌کیفیت‌تر نویز زیر/بالا دارند، پس بالابَر نرم‌تر و حذف فرکانس‌های بالای بی‌فایده */
-  var FXD = { pk: 2.5, hs: 2, lp: 20000 }, fxN = null,
-      FXP = [[/negar|coqui/i, { pk: 2, hs: 0, lp: 10000 }]];
+  var FXD = { pk: 2, hs: 0.8, lp: 10500 }, fxN = null,
+      FXP = [];
   function applyFxProfile(){
     if (!actx || !fxN) return;
     var v = currentVoice(), p = FXD, i, t = actx.currentTime;
@@ -2112,6 +2141,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   }
   function applyRate(el){
     var r = +$('#rate').value || 1, v = Math.max(0.0625, Math.min(16, r / (el._b || 1)));
+    try { el.preservesPitch = true; el.webkitPreservesPitch = true; el.mozPreservesPitch = true; } catch (e) {}
     try { el.defaultPlaybackRate = v; el.playbackRate = v; } catch (e) {}
   }
 
@@ -2204,6 +2234,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     if (ni >= sents.length || sents[c.end].pe) return;
     var nc = planChunk(ni, false, c.text.length), el = audio === audioA ? audioB : audioA, n = { c: nc, el: el, my: my, url: '', b: 1 };
     nxt = n;
+    prefetchPiper(nc.end + 1, 1, nc.text.length);
     piperAudio(nc).then(function(a){
       if (nxt !== n || my !== token || !playing) return;
       el.onended = null; el.ontimeupdate = null; el.onerror = null;
