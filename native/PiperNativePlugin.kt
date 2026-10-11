@@ -77,6 +77,27 @@ class PiperNativePlugin : Plugin() {
         activity?.runOnUiThread { try { activity.finishAffinity() } catch (e: Throwable) { activity.finish() } }
     }
 
+    /** قفل بیدارباش CPU هنگام پخش: با خاموش‌شدن صفحه، مکث‌ها و ساخت جمله‌های بعدی کند یا قطع نشود.
+     *  نیازمند <uses-permission android:name="android.permission.WAKE_LOCK"/> در AndroidManifest.xml؛ اگر نباشد بی‌صدا نادیده گرفته می‌شود. */
+    private var wl: android.os.PowerManager.WakeLock? = null
+
+    @PluginMethod
+    fun keepAwake(call: PluginCall) {
+        val on = call.getBoolean("on", false) ?: false
+        try {
+            if (on) {
+                if (wl == null) {
+                    val pm = context.getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+                    wl = pm.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "pdfvoice:tts").also { it.setReferenceCounted(false) }
+                }
+                if (wl?.isHeld != true) wl?.acquire(4 * 60 * 60 * 1000L)
+            } else {
+                if (wl?.isHeld == true) wl?.release()
+            }
+        } catch (e: Throwable) { /* بدون مجوز یا خطای سیستم: پخش عادی ادامه دارد */ }
+        call.resolve()
+    }
+
     @PluginMethod
     fun ping(call: PluginCall) {
         call.resolve(JSObject().put("ok", true))
@@ -201,7 +222,7 @@ class PiperNativePlugin : Plugin() {
                             while (true) {
                                 val e = z.nextEntry ?: break
                                 val out = File(dst, e.name)
-                                if (!out.canonicalPath.startsWith(dst.canonicalPath)) continue   // جلوگیری از path traversal
+                                if (!out.canonicalPath.startsWith(dst.canonicalPath + File.separator)) continue   // جلوگیری از path traversal
                                 if (e.isDirectory) { out.mkdirs(); continue }
                                 out.parentFile?.mkdirs()
                                 FileOutputStream(out).use { z.copyTo(it) }
@@ -355,7 +376,7 @@ class PiperNativePlugin : Plugin() {
             while (true) {
                 val e = tar.nextTarEntry ?: break
                 val f = File(dst, e.name)
-                if (!f.canonicalPath.startsWith(dst.canonicalPath)) continue   // جلوگیری از path traversal
+                if (!f.canonicalPath.startsWith(dst.canonicalPath + File.separator)) continue   // جلوگیری از path traversal
                 if (e.isDirectory) { f.mkdirs(); continue }
                 f.parentFile?.mkdirs()
                 FileOutputStream(f).use { tar.copyTo(it) }
@@ -550,6 +571,7 @@ class PiperNativePlugin : Plugin() {
     }
 
     override fun handleOnDestroy() {
+        try { if (wl?.isHeld == true) wl?.release() } catch (e: Throwable) {}
         cpu.execute { try { tts?.release() } catch (e: Throwable) {}; tts = null; ttsId = null; ttsKey = null }
         cpu.shutdown(); io.shutdown()
     }
