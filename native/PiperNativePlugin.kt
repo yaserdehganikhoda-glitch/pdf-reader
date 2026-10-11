@@ -70,6 +70,13 @@ class PiperNativePlugin : Plugin() {
     private fun voiceDir(id: String) = File(root(), id.replace(Regex("[^A-Za-z0-9_.-]"), "_"))
     private fun okMark(id: String) = File(voiceDir(id), ".ok")
 
+    /** خروج کامل از برنامه (دکمهٔ خروج) */
+    @PluginMethod
+    fun exitApp(call: PluginCall) {
+        call.resolve()
+        activity?.runOnUiThread { try { activity.finishAffinity() } catch (e: Throwable) { activity.finish() } }
+    }
+
     @PluginMethod
     fun ping(call: PluginCall) {
         call.resolve(JSObject().put("ok", true))
@@ -78,7 +85,11 @@ class PiperNativePlugin : Plugin() {
     @PluginMethod
     fun stored(call: PluginCall) {
         val ids = org.json.JSONArray()
-        root().listFiles()?.forEach { d -> if (File(d, ".ok").exists()) ids.put(d.name) }
+        // فقط صدایی که فایل مدلش واقعاً هست «دانلودشده» حساب می‌شود؛ اگر فایل‌ها پاک شده باشند نشانهٔ .ok هم پاک می‌شود تا دکمهٔ دانلود دوباره بیاید
+        root().listFiles()?.forEach { d ->
+            val ok = File(d, ".ok")
+            if (ok.exists()) { if (findOnnx(d) != null) ids.put(d.name) else ok.delete() }
+        }
         call.resolve(JSObject().put("ids", ids))
     }
 
