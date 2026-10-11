@@ -811,7 +811,6 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
         { key: 'fa_IR-gyro-medium', name: 'gyro', quality: 'medium', language: { family: 'fa' } },
         { key: 'fa_IR-ganji-medium', name: 'ganji', quality: 'medium', language: { family: 'fa' } },
         { key: 'fa_IR-ganji_adabi-medium', name: 'ganji_adabi', quality: 'medium', language: { family: 'fa' } },
-        { key: 'mimic3-fa-haaniye_low', name: 'haaniye', quality: 'low', language: { family: 'fa' } },
         { key: 'coqui-fa-negar', name: 'negar', quality: 'coqui', mb: 114, language: { family: 'fa' } }
       ]);
     },
@@ -819,7 +818,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     download: function(id, cb){
       var h = null, done = function(){ try { if (h && h.remove) h.remove(); } catch (e) {} };
       return Promise.resolve(NP.addListener('progress', function(e){ if (cb) cb({ loaded: e.loaded, total: e.total, stage: e.stage, n: e.n }); }))
-        .then(function(x){ h = x; return NP.download(NP_MODEL_FILES[id] ? { id: id, urls: [], files: NP_MODEL_FILES[id]() } : { id: id, urls: NP_MODEL_URLS(id) }); })
+        .then(function(x){ h = x; return NP.download(NP_MODEL_FILES[id] ? { id: id, urls: [], files: NP_MODEL_FILES[id](), espeak: true } : { id: id, urls: NP_MODEL_URLS(id) }); })
         .then(function(r){ done(); return r; }, function(e){ done(); throw e; });
     },
     predict: function(o){
@@ -831,7 +830,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   function ensurePiper(){
     if (npOK) return Promise.resolve(true);
     if (NP) {
-      if (!npTry) npTry = NP.ping().then(function(){ npOK = true; window.PiperTTS = NATIVE_PIPER; return true; }, function(e){ npErr = String((e && (e.message || e.errorMessage || e.code)) || e || 'unknown'); NP = null; perf(); return false; });
+      if (!npTry) npTry = NP.ping().then(function(){ npOK = true; window.PiperTTS = NATIVE_PIPER; try { NP.remove({ id: 'mimic3-fa-haaniye_low' }).catch(function(){}); } catch (e) {} return true; }, function(e){ npErr = String((e && (e.message || e.errorMessage || e.code)) || e || 'unknown'); NP = null; perf(); return false; });
       return npTry.then(function(ok){ return ok ? true : ensurePiperWeb(); });
     }
     return ensurePiperWeb();
@@ -854,7 +853,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
         if (/amir/i.test(v.key || '')) return false;
         return (v.language && v.language.family === 'fa') || /^fa_/.test(v.key || '');
       }).map(function(v){
-        return { id: v.key, name: (v.name || v.key) + (v.quality ? ' (' + v.quality + ')' : ''), lang: 'fa-IR', gender: /haaniye|negar/i.test(v.key || '') ? 'f' : /gyro|ganji|amir/i.test(v.key || '') ? 'm' : '?', mb: v.mb || 0, fa: true };
+        return { id: v.key, name: (v.name || v.key) + (v.quality ? ' (' + v.quality + ')' : ''), lang: 'fa-IR', gender: /negar/i.test(v.key || '') ? 'f' : /gyro|ganji|amir/i.test(v.key || '') ? 'm' : '?', mb: v.mb || 0, fa: true };
       });
       if (fa.length) { piperVoices = fa; renderVoices(); }
     }).catch(function(){});
@@ -1997,7 +1996,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   }
   /* پروفایل تقویت صدا برای هر گوینده: صداهای کم‌کیفیت‌تر نویز زیر/بالا دارند، پس بالابَر نرم‌تر و حذف فرکانس‌های بالای بی‌فایده */
   var FXD = { pk: 2.5, hs: 2, lp: 20000 }, fxN = null,
-      FXP = [[/haaniye/i, { pk: 1.5, hs: -1.5, lp: 7000 }], [/negar|coqui/i, { pk: 2, hs: 0, lp: 10000 }]];
+      FXP = [[/negar|coqui/i, { pk: 2, hs: 0, lp: 10000 }]];
   function applyFxProfile(){
     if (!actx || !fxN) return;
     var v = currentVoice(), p = FXD, i, t = actx.currentTime;
