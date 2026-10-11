@@ -11,7 +11,7 @@ try{var _f=localStorage.getItem('fx');if(_f!=='full'&&_f!=='lite'&&_f!=='off'){v
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;800&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;800&family=Noto+Naskh+Arabic:wght@400;600&family=Scheherazade+New:wght@400;600&display=swap" rel="stylesheet">
 <style>
 /* ===== توکن‌های رنگ: لاجورد، فیروزه و طلا ===== */
 :root{
@@ -670,8 +670,10 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
           <select id="rFont">
             <option value="vazir">وزیرمتن (ساده و امروزی)</option>
             <option value="naskh">نسخ (کتابی)</option>
+            <option value="sch">شهرزاد (مخصوص اعراب)</option>
           </select>
         </div>
+        <label class="chk"><input type="checkbox" id="harakat"> نمایش اعراب روی متن (کسرهٔ اضافه و کلمه‌های پرکاربرد؛ تقریبی و فقط برای دیدن، صدا را تغییر نمی‌دهد)</label>
         <p class="sample" id="fsSample">نمونهٔ متن: صدای کتاب، جمله به جمله، دنبال می‌شود.</p>
       </section>
 
@@ -811,6 +813,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
     return new Blob([u], { type: type });
   }
+  var VOICE_TEMPO = 1.12;   /* سرعت پایهٔ صداهای Coqui؛ اگر هنوز کند یا زیادی تند بود اینجا عوض کنید (مثلاً 1.2 یا 1.05) */
   var NATIVE_PIPER = {
     voices: function(){
       return Promise.resolve([
@@ -831,7 +834,9 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
         .then(function(r){ done(); return r; }, function(e){ done(); throw e; });
     },
     predict: function(o){
-      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], speed: o.sp || 1 }).then(function(r){ var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; return b; });
+      /* صداهای Coqui (نگار، شیوا، مهتاب) ذاتاً کندتر حرف می‌زنند؛ ضریب پایه برای هر گوینده (۱ = بدون تغییر) */
+      var tempo = /^coqui-/.test(o.voiceId || '') ? VOICE_TEMPO : 1;
+      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], speed: Math.min(1.5, (o.sp || 1) * tempo) }).then(function(r){ var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; return b; });
     }
   };
 
@@ -1332,7 +1337,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     var h = document.createElement('div'); h.className = 'pg'; h.textContent = 'صفحهٔ ' + nf.format(q); d.appendChild(h);
     pageParas[q].forEach(function(ids){
       var el = document.createElement('p'); el.dir = pdir(ids.map(function(i){ return sents[i].text; }).join(' '));
-      ids.forEach(function(i){ var sp = document.createElement('span'); sp.textContent = sents[i].text + ' '; sp.dataset.i = i; if (sents[i].risk) sp.className = 'risk'; sents[i].el = sp; el.appendChild(sp); });
+      ids.forEach(function(i){ var sp = document.createElement('span'); sp.textContent = shownText(sents[i].text) + ' '; sp.dataset.i = i; if (sents[i].risk) sp.className = 'risk'; sents[i].el = sp; el.appendChild(sp); });
       d.appendChild(el);
     });
     d.style.minHeight = '';
@@ -1950,7 +1955,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   }
   function perf(){
     var el = $('#pperf'); if (!el) return;
-    var a = ['نسخه ۱۱ (تلفظ و صداهای زن)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
+    var a = ['نسخه ۱۲ (روان‌سازی صداهای زن)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
     if (npOK) a.push('موتور بومی (sherpa-onnx)');
     if (npErr && !npOK) a.push('پلاگین بومی در این APK فعال نیست: ' + npErr);
     if (pwBad && !npOK) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
@@ -1960,14 +1965,16 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     if (pInfo) {
       r = pInfo.sec / Math.max(0.1, pInfo.aud);
       a.push('آخرین ساخت: ' + nf.format(pInfo.n) + ' نویسه در ' + nf.format(Math.round(pInfo.sec * 10) / 10) + ' ثانیه (صدا ' + nf.format(Math.round(pInfo.aud * 10) / 10) + ' ثانیه، ' + nf.format(Math.round(r * 10) / 10) + '× زمان واقعی)');
+      if (pInfo.gen) a.push('خودِ مدل: ' + nf.format(Math.round(pInfo.gen * 10) / 10) + ' ثانیه');
       if (r > 1.1) a.push('این گوشی از پخش زنده کندتر است');
     }
     el.textContent = a.join(' — ');
   }
+  function rtf(){ return pInfo && pSamples > 1 ? pInfo.sec / Math.max(0.1, pInfo.aud) : 0; }   /* نمونهٔ اول حساب نمی‌شود: زمان بارگذاری مدل را هم دارد */   /* نسبت زمان ساخت به زمان صدا؛ بالای ۱ یعنی ساخت از پخش کندتر است */
   function firstLim(){ return Math.max(40, Math.min(72, Math.round(pSpeed * 2.5))); }
   function nextLim(prevLen){
     var pr = 12 * (+$('#rate').value || 1), f = Math.max(1, Math.min(2.5, pSpeed * LN.length * 0.8 / pr));
-    return Math.max(60, Math.min(450, Math.round(prevLen * f)));
+    return Math.max(rtf() > 0.6 ? 100 : 60, Math.min(450, Math.round(prevLen * f)));
   }
   function planChunk(i, first, prevLen){
     if (first) delete plan[i];
@@ -2003,7 +2010,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
       while (a < n && Math.abs(x[a]) < th) a++;
       while (b > a && Math.abs(x[b]) < th) b--;
       if (b - a < sr * 0.1) return blob;
-      a = Math.max(0, a - Math.round(sr * 0.03)); b = Math.min(n - 1, b + Math.round(sr * (mid ? 0.04 : 0.09)));
+      a = Math.max(0, a - Math.round(sr * 0.03)); b = Math.min(n - 1, b + Math.round(sr * (mid ? 0.03 : 0.05)));
       var len = b - a + 1, out = new Int16Array(len), mean = 0, ss = 0, pk2 = 1;
       for (i = 0; i < len; i++) mean += x[a + i];
       mean /= len;
@@ -2178,7 +2185,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
         var sec = (Date.now() - t0) / 1000;
         if (!pFirst) pFirst = sec;
         if (c.start >= 0 && sec > 0.15) {
-          pInfo = { n: c.text.length, sec: sec, aud: Math.max(0, b.size - 44) / ((b.sr || 22050) * 2) };
+          pInfo = { n: c.text.length, sec: sec, aud: Math.max(0, b.size - 44) / ((b.sr || 22050) * 2), gen: b.gen || 0 };
           if (++pSamples > 1) { var sp = c.text.length / sec; pSpeed = pSamples === 2 ? sp : pSpeed * 0.5 + sp * 0.5; }
         }
         perf();
@@ -2250,7 +2257,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     if (ni >= sents.length || sents[c.end].pe) return;
     var nc = planChunk(ni, false, c.text.length), el = audio === audioA ? audioB : audioA, n = { c: nc, el: el, my: my, url: '', b: 1 };
     nxt = n;
-    prefetchPiper(nc.end + 1, 1, nc.text.length);
+    prefetchPiper(nc.end + 1, rtf() > 0.7 ? 2 : 1, nc.text.length);
     piperAudio(nc).then(function(a){
       if (nxt !== n || my !== token || !playing) return;
       el.onended = null; el.ontimeupdate = null; el.onerror = null;
@@ -2294,9 +2301,16 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     var my = token;
     var c = planChunk(idx, cn === 0, lastLen);
     cn++; lastLen = c.text.length;
+    var firstOne = cn === 1;
     status('در حال آماده‌سازی صدا…');
     var t0 = Date.now(), tk = setInterval(function(){ if (my !== token || !playing) clearInterval(tk); else status('در حال آماده‌سازی صدا (' + nf.format(c.text.length) + ' نویسه)… ' + nf.format(Math.round((Date.now() - t0) / 1000)) + ' ثانیه'); }, 1000);
-    ensurePiper().then(function(){ var pf = piperAudio(c); prefetchPiper(c.end + 1, 2, c.text.length); return pf; }).then(function(a){
+    ensurePiper().then(function(){ var pf = piperAudio(c); prefetchPiper(c.end + 1, rtf() > 0.7 ? 3 : 2, c.text.length); return pf; }).then(function(a){
+      /* اگر ساخت صدا کندتر از پخش است، قبل از شروع یک تکهٔ بعدی هم آماده می‌شود تا وسط خواندن کم‌تر مکث پیش بیاید */
+      if (firstOne && rtf() > 0.9 && c.end + 1 < sents.length && !sents[c.end].pe && my === token && playing) {
+        return piperAudio(planChunk(c.end + 1, false, c.text.length)).then(function(){ return a; }, function(){ return a; });
+      }
+      return a;
+    }).then(function(a){
       clearInterval(tk);
       if (my !== token || !playing) return;
       status('');
@@ -2706,7 +2720,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     if (!s || s.isCollapsed || !s.rangeCount) return '';
     var n = s.getRangeAt(0).commonAncestorContainer; n = n.nodeType === 1 ? n : n.parentNode;
     if (!n || !$('#reader').contains(n)) return '';
-    return String(s).replace(/\s+/g, ' ').trim();
+    return String(s).replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
   }
   function selUpdate(){
     var t = selInfo(), bar = $('#selBar');
@@ -2873,11 +2887,84 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   window.addEventListener('resize', syncDock); syncDock();
 
   /* قلم متن */
-  var RFONTS = { vazir: 'var(--font)', naskh: '"Noto Naskh Arabic","Vazirmatn",Tahoma,serif' };
+  var RFONTS = { vazir: 'var(--font)', naskh: '"Noto Naskh Arabic","Vazirmatn",Tahoma,serif', sch: '"Scheherazade New","Noto Naskh Arabic","Vazirmatn",Tahoma,serif' };
   function applyRFont(){ var k = $('#rFont').value; document.documentElement.style.setProperty('--rfont', RFONTS[k] || RFONTS.vazir); }
   $('#rFont').value = RFONTS[sget('rfont', 'vazir')] ? sget('rfont', 'vazir') : 'vazir';
   $('#rFont').onchange = function(){ sset('rfont', this.value); applyRFont(); if (curEl) follow(curEl); };
   applyRFont();
+
+  /* ---------- نمایش اعراب (فقط نمایشی؛ متنِ خوانده‌شده تغییر نمی‌کند) ----------
+     قلم نمی‌تواند حرکت‌ها را تشخیص دهد، فقط می‌کشد؛ پس اینجا با قاعده و فهرست کلمه‌های پرکاربرد اعراب اضافه می‌شود.
+     دقت: کلمه‌های فهرست‌شده درست‌اند؛ کسرهٔ اضافه تقریبی است (بدون تحلیل دستوری) و ممکن است گاهی اشتباه یا جاافتاده باشد. */
+  var KASRA = '\u0650';
+  var HK_WORDS = {};
+  ('به:بِه|که:کِه|از:اَز|در:دَر|من:مَن|شما:شُما|هم:هَم|اگر:اَگَر|ولی:وَلی|اما:اَمّا|بر:بَر|همه:هَمه|هر:هَر|چه:چِه|چرا:چِرا|کجا:کُجا|کی:کِی|چند:چَند|بسیار:بِسیار|خیلی:خِیلی|کم:کَم|نه:نَه|بله:بَله|همان:هَمان|چنین:چُنین|چنان:چُنان|پس:پَس|سپس:سِپَس|بلکه:بَلکه|یعنی:یَعنی|همچنین:هَمچنین|مثل:مِثل|مثلاً:مَثَلاً|حتی:حَتّی|فقط:فَقَط|تنها:تَنها|هنوز:هَنوز|همیشه:هَمیشه|هرگز:هَرگِز|بعد:بَعد|قبل:قَبل|بین:بَینِ|درباره:دَرباره|طبق:طِبقِ|جز:جُز|مگر:مَگَر|اکنون:اَکنون|امروز:اِمروز|دیروز:دیروز|فردا:فَردا|هنگامی:هَنگامی|زیرا:زیرا|چون:چون|تا:تا|یا:یا|را:را|با:با|این:این|آن:آن|او:او|ما:ما|تو:تو|آنها:آنها|اینها:اینها').split('|').forEach(function(p){ var a = p.split(':'); HK_WORDS[a[0]] = a[1]; });
+  /* کلمه‌هایی که خودشان کسرهٔ اضافه نمی‌گیرند و بعدشان هم معمولاً اسم/صفت نیست */
+  var HK_STOP = {};
+  ('به که از در را با تا یا و این آن او ما تو من شما آنها اینها آنان ایشان اما ولی اگر چون زیرا بلکه پس هم نیز هر همه هیچ چه چرا کجا کی کدام چند نه بله خیلی بسیار کم بیش بیشتر کمتر خود همان همین چنین چنان اکنون امروز دیروز فردا حالا هنوز همیشه هرگز دیگر فقط تنها حتی مثلاً یعنی البته شاید باید نباید می‌تواند نمی‌تواند است نیست هست نبود بود شد شود شده باشد باشند دارد دارند داشت کرد کند کنند کرده کردند گفت گفته رفت آمد آمده دید داد داده گرفت خورد خواهد خواست توانست بر برای بی بدون مگر جز مانند مثل طبق طی نزد سوی دارای').split(' ').forEach(function(w){ HK_STOP[w] = 1; });
+  /* اسم‌های مکانیِ حرف‌اضافه‌مانند که کسرهٔ اضافه می‌گیرند */
+  var HK_PREP = {}; 'روی زیر پیش بین میان پشت کنار داخل درون بیرون جلو بالا پایین مقابل کنار نزدیک نزد'.split(' ').forEach(function(w){ HK_PREP[w] = 1; });
+  var HK_LTR = '\\u0621-\\u063A\\u0641-\\u064A\\u067E\\u0686\\u0698\\u06A9\\u06AF\\u06CC\\u0622';
+  var HK_RE_WORD = new RegExp('^([«“"(\\[]*)([' + HK_LTR + '\\u200c]+)([^' + HK_LTR + '\\u200c]*)$');
+  var HK_NOEZ_END = /[هاویآ]$/;       /* واژه‌های مختوم به ه ا و ی (جز «ای») در نگارش خودشان نشانهٔ اضافه دارند یا مبهم‌اند */
+  var HK_VERB_END = /ند$/;
+  var HK_VERB_OK = /(?:مند|بلند|پسند|کمند|چند)$/;
+  function hkTok(t){
+    var m = HK_RE_WORD.exec(t); if (!m) return null;
+    return { pre: m[1], w: m[2], post: m[3] };
+  }
+  function hkEzCand(k){            /* آیا کلمهٔ k می‌تواند کسرهٔ اضافه بگیرد؟ */
+    var w = k.w;
+    if (k.post && /[.،؛:!?؟…»”)\]\-–—,;]/.test(k.post)) return false;   /* بعدش نشانهٔ پایان/مکث است */
+    if (w.length < 2 || HK_STOP[w]) return false;
+    if (/^(?:می|نمی)\u200c/.test(w)) return false;
+    if (/\u200c(?:ام|ای|ایم|اید|اند)$/.test(w)) return false;
+    if (HK_VERB_END.test(w) && !HK_VERB_OK.test(w)) return false;
+    if (HK_PREP[w]) return true;
+    if (/ای$/.test(w) && w.length > 3) return true;    /* صدای، دنیای، جای */
+    if (HK_NOEZ_END.test(w)) return false;
+    if (/\u200c$/.test(w)) return false;
+    return true;
+  }
+  function hkEzNext(k){            /* آیا کلمهٔ بعدی شبیه اسم/صفت است (نه فعل یا حرف)؟ */
+    var w = k.w;
+    if (w.length < 2 || HK_STOP[w]) return false;
+    if (/^(?:می|نمی)\u200c/.test(w)) return false;
+    return true;
+  }
+  function addHarakat(text){
+    var parts = text.split(/(\s+)/), toks = [], i, out;
+    for (i = 0; i < parts.length; i++) toks.push(/^\s+$/.test(parts[i]) || !parts[i] ? null : hkTok(parts[i]));
+    out = parts.slice();
+    for (i = 0; i < parts.length; i++) {
+      var k = toks[i]; if (!k) continue;
+      var rep = HK_WORDS[k.w], nx = null, j;
+      if (rep && !(HK_PREP[k.w])) { out[i] = k.pre + rep + k.post; continue; }
+      for (j = i + 1; j < parts.length && !parts[j].trim(); j++) {}
+      if (j < parts.length && j === i + 2) nx = toks[j];     /* فقط یک فاصلهٔ ساده بین دو کلمه */
+      if (nx && hkEzCand(k) && hkEzNext(nx)) out[i] = k.pre + k.w + KASRA + k.post;
+    }
+    return out.join('');
+  }
+  function shownText(t){ return $('#harakat') && $('#harakat').checked ? addHarakat(t) : t; }
+  function rerenderAll(){
+    Object.keys(pgEls).forEach(function(q){
+      var d = pgEls[q]; if (!d || !d.firstChild) return;
+      d.textContent = '';
+      pageParas[q].forEach(function(ids){ ids.forEach(function(i){ sents[i].el = null; }); });
+      renderPage(+q);
+    });
+    curEl = null; if (sents.length) mark(false);
+    var sm = $('#fsSample'); if (sm) sm.textContent = shownText(HK_SAMPLE);
+  }
+  var HK_SAMPLE = 'نمونهٔ متن: صدای کتاب، جمله به جمله، دنبال می‌شود.';
+  $('#harakat').checked = sget('harakat', '0') === '1';
+  if ($('#harakat').checked) rerenderAll();
+  $('#harakat').onchange = function(){
+    sset('harakat', this.checked ? '1' : '0');
+    if (this.checked && $('#rFont').value === 'vazir') { $('#rFont').value = 'sch'; sset('rfont', 'sch'); applyRFont(); }
+    rerenderAll();
+  };
 
   /* نوار لغزندهٔ بیشینهٔ طول جمله */
   fillRng($('#maxL'));
