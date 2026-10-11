@@ -153,7 +153,11 @@ linear-gradient(180deg,var(--bg1),var(--bg0));animation:drift 50s ease-in-out in
 .is-prep .play .ring{display:none}
 .is-prep .play::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:3px solid transparent;border-top-color:var(--gold);animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.pills{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:2px}
+.pills{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:2px}
+.spgrp{grid-column:1/-1;display:grid;grid-template-columns:52px 1fr 52px;gap:6px}
+.spgrp .pill{font-size:.9rem}
+.spgrp #spDn,.spgrp #spUp{font-size:1.25rem;line-height:1;padding:0}
+.pill,.rstep{touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .pill{font:inherit;font-size:.72rem;font-weight:600;min-height:34px;padding:2px 2px;white-space:nowrap;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;line-height:1.3;transition:border-color .2s,background .2s,transform .12s}
 .pill:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
 .pill{background:color-mix(in srgb,var(--card) 55%,transparent)}
@@ -444,7 +448,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 6l-6 6 6 6M19 6l-6 6 6 6"/></svg><span class="cap">صفحه</span></button>
       </div>
       <div class="pills">
-        <button class="pill" id="spBtn" type="button" aria-label="تغییر سرعت"></button>
+        <div class="spgrp"><button class="pill" id="spDn" type="button" aria-label="کندتر (یک گام ریز)">−</button><button class="pill" id="spBtn" type="button" aria-label="سرعت؛ لمس برای بازگشت به ۱×" title="لمس: بازگشت به ۱×"></button><button class="pill" id="spUp" type="button" aria-label="تندتر (یک گام ریز)">+</button></div>
         <button class="pill" id="slBtn" type="button" aria-label="تایمر خواب">تایمر خواب</button>
         <button class="pill" id="locBtn" type="button" disabled aria-label="رفتن به محل خواندن">محل خواندن</button>
         <button class="pill" id="stop" type="button" disabled>توقف</button>
@@ -549,8 +553,8 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
           </select>
         </div>
         <div class="slist">
-          <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است و سرعت اندکی تغییر می‌کند؛ مثل نفس‌گیری گوینده.</small></span></label>
-          <label class="chk"><input type="checkbox" id="smartPace" checked><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
+          <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است؛ مثل نفس‌گیری گوینده. سرعت خود صدا تغییر نمی‌کند.</small></span></label>
+          <label class="chk"><input type="checkbox" id="smartPace"><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
           <label class="chk"><input type="checkbox" id="ezAuto" checked><span class="st"><b>کسرهٔ اضافهٔ خودکار</b><small>مثل «صدای کتاب». اگر جایی اشتباه خواند، این گزینه را خاموش کنید.</small></span></label>
           <label class="chk"><input type="checkbox" id="phFa" checked><span class="st"><b>تلفظ پیشرفتهٔ فارسی</b><small>نیم‌فاصله‌ها برای موتور آوایی حفظ می‌شود و «هٔ» اضافه درست خوانده می‌شود.</small></span></label>
           <label class="chk"><input type="checkbox" id="proLex" checked><span class="st"><b>گفتار حرفه‌ای</b><small>ساعت به شیوهٔ گوینده («ده و نیم») و پوشش کامل‌تر کسرهٔ اضافه.</small></span></label>
@@ -564,7 +568,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
           <label for="rate"><span>سرعت</span><span id="rateV"></span></label>
           <div class="rwrap">
             <button class="btn sm rstep" id="rateDn" type="button" aria-label="کندتر">−</button>
-            <input type="range" class="rng" id="rate" min="0.4" max="2.5" step="0.05" value="1">
+            <input type="range" class="rng" id="rate" min="0.4" max="2.5" step="0.01" value="1">
             <button class="btn sm rstep" id="rateUp" type="button" aria-label="تندتر">+</button>
           </div>
           <div class="chips rchips" id="rateChips"></div>
@@ -791,6 +795,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   function sset(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
   function fxLevel(){ return document.documentElement.getAttribute('data-fx') || 'full'; }
   $('#rate').value = sget('rate', '1');
+  if (sget('rateBase', '') !== '1') { sset('rateBase', '1'); sset('rate', '1'); $('#rate').value = '1'; }   /* یک‌بار: بازگشت سرعت به ۱× (حالت اولیه) */
   function fillRng(el){ var mn = +el.min, mx = +el.max, p = mx > mn ? (el.value - mn) / (mx - mn) * 100 : 0; el.style.setProperty('--p', Math.max(0, Math.min(100, p)) + '%'); }
   function showVals(){
     var r = +$('#rate').value, ch = document.querySelectorAll('#rateChips .chip'), i;
@@ -894,7 +899,8 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
     return new Blob([u], { type: type });
   }
-  var VOICE_TEMPO = 1.12;   /* سرعت پایهٔ صداهای Coqui؛ اگر هنوز کند یا زیادی تند بود اینجا عوض کنید (مثلاً 1.2 یا 1.05) */
+  var VOICE_TEMPOS = { 'fa_IR-gyro-medium': 0.92 };   /* ضریب سرعت اختصاصی هر گوینده در ساخت صدا (بدون کشیدن صدا)؛ کمتر از ۱ = کندتر. گوینده‌ای که اینجا نیست با سرعت اصلی خودش می‌خواند */
+  var VOICE_TEMPO = 1;   /* ۱ = سرعت اصلی و دست‌نخوردهٔ مدل، همان لحظهٔ نصب صدا */
   var NATIVE_PIPER = {
     voices: function(){
       return Promise.resolve([
@@ -912,8 +918,8 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
         .then(function(r){ done(); return r; }, function(e){ done(); throw e; });
     },
     predict: function(o){
-      /* صداهای Coqui (نگار، شیوا، مهتاب) ذاتاً کندتر حرف می‌زنند؛ ضریب پایه برای هر گوینده (۱ = بدون تغییر) */
-      var tempo = /^coqui-/.test(o.voiceId || '') ? VOICE_TEMPO : 1;
+      /* ضریب پایه برای همهٔ گوینده‌ها یکسان است (۱ = سرعت اصلی مدل) */
+      var tempo = VOICE_TEMPOS[o.voiceId] || VOICE_TEMPO;
       return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], speed: Math.min(1.5, (o.sp || 1) * tempo) }).then(function(r){ var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; return b; });
     }
   };
@@ -1577,12 +1583,18 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     if (cur && (/[اآویهةء\u200c]$/.test(w) || /\u200c(?:ام|ای|ایم|اید|اند)$/.test(w))) return true;
     return false;
   }
+  function prevW(ws, i){ while (--i >= 0) if (ws[i]) return ws[i]; return ''; }
+  var EZ_MON = {}; MON_FA.concat(MON_EN).forEach(function(w){ if (w) EZ_MON[w] = 1; });
   function ezAuto(t){
     var ws = t.split(' '), i, n = 0, a, b;
     for (i = 0; i < ws.length - 1; i++) {
-      a = ws[i]; if (!EZ_A.test(a) || ezBad(a, true)) continue;
+      a = ws[i];
+      if (a === 'ماه' && EZ_MON[ws[i + 1].replace(/[,.;:!?،؛؟]+$/, '')]) { ws[i] = a + EZ_K; n++; continue; }   /* «ماهِ مرداد» */
+      if (!EZ_A.test(a) || ezBad(a, true)) continue;
       b = ws[i + 1].replace(/[,.;:!?،؛؟]+$/, ''); if (!EZ_A.test(b) || ezBad(b, false)) continue;
       if (EZ_NAME[a] && EZ_NAME[b]) continue;
+      if (EZ_MON[b] && /(?:م|ام)$/.test(a)) continue;
+      if ((a === 'نفر' || a === 'تن') && EZ_STOP[prevW(ws, i)]) continue;   /* «هزار نفر شرکت کردند»: واحد شمارش بعد از عدد کسره نمی‌گیرد */   /* «دوازدهم مرداد»، نه «دوازدهمِ مرداد» */
       ws[i] = a + EZ_K; n++;
     }
     while (n-- > 0) bump('ez');
@@ -2061,8 +2073,8 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   function styleParams(){ return STYLES[$('#vstyle').value] || STYLES.natural; }
   /* سرعت نسبی ۰٫۹۱ تا ۱: هرچه جمله سنگین‌تر (کلمهٔ بلند، عدد، لاتین، نشانه‌گذاری زیاد)، کمی آهسته‌تر */
   function paceSpeed(t){
-    var hum = humOn(), smart = $('#smartPace').checked;
-    if (!smart && !hum) return 1;
+    var smart = $('#smartPace').checked;
+    if (!smart) return 1;
     var n = t.length; if (n < 8) return 1;
     var sp = 1;
     if (smart) {
@@ -2076,18 +2088,21 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       d = Math.min(1, d * 1.8);
       sp = 1 - 0.09 * d;
     }
-    if (hum) {
-      /* پرسش کمی آهسته‌تر، جملهٔ کوتاه با تأکید بیشتر، و نوسان بسیار ظریف و ثابت برای هر متن */
-      if (/[?؟]["»”')\]]*$/.test(t)) sp *= 0.97;
-      if (n < 28) sp *= 0.96;
-      sp *= 0.985 + (hStr(t) % 31) / 1000;
-      sp = Math.max(0.86, Math.min(1.03, sp));
-    }
     return Math.round(sp * 100) / 100;
   }
   var mainKit = null;
   function piperPredict(text, id, l){
-    if (npOK) return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: text, voiceId: id, st: styleParams(), sp: paceSpeed(text) })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.');
+    if (npOK) {
+      var nat = function(tx){ return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: tx, voiceId: id, st: styleParams(), sp: paceSpeed(tx) })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.'); };
+      /* خطای گذرا یا نویسهٔ عجیب در یک جمله کل خواندن را متوقف نکند: یک بار دیگر با متن ساده‌شده (فقط حرف، عدد و نشانه‌های رایج) */
+      return nat(text).catch(function(e){
+        var m = String((e && e.message) || e);
+        if (/دانلود نشده|آماده نشده|espeak|مدل پیدا نشد|بیش از حد/.test(m)) throw e;
+        var simple = text.replace(/[^\p{L}\p{N}\s.,;:!?'\-]/gu, ' ').replace(/\s+/g, ' ').trim();
+        if (!/[\p{L}\p{N}]/u.test(simple)) throw e;
+        return nat(simple);
+      });
+    }
     var w = getWorker(l || 0), n = ++pwId;
     var main = function(){
       mainKit = mainKit || piperKit();
@@ -2111,7 +2126,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   }
   function perf(){
     var el = $('#pperf'); if (!el) return;
-    var a = ['نسخه ۱۴ (گویش انسانی و تنظیمات بازچیده)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
+    var a = ['نسخه ۱۷ (گام ریز سرعت)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
     if (npOK) a.push('موتور بومی (sherpa-onnx)');
     if (npErr && !npOK) a.push('پلاگین بومی در این APK فعال نیست: ' + npErr);
     if (pwBad && !npOK) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
@@ -2217,6 +2232,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       fxN.lp.frequency.setTargetAtTime(p.lp, t, 0.05);
     } catch (e) {}
   }
+  $('#enh').addEventListener('change', function(){ if (playing) { setupFx(); wireFx(true); } });
   function wireFx(on){
     if (!actx) return;
     try { fxSrcs.forEach(function(f){ f.disconnect(); f.connect(on && $('#enh').checked ? fxIn : actx.destination); }); if (actx.state !== 'running') actx.resume(); } catch (e) {}
@@ -2349,7 +2365,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
         perf();
         return b;
       });
-    }).then(function(b){ return polish(b, c.mid).catch(function(){ return b; }); }).then(function(b){ var u = URL.createObjectURL(b); rawBlob[u] = b; return u; });
+    }).then(function(b){ return typeof b.gen === 'number' ? b : polish(b, c.mid).catch(function(){ return b; }); }).then(function(b){ var u = URL.createObjectURL(b); rawBlob[u] = b; return u; });
     L.q = pr.catch(function(){});
     pr.then(function(){ L.b--; }, function(){ L.b--; });
     pr.catch(function(){ delete cache[ck]; });
@@ -2527,7 +2543,14 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     var r = el.getBoundingClientRect(), s = $('#stage').getBoundingClientRect(), dk = $('#dock').getBoundingClientRect();
     if (r.top < s.top + 56 || r.bottom > dk.top - 12) el.scrollIntoView({ block: 'center', behavior: fxLevel() === 'off' ? 'auto' : 'smooth' });
   }
+  var kaOn = null, kaBad = false;
+  function kaSync(){
+    if (kaBad || !npOK || !NP || (kaOn === null && !playing) || kaOn === !!playing) return;
+    kaOn = !!playing;
+    try { Promise.resolve(NP.keepAwake({ on: kaOn })).catch(function(){ kaBad = true; }); } catch (e) { kaBad = true; }
+  }
   function ui(){
+    kaSync();
     var has = sents.length > 0 && canSpeak();
     $('#play').disabled = !has;
     $('#prev').disabled = !has;
@@ -2804,7 +2827,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   }
   $('#pgPrev').onclick = function(){ pageJump(-1); };
   $('#pgNext').onclick = function(){ pageJump(1); };
-  var SPD = [0.5, 0.7, 0.85, 1, 1.2, 1.5, 1.8, 2], RMIN = 0.4, RMAX = 2.5, RSTEP = 0.05, rpT = 0;
+  var RMIN = 0.4, RMAX = 2.5, RSTEP = 0.01, rpT = 0;   /* گام ۰٫۰۱: هر یک‌دهمِ «۰٫۱» به ده قسمت تقسیم شده */
   function setRate(v){
     v = Math.round(Math.max(RMIN, Math.min(RMAX, +v || 1)) / RSTEP) * RSTEP; v = Math.round(v * 100) / 100;
     $('#rate').value = v; showVals(); sset('rate', v);
@@ -2815,14 +2838,24 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.dataset.v = v; b.textContent = nf.format(v) + '×';
     b.onclick = function(){ setRate(v); }; $('#rateChips').appendChild(b);
   });
-  $('#rateDn').onclick = function(){ setRate(+$('#rate').value - RSTEP); };
-  $('#rateUp').onclick = function(){ setRate(+$('#rate').value + RSTEP); };
+  /* دکمه‌های − و +: یک لمس = یک گام ریز (۰٫۰۱)؛ نگه‌داشتن = تکرار پیوسته */
+  function holdRepeat(btn, dir){
+    var t0 = 0, t1 = 0;
+    function step(){ setRate(+$('#rate').value + dir * RSTEP); }
+    function stop(){ clearTimeout(t0); clearInterval(t1); t0 = t1 = 0; }
+    btn.addEventListener('pointerdown', function(e){
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      e.preventDefault(); stop(); step();
+      t0 = setTimeout(function(){ t1 = setInterval(step, 70); }, 420);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel', 'blur'].forEach(function(ev){ btn.addEventListener(ev, stop); });
+    btn.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+    btn.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); step(); } });
+  }
+  holdRepeat($('#rateDn'), -1); holdRepeat($('#rateUp'), 1);
+  holdRepeat($('#spDn'), -1); holdRepeat($('#spUp'), 1);
   showVals();
-  $('#spBtn').onclick = function(){
-    var c = +$('#rate').value, n = SPD[0];
-    for (var i = 0; i < SPD.length; i++) if (SPD[i] > c + 0.01) { n = SPD[i]; break; }
-    setRate(n);
-  };
+  $('#spBtn').onclick = function(){ setRate(1); };   /* لمس عدد سرعت = بازگشت به ۱× */
   var SLP = [0, 10, 20, 30, 60], slI = 0, slEnd = 0, slT = 0, slL = 0;
   function slLabel(){ $('#slBtn').textContent = slEnd ? 'خواب: ' + nf.format(Math.max(1, Math.ceil((slEnd - Date.now()) / 60000))) + ' دقیقه' : 'تایمر خواب'; }
   function slOff(){ clearTimeout(slT); clearInterval(slL); slEnd = 0; slLabel(); }
@@ -2861,7 +2894,8 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   if (sget('vstyleV', '') !== '2') { sset('vstyle', 'natural'); sset('vstyleV', '2'); }   /* سبک «انسانی» پیش‌فرض تازه */
   $('#vstyle').value = sget('vstyle', 'natural'); if (!STYLES[$('#vstyle').value]) $('#vstyle').value = 'natural';
   $('#vstyle').onchange = function(){ sset('vstyle', this.value); changed(); warmPiper(); };
-  $('#smartPace').checked = sget('smartPace', '1') !== '0';
+  if (sget('smartV', '') !== '1') { sset('smartV', '1'); sset('smartPace', '0'); }   /* سرعت صدا دقیقاً مثل حالت اولیه؛ فقط با تیک‌زدن دستی فعال می‌شود */
+  $('#smartPace').checked = sget('smartPace', '0') === '1';
   $('#ezAuto').checked = sget('ezAuto', '1') !== '0';
   $('#ezAuto').onchange = function(){ sset('ezAuto', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   $('#humPace').checked = sget('humPace', '1') !== '0';
