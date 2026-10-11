@@ -337,6 +337,33 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
 .menu{box-shadow:none;will-change:transform;contain:layout style}
 .panel.on{animation:fadein2 .12s ease both}
 @keyframes fadein2{from{opacity:0}}
+
+/* ===== چیدمان حرفه‌ای تنظیمات ===== */
+.slist{display:grid;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--ink) 2.5%,transparent);overflow:hidden}
+.slist>.chk{padding:10px 12px;margin:0}
+.slist>.chk+.chk{border-top:1px solid var(--line)}
+.chk .st{display:grid;gap:1px;min-width:0;flex:1}
+.chk .st b{font-weight:700;font-size:.86rem;line-height:1.55}
+.chk .st small{font-size:.72rem;font-weight:400;color:var(--muted);line-height:1.7}
+.chk:has(input:disabled){opacity:.55}
+.flab{font-size:.8rem;color:var(--muted)}
+.btnrow{display:flex;gap:8px}
+.btnrow .btn{flex:1;min-width:0}
+.btnrow .btn[hidden]+.btn{flex:1}
+.ico{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent)}
+.ico svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+details.acc>summary .stt{display:grid;gap:0;min-width:0;flex:1}
+details.acc>summary .stt b{font-size:.9rem;font-weight:800;line-height:1.5}
+details.acc>summary .stt small{font-size:.72rem;font-weight:400;color:var(--muted);line-height:1.6}
+details.acc>summary{min-height:56px;padding:8px 12px}
+details.acc[open]>summary{border-bottom:1px solid var(--line);margin-bottom:10px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:3px;padding:3px;border-radius:14px;background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.seg button{font:inherit;font-size:.8rem;font-weight:600;border:0;background:transparent;color:var(--muted);border-radius:11px;min-height:38px;padding:2px 4px;cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
+.seg button[aria-checked="true"]{background:var(--card);color:var(--ink);box-shadow:var(--dock-in),0 4px 12px -6px var(--dsh);background-image:linear-gradient(180deg,transparent,color-mix(in srgb,var(--accent) 10%,transparent))}
+.segcap{min-height:1.6em}
+.segsel{display:none!important}
+#txtReset{margin-top:2px}
+details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid transparent;border-right:2px solid var(--muted)}
 </style>
 </head>
 <body>
@@ -445,7 +472,6 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   <div class="mh">
     <h2 id="menuTitle">منو</h2>
     <div class="mhb">
-      <button class="ibtn round exitB" type="button" aria-label="خروج از برنامه" title="خروج از برنامه"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></button>
       <button class="ibtn round" id="menuClose" type="button" aria-label="بستن منو">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </button>
@@ -466,15 +492,14 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
 
       <section class="grp" id="libBox">
         <h3>PDFهای ذخیره‌شده <span id="libCount"></span></h3>
-        <label class="chk"><input type="checkbox" id="libAuto" checked> ذخیرهٔ خودکار PDFهایی که باز می‌کنم</label>
+        <div class="slist"><label class="chk"><input type="checkbox" id="libAuto" checked><span class="st"><b>ذخیرهٔ خودکار PDFها</b><small>هر PDF که باز می‌کنید در حافظهٔ برنامه ذخیره می‌شود و جای خواندن آن هم حفظ می‌شود.</small></span></label></div>
         <div id="libList"></div>
         <p class="hint" id="libMsg" aria-live="polite"></p>
         <button class="btn wide" id="libClear" type="button" hidden>حذف همهٔ فایل‌های ذخیره‌شده</button>
-        <p class="hint">هر PDF که باز می‌کنید در حافظهٔ برنامه ذخیره می‌شود و جای خواندن آن هم حفظ می‌شود.</p>
       </section>
 
       <details class="acc" id="vfbox" hidden>
-        <summary>پوشهٔ ذخیرهٔ صداها</summary>
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></i><span class="stt"><b>پوشهٔ ذخیرهٔ صداها</b><small>نسخهٔ پشتیبان صداهای دانلودشده</small></span></summary>
         <div class="in">
           <p class="hint" id="vfName"></p>
           <div class="two">
@@ -483,7 +508,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
           </div>
           <button class="btn wide" id="vfLoad" type="button" disabled>بارگذاری صداها از پوشه</button>
           <button class="btn wide" id="vfRef" type="button">تازه‌سازی (بررسی دوبارهٔ فایل‌ها)</button>
-          <label class="chk"><input type="checkbox" id="vfAuto" checked> بعد از هر دانلود خودکار در پوشه ذخیره شود، و صداهای گم‌شده خودکار از پوشه بارگذاری شوند</label>
+          <div class="slist"><label class="chk"><input type="checkbox" id="vfAuto" checked><span class="st"><b>ذخیرهٔ خودکار در پوشه</b><small>بعد از هر دانلود در پوشه ذخیره می‌شود و صداهای گم‌شده خودکار از پوشه بارگذاری می‌شوند.</small></span></label></div>
           <p class="hint" id="vfMsg" aria-live="polite"></p>
           <details class="sub hintbox"><summary>راهنما</summary><div class="in"><p class="hint">یک پوشه روی گوشی انتخاب کنید تا صداهای دانلودشده به‌صورت فایل zip در آن ذخیره شوند. بعد از نصب دوبارهٔ برنامه یا روی گوشی دیگر، همان پوشه را انتخاب و صداها را بدون دانلود بارگذاری کنید.</p></div></details>
         </div>
@@ -498,34 +523,39 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
 
       <section class="grp">
         <h3>گوینده</h3>
-        <div class="two" style="grid-template-columns:1fr">
-          <div class="field">
-            <label for="voice"><span>گوینده</span></label>
-            <select id="voice"></select>
-          </div>
+        <div class="field">
+          <label for="voice"><span>صدای خواننده</span></label>
+          <select id="voice"></select>
         </div>
         <div id="piperbox" class="grp" hidden>
           <p class="hint" id="pstat"></p>
-          <button class="btn" id="pdl" type="button">دانلود صدای فارسی</button>
-          <button class="btn wide" id="pRef" type="button">تازه‌سازی (بررسی دوبارهٔ فایل‌های صدا)</button>
-          <p class="hint" id="pperf"></p>
-          <label class="chk"><input type="checkbox" id="enh" checked> بهبود کیفیت صدا (وضوح و یکنواختی بلندی؛ تنظیم خودکار برای هر گوینده)</label>
-          <div class="field">
-            <label for="vstyle"><span>سبک گفتار</span></label>
-            <select id="vstyle">
-              <option value="stable">پایدار (یکنواخت‌تر، مناسب کتاب)</option>
-              <option value="balanced">متعادل (پیشنهادی)</option>
-              <option value="lively">گویا (پرحالت‌تر)</option>
-            </select>
+          <div class="btnrow">
+            <button class="btn primary" id="pdl" type="button">دانلود صدای فارسی</button>
+            <button class="btn" id="pRef" type="button" title="بررسی دوبارهٔ فایل‌های صدا">تازه‌سازی</button>
           </div>
-          <label class="chk"><input type="checkbox" id="smartPace" checked> سرعت هوشمند (کمی آهسته‌تر روی جمله‌های سنگین، کلمه‌های بلند و لاتین)</label>
-          <label class="chk"><input type="checkbox" id="ezAuto" checked> کسرهٔ اضافهٔ خودکار (مثل «صدای کتاب»؛ گفتار طبیعی‌تر. اگر جایی اشتباه خواند، این گزینه را خاموش کنید)</label>
-          <label class="chk"><input type="checkbox" id="phFa" checked> تلفظ پیشرفتهٔ فارسی (نیم‌فاصله‌ها برای موتور آوایی حفظ شود و «هٔ» اضافه درست خوانده شود)</label>
         </div>
-        <label class="chk"><input type="checkbox" id="allLangs"> نمایش صداهای همهٔ زبان‌ها</label>
-        <details class="sub hintbox"><summary>توضیحات</summary><div class="in">
-          <p class="hint">کاملاً رایگان و بدون سقف است و بعد از دانلود بدون اینترنت کار می‌کند. ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
-        </div></details>
+        <p class="hint">کاملاً رایگان و بدون سقف است و بعد از دانلود بدون اینترنت کار می‌کند. ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
+      </section>
+
+      <section class="grp">
+        <h3>گویش و طبیعی‌بودن</h3>
+        <div class="field">
+          <span class="flab">سبک گفتار</span>
+          <select id="vstyle" data-seg aria-label="سبک گفتار">
+            <option value="stable" data-short="پایدار" data-desc="یکنواخت و بی‌نوسان؛ مناسب کتاب‌های بلند و متن‌های رسمی.">پایدار (یکنواخت‌تر، مناسب کتاب)</option>
+            <option value="balanced" data-short="متعادل" data-desc="تعادل میان پایداری و حالت؛ مناسب بیشتر متن‌ها.">متعادل</option>
+            <option value="natural" data-short="انسانی" data-desc="نزدیک‌ترین حالت به لحن یک گوینده انسانی: زیر و بمی و ریتم طبیعی (پیشنهادی).">انسانی (پیشنهادی)</option>
+            <option value="lively" data-short="پرحالت" data-desc="پرحال‌تر و پرتنوع‌تر؛ مناسب داستان و گفت‌وگو.">گویا (پرحالت‌تر)</option>
+          </select>
+        </div>
+        <div class="slist">
+          <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است و سرعت اندکی تغییر می‌کند؛ مثل نفس‌گیری گوینده.</small></span></label>
+          <label class="chk"><input type="checkbox" id="smartPace" checked><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
+          <label class="chk"><input type="checkbox" id="ezAuto" checked><span class="st"><b>کسرهٔ اضافهٔ خودکار</b><small>مثل «صدای کتاب». اگر جایی اشتباه خواند، این گزینه را خاموش کنید.</small></span></label>
+          <label class="chk"><input type="checkbox" id="phFa" checked><span class="st"><b>تلفظ پیشرفتهٔ فارسی</b><small>نیم‌فاصله‌ها برای موتور آوایی حفظ می‌شود و «هٔ» اضافه درست خوانده می‌شود.</small></span></label>
+          <label class="chk"><input type="checkbox" id="proLex" checked><span class="st"><b>گفتار حرفه‌ای</b><small>ساعت به شیوهٔ گوینده («ده و نیم») و پوشش کامل‌تر کسرهٔ اضافه.</small></span></label>
+          <label class="chk"><input type="checkbox" id="enh" checked><span class="st"><b>بهبود کیفیت صدا</b><small>گرمی و وضوح بیشتر، نرم‌کردن «س» و «ش» تند و یکنواختی بلندی؛ تنظیم خودکار برای هر گوینده.</small></span></label>
+        </div>
       </section>
 
       <section class="grp">
@@ -543,10 +573,12 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
       </section>
 
       <details class="acc" id="bgmBox">
-        <summary>موسیقی پس‌زمینه برای گفتار</summary>
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 16a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/></svg></i><span class="stt"><b>موسیقی پس‌زمینه</b><small>همراه با خواندن، کم‌صدا و پیوسته</small></span></summary>
         <div class="in">
           <input type="file" id="bgmFile" accept="audio/*" hidden>
-          <label class="chk"><input type="checkbox" id="bgmOn" checked> پخش موسیقی همراه با خواندن</label>
+          <div class="slist">
+            <label class="chk"><input type="checkbox" id="bgmOn" checked><span class="st"><b>پخش موسیقی همراه با خواندن</b></span></label>
+          </div>
           <div class="field">
             <label for="bgmLvl"><span>میزان موسیقی</span><span id="bgmLvlV"></span></label>
             <input type="range" class="rng" id="bgmLvl" min="0" max="100" step="1" value="60">
@@ -560,89 +592,97 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
           <details class="sub hintbox"><summary>راهنما</summary><div class="in"><p class="hint">یک فایل موسیقی از گوشی انتخاب کنید تا همزمان با خواندن، آرام و پیوسته پخش شود. برای اینکه گفتار واضح بماند، موسیقی کم‌صدا پخش می‌شود و فرکانس‌های اصلی گفتار در آن کم می‌شود. با «توقف موقت» موسیقی هم آرام خاموش می‌شود.</p></div></details>
         </div>
       </details>
+
+      <details class="acc" id="advBox">
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM4 12h2.5M17.5 12H20M12 4v2.5M12 17.5V20"/></svg></i><span class="stt"><b>پیشرفته و اطلاعات فنی</b><small>وضعیت موتور و سرعت ساخت صدا</small></span></summary>
+        <div class="in">
+          <label class="chk"><input type="checkbox" id="allLangs"><span class="st"><b>نمایش صداهای همهٔ زبان‌ها</b></span></label>
+          <p class="hint" id="pperf"></p>
+        </div>
+      </details>
     </div>
 
     <!-- متن -->
     <div class="panel" data-panel="text" role="tabpanel">
       <details class="acc" id="txtbox" open>
-        <summary>تنظیمات متن PDF</summary>
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"/></svg></i><span class="stt"><b>ساختار متن و صفحه‌ها</b><small>سطربندی، بازهٔ صفحه‌ها و طول جمله‌ها</small></span></summary>
         <div class="in">
-          <details class="sub" open>
-            <summary>ساختار متن</summary>
-            <div class="in">
-              <div class="field">
-                <label for="lnMode"><span>سطربندی</span></label>
-                <select id="lnMode">
-                  <option value="auto">خودکار (تشخیص پایان بند)</option>
-                  <option value="join">ادغام سطرها (متن پیوسته و کتاب)</option>
-                  <option value="line">هر سطر جدا (شعر، فهرست، جدول)</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="encMode"><span>اصلاح کدگذاری (برای متنی مثل Ø§Ù„ یا ÇáÓá)</span></label>
-                <select id="encMode">
-                  <option value="auto">خودکار (فقط اگر نتیجه بهتر شد)</option>
-                  <option value="none">بدون تغییر</option>
-                  <option value="utf-8">UTF-8</option>
-                  <option value="windows-1256">Windows-1256 (فارسی/عربی)</option>
-                  <option value="iso-8859-6">ISO-8859-6 (عربی)</option>
-                </select>
-              </div>
-              <div class="two">
-                <div class="field"><label for="pgFrom"><span>از صفحهٔ</span></label><input type="number" id="pgFrom" min="1" inputmode="numeric" placeholder="ابتدا"></div>
-                <div class="field"><label for="pgTo"><span>تا صفحهٔ</span></label><input type="number" id="pgTo" min="1" inputmode="numeric" placeholder="انتها"></div>
-              </div>
-              <div class="field">
-                <label for="maxL"><span>بیشینهٔ طول هر تکه‌جمله (نویسه)</span><span id="maxV"></span></label>
-                <input type="range" class="rng" id="maxL" min="60" max="220" step="10" value="100">
-              </div>
-              <label class="chk"><input type="checkbox" id="oPos"> مرتب‌سازی سطرها بر اساس موقعیت (فهرست و جدول)</label>
-              <label class="chk"><input type="checkbox" id="oCols"> تشخیص ستون‌بندی (متن دوستونی؛ همراه با گزینهٔ بالا)</label>
-            </div>
-          </details>
-          <details class="sub">
-            <summary>پاک‌سازی و اصلاح</summary>
-            <div class="in">
-              <label class="chk"><input type="checkbox" id="oDots" checked> حذف نقطه‌چین و خط‌چین‌های فهرست</label>
-              <label class="chk"><input type="checkbox" id="oHdr" checked> حذف سرصفحه، پاصفحه و شمارهٔ صفحه</label>
-              <label class="chk"><input type="checkbox" id="oNorm" checked> یکدست‌سازی «ي ك ى» عربی و حذف اعراب و کشیده</label>
-              <label class="chk"><input type="checkbox" id="oFix" checked> اصلاح فاصله‌گذاری: نیم‌فاصله و فاصله اطراف نشانه‌ها</label>
-              <label class="chk"><input type="checkbox" id="oScript" checked> کنار گذاشتن متن زبان‌های غیرفارسی و غیرلاتین (مثل ارمنی)</label>
-            </div>
-          </details>
-          <details class="sub">
-            <summary>OCR (خواندن از روی تصویر صفحه)</summary>
-            <div class="in">
-              <div class="field">
-                <label for="ocrMode"><span>حالت OCR</span></label>
-                <select id="ocrMode">
-                  <option value="auto">خودکار: فقط صفحه‌های خراب یا بدون متن</option>
-                  <option value="always">همیشه، برای همهٔ صفحه‌ها</option>
-                  <option value="off">خاموش</option>
-                </select>
-              </div>
-              <div class="two">
-                <div class="field"><label for="ocrLang"><span>زبان</span></label>
-                  <select id="ocrLang"><option value="fas+eng">فارسی + انگلیسی</option><option value="fas">فقط فارسی</option><option value="eng">فقط انگلیسی</option></select></div>
-                <div class="field"><label for="ocrQ"><span>کیفیت</span></label>
-                  <select id="ocrQ"><option value="1">سریع</option><option value="2" selected>متعادل</option><option value="3">دقیق (کندتر)</option></select></div>
-              </div>
-              <button class="btn" id="ocrBtn" type="button" disabled>اجرای OCR (از صفحهٔ فعلی)</button>
-              <p class="hint" id="ocrStat" aria-live="polite"></p>
-              <p class="hint" id="ocrSrc"></p>
-              <details class="sub hintbox"><summary>راهنما</summary><div class="in"><p class="hint">با وجود پوشه‌های ocr و lib کنار برنامه (ساختهٔ fetch-offline.sh)، OCR و نمایش PDF کاملاً آفلاین کار می‌کنند؛ وگرنه موتور از اینترنت گرفته می‌شود. نتیجهٔ OCR روی دستگاه ذخیره می‌شود.</p></div></details>
-            </div>
-          </details>
-          <button class="btn wide" id="txtReset" type="button">بازنشانی تنظیمات متن</button>
+          <div class="field">
+            <label for="lnMode"><span>سطربندی</span></label>
+            <select id="lnMode" data-seg>
+              <option value="auto" data-short="خودکار" data-desc="پایان بند به‌طور خودکار تشخیص داده می‌شود.">خودکار (تشخیص پایان بند)</option>
+              <option value="join" data-short="ادغام" data-desc="سطرها به هم می‌پیوندند؛ مناسب متن پیوسته و کتاب.">ادغام سطرها (متن پیوسته و کتاب)</option>
+              <option value="line" data-short="هر سطر جدا" data-desc="هر سطر جدا خوانده می‌شود؛ مناسب شعر، فهرست و جدول.">هر سطر جدا (شعر، فهرست، جدول)</option>
+            </select>
+          </div>
+          <div class="two">
+            <div class="field"><label for="pgFrom"><span>از صفحهٔ</span></label><input type="number" id="pgFrom" min="1" inputmode="numeric" placeholder="ابتدا"></div>
+            <div class="field"><label for="pgTo"><span>تا صفحهٔ</span></label><input type="number" id="pgTo" min="1" inputmode="numeric" placeholder="انتها"></div>
+          </div>
+          <div class="field">
+            <label for="maxL"><span>بیشینهٔ طول هر تکه‌جمله (نویسه)</span><span id="maxV"></span></label>
+            <input type="range" class="rng" id="maxL" min="60" max="220" step="10" value="100">
+          </div>
+          <div class="slist">
+            <label class="chk"><input type="checkbox" id="oPos"><span class="st"><b>مرتب‌سازی سطرها بر اساس موقعیت</b><small>برای فهرست و جدول.</small></span></label>
+            <label class="chk"><input type="checkbox" id="oCols"><span class="st"><b>تشخیص ستون‌بندی</b><small>برای متن دوستونی؛ همراه با گزینهٔ بالا.</small></span></label>
+          </div>
+          <div class="field">
+            <label for="encMode"><span>اصلاح کدگذاری (برای متنی مثل Ø§Ù„ یا ÇáÓá)</span></label>
+            <select id="encMode">
+              <option value="auto">خودکار (فقط اگر نتیجه بهتر شد)</option>
+              <option value="none">بدون تغییر</option>
+              <option value="utf-8">UTF-8</option>
+              <option value="windows-1256">Windows-1256 (فارسی/عربی)</option>
+              <option value="iso-8859-6">ISO-8859-6 (عربی)</option>
+            </select>
+          </div>
         </div>
       </details>
 
-      <details class="acc" id="fixbox" open>
-        <summary>تصحیح‌گر هوشمند گفتار</summary>
+      <details class="acc" id="cleanBox">
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19l7-7M14 4l1.5 3.5L19 9l-3.5 1.5L14 14l-1.5-3.5L9 9l3.5-1.5z"/></svg></i><span class="stt"><b>پاک‌سازی و اصلاح متن</b><small>سرصفحه، نقطه‌چین، حروف عربی و فاصله‌گذاری</small></span></summary>
         <div class="in">
-          <label class="chk"><input type="checkbox" id="fixOn" checked> تصحیح گفتار فعال باشد</label>
-          <label class="chk"><input type="checkbox" id="fixHi" checked> حساسیت بالا (حروف جداافتاده، تکرار و کشیدگی)</label>
-          <label class="chk"><input type="checkbox" id="fixPro" checked> مکث‌گذاری هوشمند (پیش از پیوندها، شکستن جملهٔ بلند)</label>
+          <div class="slist">
+            <label class="chk"><input type="checkbox" id="oDots" checked><span class="st"><b>حذف نقطه‌چین و خط‌چین</b><small>در فهرست‌ها و فهرست مطالب.</small></span></label>
+            <label class="chk"><input type="checkbox" id="oHdr" checked><span class="st"><b>حذف سرصفحه، پاصفحه و شمارهٔ صفحه</b></span></label>
+            <label class="chk"><input type="checkbox" id="oNorm" checked><span class="st"><b>یکدست‌سازی حروف</b><small>«ي ك ى» عربی به فارسی، و حذف اعراب و کشیده.</small></span></label>
+            <label class="chk"><input type="checkbox" id="oFix" checked><span class="st"><b>اصلاح فاصله‌گذاری</b><small>نیم‌فاصله و فاصله اطراف نشانه‌ها.</small></span></label>
+            <label class="chk"><input type="checkbox" id="oScript" checked><span class="st"><b>کنار گذاشتن متن زبان‌های دیگر</b><small>غیرفارسی و غیرلاتین، مثل ارمنی.</small></span></label>
+          </div>
+        </div>
+      </details>
+
+      <details class="acc" id="ocrBox">
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></svg></i><span class="stt"><b>OCR</b><small>خواندن متن از روی تصویر صفحه</small></span></summary>
+        <div class="in">
+          <div class="field">
+            <label for="ocrMode"><span>حالت OCR</span></label>
+            <select id="ocrMode" data-seg>
+              <option value="auto" data-short="خودکار" data-desc="فقط صفحه‌های خراب یا بدون متن.">خودکار: فقط صفحه‌های خراب یا بدون متن</option>
+              <option value="always" data-short="همیشه" data-desc="برای همهٔ صفحه‌ها اجرا می‌شود.">همیشه، برای همهٔ صفحه‌ها</option>
+              <option value="off" data-short="خاموش" data-desc="OCR انجام نمی‌شود.">خاموش</option>
+            </select>
+          </div>
+          <div class="field"><label for="ocrLang"><span>زبان</span></label>
+            <select id="ocrLang"><option value="fas+eng">فارسی + انگلیسی</option><option value="fas">فقط فارسی</option><option value="eng">فقط انگلیسی</option></select></div>
+          <div class="field"><label for="ocrQ"><span>کیفیت</span></label>
+            <select id="ocrQ" data-seg><option value="1" data-short="سریع">سریع</option><option value="2" data-short="متعادل" selected>متعادل</option><option value="3" data-short="دقیق" data-desc="دقیق‌تر ولی کندتر.">دقیق (کندتر)</option></select></div>
+          <button class="btn primary wide" id="ocrBtn" type="button" disabled>اجرای OCR (از صفحهٔ فعلی)</button>
+          <p class="hint" id="ocrStat" aria-live="polite"></p>
+          <p class="hint" id="ocrSrc"></p>
+          <details class="sub hintbox"><summary>راهنما</summary><div class="in"><p class="hint">با وجود پوشه‌های ocr و lib کنار برنامه (ساختهٔ fetch-offline.sh)، OCR و نمایش PDF کاملاً آفلاین کار می‌کنند؛ وگرنه موتور از اینترنت گرفته می‌شود. نتیجهٔ OCR روی دستگاه ذخیره می‌شود.</p></div></details>
+        </div>
+      </details>
+
+      <details class="acc" id="fixbox">
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></i><span class="stt"><b>تصحیح‌گر هوشمند گفتار</b><small>عدد، تاریخ، اختصار، لاتین و مکث‌گذاری</small></span></summary>
+        <div class="in">
+          <div class="slist">
+            <label class="chk"><input type="checkbox" id="fixOn" checked><span class="st"><b>تصحیح گفتار فعال باشد</b></span></label>
+            <label class="chk"><input type="checkbox" id="fixHi" checked><span class="st"><b>حساسیت بالا</b><small>حروف جداافتاده، تکرار و کشیدگی بی‌دلیل.</small></span></label>
+            <label class="chk"><input type="checkbox" id="fixPro" checked><span class="st"><b>مکث‌گذاری هوشمند</b><small>پیش از پیوندها و شکستن جملهٔ بلند.</small></span></label>
+          </div>
           <details class="sub hintbox"><summary>این بخش چه می‌کند؟</summary><div class="in"><p class="hint">پیش از خواندن هر جمله، متن را بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، کسرهٔ اضافه (ۀ)، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع، کلمه‌های لاتین و سرواژه‌ها و مکث‌گذاری هوشمند. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p></div></details>
           <p class="hint" id="fixStats" aria-live="polite"></p>
           <p class="hint" id="fixBreak"></p>
@@ -653,7 +693,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
       </details>
 
       <details class="acc" id="dictBox">
-        <summary>واژه‌نامهٔ تلفظ</summary>
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h10"/></svg></i><span class="stt"><b>واژه‌نامهٔ تلفظ</b><small>تلفظ دلخواه برای کلمه‌های خاص</small></span></summary>
         <div class="in">
           <p class="hint">در هر خط یک مورد بنویسید: «کلمه = تلفظ». برای حذف یک کلمه از خواندن، سمت راست را خالی بگذارید. پس از زدن «ثبت و ذخیره»، تغییرها اعمال می‌شوند و صدا از نو ساخته می‌شود.</p>
           <div class="field">
@@ -670,6 +710,8 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
           <p class="hint" id="dictMsg" aria-live="polite"></p>
         </div>
       </details>
+
+      <button class="btn wide" id="txtReset" type="button">بازنشانی تنظیمات متن</button>
     </div>
 
     <!-- نمایش -->
@@ -1506,18 +1548,30 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
      موتور آوایی بدون نشانهٔ اضافه، «صدای کتاب» را بی‌کسره و رباتی می‌خواند. این‌جا بین دو کلمهٔ پشت‌سرهم (اسم/صفت) که
      هیچ نشانه‌گذاری میانشان نیست، کسره می‌گذاریم. کلمه‌های ربطی، فعل، ضمیر، عدد و حرف اضافه را رد می‌کنیم؛ تحلیل دستوری نیست و تقریبی است. */
   function ezOn(){ var e = document.getElementById('ezAuto'); return !e || e.checked; }
+  function humOn(){ var e = document.getElementById('humPace'); return !e || e.checked; }
+  function lexOn(){ var e = document.getElementById('proLex'); return !e || e.checked; }
+  function hStr(s){ var h = 0, i; for (i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
   var EZ_K = '\u0650';
   var EZ_STOP = {};
   ('به که از در را با تا یا و این آن او ما تو من شما آنها اینها آنان ایشان اما ولی اگر چون زیرا بلکه پس هم نیز هر همه هیچ چه چرا کجا کی کدام چند چندین نه بله خیلی بسیار کم بیش بیشتر کمتر خود همان همین چنین چنان اکنون امروز دیروز فردا حالا هنوز همیشه هرگز دیگر فقط تنها حتی مثلاً یعنی البته شاید باید نباید است نیست هست نبود بود شد شود شده باشد باشند دارد دارند داشت کرد کند کنند کرده کردند گفت گفته رفت آمد آمده دید داد داده گرفت خورد خواهد خواست توانست بر برای بی بدون مگر جز طی نزد سوی مانند مثل طبق بعد قبل ' +
    'برد مرد زد آورد ماند خواند نشست ایستاد افتاد گذشت ساخت یافت دانست نوشت گشت بست شکست ریخت سوخت خرید فهمید پرسید شنید دوید خوابید رسید ترسید پرید چسبید کشید بخشید ' +
    'صفر یک دو سه چهار پنج شش هفت هشت نه ده یازده دوازده سیزده چهارده پانزده شانزده هفده هجده نوزده بیست سی چهل پنجاه شصت هفتاد هشتاد نود صد دویست سیصد چهارصد پانصد ششصد هفتصد هشتصد نهصد هزار میلیون میلیارد منفی ضربدر مساوی تقسیم علاوه توان جذر درجه').split(' ').forEach(function(w){ EZ_STOP[w] = 1; });
+  var EZ_STOP2 = {};
+  ('بین میان روی زیر پیش درباره علیه سپس همچنین بنابراین وقتی زمانی هنگامی چنانچه اینکه آنکه هرچه هرگاه بعضی برخی سایر اکنون همواره ممکن لازم واجب لذا ضمنا ضمنن آنگاه آنجا اینجا همانجا هرجا چقدر چگونه چطور همگی همچون همانند ' +
+   'قبلا قبلن بعدا بعدن اصلا اصلن واقعا واقعن حتما حتمن قطعا قطعن ظاهرا ظاهرن مثلا مثلن تقریبا تقریبن غالبا غالبن معمولا معمولن احتمالا احتمالن دوباره باز هنوز اغلب').split(' ').forEach(function(w){ EZ_STOP2[w] = 1; });
+  /* صرف فعل‌های گذشته (من، تو، ما، شما؛ مثبت و منفی) که در فهرست نیستند: «کتاب خواندم»، «رشد داشتیم» */
+  var EZ_VBX = {};
+  'کرد بود شد رفت گفت داشت دید داد گرفت آمد خورد خواست خاست توانست خواند خاند ماند نوشت شنید پرسید فهمید رسید برد آورد ساخت یافت دانست زد نشست ایستاد افتاد گذشت خرید دوید خوابید کشید ریخت سوخت ترسید پرید چسبید بخشید'.split(' ').forEach(function(st){
+    ['', 'ن'].forEach(function(pf){ ['م', 'یم', 'ی', 'ید'].forEach(function(sf){ EZ_VBX[pf + st + sf] = 1; }); });
+  });
+  'هستم هستیم هستی هستید نیستم نیستیم نیستی نیستید باشم باشیم باشی کنم کنیم کنی شوم شویم شوی دارم داریم داری دانم دانیم'.split(' ').forEach(function(w){ EZ_VBX[w] = 1; });
   var EZ_NAME = {}; 'محمد علی حسن حسین رضا مهدی احمد امیر محمود مصطفی ابراهیم اسماعیل یوسف جعفر کاظم باقر تقی نقی هادی صادق مجتبی سعید حمید مجید فرهاد بهرام کامران پرویز شهرام فاطمه زهرا مریم سمیه زینب'.split(' ').forEach(function(w){ EZ_NAME[w] = 1; });
   var EZ_VB = /(?:کنید|شوید|باشید|بروید|ببینید|بدهید|بگویید|بیایید|دارید|خواهید|بگیرید|بدانید|بخوانید|بنویسید|بخورید|ببرید|بیاورید|ندارید|نکنید|نشوید|نباشید|نروید|نگویید|گفتید|دیدید|شنیدید|کردید|بودید|رفتید|آمدید|داشتید|خوردید|دادید|گرفتید)$/;
   var EZ_NDOK = /(?:مند|بلند|پسند|کمند|چند|فرزند|پیوند|سوگند|خرسند|دربند|بند)$/;
   var EZ_A = /^[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC\u0622\u200c]+$/;
   function ezBad(w, cur){
     var c = w.replace(/\u200c/g, '');
-    if (c.length < (cur ? 3 : 2) || EZ_STOP[w] || EZ_VB.test(w)) return true;
+    if (c.length < (cur ? 3 : 2) || EZ_STOP[w] || EZ_VB.test(w) || (lexOn() && (EZ_STOP2[w] || EZ_VBX[w]))) return true;
     if (/^(?:می|نمی)\u200c/.test(w)) return true;
     if (/ند$/.test(w) && !EZ_NDOK.test(w)) return true;
     if (cur && (/[اآویهةء\u200c]$/.test(w) || /\u200c(?:ام|ای|ایم|اید|اند)$/.test(w))) return true;
@@ -1548,7 +1602,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
       .replace(/(?<!\d)(1[34]\d\d)\s*[\/\-.]\s*(0?[1-9]|1[0-2])\s*[\/\-.]\s*(0?[1-9]|[12]\d|3[01])(?!\d)/g, function(_, y, m, d){ return dmy(d, m, y, MON_FA); })
       .replace(/(?<!\d)(0?[1-9]|[12]\d|3[01])\s*[\/\-.]\s*(0?[1-9]|1[0-2])\s*[\/\-.]\s*(1[34]\d\d)(?!\d)/g, function(_, d, m, y){ return dmy(d, m, y, MON_FA); })
       .replace(/(?<!\d)((?:19|20)\d\d)\s*[\/\-]\s*(0?[1-9]|1[0-2])\s*[\/\-]\s*(0?[1-9]|[12]\d|3[01])(?!\d)/g, function(_, y, m, d){ return dmy(d, m, y, MON_EN); })
-      .replace(/(?<!\d)([01]?\d|2[0-3]):([0-5]\d)(?![\d:])/g, function(_, h, m){ return ' ' + numFa(String(+h)) + (+m ? ' و ' + numFa(String(+m)) + ' دقیقه' : '') + ' '; })
+      .replace(/(?<!\d)([01]?\d|2[0-3]):([0-5]\d)(?![\d:])/g, function(_, h, m){ h = +h; m = +m; var hw = ' ' + numFa(String(h)); if (lexOn() && h >= 1 && h <= 12) { if (m === 30) return hw + ' و نیم '; if (m === 15) return hw + ' و ربع '; } return hw + (m ? ' و ' + numFa(String(m)) + ' دقیقه' : '') + ' '; })
       .replace(/(?<![\d\-\/.])(\d{1,4})\s*[-–—]\s*(\d{1,4})(?![\d\-\/])/g, '$1 تا $2')
       .replace(/(\d)\s*(km|cm|mm|m)\s*([23])(?![\d\p{L}])/giu, function(_, d, u, p){ return d + ' ' + ({ km: 'کیلومتر', cm: 'سانتی‌متر', mm: 'میلی‌متر', m: 'متر' })[u.toLowerCase()] + (p === '2' ? ' مربع ' : ' مکعب '); })
       .replace(/(\d)\s*(km\/h|m\/s|kbps|mbps|gbps|kcal|kwh|kw|rpm|fps|mmhg|bpm|km|cm|mm|kg|mg|ml|kb|mb|gb|tb|khz|mhz|ghz|hz)(?![a-z])/gi, function(_, d, u){ return d + ' ' + UNIT[u.toLowerCase()] + ' '; })
@@ -1733,6 +1787,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     return out.map(function(p){ return p.split(' '); }).sort(function(a, b){ return b.length - a.length; });
   }
   var PH_INIT = mkPh('بنابراین|همچنین|البته|در واقع|درواقع|به طور کلی|علاوه بر این|افزون بر این|با این حال|با این وجود|با این همه|از این رو|به عبارت دیگر|به عبارتی|برای مثال|مثلن|متاسفانه|متأسفانه|خوشبختانه|از سوی دیگر|از طرف دیگر|از یک سو|از یک طرف|به علاوه|در این صورت|در غیر این صورت|به هر حال|به هر روی|در عین حال|در حقیقت|به طور خلاصه|آری|بله|خب|امروزه|به نظر من|اولن|ثانین|ثالثن|رابعن');
+  var PH_INIT_H = mkPh('بنابراین|همچنین|البته|در واقع|درواقع|به طور کلی|علاوه بر این|افزون بر این|با این حال|با این وجود|با این همه|از این رو|به عبارت دیگر|به عبارتی|برای مثال|مثلن|متاسفانه|متأسفانه|خوشبختانه|از سوی دیگر|از طرف دیگر|از یک سو|از یک طرف|به علاوه|در این صورت|در غیر این صورت|به هر حال|به هر روی|در عین حال|در حقیقت|به طور خلاصه|آری|بله|خب|امروزه|به نظر من|اولن|ثانین|ثالثن|رابعن|در نهایت|در پایان|در مجموع|در ادامه|در نتیجه|درنتیجه|به همین دلیل|به همین علت|به این ترتیب|بدین ترتیب|از این گذشته|به هر ترتیب|با وجود این|با این اوصاف|در عوض|در این میان|در این بین|در این باره|در این زمینه|نخست|لذا|خلاصه|عمدتن|معمولن|احتمالن|قطعن|مسلمن|طبیعتن|اتفاقن|ضمنن|ظاهرن|یقینن|اساسن|اصولن|مثلن');
   var PH_STRONG = mkPh('اما|ولی|لیکن|بلکه|زیرا|بنابراین');
   var PH_WEAK = mkPh('همچنین|یعنی|اگرچه|اگر چه|هرچند|هر چند|در حالی که|در حالیکه|با این حال|با این وجود|با این همه|علاوه بر این|افزون بر این|در عین حال|به عبارت دیگر|به عبارتی|برای مثال|به همین دلیل|به همین علت|از این رو|چرا که|از آنجا که|از آنجایی که|به طوری که|ضمن اینکه|با اینکه|حال آنکه|مگر اینکه|مگر آنکه|در صورتی که|به شرطی که|پیش از اینکه|پس از اینکه|بدون اینکه|به جای اینکه|به محض اینکه|در نتیجه|درنتیجه');
   var NOCOMMA_PREV = { 'و': 1, 'که': 1, 'یا': 1, 'تا': 1, 'چون': 1, 'اگر': 1, 'از': 1, 'به': 1, 'در': 1, 'با': 1, 'برای': 1, 'نیز': 1, 'هم': 1 };
@@ -1776,7 +1831,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     return t.split(/(?<=[.!?])\s+/).map(function(sg){
       var ws = sg.split(/\s+/).filter(Boolean), n = ws.length, i, run = 0, L, ls, lw;
       if (n < 4) return sg;
-      L = phAt(ws, 0, PH_INIT);
+      L = phAt(ws, 0, humOn() ? PH_INIT_H : PH_INIT);
       if (L && L < n && !hasP(ws[L - 1])) { ws[L - 1] += ','; bump('pause'); }
       for (i = 0; i < n; i++) {
         if (i > 0 && !hasP(ws[i - 1]) && !NOCOMMA_PREV[pkw(ws[i - 1])]) {
@@ -2002,21 +2057,33 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     return pws[l];
   }
   /* ---------- سبک گفتار و سرعت هوشمند (نسخهٔ بومی) ---------- */
-  var STYLES = { stable: [0.5, 0.6], balanced: [0.6, 0.7], lively: [0.75, 0.9] };
-  function styleParams(){ return STYLES[$('#vstyle').value] || STYLES.balanced; }
+  var STYLES = { stable: [0.5, 0.6], balanced: [0.6, 0.7], natural: [0.667, 0.8], lively: [0.75, 0.9] };   /* «انسانی» = مقدار پیش‌فرض خودِ مدل‌های Piper */
+  function styleParams(){ return STYLES[$('#vstyle').value] || STYLES.natural; }
   /* سرعت نسبی ۰٫۹۱ تا ۱: هرچه جمله سنگین‌تر (کلمهٔ بلند، عدد، لاتین، نشانه‌گذاری زیاد)، کمی آهسته‌تر */
   function paceSpeed(t){
-    if (!$('#smartPace').checked) return 1;
+    var hum = humOn(), smart = $('#smartPace').checked;
+    if (!smart && !hum) return 1;
     var n = t.length; if (n < 8) return 1;
-    var words = t.split(/\s+/).filter(Boolean), wl = 0, i;
-    for (i = 0; i < words.length; i++) wl += words[i].length;
-    var avgW = words.length ? wl / words.length : 0;
-    var dig = (t.match(/[0-9\u06F0-\u06F9\u0660-\u0669]/g) || []).length / n;
-    var lat = (t.match(/[A-Za-z]/g) || []).length / n;
-    var com = (t.match(/[،,؛;:()«»]/g) || []).length / Math.max(1, words.length);
-    var d = Math.min(1, Math.max(0, (avgW - 5.2) / 2.5)) * 0.4 + Math.min(1, dig * 6) * 0.3 + Math.min(1, lat * 5) * 0.2 + Math.min(1, com * 2.5) * 0.1;
-    d = Math.min(1, d * 1.8);
-    return Math.round((1 - 0.09 * d) * 100) / 100;
+    var sp = 1;
+    if (smart) {
+      var words = t.split(/\s+/).filter(Boolean), wl = 0, i;
+      for (i = 0; i < words.length; i++) wl += words[i].length;
+      var avgW = words.length ? wl / words.length : 0;
+      var dig = (t.match(/[0-9\u06F0-\u06F9\u0660-\u0669]/g) || []).length / n;
+      var lat = (t.match(/[A-Za-z]/g) || []).length / n;
+      var com = (t.match(/[،,؛;:()«»]/g) || []).length / Math.max(1, words.length);
+      var d = Math.min(1, Math.max(0, (avgW - 5.2) / 2.5)) * 0.4 + Math.min(1, dig * 6) * 0.3 + Math.min(1, lat * 5) * 0.2 + Math.min(1, com * 2.5) * 0.1;
+      d = Math.min(1, d * 1.8);
+      sp = 1 - 0.09 * d;
+    }
+    if (hum) {
+      /* پرسش کمی آهسته‌تر، جملهٔ کوتاه با تأکید بیشتر، و نوسان بسیار ظریف و ثابت برای هر متن */
+      if (/[?؟]["»”')\]]*$/.test(t)) sp *= 0.97;
+      if (n < 28) sp *= 0.96;
+      sp *= 0.985 + (hStr(t) % 31) / 1000;
+      sp = Math.max(0.86, Math.min(1.03, sp));
+    }
+    return Math.round(sp * 100) / 100;
   }
   var mainKit = null;
   function piperPredict(text, id, l){
@@ -2044,7 +2111,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   }
   function perf(){
     var el = $('#pperf'); if (!el) return;
-    var a = ['نسخه ۱۳ (کسرهٔ اضافهٔ خودکار و تلفظ طبیعی‌تر)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
+    var a = ['نسخه ۱۴ (گویش انسانی و تنظیمات بازچیده)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
     if (npOK) a.push('موتور بومی (sherpa-onnx)');
     if (npErr && !npOK) a.push('پلاگین بومی در این APK فعال نیست: ' + npErr);
     if (pwBad && !npOK) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
@@ -2123,14 +2190,16 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     try {
       actx = new AC(); fxSrcs = [actx.createMediaElementSource(audioA), actx.createMediaElementSource(audioB)];
-      var hp = actx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 80;
+      var hp = actx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 75;
+      var ls = actx.createBiquadFilter(); ls.type = 'lowshelf'; ls.frequency.value = 180; ls.gain.value = 1.3;
+      var ds = actx.createBiquadFilter(); ds.type = 'peaking'; ds.frequency.value = 7000; ds.Q.value = 1.3; ds.gain.value = -1.8;
       var pk = actx.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 2800; pk.Q.value = 0.9; pk.gain.value = 2.5;
       var hs = actx.createBiquadFilter(); hs.type = 'highshelf'; hs.frequency.value = 6000; hs.gain.value = 2;
       var lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 20000; lp.Q.value = 0.707;
       var cp = actx.createDynamicsCompressor(); cp.threshold.value = -22; cp.knee.value = 24; cp.ratio.value = 3; cp.attack.value = 0.005; cp.release.value = 0.15;
       var gn = actx.createGain(); gn.gain.value = 1.1;
       var lm = actx.createDynamicsCompressor(); lm.threshold.value = -2; lm.knee.value = 0; lm.ratio.value = 20; lm.attack.value = 0.001; lm.release.value = 0.08;
-      hp.connect(pk); pk.connect(hs); hs.connect(lp); lp.connect(cp); cp.connect(gn); gn.connect(lm); lm.connect(actx.destination);
+      hp.connect(ls); ls.connect(pk); pk.connect(ds); ds.connect(hs); hs.connect(lp); lp.connect(cp); cp.connect(gn); gn.connect(lm); lm.connect(actx.destination);
       fxIn = hp; fxN = { pk: pk, hs: hs, lp: lp };
       applyFxProfile();
     } catch (e) { actx = null; fxN = null; }
@@ -2328,7 +2397,14 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     var q = sents[i]; if (!q) return 0;
     var t = q.text, r = Math.max(0.4, +$('#rate').value || 1), ms,
         strong = /[.!?؟…]["»”')\]]*$/.test(t), soft = /[:؛;]$/.test(t);
-    if (q.pe) ms = (!strong && !soft && t.length < 80) ? 720 : (/[?؟]["»”')\]]*$/.test(t) ? 470 : 410);
+    if (humOn()) {
+      /* مکث انسانی: بسته به نوع پایان، طول جمله و پایان بند؛ با نوسان ظریف تا ریتم مکانیکی نشود */
+      var len = t.length, qs = /[?؟]["»”')\]]*$/.test(t), ex = /!["»”')\]]*$/.test(t);
+      if (q.pe) ms = (!strong && !soft && len < 80) ? 800 : (qs ? 600 : 520 + Math.min(140, len * 0.7));
+      else if (q.cont && !strong) ms = 70;
+      else ms = (qs ? 250 : ex ? 230 : strong ? 200 : soft ? 175 : 160) + Math.min(90, len * 0.6);
+      ms *= 0.94 + (hStr(t) % 13) / 100;
+    } else if (q.pe) ms = (!strong && !soft && t.length < 80) ? 720 : (/[?؟]["»”')\]]*$/.test(t) ? 470 : 410);
     else if (q.cont && !strong) ms = 60;
     else ms = strong ? 170 : soft ? 130 : 160;
     return Math.round(ms / Math.pow(r, 0.6));
@@ -2782,11 +2858,16 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     if (was) start();
   };
   $('#enh').checked = sget('enh', '1') !== '0';
-  $('#vstyle').value = sget('vstyle', 'balanced'); if (!STYLES[$('#vstyle').value]) $('#vstyle').value = 'balanced';
+  if (sget('vstyleV', '') !== '2') { sset('vstyle', 'natural'); sset('vstyleV', '2'); }   /* سبک «انسانی» پیش‌فرض تازه */
+  $('#vstyle').value = sget('vstyle', 'natural'); if (!STYLES[$('#vstyle').value]) $('#vstyle').value = 'natural';
   $('#vstyle').onchange = function(){ sset('vstyle', this.value); changed(); warmPiper(); };
   $('#smartPace').checked = sget('smartPace', '1') !== '0';
   $('#ezAuto').checked = sget('ezAuto', '1') !== '0';
   $('#ezAuto').onchange = function(){ sset('ezAuto', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
+  $('#humPace').checked = sget('humPace', '1') !== '0';
+  $('#humPace').onchange = function(){ sset('humPace', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
+  $('#proLex').checked = sget('proLex', '1') !== '0';
+  $('#proLex').onchange = function(){ sset('proLex', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   $('#phFa').checked = sget('phFa', '1') !== '0';
   $('#phFa').onchange = function(){ sset('phFa', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   $('#smartPace').onchange = function(){ sset('smartPace', this.checked ? '1' : '0'); changed(); warmPiper(); };
@@ -2905,11 +2986,34 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
   });
   $('#txtReset').onclick = function(){
     TXT_IDS.forEach(function(id){ var e = $('#' + id); if (e.type === 'checkbox') e.checked = TXT_DEF[id]; else e.value = TXT_DEF[id]; try { localStorage.removeItem('o_' + id); } catch (x) {} });
-    $('#maxL').oninput(); if (pdfDoc) process(true);
+    $('#maxL').oninput(); segRefresh(); if (pdfDoc) process(true);
   };
   $('#maxL').oninput = function(){ $('#maxV').textContent = nf.format(+this.value); fillRng(this); };
   $('#maxL').oninput(); O = opts();
   $('#ocrBtn').onclick = runOcr;
+
+  /* ---------- کنترل قطعه‌ای برای انتخاب‌های کوتاه (روی همان select کار می‌کند) ---------- */
+  var SEGS = [];
+  Array.prototype.forEach.call(document.querySelectorAll('select[data-seg]'), function(sel){
+    var box = document.createElement('div'), cap = document.createElement('p'), bs = [];
+    box.className = 'seg'; box.setAttribute('role', 'radiogroup'); box.setAttribute('aria-label', sel.getAttribute('aria-label') || '');
+    cap.className = 'hint segcap'; cap.setAttribute('aria-live', 'polite');
+    function sync(){
+      var o = sel.options[sel.selectedIndex];
+      bs.forEach(function(b){ b.setAttribute('aria-checked', b.dataset.v === sel.value ? 'true' : 'false'); });
+      cap.textContent = (o && o.dataset.desc) || '';
+    }
+    Array.prototype.forEach.call(sel.options, function(o){
+      var b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'radio'); b.dataset.v = o.value;
+      b.textContent = o.dataset.short || o.textContent;
+      b.onclick = function(){ if (sel.value === o.value) return; sel.value = o.value; sel.dispatchEvent(new Event('change', { bubbles: true })); sync(); };
+      box.appendChild(b); bs.push(b);
+    });
+    sel.classList.add('segsel');
+    sel.parentNode.insertBefore(box, sel); sel.parentNode.insertBefore(cap, sel.nextSibling);
+    SEGS.push(sync); sync();
+  });
+  function segRefresh(){ (SEGS || []).forEach(function(f){ f(); }); }
 
   var drop = $('#drop'), fin = $('#file');
   drop.onclick = function(){ fin.click(); };
@@ -2937,7 +3041,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
     if (TAB_ORDER.indexOf(t) < 0) t = 'lib';
     for (i = 0; i < tabs.length; i++) { var on = tabs[i].dataset.tab === t; tabs[i].setAttribute('aria-selected', on ? 'true' : 'false'); tabs[i].tabIndex = on ? 0 : -1; }
     for (i = 0; i < ps.length; i++) ps[i].classList.toggle('on', ps[i].dataset.panel === t);
-    curTabNow = t; setTimeout(function(){ sset('tab', t); }, 0); $('#mbody').scrollTop = 0;
+    curTabNow = t; setTimeout(function(){ sset('tab', t); }, 0); $('#mbody').scrollTop = 0; segRefresh();
     var TT = { lib: 'کتابخانه', voice: 'صدا', text: 'متن', view: 'نمایش' }; $('#menuTitle').textContent = TT[t] || 'منو'; markNav();
     if (t === 'lib') setTimeout(libRender, 80);
   }
