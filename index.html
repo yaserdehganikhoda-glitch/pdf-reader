@@ -9,10 +9,23 @@
 /* سطح جلوه‌های بصری پیش از نخستین نقاشی: کامل | سبک | حداقل. بار اول روی دستگاه‌های ضعیف یا با «کاهش حرکت» خودکار «سبک» */
 try{var _f=localStorage.getItem('fx');if(_f!=='full'&&_f!=='lite'&&_f!=='off'){var _m=navigator.deviceMemory,_c=navigator.hardwareConcurrency,_r=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;_f=(_r||(_m&&_m<=3)||(_c&&_c<=4))?'lite':'full'}document.documentElement.setAttribute('data-fx',_f)}catch(e){document.documentElement.setAttribute('data-fx','full')}
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;800&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
-<style>
+<script>
+/* ثبت خطاهای جاوااسکریپت (حتی پیش از بارگذاری برنامه) برای «پیشرفته ‹ گزارش خطا»؛ ۲۵ هزار نویسهٔ آخر در localStorage می‌ماند */
+(function(){
+  var K = 'errlog', L = window.__elog = { items: [], add: function(kind, msg){
+    try {
+      L.items.push('[' + new Date().toISOString().slice(0, 19).replace('T', ' ') + '] ' + kind + ': ' + String(msg).slice(0, 1500));
+      if (L.items.length > 80) L.items.shift();
+      localStorage.setItem(K, L.items.join('\n').slice(-25000));
+    } catch (e) {}
+  } };
+  try { var o = localStorage.getItem(K); if (o) L.items = o.split('\n'); } catch (e) {}
+  window.addEventListener('error', function(e){ L.add('error', (e.message || '') + ' @' + String(e.filename || '').split('/').pop() + ':' + (e.lineno || 0) + ':' + (e.colno || 0) + (e.error && e.error.stack ? '\n' + e.error.stack : '')); });
+  window.addEventListener('unhandledrejection', function(e){ var r = e.reason; L.add('promise', r && r.stack ? r.stack : (r && r.message) || r); });
+})();
+</script>
+<link rel="stylesheet" href="fonts/fonts.css">
+
 /* ===== توکن‌های رنگ: لاجورد، فیروزه و طلا ===== */
 :root{
 --font:"Vazirmatn",Tahoma,"Segoe UI",system-ui,sans-serif;--rfont:var(--font);
@@ -534,11 +547,11 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
         <div id="piperbox" class="grp" hidden>
           <p class="hint" id="pstat"></p>
           <div class="btnrow">
-            <button class="btn primary" id="pdl" type="button">دانلود صدای فارسی</button>
+            <button class="btn primary" id="pdl" type="button">نصب صدای فارسی</button>
             <button class="btn" id="pRef" type="button" title="بررسی دوبارهٔ فایل‌های صدا">تازه‌سازی</button>
           </div>
         </div>
-        <p class="hint">کاملاً رایگان و بدون سقف است و بعد از دانلود بدون اینترنت کار می‌کند. ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
+        <p class="hint">کاملاً رایگان و بدون سقف است و همیشه بدون اینترنت کار می‌کند. ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
       </section>
 
       <section class="grp">
@@ -621,6 +634,13 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
         <div class="in">
           <label class="chk"><input type="checkbox" id="allLangs"><span class="st"><b>نمایش صداهای همهٔ زبان‌ها</b></span></label>
           <p class="hint" id="pperf"></p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0">
+            <button type="button" class="btn sm" id="logShow">گزارش خطا</button>
+          </div>
+          <div id="logBox" hidden>
+            <textarea id="logText" readonly rows="9" style="width:100%;direction:ltr;font:11px monospace" aria-label="گزارش خطا"></textarea>
+            <div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="logCopy">کپی</button><button type="button" class="btn sm" id="logClear">پاک‌کردن</button></div>
+          </div>
           <p class="hint" id="pcInfo">حافظهٔ نهان صدا: فقط در اپ اندروید با موتور بومی کار می‌کند.</p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <select id="pcLimit" aria-label="حداکثر حجم حافظهٔ نهان صدا"><option value="200">حداکثر ۲۰۰ مگابایت</option><option value="600">حداکثر ۶۰۰ مگابایت</option><option value="1500">حداکثر ۱٫۵ گیگابایت</option><option value="3000">حداکثر ۳ گیگابایت</option></select>
@@ -699,7 +719,15 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
           <button class="btn primary wide" id="ocrBtn" type="button" disabled>اجرای OCR (از صفحهٔ فعلی)</button>
           <p class="hint" id="ocrStat" aria-live="polite"></p>
           <p class="hint" id="ocrSrc"></p>
-          <details class="sub hintbox"><summary>راهنما</summary><div class="in"><p class="hint">با وجود پوشه‌های ocr و lib کنار برنامه (ساختهٔ fetch-offline.sh)، OCR و نمایش PDF کاملاً آفلاین کار می‌کنند؛ وگرنه موتور از اینترنت گرفته می‌شود. نتیجهٔ OCR روی دستگاه ذخیره می‌شود.</p></div></details>
+          <details class="sub hintbox"><summary>راهنما</summary><div class="in"><p class="hint">با وجود پوشه‌های ocr و lib کنار برنامه (ساختهٔ fetch-offline.sh)، OCR و نمایش PDF کاملاً آفلاین کار می‌کنند. نتیجهٔ OCR روی دستگاه ذخیره می‌شود.</p></div></details>
+        </div>
+      </details>
+
+      <details class="acc" id="offbox">
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></i><span class="stt"><b>وضعیت آفلاین</b><small>بررسی فایل‌های داخل برنامه</small></span></summary>
+        <div class="in">
+          <button class="btn wide" id="offRun" type="button">بررسی وضعیت آفلاین</button>
+          <div id="offRes" aria-live="polite"></div>
         </div>
       </details>
 
@@ -801,9 +829,8 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   </div>
 </aside>
 
-<script src="piper.js"></script>
 <script src="lib/pdf.min.js"></script>
-<script>window.pdfLocal = !!window.pdfjsLib; if (!window.pdfjsLib) document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"><\/script>');</script>
+<script>window.pdfLocal = !!window.pdfjsLib;</script>
 <script>
 (function(){
   var $ = function(s){ return document.querySelector(s); };
@@ -811,7 +838,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   var sents = [], idx = 0, playing = false, token = 0, voices = [], curEl = null;
 
   if (window.pdfjsLib) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = window.pdfLocal ? new URL('lib/pdf.worker.min.js', location.href).href : 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('lib/pdf.worker.min.js', location.href).href;
   }
 
   /* ---------- settings (best-effort) ---------- */
@@ -886,6 +913,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
 
   /* ---------- Piper native (sherpa-onnx via Capacitor plugin "PiperNative") ---------- */
   var NP = null, npOK = false, npTry = null, npErr = '';
+  var autoTried = {};   /* نصب خودکار صدای انتخاب‌شده: برای هر صدا فقط یک بار در هر اجرا */
   var npPlay = false, npCur = 0, npCurC = null, npMy = 0, npLs = false;   /* پخش بومی (AudioTrack) */
   var CAP = window.Capacitor, capPlat = '';
   try { capPlat = CAP && CAP.getPlatform ? String(CAP.getPlatform()) : ''; } catch (e) {}
@@ -897,28 +925,6 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       else if (CAP && CAP.Plugins && CAP.Plugins.PiperNative) NP = CAP.Plugins.PiperNative;
     }
   } catch (e) {}
-  var NP_MODEL_URLS = function(id){
-    var f = (/^mimic3-/.test(id) ? 'vits-' : 'vits-piper-') + id + '.tar.bz2';
-    return [
-      'https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/' + f,
-      'https://ghfast.top/https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/' + f
-    ];
-  };
-  /* صداهای زنِ Coqui (VITS آوایی؛ به espeak نیاز دارند) از مخزن karim23657/persian-tts-vits */
-  var CQ = {
-    'coqui-fa-negar': 'persian-tts-female1-vits-coqui',
-    'coqui-fa-shiva': 'female-GPTInformal-coqui-vits',
-    'coqui-fa-mahtab': 'female-female-coqui-vits'
-  };
-  var NP_MODEL_FILES = {};
-  Object.keys(CQ).forEach(function(id){
-    NP_MODEL_FILES[id] = function(){
-      var p = 'karim23657/persian-tts-vits/resolve/main/' + CQ[id] + '/';
-      return ['model.onnx', 'tokens.txt'].map(function(n){
-        return { name: n, urls: ['https://huggingface.co/' + p + n, 'https://hf-mirror.com/' + p + n] };
-      });
-    };
-  });
   function b64Blob(b64, type){
     var bin = atob(b64), n = bin.length, u = new Uint8Array(n);
     for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
@@ -937,21 +943,28 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     on('playerPos', function(e){ if (e.h === npCur && npCurC && playing) followFrac(npCurC, e.p); });
     on('playerEnd', function(e){ npEnded(e.h); });
     on('playerError', function(e){ if (e.h === npCur) fail(npMy, 'پخش صدا ناموفق بود: ' + (e.msg || '')); });
+    /* تماس تلفنی یا جداشدن هدفون: بومی پخش را قطع کرده؛ وضعیت برنامه هم متوقف می‌شود */
+    on('playerInterrupted', function(e){
+      if (!playing) return;
+      pause();
+      status(e && e.reason === 'call' ? 'پخش به‌خاطر تماس تلفنی متوقف شد.' : 'پخش با جداشدن هدفون یا بلندگو متوقف شد.');
+    });
   }
   var NATIVE_PIPER = {
     voices: function(){
-      return Promise.resolve([
+      var all = [
         { key: 'fa_IR-gyro-medium', name: 'gyro', quality: 'medium', language: { family: 'fa' } },
         { key: 'fa_IR-ganji-medium', name: 'ganji', quality: 'medium', language: { family: 'fa' } },
         { key: 'fa_IR-ganji_adabi-medium', name: 'ganji_adabi', quality: 'medium', language: { family: 'fa' } },
         { key: 'fa_en-rezahedayatfar-ibrahimwalk-medium', name: 'reza_ibrahim (fa+en)', quality: 'medium', language: { family: 'fa' } }
-      ]);
+      ];
+      return Promise.resolve(NP.bundled ? NP.bundled() : null).then(function(r){ var ids = (r && r.ids) || []; return ids.length ? all.filter(function(v){ return ids.indexOf(v.key) >= 0; }) : all; }, function(){ return all; });
     },
     stored: function(){ return NP.stored().then(function(r){ return (r && r.ids) || []; }); },
     download: function(id, cb){
       var h = null, done = function(){ try { if (h && h.remove) h.remove(); } catch (e) {} };
       return Promise.resolve(NP.addListener('progress', function(e){ if (cb) cb({ loaded: e.loaded, total: e.total, stage: e.stage, n: e.n }); }))
-        .then(function(x){ h = x; return NP.download(NP_MODEL_FILES[id] ? { id: id, urls: [], files: NP_MODEL_FILES[id](), espeak: true } : { id: id, urls: NP_MODEL_URLS(id) }); })
+        .then(function(x){ h = x; return NP.download({ id: id }); })
         .then(function(r){ done(); return r; }, function(e){ done(); throw e; });
     },
     predict: function(o){
@@ -963,24 +976,39 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   };
 
   var piperLoading = null, piperVoicesLoaded = false;
+  /* گزارش کرش بومی اجرای قبل (اگر بود) به لاگ منتقل می‌شود */
+  function npCrashCheck(){
+    try {
+      if (!NP || !NP.getCrashLog) return;
+      NP.getCrashLog().then(function(r){
+        if (r && r.text) { if (window.__elog) window.__elog.add('native-crash', r.text); try { NP.clearCrashLog(); } catch (e) {} status('برنامه بار قبل ناگهان بسته شده بود؛ جزئیات در «پیشرفته ‹ گزارش خطا» است.'); }
+      }).catch(function(){});
+    } catch (e) {}
+  }
+  function logRender(){
+    var head = ['نسخه ۱۸ — ' + (onNative ? 'اندروید' : 'وب'), 'UA: ' + navigator.userAgent, 'rtf: ' + (rtf() ? rtf().toFixed(2) : '-')].join('\n');
+    var body = (window.__elog && window.__elog.items.length) ? window.__elog.items.join('\n') : '(خطایی ثبت نشده)';
+    var ta = $('#logText');
+    ta.value = head + '\n---\n' + body;
+    if (npOK && NP && NP.diag) NP.diag().then(function(d){ ta.value = head + '\nnative: ' + JSON.stringify(d) + '\n---\n' + body; }).catch(function(){});
+  }
+  $('#logShow').onclick = function(){ var b = $('#logBox'); b.hidden = !b.hidden; if (!b.hidden) logRender(); };
+  $('#logCopy').onclick = function(){
+    var ta = $('#logText'); ta.select();
+    var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+    if (!ok && navigator.clipboard) { try { navigator.clipboard.writeText(ta.value); ok = true; } catch (e) {} }
+    status(ok ? 'گزارش کپی شد.' : 'کپی نشد؛ متن را با لمس طولانی انتخاب و کپی کنید.');
+  };
+  $('#logClear').onclick = function(){ if (window.__elog) { window.__elog.items = []; try { localStorage.removeItem('errlog'); } catch (e) {} } logRender(); };
   function ensurePiper(){
     if (npOK) return Promise.resolve(true);
     if (NP) {
-      if (!npTry) npTry = NP.ping().then(function(r){ npOK = true; try { npPlay = !!(r && r.player); if (npPlay) npListen(); } catch (e) { npPlay = false; } window.PiperTTS = NATIVE_PIPER; try { ['mimic3-fa-haaniye_low', 'coqui-fa-negar', 'coqui-fa-shiva', 'coqui-fa-mahtab'].forEach(function(x){ NP.remove({ id: x }).catch(function(){}); }); } catch (e) {} return true; }, function(e){ npErr = String((e && (e.message || e.errorMessage || e.code)) || e || 'unknown'); NP = null; perf(); return false; });
+      if (!npTry) npTry = NP.ping().then(function(r){ npOK = true; try { npPlay = !!(r && r.player); if (npPlay) npListen(); } catch (e) { npPlay = false; } window.PiperTTS = NATIVE_PIPER; npCrashCheck(); try { ['mimic3-fa-haaniye_low', 'coqui-fa-negar', 'coqui-fa-shiva', 'coqui-fa-mahtab'].forEach(function(x){ NP.remove({ id: x }).catch(function(){}); }); } catch (e) {} return true; }, function(e){ npErr = String((e && (e.message || e.errorMessage || e.code)) || e || 'unknown'); NP = null; perf(); return false; });
       return npTry.then(function(ok){ return ok ? true : ensurePiperWeb(); });
     }
     return ensurePiperWeb();
   }
-  function ensurePiperWeb(){
-    if (window.PiperTTS) return Promise.resolve(true);
-    if (!piperLoading) {
-      piperLoading = import('https://esm.sh/@diffusionstudio/vits-web').then(function(m){
-        window.PiperTTS = m;
-        return true;
-      }).catch(function(){ piperLoading = null; return false; });
-    }
-    return piperLoading;
-  }
+  function ensurePiperWeb(){ return Promise.resolve(false); }   /* فقط موتور بومی؛ هیچ موتور آنلاینی بارگذاری نمی‌شود */
   function loadPiper(){
     if (!window.PiperTTS || piperVoicesLoaded) return;
     piperVoicesLoaded = true;
@@ -998,15 +1026,16 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     var st = $('#pstat'), btn = $('#pdl');
     if (!window.PiperTTS) st.textContent = 'در حال بارگذاری موتور Piper…';
     ensurePiper().then(function(ok){
-      if (!ok) { st.textContent = 'موتور Piper بارگذاری نشد. اینترنت یا VPN را بررسی کنید.'; btn.hidden = true; return; }
+      if (!ok) { st.textContent = 'موتور صدای بومی در دسترس نیست؛ برنامه را به‌صورت APK نصب‌شده اجرا کنید.'; btn.hidden = true; return; }
       loadPiper();
       return PiperTTS.stored().then(function(a){
         var v = engVoice();
         HAVE = a || []; labelVoices();
         var done = !!v && (a || []).indexOf(v.id) >= 0;
-        st.textContent = done ? 'صدا دانلود شده و آفلاین کار می‌کند.' : 'این صدا هنوز دانلود نشده است (حدود ' + nf.format((v && v.mb) || 60) + ' مگابایت؛ فقط بار اول اینترنت لازم است).';
+        st.textContent = done ? 'صدا نصب شده و آفلاین کار می‌کند.' : 'این صدا هنوز نصب نشده است (حدود ' + nf.format((v && v.mb) || 60) + ' مگابایت؛ از داخل خود برنامه و بدون اینترنت نصب می‌شود).';
         btn.hidden = done;
         if (done) warmPiper();
+        else if (v && npOK && !btn.disabled && !autoTried[v.id]) { autoTried[v.id] = 1; btn.onclick(); }
       });
     }).catch(function(){ st.textContent = ''; });
   }
@@ -1016,14 +1045,47 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     btn.disabled = true;
     ensurePiper().then(function(ok){ if (!ok) throw new Error('موتور Piper بارگذاری نشد.'); return PiperTTS.download(v.id, function(pr){
       if (pr && pr.stage === 'extract') { st.textContent = 'در حال آماده‌سازی فایل‌های صدا… (فایل ' + nf.format(pr.n || 0) + ') — تا چند دقیقه صبر کنید'; return; }
-      if (pr && pr.total) st.textContent = 'در حال دانلود: ' + nf.format(Math.round(pr.loaded * 100 / pr.total)) + '٪';
+      if (pr && pr.total) st.textContent = 'در حال نصب: ' + nf.format(Math.round(pr.loaded * 100 / pr.total)) + '٪';
     }); }).then(function(){
       st.textContent = 'در حال آزمایش صدا…';
       return piperPredict('سلام.', v.id);
     }).then(function(){ updatePiperStatus(); warmPiper(); vfAuto(v.id); }).catch(function(e){
-      st.textContent = 'دانلود ناموفق بود: ' + (e && e.message ? e.message : e) + ' (ممکن است به VPN نیاز باشد)';
+      st.textContent = 'نصب صدا ناموفق بود: ' + (e && e.message ? e.message : e);
     }).then(function(){ btn.disabled = false; });
   };
+  /* ---------- وضعیت آفلاین: بررسی وجود فایل‌های داخل برنامه ---------- */
+  function offDiag(){
+    var out = $('#offRes'), rows = [];
+    out.textContent = 'در حال بررسی…';
+    var add = function(ok, t, opt){ rows.push({ ok: !!ok, t: t, opt: !!opt }); };
+    return Promise.all([
+      probe('fonts/fonts.css'), probe('lib/pdf.min.js'), probe('lib/pdf.worker.min.js'),
+      probe('lib/cmaps/UniJIS-UCS2-H.bcmap'), probe('lib/standard_fonts/LiberationSans-Regular.ttf'),
+      ocrLocal(),
+      Promise.resolve(NP && NP.bundled ? NP.bundled() : null).catch(function(){ return null; }),
+      Promise.resolve(NP && NP.stored ? NP.stored() : null).catch(function(){ return null; })
+    ]).then(function(r){
+      var b = (r[6] && r[6].ids) || [], s = (r[7] && r[7].ids) || [];
+      add(r[0], 'فونت‌های فارسی', true);
+      add(r[1] && r[2] && window.pdfjsLib, 'نمایش PDF (pdf.js)');
+      add(r[3] && r[4], 'نگاشت‌ها و فونت‌های کمکی PDF', true);
+      add(r[5], 'موتور و دادهٔ OCR');
+      add(npOK, 'موتور صدای بومی');
+      add(b.length > 0 || s.length > 0, 'صداهای فارسی: ' + nf.format(b.length) + ' همراه برنامه، ' + nf.format(s.length) + ' نصب‌شده');
+      out.textContent = '';
+      var bad = 0;
+      rows.forEach(function(x){
+        if (!x.ok && !x.opt) bad++;
+        var p = document.createElement('p'); p.className = 'hint';
+        p.textContent = (x.ok ? '✓ ' : (x.opt ? '△ ' : '✗ ')) + x.t + (!x.ok && x.opt ? ' (اختیاری؛ نبودنش مشکلی ایجاد نمی‌کند)' : '');
+        out.appendChild(p);
+      });
+      var m = document.createElement('p'); m.className = 'hint';
+      m.textContent = bad ? 'برخی فایل‌های لازم داخل برنامه نیست؛ لاگ مرحلهٔ ساخت را بررسی کنید.' : 'همه‌چیز لازم داخل برنامه است و اینترنت لازم نیست.';
+      out.appendChild(m);
+    }).catch(function(e){ out.textContent = 'بررسی انجام نشد: ' + em(e); });
+  }
+  $('#offRun').onclick = offDiag;
   /* پاک‌سازی دادهٔ قدیمی «صدای شخصی» و «کلون صدا» (از جمله کلید API ذخیره‌شده) */
   try { ['cloneVoices', 'cvKey', 'cvBase', 'matchVoices', 'mStr', 'mBase'].forEach(function(k){ localStorage.removeItem(k); }); Object.keys(localStorage).forEach(function(k){ if (k.indexOf('mcal:') === 0) localStorage.removeItem(k); }); } catch (e) {}
 
@@ -1157,7 +1219,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   function ocrHint(){ var k = ocrTodo().length; return k ? ' — ' + nf.format(k) + ' صفحه متن خراب یا بدون متن دارد و نیاز به OCR دارد (منو ‹ متن)' : ''; }
   function ocrInfo(){
     var k = ocrTodo().length, b = $('#ocrBtn');
-    ocrLocal().then(function(l){ $('#ocrSrc').textContent = (l ? 'موتور و دادهٔ OCR: داخل برنامه (آفلاین)' : 'موتور و دادهٔ OCR: داخل برنامه نیست؛ از اینترنت بارگیری می‌شود') + ' — نمایش PDF: ' + (window.pdfLocal ? 'داخل برنامه (آفلاین)' : 'از اینترنت'); });
+    ocrLocal().then(function(l){ $('#ocrSrc').textContent = (l ? 'موتور و دادهٔ OCR: داخل برنامه (آفلاین)' : 'موتور و دادهٔ OCR: داخل برنامه نیست') + ' — نمایش PDF: ' + (window.pdfLocal ? 'داخل برنامه (آفلاین)' : 'داخل برنامه نیست'); });
     b.disabled = !ocrBusy && !k; b.textContent = ocrBusy ? 'توقف OCR و استفاده از نتیجه' : 'اجرای OCR (از صفحهٔ فعلی)';
     uiOcrNote(k);
     $('#ocrStat').textContent = (O.ocr === 'off' ? 'OCR خاموش است. ' : k ? nf.format(k) + ' صفحه ' + (O.ocr === 'always' ? 'برای OCR انتخاب شده' : 'متن ناخوانا یا بدون متن دارد (کدگذاری فونت PDF درست نیست)') + '؛ با OCR از روی تصویر صفحه خوانده می‌شوند. ' : (rawItems.length ? 'صفحهٔ مشکل‌دار پیدا نشد. ' : '')) + (dropped ? nf.format(dropped) + ' جملهٔ غیرفارسی و غیرلاتین (مثل ارمنی) کنار گذاشته شد.' : '');
@@ -1178,7 +1240,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     build(pg); warmPiper(); analyze(); ocrInfo();
     if (kp) { for (var i = 0; i < sents.length; i++) if (sents[i].page >= kp) { idx = i; break; } mark(true); }
   }
-  var ocrLoc = null, OCR_CDN = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js', OCR_LANG_CDN = 'https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0_best';
+  var ocrLoc = null;
   function absUrl(u){ return new URL(u, location.href).href; }
   function probe(u, gz){
     return fetch(absUrl(u)).then(function(r){
@@ -1195,7 +1257,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     return new Promise(function(res, rej){ var el = document.createElement('script'); el.src = src; el.onload = res; el.onerror = function(){ el.remove(); rej(new Error('script')); }; document.head.appendChild(el); });
   }
   function loadTess(){
-    return tessP || (tessP = (window.Tesseract ? Promise.resolve() : ocrLocal().then(function(l){ return l ? addScript(absUrl('ocr/tesseract.min.js')) : Promise.reject(new Error('nolocal')); }).catch(function(){ return addScript(OCR_CDN); })).catch(function(){ tessP = null; throw new Error('موتور OCR در برنامه نیست و اینترنت هم در دسترس نیست (پوشهٔ ocr را با fetch-offline.sh بسازید).'); }));
+    return tessP || (tessP = (window.Tesseract ? Promise.resolve() : addScript(absUrl('ocr/tesseract.min.js'))).catch(function(){ tessP = null; throw new Error('موتور OCR داخل برنامه پیدا نشد (پوشهٔ ocr را با fetch-offline.sh بسازید).'); }));
   }
   var OCRQ = { '1': 1500, '2': 2000, '3': 2600 };
   function enhance(cv, cx){
@@ -1231,9 +1293,9 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     stopAll(); ocrBusy = true; ocrStop = false; ocrInfo();
     try {
       status('بارگذاری موتور OCR…'); await loadTess();
-      var loc = await ocrLocal(), lang = $('#ocrLang').value || 'fas+eng', tw = OCRQ[$('#ocrQ').value] || 2000;
+      var loc = await ocrLocal(); if (!loc) throw new Error('دادهٔ OCR داخل برنامه پیدا نشد (پوشهٔ ocr را با fetch-offline.sh بسازید).'); var lang = $('#ocrLang').value || 'fas+eng', tw = OCRQ[$('#ocrQ').value] || 2000;
       var nw = (L.length > 1 && (navigator.hardwareConcurrency || 2) >= 6 && (navigator.deviceMemory || 4) >= 4) ? 2 : 1;
-      var cfg = loc ? { workerPath: absUrl('ocr/worker.min.js'), corePath: absUrl('ocr'), langPath: absUrl('ocr/lang'), workerBlobURL: false, cacheMethod: 'none' } : { langPath: OCR_LANG_CDN };
+      var cfg = { workerPath: absUrl('ocr/worker.min.js'), corePath: absUrl('ocr'), langPath: absUrl('ocr/lang'), workerBlobURL: false, cacheMethod: 'none' };
       for (var q = 0; q < nw; q++) {
         var wk = await Tesseract.createWorker(lang, 1, cfg); W.push(wk);
         try { await wk.setParameters({ tessedit_pageseg_mode: '3', preserve_interword_spaces: '1', user_defined_dpi: '300' }); } catch (e) {}
@@ -1400,7 +1462,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     } catch (e) { return true; }
   }
   async function loadFile(file){
-    if (!window.pdfjsLib) { status('کتابخانهٔ PDF بارگذاری نشد (پوشهٔ lib را با fetch-offline.sh بسازید یا اینترنت را روشن کنید).'); return; }
+    if (!window.pdfjsLib) { status('کتابخانهٔ PDF داخل برنامه پیدا نشد (پوشهٔ lib را با fetch-offline.sh بسازید).'); return; }
     if (ocrBusy) { ocrStop = true; while (ocrBusy) await new Promise(function(r){ setTimeout(r, 60); }); }
     curKey = '';
     stopAll();
@@ -1409,7 +1471,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     try {
       var buf = await file.arrayBuffer();
       if (pdfDoc) { try { pdfDoc.destroy(); } catch (e) {} }
-      pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
+      pdfDoc = await pdfjsLib.getDocument({ data: buf, cMapUrl: new URL('lib/cmaps/', location.href).href, cMapPacked: true, standardFontDataUrl: new URL('lib/standard_fonts/', location.href).href }).promise;
       var pdf = pdfDoc; rawItems = []; rawImg = [];
       for (var p = 1; p <= pdf.numPages; p++) {
         status('استخراج متن: صفحهٔ ' + nf.format(p) + ' از ' + nf.format(pdf.numPages));
@@ -1514,7 +1576,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       pr.then(function(v){ clearTimeout(t); res(v); }, function(e){ clearTimeout(t); rej(e); });
     });
   }
-  var PIPER_TO = 'ساخت صدا بیش از حد طول کشید. موتور Piper برای اجرا فایل‌های کمکی (ONNX/WASM) را از cdnjs می‌گیرد؛ اینترنت یا VPN را روشن کنید و دوباره امتحان کنید.';
+  var PIPER_TO = 'ساخت صدا بیش از حد طول کشید. دوباره امتحان کنید؛ اگر تکرار شد، برنامه را ببندید و دوباره باز کنید.';
   var ON = ['صفر','یک','دو','سه','چهار','پنج','شش','هفت','هشت','نه','ده','یازده','دوازده','سیزده','چهارده','پانزده','شانزده','هفده','هجده','نوزده'],
       TN = ['','','بیست','سی','چهل','پنجاه','شصت','هفتاد','هشتاد','نود'],
       HN = ['','صد','دویست','سیصد','چهارصد','پانصد','ششصد','هفتصد','هشتصد','نهصد'],
@@ -2153,7 +2215,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     self.onmessage = async function(e){
       var d = e.data;
       try {
-        if (!P) { var t0 = Date.now(); P = await import('https://esm.sh/@diffusionstudio/vits-web'); self.postMessage({ boot: Date.now() - t0 }); }
+        if (!P) { var t0 = Date.now(); throw new Error('web-engine-disabled'); self.postMessage({ boot: Date.now() - t0 }); }
         var b = await P.predict({ text: d.text, voiceId: d.voiceId });
         var ok = await kit.patch();
         self.postMessage({ id: d.id, blob: b });
@@ -2204,12 +2266,13 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       /* خطای گذرا یا نویسهٔ عجیب در یک جمله کل خواندن را متوقف نکند: یک بار دیگر با متن ساده‌شده (فقط حرف، عدد و نشانه‌های رایج) */
       return nat(text, parts).catch(function(e){
         var m = String((e && e.message) || e);
-        if (/دانلود نشده|آماده نشده|espeak|مدل پیدا نشد|بیش از حد|NATIVE_CANCELLED/.test(m)) throw e;
+        if (/دانلود نشده|نصب نشده|آماده نشده|espeak|مدل پیدا نشد|بیش از حد|NATIVE_CANCELLED/.test(m)) throw e;
         var simple = text.replace(/[^\p{L}\p{N}\s.,;:!?'\-]/gu, ' ').replace(/\s+/g, ' ').trim();
         if (!/[\p{L}\p{N}]/u.test(simple)) throw e;
         return nat(simple, null);
       });
     }
+    return Promise.reject(new Error('موتور صدای بومی آماده نشده است؛ برنامه را از روی APK اجرا کنید.'));
     var w = getWorker(l || 0), n = ++pwId;
     var main = function(){
       mainKit = mainKit || piperKit();
@@ -2233,7 +2296,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   }
   function perf(){
     var el = $('#pperf'); if (!el) return;
-    var a = ['نسخه ۱۷ (گام ریز سرعت)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
+    var a = ['نسخه ۱۸ (پایداری پخش)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
     if (npOK) a.push('موتور بومی (sherpa-onnx)');
     if (npErr && !npOK) a.push('پلاگین بومی در این APK فعال نیست: ' + npErr);
     if (pwBad && !npOK) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
@@ -2556,6 +2619,25 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     if (my !== token) return;
     playing = false; ui(); status(msg);
   }
+  /* handle بومی که حافظه‌اش آزاد شده (سقف PCM) نباید پخش را متوقف کند؛ ورودی کش را دور بریز و دوباره بساز (کش دیسک آن را فوری می‌کند) */
+  function dropChunkCache(c){
+    var v = currentVoice(); if (!v) return;
+    var ck = ['piper', v.id, c.start, c.end].join('|'), p = cache[ck];
+    delete cache[ck];
+    if (p) p.then(dropRaw).catch(function(){});
+  }
+  function isNoHandle(e){ return /NO_HANDLE/.test(String((e && e.message) || e)); }
+  function npQueue(n, c, my, retry){
+    NP.playerQueue({ handle: n.h, gapMs: pauseMs(c.end) }).catch(function(e){
+      if (!retry || !isNoHandle(e)) return;
+      dropChunkCache(n.c);
+      piperAudio(n.c).then(function(a2){
+        if (nxt !== n || my !== token || !playing || !isNp(a2.url)) return;
+        n.url = a2.url; n.h = npH(a2.url);
+        npQueue(n, c, my, false);
+      }).catch(function(){});
+    });
+  }
   function primeNext(c, my){
     nxt = null;
     var ni = c.end + 1;
@@ -2567,7 +2649,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       if (nxt !== n || my !== token || !playing) return;
       if (isNp(a.url)) {   /* پخش بومی: تکهٔ بعدی در صف بومی می‌رود تا بی‌وقفه و حتی با صفحهٔ خاموش ادامه یابد */
         n.url = a.url; n.b = 1; n.h = npH(a.url);
-        NP.playerQueue({ handle: n.h, gapMs: pauseMs(c.end) }).catch(function(){});
+        npQueue(n, c, my, true);
         return;
       }
       el.onended = null; el.ontimeupdate = null; el.onerror = null;
@@ -2580,7 +2662,19 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   }
   function playNp(c, url, my, chained){
     curC = c; npCur = npH(url); npCurC = c; npMy = my;
-    if (!chained) NP.playerPlay({ handle: npCur, rate: +$('#rate').value || 1 }).catch(function(e){ fail(my, 'پخش صدا ناموفق بود: ' + ((e && e.message) || e)); });
+    if (!chained) NP.playerPlay({ handle: npCur, rate: +$('#rate').value || 1 }).catch(function(e){
+      if (isNoHandle(e) && !c._rec) {
+        c._rec = 1; dropChunkCache(c);
+        piperAudio(c).then(function(a){
+          if (my !== token || !playing || curC !== c) return;
+          if (!isNp(a.url)) { fail(my, 'پخش صدا ناموفق بود.'); return; }
+          npCur = npH(a.url);
+          return NP.playerPlay({ handle: npCur, rate: +$('#rate').value || 1 });
+        }).catch(function(e2){ fail(my, 'پخش صدا ناموفق بود: ' + ((e2 && e2.message) || e2)); });
+        return;
+      }
+      fail(my, 'پخش صدا ناموفق بود: ' + ((e && e.message) || e));
+    });
     setTimeout(musicSync, 400);
     trimCache(c.start);
     primeNext(c, my);
