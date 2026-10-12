@@ -1069,7 +1069,8 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       add(r[0], 'فونت‌های فارسی', true);
       add(r[1] && r[2] && window.pdfjsLib, 'نمایش PDF (pdf.js)');
       add(r[3] && r[4], 'نگاشت‌ها و فونت‌های کمکی PDF', true);
-      add(r[5], 'موتور و دادهٔ OCR');
+      add(r[5], 'موتور و دادهٔ OCR' + (r[5] ? '' : (probeBad.length ? ' — پیدا نشد: ' + probeBad.filter(function(x){ return !/tesseract-core/.test(x); }).join(' ، ') : '')));
+      if (r[5]) add(ocrCoreOk, 'هستهٔ موتور OCR (tesseract-core)', true, ' (پیدا نشد؛ اگر OCR اجرا نشد پوشهٔ ocr را دوباره بسازید)');
       add(npOK, 'موتور صدای بومی');
       add(b.length > 0 || s.length > 0, 'صداهای فارسی: ' + nf.format(s.length) + ' نصب‌شده' + (b.length ? '، ' + nf.format(b.length) + ' همراه برنامه' : ' (بعد از نصب برنامه دانلود می‌شوند)'), true, '');
       out.textContent = '';
@@ -1245,7 +1246,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     build(pg); warmPiper(); analyze(); ocrInfo();
     if (kp) { for (var i = 0; i < sents.length; i++) if (sents[i].page >= kp) { idx = i; break; } mark(true); }
   }
-  var ocrLoc = null, probeBad = [];
+  var ocrLoc = null, ocrLocK = '', ocrGz = true, ocrCoreOk = null, probeBad = [];
   function absUrl(u){ return new URL(u, location.href).href; }
   function probe(u, gz){
     return fetch(absUrl(u)).then(function(r){
@@ -1256,7 +1257,28 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     }).catch(function(e){ probeBad.push(u + ' (' + ((e && e.message) || 'error') + ')'); return false; });
   }
   function ocrLocal(){
-    return ocrLoc || (ocrLoc = Promise.all([probe('ocr/lang/fas.traineddata.gz', true), probe('ocr/lang/eng.traineddata.gz', true), probe('ocr/tesseract.min.js'), probe('ocr/worker.min.js')]).then(function(a){ return a.every(Boolean); }));
+    var sel = document.getElementById('ocrLang'), lg = (sel && sel.value) || 'fas+eng';
+    if (ocrLoc && ocrLocK === lg) return ocrLoc;
+    ocrLocK = lg; probeBad = [];
+    var langs = lg.split('+');
+    var pr = langs.map(function(l){
+      return probe('ocr/lang/' + l + '.traineddata.gz', true).then(function(ok){
+        if (ok) return 'gz';
+        return probe('ocr/lang/' + l + '.traineddata').then(function(ok2){ return ok2 ? 'raw' : ''; });
+      });
+    });
+    var core = ['ocr/tesseract-core-simd-lstm.wasm.js', 'ocr/tesseract-core-lstm.wasm.js', 'ocr/tesseract-core-relaxedsimd-lstm.wasm.js'].map(function(u){ return probe(u); });
+    var pm = Promise.all([Promise.all(pr), probe('ocr/tesseract.min.js'), probe('ocr/worker.min.js'), Promise.all(core)]).then(function(a){
+      var kinds = a[0], okLang = kinds.every(Boolean) && kinds.every(function(k){ return k === kinds[0]; });
+      ocrCoreOk = a[3].some(Boolean);
+      if (okLang) ocrGz = kinds[0] === 'gz';
+      var ok = okLang && a[1] && a[2];
+      if (ok) probeBad = [];
+      else ocrLoc = null;
+      return ok;
+    });
+    ocrLoc = pm;
+    return pm;
   }
   function addScript(src){
     return new Promise(function(res, rej){ var el = document.createElement('script'); el.src = src; el.onload = res; el.onerror = function(){ el.remove(); rej(new Error('script')); }; document.head.appendChild(el); });
@@ -1298,9 +1320,9 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     stopAll(); ocrBusy = true; ocrStop = false; ocrInfo();
     try {
       status('بارگذاری موتور OCR…'); await loadTess();
-      var loc = await ocrLocal(); if (!loc) throw new Error('دادهٔ OCR داخل برنامه پیدا نشد: ' + probeBad.join(' ، ') + ' (پوشهٔ ocr را با fetch-offline.sh بسازید).'); var lang = $('#ocrLang').value || 'fas+eng', tw = OCRQ[$('#ocrQ').value] || 2000;
+      var loc = await ocrLocal(); if (!loc) throw new Error('فایل‌های OCR داخل برنامه کامل نیست. این‌ها پیدا نشد: ' + probeBad.filter(function(x){ return !/tesseract-core/.test(x); }).join(' ، ') + ' — پوشهٔ ocr باید هنگام ساخت برنامه با fetch-offline.sh ساخته و در APK گذاشته شود.'); var lang = $('#ocrLang').value || 'fas+eng', tw = OCRQ[$('#ocrQ').value] || 2000;
       var nw = (L.length > 1 && (navigator.hardwareConcurrency || 2) >= 6 && (navigator.deviceMemory || 4) >= 4) ? 2 : 1;
-      var cfg = { workerPath: absUrl('ocr/worker.min.js'), corePath: absUrl('ocr'), langPath: absUrl('ocr/lang'), workerBlobURL: false, cacheMethod: 'none' };
+      var cfg = { workerPath: absUrl('ocr/worker.min.js'), corePath: absUrl('ocr'), langPath: absUrl('ocr/lang'), gzip: ocrGz, workerBlobURL: false, cacheMethod: 'none' };
       for (var q = 0; q < nw; q++) {
         var wk = await Tesseract.createWorker(lang, 1, cfg); W.push(wk);
         try { await wk.setParameters({ tessedit_pageseg_mode: '3', preserve_interword_spaces: '1', user_defined_dpi: '300' }); } catch (e) {}
