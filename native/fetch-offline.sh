@@ -35,8 +35,10 @@ cp "$N/pdfjs-dist/build/pdf.min.js" "$N/pdfjs-dist/build/pdf.worker.min.js" "$D/
 [ -d "$N/pdfjs-dist/standard_fonts" ] && cp -r "$N/pdfjs-dist/standard_fonts/." "$D/lib/standard_fonts/" || echo "WARN: standard_fonts not found" >&2
 for L in fas eng; do
   TD="$(dl "https://github.com/tesseract-ocr/tessdata_best/raw/main/$L.traineddata" "$L.traineddata")"
-  gzip -9 -n -c "$TD" > "$D/ocr/lang/$L.traineddata.gz"
-  [ "$(stat -c %s "$D/ocr/lang/$L.traineddata.gz")" -gt 100000 ] || { echo "download failed: $L" >&2; exit 1; }
+  # بدون .gz ذخیره می‌شود (اندروید/WebView با فایل‌های .gz داخل assets مشکل دارد؛ در برنامه gzip:false استفاده می‌شود)
+  rm -f "$D/ocr/lang/$L.traineddata.gz"
+  cp "$TD" "$D/ocr/lang/$L.traineddata"
+  [ "$(stat -c %s "$D/ocr/lang/$L.traineddata")" -gt 1000000 ] || { echo "download failed: $L" >&2; exit 1; }
 done
 python3 - "$N" "$D/fonts" <<'PY' || echo "WARN: fonts not built; system fonts will be used" >&2
 import re, shutil, sys
@@ -55,7 +57,7 @@ for pkg, ws in need.items():
 open(f"{O}/fonts.css", "w", encoding="utf-8").write("\n".join(css))
 PY
 # بررسی نهایی: موارد ضروری
-for f in ocr/tesseract.min.js ocr/worker.min.js ocr/lang/fas.traineddata.gz ocr/lang/eng.traineddata.gz lib/pdf.min.js lib/pdf.worker.min.js; do
+for f in ocr/tesseract.min.js ocr/worker.min.js ocr/lang/fas.traineddata ocr/lang/eng.traineddata lib/pdf.min.js lib/pdf.worker.min.js; do
   [ -s "$D/$f" ] || { echo "missing: $f" >&2; exit 1; }
 done
 ls "$D"/ocr/tesseract-core*lstm.wasm.js >/dev/null
