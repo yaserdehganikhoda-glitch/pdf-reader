@@ -551,7 +551,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
             <button class="btn" id="pRef" type="button" title="بررسی دوبارهٔ فایل‌های صدا">تازه‌سازی</button>
           </div>
         </div>
-        <p class="hint">کاملاً رایگان و بدون سقف است و همیشه بدون اینترنت کار می‌کند. ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
+        <p class="hint">کاملاً رایگان و بدون سقف است؛ صدا یک‌بار بعد از نصب برنامه دانلود می‌شود و از آن به بعد بدون اینترنت کار می‌کند. ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
       </section>
 
       <section class="grp">
@@ -587,8 +587,6 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
           <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است؛ مثل نفس‌گیری گوینده. سرعت خود صدا تغییر نمی‌کند.</small></span></label>
           <label class="chk"><input type="checkbox" id="smartPace"><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
           <label class="chk"><input type="checkbox" id="ezAuto" checked><span class="st"><b>کسرهٔ اضافهٔ خودکار</b><small>مثل «صدای کتاب». اگر جایی اشتباه خواند، این گزینه را خاموش کنید.</small></span></label>
-          <label class="chk"><input type="checkbox" id="phFa" checked><span class="st"><b>تلفظ پیشرفتهٔ فارسی</b><small>نیم‌فاصله‌ها برای موتور آوایی حفظ می‌شود و «هٔ» اضافه درست خوانده می‌شود.</small></span></label>
-          <label class="chk"><input type="checkbox" id="proLex" checked><span class="st"><b>گفتار حرفه‌ای</b><small>ساعت به شیوهٔ گوینده («ده و نیم») و پوشش کامل‌تر کسرهٔ اضافه.</small></span></label>
           <label class="chk"><input type="checkbox" id="phLex" checked><span class="st"><b>واژه‌نامهٔ آوایی داخلی</b><small>برای صدها واژهٔ پرکاربرد، کوتاه‌مصوت‌ها (َ ِ ُ) را مشخص می‌کند تا تلفظ دقیق‌تر شود. اگر جایی عجیب خوانده شد خاموشش کنید.</small></span></label>
           <label class="chk"><input type="checkbox" id="enh" checked><span class="st"><b>بهبود کیفیت صدا</b><small>گرمی و وضوح بیشتر، نرم‌کردن «س» و «ش» تند و یکنواختی بلندی؛ تنظیم خودکار برای هر گوینده.</small></span></label>
         </div>
@@ -673,7 +671,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
           </div>
           <div class="slist">
             <label class="chk"><input type="checkbox" id="oPos"><span class="st"><b>مرتب‌سازی سطرها بر اساس موقعیت</b><small>برای فهرست و جدول.</small></span></label>
-            <label class="chk"><input type="checkbox" id="oCols"><span class="st"><b>تشخیص ستون‌بندی</b><small>برای متن دوستونی؛ همراه با گزینهٔ بالا.</small></span></label>
+            <label class="chk"><input type="checkbox" id="oCols"><span class="st"><b>تشخیص ستون‌بندی</b><small>برای متن دوستونی؛ فقط همراه با گزینهٔ بالا کار می‌کند.</small></span></label>
           </div>
           <div class="field">
             <label for="encMode"><span>اصلاح کدگذاری (برای متنی مثل Ø§Ù„ یا ÇáÓá)</span></label>
@@ -738,8 +736,9 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
             <label class="chk"><input type="checkbox" id="fixOn" checked><span class="st"><b>تصحیح گفتار فعال باشد</b></span></label>
             <label class="chk"><input type="checkbox" id="fixHi" checked><span class="st"><b>حساسیت بالا</b><small>حروف جداافتاده، تکرار و کشیدگی بی‌دلیل.</small></span></label>
             <label class="chk"><input type="checkbox" id="fixPro" checked><span class="st"><b>مکث‌گذاری هوشمند</b><small>پیش از پیوندها و شکستن جملهٔ بلند.</small></span></label>
+            <label class="chk"><input type="checkbox" id="fixCite" checked><span class="st"><b>نخواندن ارجاع درون‌متنی</b><small>مثل «(احمدی، ۱۳۹۸: ۲۴)» و «(Smith, 2020)»؛ در متن نمایش‌داده‌شده می‌ماند.</small></span></label>
           </div>
-          <details class="sub hintbox"><summary>این بخش چه می‌کند؟</summary><div class="in"><p class="hint">پیش از خواندن هر جمله، متن را بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، کسرهٔ اضافه (ۀ)، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع، کلمه‌های لاتین و سرواژه‌ها و مکث‌گذاری هوشمند. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p></div></details>
+          <details class="sub hintbox"><summary>این بخش چه می‌کند؟</summary><div class="in"><p class="hint">پیش از خواندن هر جمله، متن را بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، کسرهٔ اضافه (ۀ)، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع (از جمله ارجاع درون‌متنی)، تنوین قیدها (مثلاً، حتماً)، کلمه‌های لاتین و سرواژه‌ها و مکث‌گذاری هوشمند. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p></div></details>
           <p class="hint" id="fixStats" aria-live="polite"></p>
           <p class="hint" id="fixBreak"></p>
           <p class="hint" id="fixUnsHead" hidden>کلمه‌هایی که تلفظشان قطعی نبود و تقریبی ساخته شد. روی هر کلمه بزنید تا با تلفظ پیشنهادی به واژه‌نامه اضافه شود؛ بعد می‌توانید تلفظ را در واژه‌نامه ویرایش کنید.</p>
@@ -1032,7 +1031,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
         var v = engVoice();
         HAVE = a || []; labelVoices();
         var done = !!v && (a || []).indexOf(v.id) >= 0;
-        st.textContent = done ? 'صدا نصب شده و آفلاین کار می‌کند.' : 'این صدا هنوز نصب نشده است (حدود ' + nf.format((v && v.mb) || 60) + ' مگابایت؛ از داخل خود برنامه و بدون اینترنت نصب می‌شود).';
+        st.textContent = done ? 'صدا نصب شده و آفلاین کار می‌کند.' : 'این صدا هنوز نصب نشده است (حدود ' + nf.format((v && v.mb) || 60) + ' مگابایت؛ یک‌بار دانلود و نصب می‌شود، سپس بدون اینترنت کار می‌کند).';
         btn.hidden = done;
         if (done) warmPiper();
         else if (v && npOK && !btn.disabled && !autoTried[v.id]) { autoTried[v.id] = 1; btn.onclick(); }
@@ -1057,7 +1056,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   function offDiag(){
     var out = $('#offRes'), rows = [];
     out.textContent = 'در حال بررسی…';
-    var add = function(ok, t, opt){ rows.push({ ok: !!ok, t: t, opt: !!opt }); };
+    var add = function(ok, t, opt, nt){ rows.push({ ok: !!ok, t: t, opt: !!opt, nt: nt }); };
     return Promise.all([
       probe('fonts/fonts.css'), probe('lib/pdf.min.js'), probe('lib/pdf.worker.min.js'),
       probe('lib/cmaps/UniJIS-UCS2-H.bcmap'), probe('lib/standard_fonts/LiberationSans-Regular.ttf'),
@@ -1071,17 +1070,17 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       add(r[3] && r[4], 'نگاشت‌ها و فونت‌های کمکی PDF', true);
       add(r[5], 'موتور و دادهٔ OCR');
       add(npOK, 'موتور صدای بومی');
-      add(b.length > 0 || s.length > 0, 'صداهای فارسی: ' + nf.format(b.length) + ' همراه برنامه، ' + nf.format(s.length) + ' نصب‌شده');
+      add(b.length > 0 || s.length > 0, 'صداهای فارسی: ' + nf.format(s.length) + ' نصب‌شده' + (b.length ? '، ' + nf.format(b.length) + ' همراه برنامه' : ' (بعد از نصب برنامه دانلود می‌شوند)'), true, '');
       out.textContent = '';
       var bad = 0;
       rows.forEach(function(x){
         if (!x.ok && !x.opt) bad++;
         var p = document.createElement('p'); p.className = 'hint';
-        p.textContent = (x.ok ? '✓ ' : (x.opt ? '△ ' : '✗ ')) + x.t + (!x.ok && x.opt ? ' (اختیاری؛ نبودنش مشکلی ایجاد نمی‌کند)' : '');
+        p.textContent = (x.ok ? '✓ ' : (x.opt ? '△ ' : '✗ ')) + x.t + (!x.ok && x.opt ? (x.nt != null ? x.nt : ' (اختیاری؛ نبودنش مشکلی ایجاد نمی‌کند)') : '');
         out.appendChild(p);
       });
       var m = document.createElement('p'); m.className = 'hint';
-      m.textContent = bad ? 'برخی فایل‌های لازم داخل برنامه نیست؛ لاگ مرحلهٔ ساخت را بررسی کنید.' : 'همه‌چیز لازم داخل برنامه است و اینترنت لازم نیست.';
+      m.textContent = bad ? 'برخی فایل‌های لازم داخل برنامه نیست؛ لاگ مرحلهٔ ساخت را بررسی کنید.' : (rows[rows.length - 1].ok ? 'همه‌چیز لازم داخل برنامه است و اینترنت لازم نیست.' : 'فایل‌های برنامه کامل است؛ فقط برای نصب صدا (یک‌بار) اینترنت لازم است.');
       out.appendChild(m);
     }).catch(function(e){ out.textContent = 'بررسی انجام نشد: ' + em(e); });
   }
@@ -1134,7 +1133,8 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
 
   /* ---------- text settings / OCR ---------- */
   var O = { ln: 'auto', maxl: 100, script: true, ocr: 'auto' }, pdfDoc = null, rawItems = [], ocrPages = {}, ocrKey = '', need = [], dropped = 0, ocrBusy = false, ocrStop = false, tessP = null, rawImg = [];
-  function opts(){ var g = function(i){ return $('#' + i); }; return { ln: g('lnMode').value, dots: g('oDots').checked, hdr: g('oHdr').checked, norm: g('oNorm').checked, script: g('oScript').checked, pos: g('oPos').checked, cols: g('oCols').checked, fix: g('oFix').checked, from: Math.max(0, +g('pgFrom').value || 0), to: Math.max(0, +g('pgTo').value || 0), maxl: +g('maxL').value, ocr: g('ocrMode').value, enc: g('encMode').value }; }
+  function opts(){ var g = function(i){ return $('#' + i); }; return { ln: g('lnMode').value, dots: g('oDots').checked, hdr: g('oHdr').checked, norm: g('oNorm').checked, script: g('oScript').checked, pos: g('oPos').checked, cols: g('oCols').checked && g('oPos').checked, fix: g('oFix').checked, from: Math.max(0, +g('pgFrom').value || 0), to: Math.max(0, +g('pgTo').value || 0), maxl: +g('maxL').value, ocr: g('ocrMode').value, enc: g('encMode').value }; }
+  function optsFix(o){ if (o.from && o.to && o.from > o.to) { var x = o.from; o.from = o.to; o.to = x; } return o; }
   var CW = new Set('و در به از که این را با است برای آن یک تا هم بر یا هر شد می'.split(' '));
   function bad(t){
     var s = t.replace(/\s/g, ''), n = s.length; if (n < 30) return false;
@@ -1162,8 +1162,12 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   }
   function prep(t){
     if (O.dots) t = t.replace(/(?:[ \t]*[.·•‧․…_]){4,}/g, ' ').replace(/[-–—=_]{4,}/g, ' ');
-    if (O.norm) t = t.replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/[\u064B-\u065F\u0670\u0640\u06D6-\u06ED]/g, '');
     return t;
+  }
+  /* پس از NFKC در clean اجرا می‌شود (شکل‌های نمایشی عربی تازه آن‌جا به ي/ك تبدیل می‌شوند). تنوین «ً» و همزهٔ «ٔ» برای تلفظ (مثلاً، خانهٔ) می‌مانند */
+  function normL(t){
+    if (!O.norm) return t;
+    return t.replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/[\u0647\u06D5]\u0654/g, '\u06C0').replace(/[\u064C-\u0653\u0655-\u065F\u0670\u0640\u06D6-\u06ED]/g, '');
   }
   function pdir(s){ var r = (s.match(/[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/g) || []).length, l = (s.match(/[A-Za-z\u00C0-\u024F\u0370-\u058F]/g) || []).length; return r >= l ? 'rtl' : 'ltr'; }
   function keepScript(o){
@@ -1227,7 +1231,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   function process(keep){
     var kp = keep && sents[idx] ? sents[idx].page : 0, n = rawItems.length, emp = [], badp = [];
     var inR = function(p){ return (!O.from || p >= O.from) && (!O.to || p <= O.to); };
-    O = opts(); stopAll(); clearCache();
+    O = optsFix(opts()); stopAll(); clearCache();
     var pg = rawItems.map(function(it, i){ return ocrPages[i + 1] != null ? ocrPages[i + 1] : joinItems(O.pos ? lineSort(it) : it); });
     if (O.enc !== 'none') pg = pg.map(function(t, i){ return ocrPages[i + 1] != null ? t : O.enc === 'auto' ? pickEnc(t) : reenc(t, O.enc); });
     pg.forEach(function(t, i){ if (ocrPages[i + 1] != null) return; if (t.replace(/\s/g, '').length < 3) emp.push(i + 1); else if (bad(t)) badp.push(i + 1); });
@@ -1236,7 +1240,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     need = (O.ocr === 'off' ? [] : O.ocr === 'always' ? pg.map(function(t, i){ return i + 1; }) : badp.concat(imgp, pure.length > n * 0.5 ? pure : [])).filter(inR);
     if (O.ocr !== 'off') badp.forEach(function(q){ pg[q - 1] = ''; });
     if (O.hdr) pg = dropRepeats(pg);
-    pg = pg.map(function(t, i){ return inR(i + 1) ? tidy(clean(prep(t), O.ln)) : ''; });
+    pg = pg.map(function(t, i){ return inR(i + 1) ? tidy(normL(clean(prep(t), O.ln))) : ''; });
     build(pg); warmPiper(); analyze(); ocrInfo();
     if (kp) { for (var i = 0; i < sents.length; i++) if (sents[i].page >= kp) { idx = i; break; } mark(true); }
   }
@@ -1371,7 +1375,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       return l.replace(/\s*\u200c\s*/g, '\u200c').replace(/\u200c{2,}/g, '\u200c')
         .replace(/(?<![\p{L}])\u200c|\u200c(?![\p{L}])/gu, '')
         .replace(/[ \t]+([،؛؟!?])/g, '$1').replace(/(\p{L})[ \t]+([.:])(?=\s|$)/gu, '$1$2')
-        .replace(/([،؛؟])(?=[\p{L}\p{N}])/gu, '$1 ').replace(/[،]{2,}/g, '،')
+        .replace(/([،؛؟])(?=[\p{L}\p{N}])/gu, function(m, c, o, str){ return (c === '،' && /[\d۰-۹٠-٩]/.test(str[o - 1] || '') && /[\d۰-۹٠-٩]/.test(str[o + 1] || '')) ? c : c + ' '; }).replace(/[،]{2,}/g, '،')
         .replace(/\([ \t]+/g, '(').replace(/[ \t]+\)/g, ')').replace(/«[ \t]+/g, '«').replace(/[ \t]+»/g, '»').trim();
     }).join('\n');
   }
@@ -1650,13 +1654,13 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   }
   function endMark(t, cont){ return /[.!?;:,]$/.test(t) ? t : t + (cont ? ',' : '.'); }
   /* تلفظ پیشرفتهٔ فارسی: espeak (موتور آوانگار همهٔ صداها) برای «می، نمی، ها، ام، ات، اش، ای، اید، اند، تر…» وقتی با نیم‌فاصله جدا باشند واژهٔ بی‌تکیه و درست می‌شناسد، و «ۀ» را «-eje» می‌خواند */
-  function phFa(){ var e = document.getElementById('phFa'); return !e || e.checked; }
+  function phFa(){ return true; }
   /* ---------- کسرهٔ اضافهٔ خودکار ----------
      موتور آوایی بدون نشانهٔ اضافه، «صدای کتاب» را بی‌کسره و رباتی می‌خواند. این‌جا بین دو کلمهٔ پشت‌سرهم (اسم/صفت) که
      هیچ نشانه‌گذاری میانشان نیست، کسره می‌گذاریم. کلمه‌های ربطی، فعل، ضمیر، عدد و حرف اضافه را رد می‌کنیم؛ تحلیل دستوری نیست و تقریبی است. */
   function ezOn(){ var e = document.getElementById('ezAuto'); return !e || e.checked; }
   function humOn(){ var e = document.getElementById('humPace'); return !e || e.checked; }
-  function lexOn(){ var e = document.getElementById('proLex'); return !e || e.checked; }
+  function lexOn(){ return true; }
   function hStr(s){ var h = 0, i; for (i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
   var EZ_K = '\u0650';
   var EZ_STOP = {};
@@ -1832,6 +1836,10 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     [/ان[\s\u200c]?شاء[\s\u200c]?الله/g, 'ان شا اللاه'], [/(?<!ا)خوا/g, 'خا'], [/خویش/g, 'خیش'], [/الله/g, 'اللاه'], [/[أإ]/g, 'ا'], [/ؤ/g, 'و'],
     [/(?<![\p{L}])(?:موسی|عیسی|یحیی|مصطفی|مجتبی|مرتضی|حتی|معنی|تعالی|مولی|تقوی|فتوی|دعوی|اعلی|کبری|صغری)(?![\p{L}])/gu, function(m){ return m.slice(0, -1) + 'ا'; }]
   ];
+  var ADV_N = /(?<![\p{L}\u200c])(مثلا|حتما|اصلا|واقعا|قبلا|بعدا|ظاهرا|تقریبا|غالبا|معمولا|احتمالا|قطعا|عمدا|لزوما|اساسا|صرفا|کاملا|عملا|نسبتا|اخیرا|اتفاقا|ضمنا|اولا|ثانیا|ثالثا|مجددا|دقیقا|مستقیما|مطلقا|رسما|عینا|طبعا|عموما|خصوصا|اصولا|تماما|لطفا|شخصا|مسلما|یقینا|طبیعتا|نهایتا|عمدتا|مخصوصا|فعلا|اکثرا|احیانا|دائما|قاعدتا|منطقا|ذاتا|اجمالا|تدریجا|جدیدا|سریعا|مرتبا|مکررا|کلا|جزئا|حقیقتا)(?![\p{L}\u200c])/gu;
+  var CITE_U = '[^()\\d;؛]{2,60}?[,،]\\s*(?:1[34]|19|20)\\d\\d[a-z]?(?:\\s*[,،:]\\s*(?:pp?\\.?\\s*|ص\\s*)?\\d{1,4}(?:\\s*[-–]\\s*\\d{1,4})?)?';
+  var RE_CITE = new RegExp('\\(\\s*' + CITE_U + '(?:\\s*[;؛]\\s*' + CITE_U + ')*\\s*\\)', 'gu');
+  function citeOn(){ var e = document.getElementById('fixCite'); return !e || e.checked; }
   var ACRO_W = { NASA: 'ناسا', NATO: 'ناتو', UNESCO: 'یونسکو', OPEC: 'اوپک', FIFA: 'فیفا', UEFA: 'یوفا', COVID: 'کووید', UNICEF: 'یونیسف', ASCII: 'اسکی', LASER: 'لیزر', RADAR: 'رادار', AIDS: 'ایدز', BRICS: 'بریکس', ASEAN: 'آسه آن', WHO: 'سازمان جهانی بهداشت', UN: 'سازمان ملل', EU: 'اتحادیه اروپا', UK: 'بریتانیا', USA: 'آمریکا', IMF: 'صندوق بین‌المللی پول' };
   var RE_ACRO = new RegExp('(?<![A-Za-z])(?:' + Object.keys(ACRO_W).join('|') + ')(?![A-Za-z])', 'g');
   var ACL = /^(?:pdf|url|html|css|api|sql|usb|cpu|gpu|ram|ssd|gpt|dna|rna|mri|vpn|gps|pc|tv|ai|ml|atm|ocr|seo|ui|ux|ceo)$/;
@@ -1926,6 +1934,8 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       t = t.replace(/[\u0640\u064B-\u065F\u0670]/g, '').replace(/\u00A0/g, ' ').replace(/[\u00ad\u200b\u200d-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '');
       t = dictIn(t);
       t = digitsAscii(t);
+      if (citeOn()) t = fxr(t, RE_CITE, 'ref', ' ');
+      t = fxr(t, ADV_N, 'spell', function(m){ return m.slice(0, -1) + 'ن'; });
       t = preFix(t);
       ABBR.forEach(function(a){ t = t.replace(a[0], a[1]); });
       SPELL.forEach(function(r){ t = fxr(t, r[0], 'spell', r[1]); });
@@ -1937,7 +1947,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
           bump('rep'); return w;
         });
       }
-      t = fxr(t, /(?<![\d۰-۹٠-٩.])([\d۰-۹٠-٩]{1,4})\s*\u200c?(?:ام|مین)(?![\p{L}])/gu, 'ord', function(_, n){ return ' ' + ordFa(+digitsAscii(n)) + ' '; });
+      t = fxr(t, /(?<![\d۰-۹٠-٩.])([\d۰-۹٠-٩]{1,4})\s*\u200c?(?:امین|ام|مین)(?![\p{L}])/gu, 'ord', function(_, n){ return ' ' + ordFa(+digitsAscii(n)) + ' '; });
       t = fxr(t, /(قرن|فصل|بخش|جلد|بند|ماده|فرمان|پاپ|لویی|لوئی|هنری|ناپلئون|کتاب)\s+([IVXLC]{1,6})(?![A-Za-z])/g, 'ord', function(m, w, r){ var v = romanVal(r); return v ? w + ' ' + ordFa(v) : m; });
       t = fxr(t, RE_ACRO, 'acr', function(m){ return ' ' + ACRO_W[m] + ' '; });
       t = phoneFix(t);
@@ -2157,10 +2167,13 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   $('#fixOn').checked = sget('fixon', '1') !== '0';
   $('#fixHi').checked = sget('fixhi', '1') !== '0';
   $('#fixPro').checked = sget('fixpro', '1') !== '0';
-  $('#fixOn').onchange = function(){ sset('fixon', this.checked ? '1' : '0'); $('#fixHi').disabled = !this.checked; $('#fixPro').disabled = !this.checked; changed(); analyze(); };
+  $('#fixOn').onchange = function(){ sset('fixon', this.checked ? '1' : '0'); fixLock(); changed(); analyze(); };
   $('#fixPro').onchange = function(){ sset('fixpro', this.checked ? '1' : '0'); changed(); analyze(); };
   $('#fixHi').onchange = function(){ sset('fixhi', this.checked ? '1' : '0'); changed(); analyze(); };
-  $('#fixHi').disabled = !$('#fixOn').checked; $('#fixPro').disabled = !$('#fixOn').checked;
+  $('#fixCite').checked = sget('fixcite', '1') !== '0';
+  $('#fixCite').onchange = function(){ sset('fixcite', this.checked ? '1' : '0'); changed(); analyze(); };
+  function fixLock(){ var d = !$('#fixOn').checked; $('#fixHi').disabled = $('#fixPro').disabled = $('#fixCite').disabled = d; }
+  fixLock();
   analyze();
 
 
@@ -3149,8 +3162,6 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   $('#ezAuto').onchange = function(){ sset('ezAuto', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   $('#humPace').checked = sget('humPace', '1') !== '0';
   $('#humPace').onchange = function(){ sset('humPace', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
-  $('#proLex').checked = sget('proLex', '1') !== '0';
-  $('#proLex').onchange = function(){ sset('proLex', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   $('#phLex').checked = sget('phLex', '1') !== '0';
   $('#phLex').onchange = function(){ sset('phLex', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   /* حافظهٔ نهان صدای بومی: نمایش حجم، سقف و پاک‌کردن */
@@ -3166,8 +3177,6 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   $('#advBox').addEventListener('toggle', function(){ if (this.open) pcRefresh(); });
   $('#pcClear').onclick = function(){ if (!npOK || !NP || !NP.cacheClear) { pcRefresh(); return; } NP.cacheClear().then(pcRefresh, pcRefresh); };
   $('#pcLimit').onchange = function(){ if (!npOK || !NP || !NP.cacheLimit) return; NP.cacheLimit({ mb: +this.value }).then(pcRefresh, pcRefresh); };
-  $('#phFa').checked = sget('phFa', '1') !== '0';
-  $('#phFa').onchange = function(){ sset('phFa', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   $('#smartPace').onchange = function(){ sset('smartPace', this.checked ? '1' : '0'); changed(); warmPiper(); };
   $('#enh').onchange = function(){ sset('enh', this.checked ? '1' : '0'); if (npOK) { changed(); return; } setupFx(); wireFx(engine() === 'piper'); };
   dictG = sget('dict', ''); parseDict(); dictShow();
@@ -3284,8 +3293,13 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   });
   $('#txtReset').onclick = function(){
     TXT_IDS.forEach(function(id){ var e = $('#' + id); if (e.type === 'checkbox') e.checked = TXT_DEF[id]; else e.value = TXT_DEF[id]; try { localStorage.removeItem('o_' + id); } catch (x) {} });
-    $('#maxL').oninput(); segRefresh(); if (pdfDoc) process(true);
+    $('#maxL').oninput(); segRefresh();
+    [['fixOn', 'fixon'], ['fixHi', 'fixhi'], ['fixPro', 'fixpro'], ['fixCite', 'fixcite']].forEach(function(p){ $('#' + p[0]).checked = true; try { localStorage.removeItem(p[1]); } catch (x) {} });
+    syncCols(); fixLock(); if (pdfDoc) process(true); else analyze();
+    changed();
   };
+  function syncCols(){ $('#oCols').disabled = !$('#oPos').checked; }
+  $('#oPos').addEventListener('change', syncCols); syncCols();
   $('#maxL').oninput = function(){ $('#maxV').textContent = nf.format(+this.value); fillRng(this); };
   $('#maxL').oninput(); O = opts();
   $('#ocrBtn').onclick = runOcr;
