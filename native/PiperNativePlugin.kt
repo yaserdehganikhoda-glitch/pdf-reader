@@ -335,7 +335,8 @@ class PiperNativePlugin : Plugin() {
         val id = call.getString("id") ?: return call.reject("id")
         if (!Regex("[A-Za-z0-9_-]+").matches(id)) return call.reject("شناسهٔ صدا نامعتبر است")
         io.execute {
-            var conn: java.net.HttpURLConnection? = null
+            val part = File(root(), "$id.dl")
+            var netDone = false
             // نصب تکراری (مثلاً هم‌زمان با بارگذاری از پوشه): اگر صدا کامل نصب است کاری لازم نیست
             if (okMark(id).exists() && findOnnx(voiceDir(id)) != null) { call.resolve(); return@execute }
             try {
@@ -343,27 +344,26 @@ class PiperNativePlugin : Plugin() {
                 // اگر صدا همراه APK بود از assets؛ وگرنه (حالت پیش‌فرض) بعد از نصب از اینترنت دانلود می‌شود
                 val src: java.io.InputStream
                 val total0: Long
-                if (id in bundledIds()) {
+                val fromNet = id !in bundledIds()
+                val emit = { l: Long, t: Long -> notifyListeners("progress", JSObject().put("loaded", l).put("total", t)) }
+                if (!fromNet) {
                     total0 = try { context.assets.openFd("voices/$id.tar.bz2").use { it.length } } catch (e: Throwable) { 70_000_000L }
                     src = context.assets.open("voices/$id.tar.bz2")
                 } else {
-                    val c = java.net.URL("$VOICE_BASE/vits-piper-$id.tar.bz2").openConnection() as java.net.HttpURLConnection
-                    conn = c
-                    c.connectTimeout = 20_000; c.readTimeout = 30_000; c.instanceFollowRedirects = true
-                    if (c.responseCode != 200) throw IllegalStateException("دانلود ناموفق (کد ${c.responseCode}) — اتصال اینترنت را بررسی کنید")
-                    total0 = if (c.contentLength > 0) c.contentLength.toLong() else 70_000_000L
-                    src = c.inputStream
+                    fetchResumable("$VOICE_BASE/vits-piper-$id.tar.bz2", part, emit)
+                    netDone = true
+                    total0 = part.length()
+                    src = java.io.FileInputStream(part)
                 }
                 if (ttsId == id) releaseEngine(id)
                 val dst = voiceDir(id)
                 dst.deleteRecursively(); dst.mkdirs()
                 var loaded = 0L; var lastEmit = 0L
-                val emit = { l: Long, t: Long -> notifyListeners("progress", JSObject().put("loaded", l).put("total", t)) }
                 val counting = object : java.io.FilterInputStream(src) {
                     private fun tick(n: Long) {
                         loaded += n
                         val now = System.currentTimeMillis()
-                        if (now - lastEmit > 250) { lastEmit = now; emit(loaded, Math.max(loaded + 1, total0)) }
+                        if (!fromNet && now - lastEmit > 250) { lastEmit = now; emit(loaded, Math.max(loaded + 1, total0)) }
                     }
                     override fun read(): Int { val b = super.read(); if (b >= 0) tick(1L); return b }
                     override fun read(b: ByteArray, off: Int, len: Int): Int { val n = super.read(b, off, len); if (n > 0) tick(n.toLong()); return n }
@@ -373,10 +373,65 @@ class PiperNativePlugin : Plugin() {
                 if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists())
                     throw IllegalStateException("فایل‌های مدل کامل نیست")
                 okMark(id).writeText("1")
+                part.delete()
                 call.resolve()
             } catch (e: Throwable) {
                 voiceDir(id).deleteRecursively()
+                if (netDone) part.delete()   // فایل کامل ولی خراب → دفعهٔ بعد از صفر؛ قطعی شبکه → فایل ناقص برای ادامه می‌ماند
                 call.reject("نصب ناموفق: ${e.message}")
+            }
+        }
+    }
+
+    /** دانلود با ادامه از نقطهٔ قطع (Range) و تلاش مجدد خودکار؛ فایل ناقص در part می‌ماند */
+    private fun fetchResumable(url: String, part: File, emit: (Long, Long) -> Unit) {
+        var fails = 0
+        var total = -1L
+        var lastEmit = 0L
+        var lastSize = -1L
+        while (true) {
+            var conn: java.net.HttpURLConnection? = null
+            try {
+                val have = if (part.exists()) part.length() else 0L
+                val c = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+                conn = c
+                c.connectTimeout = 20_000; c.readTimeout = 30_000; c.instanceFollowRedirects = true
+                if (have > 0) c.setRequestProperty("Range", "bytes=$have-")
+                val code = c.responseCode
+                var append = false
+                when {
+                    code == 206 -> {
+                        append = true
+                        total = c.getHeaderField("Content-Range")?.substringAfterLast('/')?.trim()?.toLongOrNull()
+                            ?: (if (c.contentLengthLong > 0) have + c.contentLengthLong else -1L)
+                    }
+                    code == 200 -> { total = c.contentLengthLong; if (have > 0) part.delete() }
+                    code == 416 -> { if (have > 0) return; throw IllegalStateException("دانلود ناموفق (کد 416)") }
+                    code == 429 || code in 500..599 -> throw java.io.IOException("خطای سرور ($code)")
+                    else -> throw IllegalStateException("دانلود ناموفق (کد $code) — اتصال اینترنت را بررسی کنید")
+                }
+                var got = if (append) have else 0L
+                c.inputStream.use { ins ->
+                    java.io.FileOutputStream(part, append).use { out ->
+                        val buf = ByteArray(64 * 1024)
+                        while (true) {
+                            val n = ins.read(buf)
+                            if (n < 0) break
+                            out.write(buf, 0, n); got += n
+                            val now = System.currentTimeMillis()
+                            if (now - lastEmit > 250) { lastEmit = now; emit(got, Math.max(got + 1, if (total > 0) total else 70_000_000L)) }
+                        }
+                    }
+                }
+                if (total > 0 && got < total) throw java.io.IOException("اتصال قطع شد")
+                emit(got, got)
+                return
+            } catch (e: java.io.IOException) {
+                val size = if (part.exists()) part.length() else 0L
+                if (size > lastSize) fails = 0 else fails++   // تا وقتی پیشرفت هست از نو شمارش می‌شود
+                lastSize = size
+                if (fails > 12) throw IllegalStateException("دانلود ناتمام ماند (${e.message}) — دوباره بزنید تا از همان‌جا ادامه یابد")
+                try { Thread.sleep(Math.min(1500L * fails, 8000L)) } catch (ie: InterruptedException) { throw e }
             } finally {
                 try { conn?.disconnect() } catch (e: Throwable) {}
             }
