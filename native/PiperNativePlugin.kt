@@ -30,8 +30,6 @@ import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
@@ -40,7 +38,7 @@ import java.util.concurrent.Executors
 
 /**
  * Piper (VITS) فارسی به‌صورت بومی با sherpa-onnx.
- * متدها: ping, stored, download({id, urls} یا {id, files:[{name, urls}]}), synthesize({id, text, noiseScale?, noiseScaleW?, speed?}), remove({id})
+ * متدها: ping, stored, bundled, download({id}) = نصب صدا از فایل همراه برنامه (بدون اینترنت), synthesize({id, text, noiseScale?, noiseScaleW?, speed?}), remove({id})
  * پوشهٔ دلخواه کاربر: pickFolder, folder, exportVoices({ids?}), importVoices({ids?, overwrite?})
  * رویداد: "progress" {loaded, total}
  * کیفیت صدا: synthesize({..., clean?: 0..3, clarity?: 0..3}) → حذف نویز و ارتقای شفافیت/رسایی؛ ۰ خاموش، ۲ متعادل (پیش‌فرض)؛ جزئیات در SpeechClean (انتهای فایل)
@@ -58,6 +56,45 @@ import java.util.concurrent.Executors
 class PiperNativePlugin : Plugin() {
 
     private val io = Executors.newSingleThreadExecutor()     // دانلود/استخراج
+    @Volatile private var underruns = 0                      // مجموع underrun های AudioTrack از شروع برنامه (نشانهٔ لکنت پخش)
+
+    private fun crashFile() = File(context.filesDir, "crash.log")
+
+    /** ثبت کرش‌های کنترل‌نشده در فایل تا اجرای بعدی در «پیشرفته ‹ گزارش خطا» دیده شود؛ بعد از ثبت، رفتار پیش‌فرض سیستم ادامه می‌یابد */
+    override fun load() {
+        try {
+            val prev = Thread.getDefaultUncaughtExceptionHandler()
+            Thread.setDefaultUncaughtExceptionHandler { th, ex ->
+                try {
+                    val sw = java.io.StringWriter()
+                    ex.printStackTrace(java.io.PrintWriter(sw))
+                    val f = crashFile()
+                    val old = if (f.exists()) f.readText() else ""
+                    val stamp = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(java.util.Date())
+                    f.writeText((old + "[" + stamp + "] thread=" + th.name + "\n" + sw.toString().take(3000) + "\n").takeLast(20000))
+                } catch (e: Throwable) {}
+                prev?.uncaughtException(th, ex)
+            }
+        } catch (e: Throwable) {}
+    }
+
+    @PluginMethod
+    fun getCrashLog(call: PluginCall) {
+        val f = crashFile()
+        call.resolve(JSObject().put("text", try { if (f.exists()) f.readText() else "" } catch (e: Throwable) { "" }))
+    }
+
+    @PluginMethod
+    fun clearCrashLog(call: PluginCall) {
+        try { crashFile().delete() } catch (e: Throwable) {}
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun diag(call: PluginCall) {
+        call.resolve(JSObject().put("underruns", underruns).put("sampleRate", sampleRate).put("sdk", android.os.Build.VERSION.SDK_INT)
+            .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL))
+    }
     private val cpu = Executors.newSingleThreadExecutor()    // ساخت صدا (پشت‌سرهم)
     private var tts: OfflineTts? = null
     @Volatile private var ttsId: String? = null
@@ -278,125 +315,58 @@ class PiperNativePlugin : Plugin() {
         }
     }
 
+    /** صداهای همراه برنامه: assets/voices/<id>.tar.bz2 (توسط inject-native.sh در APK گذاشته می‌شود) */
+    private fun bundledIds(): Set<String> = try {
+        context.assets.list("voices")?.filter { it.endsWith(".tar.bz2") }?.map { it.removeSuffix(".tar.bz2") }?.toSet() ?: emptySet()
+    } catch (e: Throwable) { emptySet() }
+
+    @PluginMethod
+    fun bundled(call: PluginCall) {
+        val ids = org.json.JSONArray()
+        bundledIds().sorted().forEach { ids.put(it) }
+        call.resolve(JSObject().put("ids", ids))
+    }
+
+    /** نصب صدا از فایل همراه برنامه (بدون هیچ اتصال اینترنتی): کپی از assets، استخراج، بررسی کامل‌بودن */
     @PluginMethod
     fun download(call: PluginCall) {
         val id = call.getString("id") ?: return call.reject("id")
-        val files = call.getArray("files")
-        if (files != null && files.length() > 0) return downloadFiles(call, id, files)   // مدل‌های بدون آرشیو (مثل Coqui)
-        val urls = call.getArray("urls")?.toList<String>() ?: emptyList()
-        if (urls.isEmpty()) return call.reject("urls")
+        if (id !in bundledIds()) return call.reject("این صدا همراه برنامه نیست")
         io.execute {
-            val tmp = File(context.cacheDir, "piper-$id.tar.bz2")
-            var lastErr: Exception? = null
-            for (u in urls) {
-                try { fetch(u, tmp); lastErr = null; break } catch (e: Exception) { lastErr = e }
-            }
-            if (lastErr != null) { tmp.delete(); call.reject("دانلود ناموفق: ${lastErr.message}"); return@execute }
+            // نصب تکراری (مثلاً هم‌زمان با بارگذاری از پوشه): اگر صدا کامل نصب است کاری لازم نیست
+            if (okMark(id).exists() && findOnnx(voiceDir(id)) != null) { call.resolve(); return@execute }
             try {
+                // بدون کپی موقت: جریان asset مستقیم به bz2 و tar می‌رود (نصف فضا و زمان)؛ پیشرفت از روی بایت‌های خوانده‌شده
+                val total0 = try { context.assets.openFd("voices/$id.tar.bz2").use { it.length } } catch (e: Throwable) { 70_000_000L }
+                if (ttsId == id) releaseEngine(id)
                 val dst = voiceDir(id)
                 dst.deleteRecursively(); dst.mkdirs()
-                extract(tmp, dst)
-                tmp.delete()
-                if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists())
-                    throw IllegalStateException("فایل‌های مدل کامل نیست")
-                okMark(id).writeText("1")
-                call.resolve()
-            } catch (e: Exception) {
-                voiceDir(id).deleteRecursively()
-                call.reject("استخراج ناموفق: ${e.message}")
-            }
-        }
-    }
-
-    /** دانلود چند فایل جدا (مثلاً model.onnx و tokens.txt) بدون آرشیو؛ files = [{name, urls:[...]}] */
-    private fun downloadFiles(call: PluginCall, id: String, files: org.json.JSONArray) {
-        io.execute {
-            try {
-                val dst = voiceDir(id)
-                dst.deleteRecursively(); dst.mkdirs()
-                for (i in 0 until files.length()) {
-                    val o = files.getJSONObject(i)
-                    val name = o.getString("name").replace(Regex("[^A-Za-z0-9_.-]"), "_")
-                    val us = o.getJSONArray("urls")
-                    val tmp = File(dst, "$name.part")
-                    var lastErr: Exception? = null
-                    for (k in 0 until us.length()) {
-                        try { fetch(us.getString(k), tmp); lastErr = null; break } catch (e: Exception) { lastErr = e }
+                var loaded = 0L; var lastEmit = 0L
+                val emit = { l: Long, t: Long -> notifyListeners("progress", JSObject().put("loaded", l).put("total", t)) }
+                val counting = object : java.io.FilterInputStream(context.assets.open("voices/$id.tar.bz2")) {
+                    private fun tick(n: Long) {
+                        loaded += n
+                        val now = System.currentTimeMillis()
+                        if (now - lastEmit > 250) { lastEmit = now; emit(loaded, Math.max(loaded + 1, total0)) }
                     }
-                    if (lastErr != null) throw lastErr
-                    if (!tmp.renameTo(File(dst, name))) throw IllegalStateException("ذخیرهٔ فایل $name ممکن نشد")
+                    override fun read(): Int { val b = super.read(); if (b >= 0) tick(1L); return b }
+                    override fun read(b: ByteArray, off: Int, len: Int): Int { val n = super.read(b, off, len); if (n > 0) tick(n.toLong()); return n }
                 }
-                // مدل‌های Coqui (مثل نگار) برای تبدیل متن به آوا به espeak-ng-data نیاز دارند؛ بدون آن sherpa برنامه را می‌بندد
-                if (call.getBoolean("espeak", false) == true) {
-                    val sh = sharedEspeak(id)
-                    if (sh != null) {
-                        // داده‌ای که از قبل کنار صدای دیگری دانلود شده کپی می‌شود (بدون اینترنت و مستقل از حذف آن صدا)
-                        sh.copyRecursively(File(dst, "espeak-ng-data"), overwrite = true)
-                    } else {
-                        val etmp = File(context.cacheDir, "espeak-ng-data.tar.bz2")
-                        val eu = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2"
-                        var eErr: Exception? = null
-                        for (u in listOf(eu, "https://ghfast.top/$eu")) {
-                            try { fetch(u, etmp); eErr = null; break } catch (e: Exception) { eErr = e }
-                        }
-                        if (eErr != null) { etmp.delete(); throw eErr }
-                        extract(etmp, dst)
-                        etmp.delete()
-                    }
-                    if (!File(dst, "espeak-ng-data").isDirectory) throw IllegalStateException("دادهٔ espeak کامل نیست")
-                }
+                counting.use { extract(it, dst) }
+                emit(loaded, loaded)
                 if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists())
                     throw IllegalStateException("فایل‌های مدل کامل نیست")
                 okMark(id).writeText("1")
                 call.resolve()
             } catch (e: Throwable) {
                 voiceDir(id).deleteRecursively()
-                call.reject("دانلود ناموفق: ${e.message}")
+                call.reject("نصب ناموفق: ${e.message}")
             }
         }
     }
 
-    private fun fetch(url: String, out: File) {
-        var last: Exception? = null
-        for (attempt in 0 until 2) {   // یک تلاش دوباره برای قطع‌شدن‌های کوتاه شبکه/VPN
-            try { fetchOnce(url, out); return } catch (e: Exception) { last = e; out.delete() }
-        }
-        throw last ?: IllegalStateException("دانلود ناموفق")
-    }
-
-    private fun fetchOnce(url: String, out: File) {
-        val c = URL(url).openConnection() as HttpURLConnection
-        try {
-            c.connectTimeout = 20000; c.readTimeout = 30000; c.instanceFollowRedirects = true
-            c.setRequestProperty("Accept-Encoding", "identity")   // اندازهٔ واقعی فایل برای بررسی کامل‌بودن
-            c.setRequestProperty("User-Agent", "Mozilla/5.0 (Android) PiperNative")
-            if (c.responseCode !in 200..299) throw IllegalStateException("HTTP ${c.responseCode}")
-            val total = c.contentLengthLong
-            var loaded = 0L; var lastEmit = 0L
-            c.inputStream.use { ins ->
-                FileOutputStream(out).use { os ->
-                    val buf = ByteArray(64 * 1024)
-                    while (true) {
-                        val n = ins.read(buf); if (n < 0) break
-                        os.write(buf, 0, n); loaded += n
-                        val now = System.currentTimeMillis()
-                        if (now - lastEmit > 250) {
-                            lastEmit = now
-                            notifyListeners("progress", JSObject().put("loaded", loaded).put("total", if (total > 0) total else 60_000_000L))
-                        }
-                    }
-                }
-            }
-            if (total > 0 && loaded != total) throw IllegalStateException("دانلود ناقص ماند")
-            notifyListeners("progress", JSObject().put("loaded", loaded).put("total", loaded))
-        } finally {
-            try { c.disconnect() } catch (e: Throwable) {}
-        }
-    }
-
-    private fun extract(archive: File, dst: File) {
-        var cnt = 0; var lastEmit = 0L
-        TarArchiveInputStream(BZip2CompressorInputStream(BufferedInputStream(archive.inputStream(), 1 shl 16))).use { tar ->
+    private fun extract(ins: java.io.InputStream, dst: File) {
+        TarArchiveInputStream(BZip2CompressorInputStream(BufferedInputStream(ins, 1 shl 16))).use { tar ->
             while (true) {
                 val e = tar.nextTarEntry ?: break
                 val f = File(dst, e.name)
@@ -404,12 +374,6 @@ class PiperNativePlugin : Plugin() {
                 if (e.isDirectory) { f.mkdirs(); continue }
                 f.parentFile?.mkdirs()
                 FileOutputStream(f).use { tar.copyTo(it) }
-                cnt++
-                val now = System.currentTimeMillis()
-                if (now - lastEmit > 400) {
-                    lastEmit = now
-                    notifyListeners("progress", JSObject().put("stage", "extract").put("n", cnt))
-                }
             }
         }
     }
@@ -482,7 +446,7 @@ class PiperNativePlugin : Plugin() {
         if (tts != null && ttsId == id && ttsKey == key) return tts!!
         tts?.release(); tts = null; ttsId = null; ttsKey = null
         val r = findRoot(voiceDir(id))
-        val onnx = findOnnx(voiceDir(id)) ?: throw IllegalStateException("مدل پیدا نشد؛ دوباره دانلود کنید")
+        val onnx = findOnnx(voiceDir(id)) ?: throw IllegalStateException("مدل پیدا نشد؛ دوباره نصب کنید")
         val flags = modelFlags(onnx)
         if ((flags and 1) == 0 || (flags and 6) == 0)
             throw IllegalStateException("این مدل برای sherpa-onnx آماده نشده (متادیتا ندارد) و باز کردنش برنامه را می‌بندد؛ مدل دیگری برای آن لازم است")
@@ -644,7 +608,7 @@ class PiperNativePlugin : Plugin() {
         cpu.execute {
             try {
                 if (ep != epoch.get()) throw IllegalStateException("NATIVE_CANCELLED")
-                if (!okMark(id).exists()) throw IllegalStateException("این صدا هنوز دانلود نشده است")
+                if (!okMark(id).exists()) throw IllegalStateException("این صدا هنوز نصب نشده است؛ چند لحظه صبر کنید تا نصب تمام شود")
                 val eng = engineFor(id, ns, nw)
                 val sr = eng.sampleRate()
                 // هر جمله جدا (برای کش)؛ بدون parts کل متن یک جمله حساب می‌شود
@@ -768,6 +732,10 @@ class PiperNativePlugin : Plugin() {
     @Volatile private var plTrack: AudioTrack? = null
     private var plNext: PlItem? = null
     private var plActive = false
+    @Volatile private var plRateAt = 0L                                  // لحظهٔ آخرین تغییر سرعت (برای debounce)
+    private val stEx = Executors.newSingleThreadExecutor()               // محاسبهٔ WSOLA برای تغییر سرعت وسط پخش، جدا از رشتهٔ پخش
+    private var noisyRx: android.content.BroadcastReceiver? = null
+    private fun effRate(r: Float): Float = if (Math.abs(r - 1f) < 0.004f) 1f else r
 
     private fun pcmPut(f: FloatArray, sr: Int): Int {
         val s = ShortArray(f.size) { Math.round(f[it].coerceIn(-1f, 1f) * 32767f).toShort() }
@@ -818,6 +786,42 @@ class PiperNativePlugin : Plugin() {
         if (plNext == null && gen == plGen) { plActive = false; true } else false
     }
 
+    /** تماس تلفنی یا زنگ‌خوردن (فقط حالت‌های تلفن همراه؛ حالت‌های VoIP عمداً بررسی نمی‌شود تا برنامهٔ دیگری که حالت را رها کرده پخش را قفل نکند) */
+    private fun inCall(): Boolean = try {
+        val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val m = am.mode
+        m == AudioManager.MODE_IN_CALL || m == AudioManager.MODE_RINGTONE
+    } catch (e: Throwable) { false }
+
+    private fun emitInterrupt(reason: String) {
+        notifyListeners("playerInterrupted", JSObject().put("reason", reason))
+    }
+
+    /** توقف از داخل رشتهٔ پخش (مثلاً تماس)؛ فقط اگر هنوز همان نوبت پخش باشد */
+    private fun interrupt(gen: Int, reason: String) {
+        if (gen != plGen) return
+        stopPlayer()
+        emitInterrupt(reason)
+    }
+
+    /** جداشدن هدفون/بلوتوث: صدا ناگهان از بلندگو پخش نشود */
+    private fun ensureNoisyReceiver() {
+        if (noisyRx != null) return
+        try {
+            val rx = object : android.content.BroadcastReceiver() {
+                override fun onReceive(c: Context?, i: Intent?) {
+                    if (i?.action != AudioManager.ACTION_AUDIO_BECOMING_NOISY) return
+                    val act = synchronized(plLock) { plActive }
+                    if (act) { stopPlayer(); emitInterrupt("noisy") }
+                }
+            }
+            val f = android.content.IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
+            if (android.os.Build.VERSION.SDK_INT >= 33) context.registerReceiver(rx, f, 0x4)   // 0x4 = RECEIVER_NOT_EXPORTED (عدد ثابت تا با compileSdk پایین‌تر هم بیلد شود)
+            else context.registerReceiver(rx, f)
+            noisyRx = rx
+        } catch (e: Throwable) { /* بدون گیرنده: فقط اعلان جداشدن هدفون نمی‌رسد */ }
+    }
+
     private fun stopPlayer() {
         var old: AudioTrack? = null
         synchronized(plLock) { plGen++; plNext = null; plActive = false; old = plTrack; plTrack = null }
@@ -838,6 +842,7 @@ class PiperNativePlugin : Plugin() {
             t.play()
             val base = t.playbackHeadPosition
             var written = 0L
+            var lastU = 0
             val step = Math.max(256, sr / 50)
             val zeros = ShortArray(step)
             var item = first
@@ -855,20 +860,58 @@ class PiperNativePlugin : Plugin() {
                 if (gen != plGen) return
                 emitPl("playerStart", item.h)
                 val src = item.pcm.s
-                var rate = plRate
+                var rate = effRate(plRate)
                 var srcBase = 0
                 var out = Stretch.run(src, srcBase, rate, sr)
                 var pos = 0
                 var lastEv = 0L
+                var lastMode = 0L
+                var retryAt = 0L
+                var pend: java.util.concurrent.Future<ShortArray>? = null
+                var pendRate = 1f
+                var pendSrc = 0
                 while (pos < out.size) {
-                    if (gen != plGen) return
-                    val r2 = plRate
-                    if (Math.abs(r2 - rate) > 0.004f) {   // تغییر سرعت وسط پخش: ادامه از همان نقطهٔ منبع
-                        srcBase = Math.min(src.size, srcBase + (pos * rate).toInt())
-                        rate = r2
-                        out = Stretch.run(src, srcBase, rate, sr)
-                        pos = 0
-                        continue
+                    if (gen != plGen) { pend?.cancel(true); return }
+                    val nowT = android.os.SystemClock.elapsedRealtime()
+                    // تماس تلفنی یا زنگ: پخش مکث می‌شود (کنترل روی رشتهٔ پخش؛ بدون درگیری با موسیقی داخل WebView)
+                    if (nowT - lastMode >= 250) {
+                        lastMode = nowT
+                        if (inCall()) { pend?.cancel(true); interrupt(gen, "call"); return }
+                    }
+                    // تغییر سرعت وسط پخش: محاسبه در رشتهٔ جدا و بعد از ۱۶۰ms ثبات؛ تا آماده‌شدن، پخش با سرعت قبلی ادامه دارد،
+                    // و اتصال با crossfade ۸ms انجام می‌شود (بدون لکنت و «تق» هنگام نگه‌داشتن + یا −)
+                    val pf = pend
+                    if (pf != null) {
+                        if (pf.isDone) {
+                            pend = null
+                            val nw: ShortArray? = try { pf.get() } catch (e: Throwable) { null }
+                            var swapped = false
+                            if (nw != null) {
+                                val curSrc = Math.min(src.size, srcBase + (pos * rate).toInt())
+                                val skip = Math.max(0, ((curSrc - pendSrc) / pendRate).toInt())
+                                if (skip < nw.size) {
+                                    val x = Math.min(Math.min(out.size - pos, nw.size - skip), (sr * 0.008).toInt())
+                                    val merged = ShortArray(nw.size - skip)
+                                    for (k in 0 until x) {
+                                        val f = k / x.toFloat()
+                                        merged[k] = (out[pos + k] * (1f - f) + nw[skip + k] * f).toInt().toShort()
+                                    }
+                                    System.arraycopy(nw, skip + x, merged, x, nw.size - skip - x)
+                                    out = merged; srcBase = curSrc; rate = pendRate; pos = 0
+                                    swapped = true
+                                }
+                            }
+                            if (swapped) continue
+                            retryAt = nowT + 1000   // نتیجه کنار گذاشته شد؛ بلافاصله دوباره تلاش نشود
+                        }
+                    } else if (nowT >= retryAt) {
+                        val r2 = effRate(plRate)
+                        if (Math.abs(r2 - rate) > 0.004f && nowT - plRateAt >= 160) {
+                            pendRate = r2
+                            pendSrc = Math.min(src.size, srcBase + (pos * rate).toInt())
+                            val ps = pendSrc
+                            pend = stEx.submit(java.util.concurrent.Callable<ShortArray> { Stretch.run(src, ps, r2, sr) })
+                        }
                     }
                     val n = Math.min(step, out.size - pos)
                     val w = t.write(out, pos, n)
@@ -881,6 +924,8 @@ class PiperNativePlugin : Plugin() {
                         emitPl("playerPos", item.h, Math.min(1.0, (srcBase + pos * rate.toDouble()) / Math.max(1, src.size)))
                     }
                 }
+                pend?.cancel(true)
+                if (android.os.Build.VERSION.SDK_INT >= 24) { val u = t.underrunCount; underruns += u - lastU; lastU = u }
                 var nx: PlItem? = takeNext()
                 while (nx == null) {   // تا خالی‌شدن بافر منتظر آیتم بعدی می‌مانیم
                     if (gen != plGen) return
@@ -918,6 +963,7 @@ class PiperNativePlugin : Plugin() {
         }
         try { old?.pause(); old?.flush() } catch (e: Throwable) {}
         val g = gen
+        ensureNoisyReceiver()
         plEx.execute { runPlayer(g, PlItem(h, pcm, 0)) }
         call.resolve()
     }
@@ -935,6 +981,7 @@ class PiperNativePlugin : Plugin() {
     @PluginMethod
     fun playerRate(call: PluginCall) {
         plRate = (call.getFloat("rate") ?: 1f).coerceIn(0.4f, 2.5f)
+        plRateAt = android.os.SystemClock.elapsedRealtime()
         call.resolve()
     }
 
@@ -952,7 +999,9 @@ class PiperNativePlugin : Plugin() {
     }
 
     override fun handleOnDestroy() {
-        try { stopPlayer(); plEx.shutdownNow() } catch (e: Throwable) {}
+        try { stopPlayer(); plEx.shutdownNow(); stEx.shutdownNow() } catch (e: Throwable) {}
+        try { noisyRx?.let { context.unregisterReceiver(it) } } catch (e: Throwable) {}
+        noisyRx = null
         try { if (wl?.isHeld == true) wl?.release() } catch (e: Throwable) {}
         cpu.execute { try { tts?.release() } catch (e: Throwable) {}; tts = null; ttsId = null; ttsKey = null }
         cpu.shutdown(); io.shutdown()
@@ -1385,7 +1434,7 @@ private object Stretch {
     fun run(src: ShortArray, from: Int, rate: Float, sr: Int): ShortArray {
         val n = src.size - from
         if (n <= 0) return ShortArray(0)
-        if (Math.abs(rate - 1f) < 0.02f) return src.copyOfRange(from, src.size)
+        if (Math.abs(rate - 1f) < 0.004f) return src.copyOfRange(from, src.size)   // ناحیهٔ مردهٔ بسیار کوچک: گام‌های ۰٫۰۱ سرعت همه اثر دارند
         val x = FloatArray(n) { src[from + it] / 32768f }
         val y = wsola(x, sr, rate.toDouble())
         return ShortArray(y.size) {
