@@ -327,23 +327,39 @@ class PiperNativePlugin : Plugin() {
         call.resolve(JSObject().put("ids", ids))
     }
 
-    /** نصب صدا از فایل همراه برنامه (بدون هیچ اتصال اینترنتی): کپی از assets، استخراج، بررسی کامل‌بودن */
+    private val VOICE_BASE = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models"
+
+    /** نصب صدا: از assets اگر همراه APK باشد، وگرنه دانلود مستقیم و استخراج هم‌زمان؛ سپس بررسی کامل‌بودن */
     @PluginMethod
     fun download(call: PluginCall) {
         val id = call.getString("id") ?: return call.reject("id")
-        if (id !in bundledIds()) return call.reject("این صدا همراه برنامه نیست")
+        if (!Regex("[A-Za-z0-9_-]+").matches(id)) return call.reject("شناسهٔ صدا نامعتبر است")
         io.execute {
+            var conn: java.net.HttpURLConnection? = null
             // نصب تکراری (مثلاً هم‌زمان با بارگذاری از پوشه): اگر صدا کامل نصب است کاری لازم نیست
             if (okMark(id).exists() && findOnnx(voiceDir(id)) != null) { call.resolve(); return@execute }
             try {
                 // بدون کپی موقت: جریان asset مستقیم به bz2 و tar می‌رود (نصف فضا و زمان)؛ پیشرفت از روی بایت‌های خوانده‌شده
-                val total0 = try { context.assets.openFd("voices/$id.tar.bz2").use { it.length } } catch (e: Throwable) { 70_000_000L }
+                // اگر صدا همراه APK بود از assets؛ وگرنه (حالت پیش‌فرض) بعد از نصب از اینترنت دانلود می‌شود
+                val src: java.io.InputStream
+                val total0: Long
+                if (id in bundledIds()) {
+                    total0 = try { context.assets.openFd("voices/$id.tar.bz2").use { it.length } } catch (e: Throwable) { 70_000_000L }
+                    src = context.assets.open("voices/$id.tar.bz2")
+                } else {
+                    val c = java.net.URL("$VOICE_BASE/vits-piper-$id.tar.bz2").openConnection() as java.net.HttpURLConnection
+                    conn = c
+                    c.connectTimeout = 20_000; c.readTimeout = 30_000; c.instanceFollowRedirects = true
+                    if (c.responseCode != 200) throw IllegalStateException("دانلود ناموفق (کد ${c.responseCode}) — اتصال اینترنت را بررسی کنید")
+                    total0 = if (c.contentLength > 0) c.contentLength.toLong() else 70_000_000L
+                    src = c.inputStream
+                }
                 if (ttsId == id) releaseEngine(id)
                 val dst = voiceDir(id)
                 dst.deleteRecursively(); dst.mkdirs()
                 var loaded = 0L; var lastEmit = 0L
                 val emit = { l: Long, t: Long -> notifyListeners("progress", JSObject().put("loaded", l).put("total", t)) }
-                val counting = object : java.io.FilterInputStream(context.assets.open("voices/$id.tar.bz2")) {
+                val counting = object : java.io.FilterInputStream(src) {
                     private fun tick(n: Long) {
                         loaded += n
                         val now = System.currentTimeMillis()
@@ -361,6 +377,8 @@ class PiperNativePlugin : Plugin() {
             } catch (e: Throwable) {
                 voiceDir(id).deleteRecursively()
                 call.reject("نصب ناموفق: ${e.message}")
+            } finally {
+                try { conn?.disconnect() } catch (e: Throwable) {}
             }
         }
     }

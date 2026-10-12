@@ -57,10 +57,12 @@ cp /tmp/sherpa-src/sherpa-onnx/kotlin-api/*.kt android/app/src/main/java/com/k2f
 sed "s/^package .*/package $APP_ID/" "$HERE/PiperNativePlugin.kt" > "$PKG_PATH/PiperNativePlugin.kt"
 sed "s/^package .*/package $APP_ID;/" "$HERE/MainActivity.java"   > "$PKG_PATH/MainActivity.java"
 
-# 3b) صداهای فارسی داخل APK (اجرای کامل بدون اینترنت): assets/voices/<id>.tar.bz2
-VOICES="${VOICES:-fa_IR-gyro-medium fa_IR-ganji-medium fa_IR-ganji_adabi-medium fa_en-rezahedayatfar-ibrahimwalk-medium}"
+# 3b) صداهای فارسی: به‌طور پیش‌فرض داخل APK نیستند و بعد از نصب از داخل برنامه دانلود می‌شوند.
+# برای همراه‌کردن (اختیاری): VOICES="fa_IR-gyro-medium ..." bash native/inject-native.sh
+VOICES="${VOICES:-}"
 VBASE="https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models"
 VDIR=android/app/src/main/assets/voices
+if [ -n "$VOICES" ]; then
 mkdir -p "$VDIR"
 GOT=0
 for V in $VOICES; do
@@ -77,6 +79,9 @@ for V in $VOICES; do
   fi
 done
 [ "$GOT" -ge 1 ] || { echo "هیچ صدایی داخل APK قرار نگرفت"; exit 1; }
+else
+  echo "voices: داخل APK گذاشته نشد (دانلود بعد از نصب)"
+fi
 
 # 3c) مانیفست: سرویس پخش پیش‌زمینه و مجوزهای لازم (بدون آن پخش با صفحهٔ خاموش بی‌صدا کار نمی‌کند)
 python3 - <<'PY'
