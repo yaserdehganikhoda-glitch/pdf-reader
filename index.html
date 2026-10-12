@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#0b1430">
 <title>خوانندهٔ صوتی PDF</title>
 <script>
-/* سطح جلوه‌های بصری پیش از نخستین نقاشی: کامل | سبک | حداقل. بار اول روی دستگاه‌های ضعیف یا با «کاهش حرکت» خودکار «سبک» */
-try{var _f=localStorage.getItem('fx');if(_f!=='full'&&_f!=='lite'&&_f!=='off'){var _m=navigator.deviceMemory,_c=navigator.hardwareConcurrency,_r=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;_f=(_r||(_m&&_m<=3)||(_c&&_c<=4))?'lite':'full'}document.documentElement.setAttribute('data-fx',_f)}catch(e){document.documentElement.setAttribute('data-fx','full')}
+/* سطح جلوه‌های بصری پیش از نخستین نقاشی: کامل | سبک | بهینه | فوق‌ساده. بار اول: «کاهش حرکت» ← فوق‌ساده، دستگاه ضعیف ← بهینه؛ مقدار قدیمی «off» به «فوق‌ساده» منتقل می‌شود */
+try{var _f=localStorage.getItem('fx');if(_f==='off')_f='flat';if(_f!=='full'&&_f!=='lite'&&_f!=='perf'&&_f!=='flat'){var _m=navigator.deviceMemory,_c=navigator.hardwareConcurrency,_r=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;_f=_r?'flat':((_m&&_m<=3)||(_c&&_c<=4))?'perf':'full'}document.documentElement.setAttribute('data-fx',_f)}catch(e){document.documentElement.setAttribute('data-fx','full')}
 </script>
 <script>
 /* ثبت خطاهای جاوااسکریپت (حتی پیش از بارگذاری برنامه) برای «پیشرفته ‹ گزارش خطا»؛ ۲۵ هزار نویسهٔ آخر در localStorage می‌ماند */
@@ -54,14 +54,6 @@ try{var _f=localStorage.getItem('fx');if(_f!=='full'&&_f!=='lite'&&_f!=='off'){v
 --glass:rgba(14,24,54,.82);--glass-line:rgba(148,170,240,.22);
 --shadow:0 30px 80px -30px rgba(0,0,0,.85);
 --warn:#3a2c0a;--warn-ink:#f6d98b;--scrim:rgba(2,5,16,.66);--pat-op:.16;--glow-g:7%;--ft1:transparent;--ft2:transparent;--frame-bd:linear-gradient(var(--paper-edge),var(--paper-edge));--ring:0 0 0 0 transparent;--card-bg:color-mix(in srgb,var(--ink) 3.5%,transparent);--card-sh:0 0 0 0 transparent;--dock-bg:var(--glass);--dock-in:inset 0 0 0 0 transparent;--dsh:rgba(0,0,0,.5);--play-halo:0 0 0 0 transparent;--hl-bg:var(--hl);color-scheme:dark}
-:root[data-theme="sepia"]{
---bg0:#d8c8a0;--bg1:#e9ddc3;--paper:#f8efd9;--paper-edge:#d9c9a2;--card:#fbf4e2;
---ink:#33281a;--muted:#75643f;--line:rgba(80,55,20,.18);
---accent:#7d4a1c;--accent-2:#a8702a;--accent-ink:#fff;
---gold:#d9961f;--hl:rgba(224,160,48,.36);--hl-ink:#2b2110;
---glass:rgba(248,239,217,.86);--glass-line:rgba(80,55,20,.2);
---shadow:0 30px 70px -30px rgba(80,55,20,.5);
---warn:#fff0c4;--warn-ink:#7a4b00;--scrim:rgba(40,28,10,.5);--pat-op:.3;--glow-g:22%;--ft1:transparent;--ft2:transparent;--frame-bd:linear-gradient(var(--paper-edge),var(--paper-edge));--ring:0 0 0 0 transparent;--card-bg:color-mix(in srgb,var(--ink) 3.5%,transparent);--card-sh:0 0 0 0 transparent;--dock-bg:var(--glass);--dock-in:inset 0 0 0 0 transparent;--dsh:rgba(80,55,20,.5);--play-halo:0 0 0 0 transparent;--hl-bg:var(--hl);color-scheme:light}
 
 /* ===== پایه ===== */
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -307,22 +299,75 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
 .dqin{width:100%;max-width:520px;display:grid;gap:10px;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 0 0;background:var(--paper);border:1px solid var(--glass-line);box-shadow:var(--shadow)}
 .dqin h3{margin:0;font-size:.95rem;font-weight:800}
 
-/* ===== جلوه‌های بصری: سبک و حداقل (html[data-fx]) ===== */
+/* ===== جلوه‌های بصری: کامل | سبک | بهینه | فوق‌ساده (html[data-fx]) ===== */
 /* سبک: پس‌زمینهٔ ثابت، بدون تاری شیشه‌ای، بدون درخشش و نبض متحرک */
-:root[data-fx="lite"],:root[data-fx="off"]{--glass:color-mix(in srgb,var(--card) 97%,transparent);--dock-bg:var(--glass);--dock-in:0 0 0 0 transparent;--card-sh:0 0 0 0 transparent}
-:root[data-fx="lite"] *,:root[data-fx="lite"] *::before,:root[data-fx="lite"] *::after,
-:root[data-fx="off"] *,:root[data-fx="off"] *::before,:root[data-fx="off"] *::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-:root[data-fx="lite"] .aura,:root[data-fx="off"] .aura{animation:none;inset:0}
-:root[data-fx="lite"] .is-playing #reader span.cur,:root[data-fx="lite"] .is-playing .play .ring,
-:root[data-fx="off"] .is-playing #reader span.cur,:root[data-fx="off"] .is-playing .play .ring{animation:none!important}
-:root[data-fx="lite"] #reader span.cur,:root[data-fx="off"] #reader span.cur{box-shadow:0 0 0 3px var(--hl)}
-/* حداقل: علاوه بر سبک، هیچ انیمیشن و گذار و حرکت نرم صفحه */
-:root[data-fx="off"] *,:root[data-fx="off"] *::before,:root[data-fx="off"] *::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important;scroll-behavior:auto!important}
-:root[data-fx="off"] .aura{background:linear-gradient(180deg,var(--bg1),var(--bg0))}
-:root[data-fx="off"] .aura::after{display:none}
-:root[data-fx="off"] .star path,:root[data-fx="off"] .star circle{stroke-dashoffset:0}
-:root[data-fx="off"] .star circle.dot{opacity:1}
-:root[data-fx="off"] .is-prep .play::after{animation:spin 1s linear infinite!important}
+:root[data-fx="lite"],
+:root[data-fx="perf"],
+:root[data-fx="flat"]{--glass:color-mix(in srgb,var(--card) 97%,transparent);--dock-bg:var(--glass);--dock-in:0 0 0 0 transparent;--card-sh:0 0 0 0 transparent}
+:root[data-fx="lite"] *,
+:root[data-fx="lite"] *::before,
+:root[data-fx="lite"] *::after,
+:root[data-fx="perf"] *,
+:root[data-fx="perf"] *::before,
+:root[data-fx="perf"] *::after,
+:root[data-fx="flat"] *,
+:root[data-fx="flat"] *::before,
+:root[data-fx="flat"] *::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root[data-fx="lite"] .aura,
+:root[data-fx="perf"] .aura,
+:root[data-fx="flat"] .aura{animation:none;inset:0}
+:root[data-fx="lite"] .is-playing #reader span.cur,
+:root[data-fx="lite"] .is-playing .play .ring,
+:root[data-fx="perf"] .is-playing #reader span.cur,
+:root[data-fx="perf"] .is-playing .play .ring,
+:root[data-fx="flat"] .is-playing #reader span.cur,
+:root[data-fx="flat"] .is-playing .play .ring{animation:none!important}
+:root[data-fx="lite"] #reader span.cur{box-shadow:0 0 0 3px var(--hl)}
+/* بهینه: علاوه بر سبک، بدون سایه (box-shadow / text-shadow / drop-shadow)، بدون شفافیت ترکیبی و بدون فیلتر؛ رندر سریع‌تر روی CPU ضعیف */
+:root[data-fx="perf"],
+:root[data-fx="flat"]{--glass:var(--card);--dock-bg:var(--card);--shadow:0 0 0 0 transparent;--ring:0 0 0 0 transparent;--dsh:transparent;--play-halo:0 0 0 0 transparent;--ft1:transparent;--ft2:transparent;text-rendering:optimizeSpeed}
+:root[data-fx="perf"] *,
+:root[data-fx="perf"] *::before,
+:root[data-fx="perf"] *::after,
+:root[data-fx="flat"] *,
+:root[data-fx="flat"] *::before,
+:root[data-fx="flat"] *::after{box-shadow:none!important;text-shadow:none!important;filter:none!important;will-change:auto!important}
+/* نشانگرهای انتخاب و فوکوس که با box-shadow بودند، با outline جایگزین می‌شوند */
+:root[data-fx="perf"] .sw button[aria-pressed="true"],
+:root[data-fx="perf"] .lib-open.cur,
+:root[data-fx="perf"] .tab[aria-selected="true"],
+:root[data-fx="perf"] .seg button[aria-checked="true"],
+:root[data-fx="flat"] .sw button[aria-pressed="true"],
+:root[data-fx="flat"] .lib-open.cur,
+:root[data-fx="flat"] .tab[aria-selected="true"],
+:root[data-fx="flat"] .seg button[aria-checked="true"]{outline:1.5px solid var(--accent);outline-offset:-2px}
+:root[data-fx="perf"] select:focus,
+:root[data-fx="perf"] textarea:focus,
+:root[data-fx="perf"] input:focus,
+:root[data-fx="flat"] select:focus,
+:root[data-fx="flat"] textarea:focus,
+:root[data-fx="flat"] input:focus{outline:2px solid var(--accent)}
+:root[data-fx="perf"] #reader span.cur,
+:root[data-fx="flat"] #reader span.cur{outline:3px solid var(--hl);background:var(--hl-bg,var(--hl))}
+/* فوق‌ساده: علاوه بر بهینه، هیچ انیمیشن، گذار و گرادیان؛ رابط تخت (Flat UI) */
+:root[data-fx="flat"] *,
+:root[data-fx="flat"] *::before,
+:root[data-fx="flat"] *::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition:none!important;scroll-behavior:auto!important}
+:root[data-fx="flat"] .aura{background:var(--bg1)}
+:root[data-fx="flat"] .aura::after{display:none}
+:root[data-fx="flat"] .star path,:root[data-fx="flat"] .star circle{stroke-dashoffset:0}
+:root[data-fx="flat"] .star circle.dot{opacity:1}
+:root[data-fx="flat"] .is-prep .play::after{animation:none!important}
+:root[data-fx="flat"] .frame{background:var(--paper)!important;border-color:var(--paper-edge)}
+:root[data-fx="flat"] .cta,
+:root[data-fx="flat"] .play,
+:root[data-fx="flat"] .btn.primary,
+:root[data-fx="flat"] .chip.on,
+:root[data-fx="flat"] .bnav .fab{background-image:none!important;background-color:var(--accent)!important}
+:root[data-fx="flat"] .hero-main,
+:root[data-fx="flat"] .mh,
+:root[data-fx="flat"] .tab[aria-selected="true"],
+:root[data-fx="flat"] .seg button[aria-checked="true"]{background-image:none!important}
 
 /* ===== نوار پایین: صفحه‌های منو + دکمهٔ اصلی در وسط ===== */
 :root{--nav-h:62px}
@@ -696,6 +741,9 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
             <label class="chk"><input type="checkbox" id="oNorm" checked><span class="st"><b>یکدست‌سازی حروف</b><small>«ي ك ى» عربی به فارسی، و حذف اعراب و کشیده.</small></span></label>
             <label class="chk"><input type="checkbox" id="oFix" checked><span class="st"><b>اصلاح فاصله‌گذاری</b><small>نیم‌فاصله و فاصله اطراف نشانه‌ها.</small></span></label>
             <label class="chk"><input type="checkbox" id="oScript" checked><span class="st"><b>کنار گذاشتن متن زبان‌های دیگر</b><small>غیرفارسی و غیرلاتین، مثل ارمنی.</small></span></label>
+            <label class="chk"><input type="checkbox" id="oGlue" checked><span class="st"><b>اصلاح کلمات چسبیدهٔ OCR</b><small>«دراین»، «کردهاست»، «میشود»، «کتابها».</small></span></label>
+            <label class="chk"><input type="checkbox" id="oPause" checked><span class="st"><b>مکث طبیعی در جمله‌های بلند</b><small>ویرگول پیش از «که»، «اما»، «زیرا» و پایان بند شرطی؛ سپس تکه‌کردن تا بیشینهٔ طول.</small></span></label>
+            <label class="chk"><input type="checkbox" id="oSpell" checked><span class="st"><b>اصلاح املای خروجی OCR</b><small>حروف مشابه (ب/پ/ت، ج/ح)، نویسه‌های اشتباه و کشیده؛ فقط روی صفحه‌های OCR.</small></span></label>
           </div>
         </div>
       </details>
@@ -774,24 +822,24 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     <div class="panel" data-panel="view" role="tabpanel">
       <section class="grp">
         <h3>پوسته</h3>
-        <div class="sw" id="thSw">
+        <div class="sw" id="thSw" style="grid-template-columns:repeat(3,1fr)">
           <button type="button" data-th="auto" aria-pressed="false"><i style="background:linear-gradient(135deg,#f4f6fb 50%,#0b1430 50%)"></i>خودکار</button>
           <button type="button" data-th="light" aria-pressed="false"><i style="background:linear-gradient(135deg,#ffffff,#d5ddf0)"></i>روشن</button>
           <button type="button" data-th="dark" aria-pressed="false"><i style="background:linear-gradient(135deg,#16224b,#050a19)"></i>تیره</button>
-          <button type="button" data-th="sepia" aria-pressed="false"><i style="background:linear-gradient(135deg,#f8efd9,#d8c8a0)"></i>کاغذی</button>
         </div>
       </section>
 
       <section class="grp">
         <h3>جلوه‌های بصری</h3>
-        <div class="sw" id="fxSw" style="grid-template-columns:repeat(3,1fr)">
+        <div class="sw" id="fxSw" style="grid-template-columns:repeat(4,1fr)">
           <button type="button" data-fx="full" aria-pressed="false"><i style="background:linear-gradient(135deg,#8ea2ee,#4cbdb0 52%,#f0c466)"></i>کامل</button>
           <button type="button" data-fx="lite" aria-pressed="false"><i style="background:linear-gradient(135deg,#8ea2ee,#4cbdb0)"></i>سبک</button>
-          <button type="button" data-fx="off" aria-pressed="false"><i style="background:var(--line)"></i>حداقل</button>
+          <button type="button" data-fx="perf" aria-pressed="false"><i style="background:linear-gradient(135deg,#8ea2ee 50%,var(--line) 50%)"></i>بهینه</button>
+          <button type="button" data-fx="flat" aria-pressed="false"><i style="background:var(--muted)"></i>فوق‌ساده</button>
         </div>
         <details class="sub hintbox"><summary>توضیحات</summary><div class="in">
-          <p class="hint">کامل: همهٔ جلوه‌ها. سبک: پس‌زمینهٔ ثابت، بدون تاری شیشه‌ای و بدون درخشش و نبض متحرک؛ بیشترین کمک را به گوشی‌های کند می‌کند. حداقل: علاوه بر سبک، همهٔ انیمیشن‌ها و حرکت نرم صفحه هم خاموش می‌شود.</p>
-          <p class="hint">بار اول، روی گوشی‌های ضعیف یا وقتی «کاهش حرکت» در سیستم روشن است، خودکار «سبک» انتخاب می‌شود.</p>
+          <p class="hint">کامل: همهٔ جلوه‌ها. سبک: پس‌زمینهٔ ثابت، بدون تاری شیشه‌ای و بدون درخشش و نبض متحرک. بهینه: علاوه بر سبک، بدون سایه، شفافیت ترکیبی و فیلتر؛ مناسب پردازندهٔ ضعیف. فوق‌ساده: علاوه بر بهینه، بدون هیچ انیمیشن، گذار و گرادیان (رابط تخت)؛ کم‌بارترین حالت.</p>
+          <p class="hint">بار اول، روی گوشی‌های ضعیف خودکار «بهینه» و وقتی «کاهش حرکت» در سیستم روشن است خودکار «فوق‌ساده» انتخاب می‌شود.</p>
         </div></details>
       </section>
 
@@ -845,6 +893,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   function sget(k, d){ try { var v = localStorage.getItem(k); return v === null ? d : v; } catch(e){ return d; } }
   function sset(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
   function fxLevel(){ return document.documentElement.getAttribute('data-fx') || 'full'; }
+  function fxCalm(){ var f = fxLevel(); return f === 'perf' || f === 'flat'; }
   $('#rate').value = sget('rate', '1');
   if (sget('rateBase', '') !== '1') { sset('rateBase', '1'); sset('rate', '1'); $('#rate').value = '1'; }   /* یک‌بار: بازگشت سرعت به ۱× (حالت اولیه) */
   function fillRng(el){ var mn = +el.min, mx = +el.max, p = mx > mn ? (el.value - mn) / (mx - mn) * 100 : 0; el.style.setProperty('--p', Math.max(0, Math.min(100, p)) + '%'); }
@@ -1135,7 +1184,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
 
   /* ---------- text settings / OCR ---------- */
   var O = { ln: 'auto', maxl: 100, script: true, ocr: 'auto' }, pdfDoc = null, rawItems = [], ocrPages = {}, ocrKey = '', need = [], dropped = 0, ocrBusy = false, ocrStop = false, tessP = null, rawImg = [];
-  function opts(){ var g = function(i){ return $('#' + i); }; return { ln: g('lnMode').value, dots: g('oDots').checked, hdr: g('oHdr').checked, norm: g('oNorm').checked, script: g('oScript').checked, pos: g('oPos').checked, cols: g('oCols').checked && g('oPos').checked, fix: g('oFix').checked, from: Math.max(0, +g('pgFrom').value || 0), to: Math.max(0, +g('pgTo').value || 0), maxl: +g('maxL').value, ocr: g('ocrMode').value, enc: g('encMode').value }; }
+  function opts(){ var g = function(i){ return $('#' + i); }; return { ln: g('lnMode').value, dots: g('oDots').checked, hdr: g('oHdr').checked, norm: g('oNorm').checked, script: g('oScript').checked, pos: g('oPos').checked, cols: g('oCols').checked && g('oPos').checked, fix: g('oFix').checked, glue: g('oGlue').checked, spell: g('oSpell').checked, pause: g('oPause').checked, from: Math.max(0, +g('pgFrom').value || 0), to: Math.max(0, +g('pgTo').value || 0), maxl: +g('maxL').value, ocr: g('ocrMode').value, enc: g('encMode').value }; }
   function optsFix(o){ if (o.from && o.to && o.from > o.to) { var x = o.from; o.from = o.to; o.to = x; } return o; }
   var CW = new Set('و در به از که این را با است برای آن یک تا هم بر یا هر شد می'.split(' '));
   function bad(t){
@@ -1230,6 +1279,133 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     uiOcrNote(k);
     $('#ocrStat').textContent = (O.ocr === 'off' ? 'OCR خاموش است. ' : k ? nf.format(k) + ' صفحه ' + (O.ocr === 'always' ? 'برای OCR انتخاب شده' : 'متن ناخوانا یا بدون متن دارد (کدگذاری فونت PDF درست نیست)') + '؛ با OCR از روی تصویر صفحه خوانده می‌شوند. ' : (rawItems.length ? 'صفحهٔ مشکل‌دار پیدا نشد. ' : '')) + (dropped ? nf.format(dropped) + ' جملهٔ غیرفارسی و غیرلاتین (مثل ارمنی) کنار گذاشته شد.' : '');
   }
+  /* ===== اصلاح کلمات چسبیدهٔ OCR (قاعده‌محور، آفلاین، بدون دیکشنری بزرگ) ===== */
+  /* ===== جداکردن «می» و «نمی» از فعل با نیم‌فاصله: میکنم ← می‌کنم، نمیدانم ← نمی‌دانم ===== */
+  var miFix = (function(){
+    var Z = '\u200c', NB = '(?<![\\p{L}\u200c])', NE = '(?![\\p{L}\u200c])',
+        PRES = 'شو|کن|ده|رو|آی|ای|گو|بین|خور|گیر|توان|دان|خواه|باش|دار|نویس|خوان|مان|آور|اور|بر|ساز|یاب|پذیر|ریز|کش|زن|گذار|شناس|فرست|رس|خواب|نشین|پرس|فهم|آموز|گرد|ایست|انداز|افت|افزا|افروز|آفرین|آمیز|آزما|اندیش|کوش|شنو|پرداز|پندار|شمار|خند|پز|پوش|بخش|بند|تاز|تراش|ترس|چین|چسب|خر|خیز|دو|دوز|رقص|رنج|سپار|سوز|شکن|شکف|فروش|فرما|فشار|کار|کوب|گذر|گزین|گشا|گمار|نمای|نواز|پسند|پیچ|پیما|پیوند|بخش|بیز|جو|جنگ|چرخ|خوش|دز|دم|رنج|زی|ستان|سنج|شو|شکن|لرز|مال|مان|نگار|نگر|نشان|هراس|یاب|یاور|بار|بافت?',
+        PAST = 'کرد|گفت|رفت|شد|داد|دید|خواست|آمد|برد|خورد|گرفت|بود|داشت|ماند|نوشت|خواند|توانست|دانست|آورد|ساخت|زد|رسید|پرسید|شنید|فهمید|گذاشت|کشید|ریخت|نشست|افتاد|یافت|ایستاد|انداخت|پرداخت|پنداشت|شمرد|خندید|پوشید|پخت|فروخت|گشت|دوید|ترسید|کوشید|پذیرفت|شناخت|فرستاد|خوابید|خرید|چید|دوخت|سوخت|شکست|شکفت|بخشید|بست|جست|رقصید|ماسید|نمود|نماید|فرمود|گذشت|گزید|گمارد|گمارید|یاوید|سپرد|بافت';
+    var R = new RegExp(NB + '(ن?می)[ ]?(?!دانی' + NE + ')(?=(?:' + PRES + ')(?:م|ی|یم|ید|ند|یند|د)' + NE + '|(?:' + PAST + ')(?:م|ی|یم|ید|ند)?' + NE + ')', 'gu');
+    return function(t){ return t.replace(R, '$1' + Z); };
+  })();
+  var glueFix = (function(){
+    var Z = '\u200c',
+        NB = '(?<![\\p{L}\\u200c])', NE = '(?![\\p{L}\\u200c])',
+        CONN = '[بپتثجچحخسشصضطظعغفقکگلمنهیئ]',
+        NONC = '[ادذرزژو]',
+        AL = '[\\u0621-\\u063A\\u0641-\\u064A\\u067E\\u0686\\u0698\\u06A9\\u06AF\\u06CC]',
+        DG = '[0-9\\u06F0-\\u06F9\\u0660-\\u0669]';
+    var REST = 'این|آن|آنها|اینها|همه|هر|هم|همین|همان|یک|دو|سه|چند|چه|کدام|هیچ|خود|او|ما|شما|من|تو|ایشان|جای|طور|طوری|صورت|صورتی|حالی|حال|دلیل|علت|منظور|وسیله|طریق|بین|میان|سوی|سمت|پایان|عنوان|کنون|نظر|آنجا|اینجا';
+    var REST2 = REST + '|مورد|اثر|طول|خصوص|نتیجه|واقع|عین|برابر|حین|مقابل|کنار|داخل|مسیر|ضمن|جریان|مدت|رابطه|قبال|جمله|قبیل|لحاظ|جهت|خاطر|جانب|سبب|دنبال|اساس|مبنای|خارج|راستای|حدود|علاوه', TAIL = 'این|آن|آنها|اینها|همین|همان|هم';
+    var R1 = new RegExp(NB + '(برای|در|به|از|با|بر|تا|که)(' + REST2 + ')(?:(' + TAIL + '))?' + NE, 'gu');
+    var BM = { 'بخاطر': 'به خاطر', 'بعنوان': 'به عنوان', 'بجای': 'به جای', 'بنظر': 'به نظر', 'بعلاوه': 'به علاوه', 'بطور': 'به طور', 'بدلیل': 'به دلیل', 'بوسیله': 'به وسیله', 'بخصوص': 'به خصوص', 'بدنبال': 'به دنبال', 'بسبب': 'به سبب', 'بعلت': 'به علت', 'بسمت': 'به سمت', 'بمنظور': 'به منظور', 'بمحض': 'به محض' };
+    var RB = new RegExp(NB + '(و?)(' + Object.keys(BM).join('|') + ')' + NE, 'gu'),
+        RK = new RegExp(NB + '(که)(در|از|به|با|برای|او|ما|اگر|چون|وقتی|نیز)' + NE, 'gu'),
+        RV = new RegExp(NB + 'و(به|در|از|برای|این|آن|آنها|اینها|اگر|که|همه|همین|همان)' + NE, 'gu'),
+        RH = new RegExp(NB + '(در|به)حالی' + Z + '?که' + NE, 'gu'),
+        RA = new RegExp('(آنجا|اینجا)که' + NE, 'gu'),
+        RP = new RegExp(NB + '(بدون|مثل|مانند|بعد|قبل|پیش|پس|طبق|علیه|نزد|جز|مقابل|برابر|درون|بیرون|حدود|طی)(این|آن|آنها|اینها|همه|همین|همان|چنین|هیچ|هر)' + NE, 'gu'),
+        RQ = new RegExp(NB + '(در|به|از|با|بر|تا|برای)(اینکه|آنکه)' + NE, 'gu');
+    var KEEP = new Set(['تاکنون', 'بهمن', 'برهم', 'درهم', 'تاو', 'باو', 'تاتو', 'درجا', 'برجا']);
+    var R2 = new RegExp('(?<=\\p{L}[دت]ه)\\u200c?(است|بود|بوده|شد|شده|نیست|نبود|نبوده|نشد|نشده|باشد|باشند|خواهد|خواهند)' + NE, 'gu');
+    var R2c = new RegExp('(?<=\\p{L}[دت]ه)\\u200c?(ام|ای|ایم|اید|اند)' + NE, 'gu');
+    var R4a = new RegExp('(?<=\\p{L}' + CONN + ')[ ]+(?=(?:ها|های|هایی|ترین|تری)' + NE + ')', 'gu');
+    var R4b = new RegExp('(?<=\\p{L}' + NONC + ')[ ]+(?=(?:ها|های|هایی)' + NE + ')', 'gu');
+    var RTOK = /\p{L}{4,}/gu, RHA = new RegExp(CONN + 'ها$');
+    var R5a = new RegExp('(' + AL + ')(?=' + DG + ')', 'gu'),
+        R5b = new RegExp('(' + DG + ')(?!(?:امین|ام|مین)' + NE + ')(?=' + AL + ')', 'gu'),
+        R5c = new RegExp('(' + AL + ')(?=[A-Za-z])', 'gu'),
+        R5d = new RegExp('([A-Za-z])(?=(?:ها|های|هایی|ی|ای)' + NE + ')', 'gu'),
+        R5e = new RegExp('([A-Za-z])(?=' + AL + ')', 'gu');
+    return function(t){
+      t = miFix(t).replace(RB, function(m, v, w){ return (v ? 'و ' : '') + BM[w]; })
+        .replace(RH, '$1 حالی که').replace(RA, '$1 که').replace(RQ, '$1 $2')
+        .replace(R1, function(m, a, b, c){ return KEEP.has(m) ? m : a + ' ' + b + (c ? ' ' + c : ''); })
+        .replace(RK, '$1 $2').replace(RV, 'و $1').replace(RP, '$1 $2')
+        .replace(R2, ' $1').replace(R2c, Z + '$1')
+        .replace(R4a, Z).replace(R4b, '')
+        .replace(RTOK, function(w){ return RHA.test(w) ? w.slice(0, -2) + Z + 'ها' : w; })
+        .replace(R5a, '$1 ').replace(R5b, '$1 ')
+        .replace(R5c, '$1 ').replace(R5d, '$1' + Z).replace(R5e, '$1 ');
+      return t.replace(/[ ]{2,}/g, ' ');
+    };
+  })();
+/* ===== اصلاح خطاهای املایی و نویسه‌ای OCR (الگوهای نویسه‌ای + دیکشنری ریشه‌ها، آفلاین) ===== */
+var ocrSpell = (function(){
+  var AL = '[\\u0621-\\u063A\\u0641-\\u064A\\u067E\\u0686\\u0698\\u06A9\\u06AF\\u06CC]',
+      TOK = new RegExp(AL + '{3,}', 'g');
+
+  /* ۱) الگوهای بدون دیکشنری: نویسه‌های لاتین/عددی/عربی-اردو که به‌جای حرف فارسی خوانده شده‌اند */
+  var CH = [
+    [new RegExp('(?<=' + AL + ')[lI|](?=' + AL + ')|(?<![A-Za-z0-9])[lI](?=' + AL + '{2})|(?<=' + AL + '{2})[lI](?![A-Za-z0-9])', 'g'), 'ا'],   /* l I | ← ا */
+    [new RegExp('(?<=' + AL + ')[0\\u0665](?=' + AL + ')', 'g'), 'ه'],                                                                      /* 0 ٥ بین حروف ← ه */
+    [/\u0640/g, ''], [/[\u0629\u06C1\u06BE\u06D5]/g, 'ه'], [/\u06AA/g, 'ک'], [/[\u06D0\u06D2]/g, 'ی'], [/\u0671/g, 'ا'],                                       /* ة ہ ھ ە ڪ ې ے ٱ */
+    [new RegExp('(?<=' + AL + ')[`\'\u2019\u2018\u00B4^~\u00A8*](?=' + AL + ')', 'g'), '']                                                  /* نشانهٔ مزاحم وسط واژه */
+  ];
+
+  /* ۲) دیکشنری ریشه‌ها: فهرست پایه + منابع موجود در برنامه (CW، EZ_*، LEX_SRC، اعداد) + صرف خودکار فعل */
+  var BASE = 'مردم خانه شهر کشور روز شب سال ماه هفته ساعت دست پا سر چشم گوش دهان زبان دل جان تن صورت پدر مادر برادر خواهر پسر دختر فرزند همسر دوست دشمن آقا خانم کودک جوان پیر مرد زن انسان آدم کار شغل پول مال نان آب غذا میوه گوشت شیر چای ماشین راه جاده کوچه خیابان میدان بازار مغازه اداره مدرسه کلاس درس کاغذ قلم نامه خبر روزنامه مجله فیلم عکس نقشه رنگ صدا نور آتش باد باران برف خاک سنگ کوه رود درخت دانه گیاه حیوان اسب گاو گوسفند مرغ ماهی پرنده سگ گربه زندگی نفرت شادی آرامش آزادی قانون ملت جامعه فرهنگ تاریخ هنر ادب داستان موضوع پاسخ پرسش جواب سوال نتیجه روش حل طرح عقیده فکر خاطره خواب رویا بخش قسمت فصل جلد نوع اندازه مقدار عدد نمره خوب بد زیبا زشت بزرگ کوچک بلند کوتاه تازه کهنه نو قدیم جدید سخت آسان ساده مشکل مهم لازم ممکن درست غلط روشن تاریک سرد گرم تند کند زیاد کم پر خالی سبک سنگین دور نزدیک اول دوم سوم آخر اصلی عمومی خصوصی خاص عام ویژه کامل ناقص مشخص معلوم نامعلوم مختلف مشابه یکسان بسیار خیلی بیشتر کمتر همیشه هرگز هنوز اکنون امروز دیروز فردا دوباره سپس همچنین بنابراین زیرا اما ولی بلکه اگر چون وقتی هنگامی چنانچه همچنان همان همین چنین نیز فقط تنها حتی البته شاید باید نباید داخل خارج بالا پایین جلو عقب کنار وسط طرف سمت جهت مورد مثال نمونه شامل مانند درباره میان بین زیر روی پیش پس بعد قبل نزد سوی طبق بدون علیه جز مگر';
+  var PASTS = 'کرد شد گفت رفت آمد دید داد گرفت برد آورد خورد نوشت خواند ماند دانست توانست خواست داشت بود گذاشت ساخت یافت زد ایستاد نشست افتاد رسید پرسید شنید فهمید شناخت فرستاد پرداخت آموخت خرید فروخت کشید ریخت سوخت ترسید پرید خوابید دوید بخشید پذیرفت',
+      PRESS = 'کن شو گو رو ده بین خور گیر دان توان خواه باش دار نویس خوان مان آور بر ساز یاب پذیر ریز کش زن گذار شناس فرست رس خواب نشین پرس فهم آموز گرد',
+      SFX = ['هایی', 'هایم', 'هایت', 'هایش', 'های', 'ها', 'ترین', 'تر', 'مان', 'تان', 'شان', 'ان', 'ات', 'ین', 'ام', 'ایم', 'اید', 'اند', 'ای', 'ی', 'م', 'ت', 'ش'],
+      PFX = ['نا', 'بی', 'هم'];
+  var D = null, memo = new Map(), CONF = {};
+  'بپتثنی|جچحخ|دذ|رزژ|سش|صض|طظ|عغ|فق|کگ|اآ'.split('|').forEach(function(g){ g.split('').forEach(function(c){ CONF[c] = g.replace(c, ''); }); });
+
+  function build(){
+    D = new Set();
+    var add = function(w){ if (w) D.add(normCh(w)); };
+    BASE.split(' ').forEach(add);
+    [CW, EZ_STOP, EZ_STOP2, EZ_V, EZ_VBX, NUMW, NOCOMMA_PREV, P_SPLIT].forEach(function(o){ (o instanceof Set ? Array.from(o) : Object.keys(o)).forEach(add); });
+    ON.concat(TN, HN, SC, MON_FA).forEach(add);
+    LEX_SRC.split(/\s+/).forEach(function(v){ add(v.replace(/[aeo]/g, '')); });
+    PASTS.split(' ').forEach(function(p){
+      ['', 'ه', 'ن', 'م', 'ی', 'یم', 'ید', 'ند'].forEach(function(e){ add(p + e); });
+      ['', 'ه', 'م', 'ی', 'یم', 'ید', 'ند'].forEach(function(e){ add('ن' + p + e); });
+    });
+    PRESS.split(' ').forEach(function(s){
+      ['م', 'ی', 'د', 'یم', 'ید', 'ند'].forEach(function(e){ add(s + e); add('ب' + s + e); add('ن' + s + e); });
+    });
+  }
+  function known(w, d){
+    if (D.has(w)) return true;
+    var i, s, b;
+    for (i = 0; i < SFX.length; i++) {
+      s = SFX[i];
+      if (w.length - s.length >= 3 && w.endsWith(s)) { b = w.slice(0, -s.length); if (D.has(b)) return true; }
+    }
+    if (!d) for (i = 0; i < PFX.length; i++) {
+      s = PFX[i];
+      if (w.length - s.length >= 3 && w.startsWith(s) && known(w.slice(s.length), 1)) return true;
+    }
+    return false;
+  }
+  /* واژهٔ ناشناخته: اگر دقیقاً یک جایگزینی تک‌حرفی (حروف مشابه ب‌پ‌ت‌ث‌ن‌ی، ج‌چ‌ح‌خ، د‌ذ، ر‌ز‌ژ، س‌ش، ص‌ض، ط‌ظ، ع‌غ، ف‌ق، ک‌گ، ا‌آ) واژهٔ شناخته بسازد، همان؛ وگرنه بدون تغییر */
+  function cand(w){
+    if (w.length < 4 || known(w, 0)) return w;
+    var out = w, n = 0, i, j, a, c;
+    for (i = 0; i < w.length; i++) {
+      a = CONF[w[i]]; if (!a) continue;
+      for (j = 0; j < a.length; j++) { c = w.slice(0, i) + a[j] + w.slice(i + 1); if (known(c, 1)) { out = c; n++; } }
+    }
+    return n === 1 ? out : w;
+  }
+  function fix(t, fq){
+    if (!D) build();
+    var i; for (i = 0; i < CH.length; i++) t = t.replace(CH[i][0], CH[i][1]);
+    if (memo.size > 60000) memo.clear();
+    return t.replace(TOK, function(w){
+      var c = memo.get(w);
+      if (c === undefined) { c = cand(w); memo.set(w, c); }
+      /* واژهٔ پرتکرار در همین سند (نام، اصطلاح) که از جایگزینش پرتکرارتر است، درست فرض می‌شود */
+      if (c !== w && fq && fq.get(w) >= 3 && fq.get(w) > (fq.get(c) || 0)) return w;
+      return c;
+    });
+  }
+  fix.freq = function(pages){ var m = new Map(); pages.forEach(function(p){ (p.match(TOK) || []).forEach(function(w){ m.set(w, (m.get(w) || 0) + 1); }); }); return m; };
+  fix.reset = function(){ D = null; memo.clear(); };
+  return fix;
+})();
   function process(keep){
     var kp = keep && sents[idx] ? sents[idx].page : 0, n = rawItems.length, emp = [], badp = [];
     var inR = function(p){ return (!O.from || p >= O.from) && (!O.to || p <= O.to); };
@@ -1242,7 +1418,14 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     need = (O.ocr === 'off' ? [] : O.ocr === 'always' ? pg.map(function(t, i){ return i + 1; }) : badp.concat(imgp, pure.length > n * 0.5 ? pure : [])).filter(inR);
     if (O.ocr !== 'off') badp.forEach(function(q){ pg[q - 1] = ''; });
     if (O.hdr) pg = dropRepeats(pg);
-    pg = pg.map(function(t, i){ return inR(i + 1) ? tidy(normL(clean(prep(t), O.ln))) : ''; });
+    var fq = O.spell ? ocrSpell.freq(pg.filter(function(t, i){ return ocrPages[i + 1] != null; })) : null;
+    pg = pg.map(function(t, i){
+      if (!inR(i + 1)) return '';
+      var s = normL(clean(prep(ocrPages[i + 1] != null ? ocrPurge(t) : t), O.ln));
+      if (O.glue) s = glueFix(s);
+      if (O.spell && ocrPages[i + 1] != null) s = ocrSpell(s, fq);
+      return tidy(s);
+    });
     build(pg); warmPiper(); analyze(); ocrInfo();
     if (kp) { for (var i = 0; i < sents.length; i++) if (sents[i].page >= kp) { idx = i; break; } mark(true); }
   }
@@ -1287,26 +1470,177 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     return tessP || (tessP = (window.Tesseract ? Promise.resolve() : addScript(absUrl('ocr/tesseract.min.js'))).catch(function(){ tessP = null; throw new Error('موتور OCR داخل برنامه پیدا نشد (پوشهٔ ocr را با fetch-offline.sh بسازید).'); }));
   }
   var OCRQ = { '1': 1500, '2': 2000, '3': 2600 };
-  function enhance(cv, cx){
-    var w = cv.width, h = cv.height, n = w * h, im = cx.getImageData(0, 0, w, h), d = im.data, hist = new Uint32Array(256), i, g, a = 0, lo = 0, hi = 255;
-    for (i = 0; i < n; i++) { g = (d[4 * i] * 77 + d[4 * i + 1] * 150 + d[4 * i + 2] * 29) >> 8; d[4 * i] = g; hist[g]++; }
-    for (i = 0; i < 256; i++) { a += hist[i]; if (a >= n * 0.005) { lo = i; break; } }
-    for (i = 0, a = 0; i < 256; i++) { a += hist[i]; if (a >= n * 0.995) { hi = i; break; } }
-    if (hi - lo < 8) return;
-    var k = 255 / (hi - lo), lut = new Uint8Array(256);
-    for (i = 0; i < 256; i++) lut[i] = Math.max(0, Math.min(255, Math.round((i - lo) * k)));
-    for (i = 0; i < n; i++) { g = lut[d[4 * i]]; d[4 * i] = d[4 * i + 1] = d[4 * i + 2] = g; d[4 * i + 3] = 255; }
-    cx.putImageData(im, 0, 0);
+  /* ===== پیش‌پردازش OCR: تخت‌سازی روشنایی ← Otsu ← حذف نویز ← تراز خودکار (Deskew) ===== */
+  function skewAngle(K, w, h, cnt){
+    var s = Math.max(1, Math.ceil(Math.sqrt(cnt / 40000))), xs = [], ys = [], x, y, i, hw = w / 2, hh = h / 2;
+    for (y = 0; y < h; y += s) for (x = 0, i = y * w; x < w; x += s, i += s) if (K[i]) { xs.push(x - hw); ys.push(y - hh); }
+    var m = xs.length, R = Math.ceil(Math.sqrt(hw * hw + hh * hh)) + 2, nb = Math.ceil(2 * R / s) + 2, bins = new Int32Array(nb);
+    if (m < 200) return 0;
+    function score(a){
+      var sn = Math.sin(a * Math.PI / 180), cs = Math.cos(a * Math.PI / 180), j, b, sc = 0, p;
+      bins.fill(0);
+      for (j = 0; j < m; j++) bins[((ys[j] * cs - xs[j] * sn + R) / s) | 0]++;
+      for (j = 1, p = bins[0]; j < nb; j++) { b = bins[j]; sc += (b - p) * (b - p); p = b; }
+      return sc;
+    }
+    var best = 0, bs = -1, a, v, s0 = score(0);
+    for (a = -10; a <= 10; a += 0.5) { v = score(a); if (v > bs) { bs = v; best = a; } }
+    for (a = best - 0.5; a <= best + 0.5; a += 0.1) { v = score(a); if (v > bs) { bs = v; best = a; } }
+    return (Math.abs(best) < 0.2 || bs < s0 * 1.03) ? 0 : best;
   }
-  function ocrText(d){
-    var ls = (d && d.lines) || [], out = [], py = null, pend = false;
+  function enhance(cv, cx, o){
+    o = o || {};
+    var w = cv.width, h = cv.height, n = w * h, im = cx.getImageData(0, 0, w, h), d = im.data, G = new Uint8Array(n), i, x, y, r, e, m, g;
+    for (i = 0; i < n; i++) G[i] = (d[4 * i] * 77 + d[4 * i + 1] * 150 + d[4 * i + 2] * 29) >> 8;
+    /* ۱) تخت‌سازی پس‌زمینه: تقسیم بر بیشینهٔ روشنایی هر بلوک (حذف سایه و لکهٔ اسکن) */
+    var bs = Math.max(16, Math.round(Math.max(w, h) / 40)), bw = Math.ceil(w / bs), bh = Math.ceil(h / bs), B = new Uint8Array(bw * bh), xb = new Uint16Array(w), bx, by;
+    for (x = 0; x < w; x++) xb[x] = (x / bs) | 0;
+    for (by = 0; by < bh; by++) for (bx = 0; bx < bw; bx++) {
+      m = 0; e = Math.min(w, (bx + 1) * bs);
+      for (y = by * bs; y < Math.min(h, (by + 1) * bs); y++) for (x = bx * bs, r = y * w; x < e; x++) if (G[r + x] > m) m = G[r + x];
+      B[by * bw + bx] = m < 128 ? 128 : m;
+    }
+    for (y = 0; y < h; y++) for (x = 0, r = y * w, e = (y / bs | 0) * bw; x < w; x++) { g = G[r + x] * 255 / B[e + xb[x]]; G[r + x] = g > 255 ? 255 : g; }
+    /* ۲) آستانهٔ Otsu */
+    var H = new Uint32Array(256), sum = 0, sb = 0, wb = 0, wf, mx = -1, t = 127, v, mb, mf;
+    for (i = 0; i < n; i++) H[G[i]]++;
+    for (i = 0; i < 256; i++) sum += i * H[i];
+    for (i = 0; i < 256; i++) {
+      wb += H[i]; if (!wb) continue; wf = n - wb; if (!wf) break;
+      sb += i * H[i]; mb = sb / wb; mf = (sum - sb) / wf; v = wb * wf * (mb - mf) * (mb - mf);
+      if (v > mx) { mx = v; t = i; }
+    }
+    var K = new Uint8Array(n), cnt = 0;
+    for (i = 0; i < n; i++) { K[i] = G[i] <= t ? 1 : 0; cnt += K[i]; }
+    if (cnt > n * 0.5) { for (i = 0; i < n; i++) K[i] ^= 1; cnt = n - cnt; }      /* صفحهٔ تیره: وارونه */
+    if (cnt < n * 0.0005) return 0;                                                  /* صفحهٔ تقریباً خالی */
+    /* ۳) حذف نویز نمک‌وفلفلی: پیکسل جداافتادهٔ مشکی پاک، سوراخ تک‌پیکسلی سفید پر می‌شود */
+    if (o.denoise !== false) {
+      var C = new Uint8Array(K), s8;
+      for (y = 1; y < h - 1; y++) for (x = 1, i = y * w + 1; x < w - 1; x++, i++) {
+        s8 = K[i - w - 1] + K[i - w] + K[i - w + 1] + K[i - 1] + K[i + 1] + K[i + w - 1] + K[i + w] + K[i + w + 1];
+        if (K[i]) { if (s8 <= 1) { C[i] = 0; cnt--; } } else if (s8 >= 7) { C[i] = 1; cnt++; }
+      }
+      K = C;
+    }
+    /* ۴) تشخیص زاویهٔ کجی با پروفایل تصویر افقی (±۱۰ درجه) */
+    var ang = o.deskew === false ? 0 : skewAngle(K, w, h, cnt);
+    for (i = 0; i < n; i++) { g = K[i] ? 0 : 255; d[4 * i] = d[4 * i + 1] = d[4 * i + 2] = g; d[4 * i + 3] = 255; }
+    cx.putImageData(im, 0, 0);
+    if (ang) {
+      var tc = document.createElement('canvas'); tc.width = w; tc.height = h; tc.getContext('2d').drawImage(cv, 0, 0);
+      cx.save(); cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h); cx.translate(w / 2, h / 2); cx.rotate(-ang * Math.PI / 180); cx.drawImage(tc, -w / 2, -h / 2); cx.restore();
+      tc.width = 0;
+    }
+    return ang;
+  }
+  /* ===== حذف نویسه‌های زائد و نمادهای تصادفی خروجی OCR (کاربیج حاشیه) ===== */
+  var ocrPurge = (function(){
+    var WS = /[\t\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g,
+        CF = /(?!\u200C)[\p{Cf}\p{Cc}\p{Cs}\p{Co}\p{Cn}\uFFFC]/gu,                 /* کنترلی، نامرئی، خصوصی (به‌جز نیم‌فاصله) */
+        SEP = /[|¦_\\~*#@^`]+/g,                                                    /* جداکنندهٔ کاربیج ← فاصله */
+        SYM = /(?![°])[\p{So}\p{Sk}]|(?![+=×÷±<>−])\p{Sm}|[¬§¶†‡•·‣⁃{}]|(?![()\[\]«»“”‘’"'])[\p{Ps}\p{Pe}\p{Pi}\p{Pf}]/gu,
+        FOR = /(?![\p{Script=Arabic}\p{Script=Latin}\p{Script=Greek}])\p{L}/gu,     /* حروف ارمنی، سیریلیک، چینی و… */
+        FMK = /(?![\p{Script=Arabic}\p{Script=Latin}\p{Script=Greek}\p{Script=Inherited}\p{Script=Common}])\p{M}/gu,
+        PUN = /^[.,،؛:!?؟…»«)(\]\[\-–—"'%٪\/]{1,2}$/, LET = /[\p{L}\p{N}]/gu, ARB = /\p{Script=Arabic}/gu;
+    function line(t){
+      t = t.replace(WS, ' ').replace(CF, '').replace(SEP, ' ').replace(SYM, '').replace(FOR, '').replace(FMK, '').replace(/(^|\s)\p{M}+/gu, '$1')
+           .replace(/\.{4,}/g, ' ').replace(/[-–—=]{2,}/g, ' ').replace(/([،,؛:;!?؟])\1+/g, '$1');
+      var tk = t.split(/\s+/).filter(function(w){ return w && (/[\p{L}\p{N}]/u.test(w) || PUN.test(w)); }), nl, ns, one, i, ar, lt;
+      t = tk.join(' ');
+      ns = t.replace(/\s/g, '').length; if (!ns) return '';
+      nl = (t.match(LET) || []).length; if (!nl) return '';
+      if (ns >= 4 && nl / ns < 0.55) return '';                                      /* خط پر از نماد */
+      if (tk.length >= 5) { one = 0; for (i = 0; i < tk.length; i++) if (tk[i].length === 1) one++; if (one / tk.length >= 0.7) return ''; }  /* «ا ر ب ی ن ل» */
+      ar = (t.match(ARB) || []).length; lt = (t.match(/\p{Script=Latin}/gu) || []).length;
+      if (ar >= 3 && ar > lt * 1.5) t = t.replace(/(^|\s)[b-hj-wB-HJ-W](?=\s|$)/g, '$1').replace(/\s{2,}/g, ' ').trim();   /* حرف لاتین تنهای میان متن فارسی */
+      return t;
+    }
+    return function(s){ return String(s == null ? '' : s).split('\n').map(line).join('\n').replace(/\n{3,}/g, '\n\n'); };
+  })();
+  /* ===== ترتیب خوانش بلوک‌های OCR: XY-cut بازگشتی با جهت راست‌به‌چپ (ستون راست ← ستون چپ) ===== */
+  function ocrOrder(ls, dir){
+    var rtl = dir !== 'ltr', A = [], i, W = 0, hs, mh, gx, gy, bw, out = [];
+    for (i = 0; i < ls.length; i++) { if (!ls[i].bbox) return ls; A.push(ls[i]); if (ls[i].bbox.x1 > W) W = ls[i].bbox.x1; }
+    if (A.length < 2) return A;
+    hs = A.map(function(l){ return l.bbox.y1 - l.bbox.y0; }).sort(function(p, q){ return p - q; });
+    mh = Math.max(8, hs[hs.length >> 1]); gx = Math.max(mh * 0.8, W * 0.015); gy = mh * 1.2; bw = Math.max(2, mh >> 2);
+    function cx(l){ return (l.bbox.x0 + l.bbox.x1) / 2; }
+    function cy(l){ return (l.bbox.y0 + l.bbox.y1) / 2; }
+    function gutter(S){                                  /* مرکز شیار ستون‌ها (با تحمل سطرهای عبوری مثل عنوان و پاورقی)؛ -1 اگر نبود */
+      var nb = Math.ceil(W / bw) + 2, D = new Float64Array(nb + 1), tot = 0, k, h, a, b, cov = 0, thr, seen = false, rl = 0, rs = 0, best = 0, bc = -1, l;
+      for (k = 0; k < S.length; k++) { l = S[k].bbox; h = l.y1 - l.y0; D[(l.x0 / bw) | 0] += h; D[((l.x1 / bw) | 0) + 1] -= h; tot += h; }
+      thr = tot * 0.3;
+      for (k = 0; k < nb; k++) {
+        cov += D[k];
+        if (cov > thr) { if (seen && rl * bw >= gx && rl > best) { best = rl; bc = (rs + rl / 2) * bw; } seen = true; rl = 0; }
+        else if (seen) { if (!rl) rs = k; rl++; }
+      }
+      return bc;
+    }
+    function hgap(S){                                    /* مرکز بزرگ‌ترین فاصلهٔ خالی افقی (بین بخش‌ها)؛ -1 اگر نبود */
+      var v = S.slice().sort(function(p, q){ return p.bbox.y0 - q.bbox.y0; }), end = v[0].bbox.y1, best = 0, at = -1, k, g;
+      for (k = 1; k < v.length; k++) {
+        g = v[k].bbox.y0 - end; if (g > best) { best = g; at = end + g / 2; }
+        if (v[k].bbox.y1 > end) end = v[k].bbox.y1;
+      }
+      return best >= gy ? at : -1;
+    }
+    function leaf(S, brk){                               /* یک ستون: ردیف‌ها بالا←پایین، داخل ردیف راست←چپ */
+      var v = S.slice().sort(function(p, q){ return cy(p) - cy(q); }), rows = [], r = null, ry = 0, k, y;
+      for (k = 0; k < v.length; k++) {
+        y = cy(v[k]);
+        if (!r || y - ry > mh * 0.5) { r = [v[k]]; rows.push(r); ry = y; } else { r.push(v[k]); ry += (y - ry) / r.length; }
+      }
+      rows.forEach(function(row, ri){
+        row.sort(function(p, q){ return rtl ? cx(q) - cx(p) : cx(p) - cx(q); });
+        row.forEach(function(l, li){ l._brk = !!brk && !ri && !li; out.push(l); });
+      });
+    }
+    function cols(R, L, brk){ if (rtl) { if (R.length) cut(R, brk); if (L.length) cut(L, brk || R.length > 0); } else { if (L.length) cut(L, brk); if (R.length) cut(R, brk || L.length > 0); } }
+    function cut(S, brk){
+      var c, Sp, R, L, T, B, k, pv;
+      if (S.length < 2) { leaf(S, brk); return; }
+      c = gutter(S);                                     /* ۱) ستون‌ها */
+      if (c >= 0) {
+        Sp = S.filter(function(l){ return l.bbox.x0 < c && l.bbox.x1 > c; }).sort(function(p, q){ return cy(p) - cy(q); });
+        R = S.filter(function(l){ return !(l.bbox.x0 < c && l.bbox.x1 > c) && cx(l) > c; });
+        L = S.filter(function(l){ return !(l.bbox.x0 < c && l.bbox.x1 > c) && cx(l) <= c; });
+        if (R.length && L.length) {
+          if (!Sp.length) { cols(R, L, brk); return; }
+          pv = -Infinity;                                /* سطرهای عبوری، صفحه را به نوارهای افقی می‌شکنند */
+          for (k = 0; k <= Sp.length; k++) {
+            var lim = k < Sp.length ? cy(Sp[k]) : Infinity, y0 = pv;
+            cols(R.filter(function(l){ return cy(l) >= y0 && cy(l) < lim; }), L.filter(function(l){ return cy(l) >= y0 && cy(l) < lim; }), true);
+            if (k < Sp.length) { leaf([Sp[k]], true); pv = lim; }
+          }
+          return;
+        }
+      }
+      c = hgap(S);                                       /* ۲) بخش‌های افقی */
+      if (c >= 0) {
+        T = S.filter(function(l){ return cy(l) < c; }); B = S.filter(function(l){ return cy(l) >= c; });
+        cut(T, brk); cut(B, true);
+        return;
+      }
+      leaf(S, brk);
+    }
+    cut(A, false);
+    return out;
+  }
+  function ocrText(d, dir){
+    var ls = ocrOrder((d && d.lines) || [], dir), out = [], py = null, pend = false;
     if (!ls.length) return (d && d.text) || '';
     var hs = ls.map(function(l){ return l.bbox ? l.bbox.y1 - l.bbox.y0 : 0; }).filter(Boolean).sort(function(p, q){ return p - q; }), mh = hs.length ? hs[hs.length >> 1] : 0;
+    var x0 = 1e9, x1 = 0, ex;
+    ls.forEach(function(l){ if (l.bbox) { if (l.bbox.x0 < x0) x0 = l.bbox.x0; if (l.bbox.x1 > x1) x1 = l.bbox.x1; } });
+    ex = x1 - x0;
     ls.forEach(function(l){
-      var t = (l.text || '').replace(/[|¦_~]{2,}/g, ' ').replace(/\s+/g, ' ').trim(), nl = (t.match(/\p{L}/gu) || []).length, c = l.confidence == null ? 100 : l.confidence;
+      var t = ocrPurge(l.text || '').replace(/\s+/g, ' ').trim(), nl = (t.match(/\p{L}/gu) || []).length, c = l.confidence == null ? 100 : l.confidence, bb = l.bbox, mg = !!bb && ex > 0 && nl <= 3 && bb.x1 - bb.x0 < mh * 3 && (bb.x1 - x0 < ex * 0.06 || x1 - bb.x0 < ex * 0.06);
+      if (l._brk) pend = true;
       if (l.bbox && py !== null && mh && l.bbox.y0 - py > mh * 0.9) pend = true;
       if (l.bbox) py = l.bbox.y1;
-      if (!/[\p{L}\p{N}]/u.test(t) || c < 25 || (c < 50 && nl < 4)) return;
+      if (!/[\p{L}\p{N}]/u.test(t) || c < 25 || (c < 50 && nl < 4) || mg) return;
       if (pend && out.length) out.push('');
       pend = false; out.push(t);
     });
@@ -1337,7 +1671,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
           await page.render({ canvasContext: cx, viewport: vp, background: '#fff' }).promise;
           enhance(cv, cx);
           var r = await wk.recognize(cv);
-          pages[pn] = ocrText(r.data); done++;
+          pages[pn] = ocrText(r.data, lang === 'eng' ? 'ltr' : 'rtl'); done++;
           cv.width = 0; page.cleanup();
           if (done % 3 === 0) ocrSave(key, pages);
           if (!playing && !ocrStop && doc === pdfDoc && (done === 2 || done % 8 === 0)) { process(true); ocrInfo(); }
@@ -1415,7 +1749,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       if (p < 30 || s.length - p < 20) continue;
       var a = wcore(toks[k].w), b = wcore(toks[k + 1].w), sc = 0;
       if (/[،,؛;:]["»”')\]]*$/.test(toks[k].w)) sc += 100;
-      if (BR_BEFORE.has(b)) sc += 60; else if (b === 'و' && p >= 50) sc += 25; else if (b === 'که') sc += 10;
+      if (BR_BEFORE.has(b)) sc += 60; else if (b === 'و' && p >= 35) sc += 25; else if (b === 'که') sc += 10;
       if (NB_AFTER.has(a)) sc -= 1000;
       if (NB_BEFORE.has(b)) sc -= 1000;
       sc -= Math.abs(p - ideal) * 0.4;
@@ -1424,6 +1758,53 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     }
     if (best < 0) { var h = s.slice(0, MAXL), c = h.lastIndexOf(' '); best = c >= 20 ? c : MAXL; }
     return best;
+  }
+  /* ===== مکث طبیعی برای TTS: ویرگول پیش از حروف ربط و بستن بند شرطی؛ سپس تکه‌کردن تا سقف maxl نویسه ===== */
+  var PZ_BR = new Set('اما ولی لیکن بلکه زیرا بنابراین همچنین سپس'.split(' '));
+  var PZ_SUB = new Set('اگر وقتی چنانچه اگرچه هرچند'.split(' '));
+  var PZ_NOPRE = new Set('هنگامی زمانی درحالی حالی چنان بطوری طوری تا پس آن این چه همین همان از بی هر آنچه نه'.split(' '));
+  var PZ_VERB = /^(?:شود|شوند|شدند|شد|باشد|باشند|بود|بودند|است|هست|هستند|نیست|کند|کنند|کرد|کردند|دارد|دارند|داشت|داشتند|ندارد|نداشت|گردد|گردند|گشت|آید|آمد|رود|رفت|یابد|یافت|دهد|دهند|داد|گیرد|گرفت|ماند|نماید|بیاید|بروند|برود|بشود|بشوند|بخواند|بخواهد|بخواهند|خواهد|خواهند|توانست|تواند|توانند|نباشد|نشود|نکند|ن?می[\u200c]?\p{L}{2,}(?:م|ی|د|یم|ید|ند))$/u;
+  var PZ_END = /[،,؛;:.!?؟…]["»”')\]]*$/;
+  function addPauses(s){
+    var re = /\S+/g, m, T = [], ins = [], lp = 0, n, k, t, core, v, vc, nx, d, rem, out = '', last = 0;
+    while ((m = re.exec(s))) T.push({ w: m[0], s: m.index, e: m.index + m[0].length });
+    n = T.length; if (n < 6 || s.length < 40) return s;
+    for (k = 0; k < n; k++) {
+      t = T[k]; core = wcore(t.w);
+      if (PZ_END.test(t.w)) lp = t.e;
+      if (PZ_SUB.has(core)) {                                           /* بند شرطی/قیدی: ویرگول بعد از نخستین فعل */
+        for (v = k + 1; v < n - 1 && v <= k + 12; v++) {
+          if (PZ_END.test(T[v].w)) break;
+          vc = wcore(T[v].w);
+          if (PZ_VERB.test(vc)) {
+            nx = wcore(T[v + 1].w);
+            if (T[v].e - t.s >= 14 && s.length - T[v].e >= 12 && nx !== 'و' && nx !== 'یا') ins[v] = 1;
+            break;
+          }
+        }
+      }
+      if (k > 0 && !ins[k - 1] && !PZ_END.test(T[k - 1].w)) {            /* ویرگول پیش از حرف ربط */
+        d = T[k - 1].e - lp; rem = s.length - T[k - 1].e;
+        if (rem >= 15 && ((PZ_BR.has(core) && d >= 18) || (core === 'که' && d >= 22 && !PZ_NOPRE.has(wcore(T[k - 1].w))) || (core === 'و' && d >= 60))) { ins[k - 1] = 1; lp = T[k - 1].e; }
+      }
+      if (ins[k]) lp = t.e;
+    }
+    for (k = 0; k < n; k++) if (ins[k]) { out += s.slice(last, T[k].e) + '،'; last = T[k].e; }
+    return out + s.slice(last);
+  }
+  function pauseSplit(s, maxl){
+    s = addPauses(s);
+    if (s.length <= maxl) return [s];
+    var cl = [], out = [], cur = '', p;
+    s.split(/(?<=[،؛;:,])\s+/).forEach(function(c){
+      while (c.length > maxl) { p = cutPoint(c, maxl); cl.push(c.slice(0, p).trim()); c = c.slice(p).trim(); }
+      if (c) cl.push(c);
+    });
+    cl.forEach(function(c){
+      if (cur && cur.length + 1 + c.length <= maxl) cur += ' ' + c; else { if (cur) out.push(cur); cur = c; }
+    });
+    if (cur) out.push(cur);
+    return out;
   }
   function splitSentences(par){
     var raw = [], res = [], re = /[.!?؟…؛]+["»”')\]]*(?=\s|$)/g, last = 0, m, MAXL = O.maxl || 100;
@@ -1440,12 +1821,15 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       s = s.trim();
       if (!s || !/[\p{L}\p{N}]/u.test(s)) return;
       var parts = [];
-      while (s.length > MAXL) {
-        var p = cutPoint(s, MAXL);
-        parts.push(s.slice(0, p).trim());
-        s = s.slice(p).trim();
+      if (O.pause !== false) parts = pauseSplit(s, MAXL);
+      else {
+        while (s.length > MAXL) {
+          var p = cutPoint(s, MAXL);
+          parts.push(s.slice(0, p).trim());
+          s = s.slice(p).trim();
+        }
+        if (s) parts.push(s);
       }
-      if (s) parts.push(s);
       parts.forEach(function(x, k){ res.push({ t: x, c: k < parts.length - 1 }); });
     });
     return res;
@@ -2877,7 +3261,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   }
   function follow(el){
     var r = el.getBoundingClientRect(), s = $('#stage').getBoundingClientRect(), dk = $('#dock').getBoundingClientRect();
-    if (r.top < s.top + 56 || r.bottom > dk.top - 12) el.scrollIntoView({ block: 'center', behavior: fxLevel() === 'off' ? 'auto' : 'smooth' });
+    if (r.top < s.top + 56 || r.bottom > dk.top - 12) el.scrollIntoView({ block: 'center', behavior: fxCalm() ? 'auto' : 'smooth' });
   }
   var kaOn = null, kaBad = false;
   function kaSync(){
@@ -3099,7 +3483,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     for (var k = 0; k < sents.length; k++) if (sents[k].page >= n) { seekTo(k); $('#pgGo').blur(); return; }
     status('صفحهٔ ' + nf.format(n) + ' وجود ندارد.');
   }
-  var THEMES = ['auto', 'light', 'dark', 'sepia'];
+  var THEMES = ['auto', 'light', 'dark'];
   var theme = THEMES.indexOf(sget('theme', 'auto')) >= 0 ? sget('theme', 'auto') : 'auto';
   function applyTheme(){
     if (theme === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', theme);
@@ -3205,7 +3589,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     slL = setInterval(slLabel, 20000); slLabel();
     status('تایمر خواب: ' + nf.format(m) + ' دقیقه');
   };
-  $('#locBtn').onclick = function(){ if (curEl) curEl.scrollIntoView({ block: 'center', behavior: fxLevel() === 'off' ? 'auto' : 'smooth' }); };
+  $('#locBtn').onclick = function(){ if (curEl) curEl.scrollIntoView({ block: 'center', behavior: fxCalm() ? 'auto' : 'smooth' }); };
   $('#prev').onclick = function(){ seekTo(idx - 1); };
   $('#next').onclick = function(){ seekTo(idx + 1); };
   $('#stop').onclick = stopAll;
@@ -3363,7 +3747,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     [['play', function(){ if (!playing) start(); }], ['pause', function(){ if (playing) pause(); }], ['previoustrack', function(){ seekTo(idx - 1); }], ['nexttrack', function(){ seekTo(idx + 1); }]].forEach(function(a){ navigator.mediaSession.setActionHandler(a[0], a[1]); });
   } catch (e) {} }
 
-  var TXT_IDS = ['lnMode','oDots','oHdr','oNorm','oFix','oScript','oPos','oCols','maxL','pgFrom','pgTo','ocrMode','ocrLang','ocrQ','encMode'], TXT_DEF = {};
+  var TXT_IDS = ['lnMode','oDots','oHdr','oNorm','oFix','oScript','oPos','oCols','maxL','pgFrom','pgTo','ocrMode','ocrLang','ocrQ','encMode','oGlue','oSpell','oPause'], TXT_DEF = {};
   TXT_IDS.forEach(function(id){
     var e = $('#' + id), c = e.type === 'checkbox'; TXT_DEF[id] = c ? e.checked : e.value;
     var v = sget('o_' + id, null);
