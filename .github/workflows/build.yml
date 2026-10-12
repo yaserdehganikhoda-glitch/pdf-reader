@@ -40,6 +40,10 @@ jobs:
         run: sort -u ~/.offline-cache/sums-seen.txt 2>/dev/null || true
       - name: Sync
         run: npx cap sync android
+      - name: Verify OCR files copied into Android assets
+        run: |
+          ls -la www/ocr www/ocr/lang
+          ls -la android/app/src/main/assets/public/ocr android/app/src/main/assets/public/ocr/lang
       - name: Patch Gradle repos
         run: |
           sed -i "s#^\([[:space:]]*\)google()#\1google()\n\1maven { url 'https://maven-central.storage-download.googleapis.com/maven2/' }#" android/build.gradle
@@ -61,6 +65,10 @@ jobs:
           exit 1
       - name: Copy APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk PdfVoiceReader.apk
+      - name: Verify OCR files inside the APK
+        run: |
+          unzip -l PdfVoiceReader.apk | grep -E "assets/public/ocr/" || true
+          unzip -l PdfVoiceReader.apk | grep -E "assets/public/ocr/lang/(fas|eng)\.traineddata" || { echo "OCR data missing from APK"; exit 1; }
       - name: Upload APK (run page)
         uses: actions/upload-artifact@v4
         with:
