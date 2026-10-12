@@ -940,7 +940,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     if (npLs) return; npLs = true;
     var on = function(ev, fn){ try { Promise.resolve(NP.addListener(ev, fn)).catch(function(){ npPlay = false; }); } catch (e) { npPlay = false; } };
     on('playerStart', function(e){ npStarted(e.h); });
-    on('playerPos', function(e){ if (e.h === npCur && npCurC && playing) followFrac(npCurC, e.p); });
+    on('playerPos', function(e){ if (e.h === npCur && npCurC && playing) { wdProg = Date.now(); wdPosN++; followFrac(npCurC, e.p); } });
     on('playerEnd', function(e){ npEnded(e.h); });
     on('playerError', function(e){ if (e.h === npCur) fail(npMy, 'پخش صدا ناموفق بود: ' + (e.msg || '')); });
     /* تماس تلفنی یا جداشدن هدفون: بومی پخش را قطع کرده؛ وضعیت برنامه هم متوقف می‌شود */
@@ -1245,15 +1245,15 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     build(pg); warmPiper(); analyze(); ocrInfo();
     if (kp) { for (var i = 0; i < sents.length; i++) if (sents[i].page >= kp) { idx = i; break; } mark(true); }
   }
-  var ocrLoc = null;
+  var ocrLoc = null, probeBad = [];
   function absUrl(u){ return new URL(u, location.href).href; }
   function probe(u, gz){
     return fetch(absUrl(u)).then(function(r){
       var ok = r.ok && !/html/i.test(r.headers.get('content-type') || '');
-      if (!ok || !gz || !r.body || !r.body.getReader) { try { if (r.body) r.body.cancel(); } catch (e) {} return ok; }
-      var rd = r.body.getReader();
-      return rd.read().then(function(x){ try { rd.cancel(); } catch (e) {} var v = x.value; return !!(v && v[0] === 0x1f && v[1] === 0x8b); });
-    }).catch(function(){ return false; });
+      try { if (r.body) r.body.cancel(); } catch (e) {}
+      if (!ok) probeBad.push(u + ' (' + r.status + ')');
+      return ok;
+    }).catch(function(e){ probeBad.push(u + ' (' + ((e && e.message) || 'error') + ')'); return false; });
   }
   function ocrLocal(){
     return ocrLoc || (ocrLoc = Promise.all([probe('ocr/lang/fas.traineddata.gz', true), probe('ocr/lang/eng.traineddata.gz', true), probe('ocr/tesseract.min.js'), probe('ocr/worker.min.js')]).then(function(a){ return a.every(Boolean); }));
@@ -1298,7 +1298,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     stopAll(); ocrBusy = true; ocrStop = false; ocrInfo();
     try {
       status('بارگذاری موتور OCR…'); await loadTess();
-      var loc = await ocrLocal(); if (!loc) throw new Error('دادهٔ OCR داخل برنامه پیدا نشد (پوشهٔ ocr را با fetch-offline.sh بسازید).'); var lang = $('#ocrLang').value || 'fas+eng', tw = OCRQ[$('#ocrQ').value] || 2000;
+      var loc = await ocrLocal(); if (!loc) throw new Error('دادهٔ OCR داخل برنامه پیدا نشد: ' + probeBad.join(' ، ') + ' (پوشهٔ ocr را با fetch-offline.sh بسازید).'); var lang = $('#ocrLang').value || 'fas+eng', tw = OCRQ[$('#ocrQ').value] || 2000;
       var nw = (L.length > 1 && (navigator.hardwareConcurrency || 2) >= 6 && (navigator.deviceMemory || 4) >= 4) ? 2 : 1;
       var cfg = { workerPath: absUrl('ocr/worker.min.js'), corePath: absUrl('ocr'), langPath: absUrl('ocr/lang'), workerBlobURL: false, cacheMethod: 'none' };
       for (var q = 0; q < nw; q++) {
@@ -2603,6 +2603,57 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     }
     if (t !== idx) { idx = t; mark(true); }
   }
+  /* ---------- نگهبان پخش ----------
+     اگر یکی از رویدادهای پخش (پایان صدا، تایمر فاصله، پایان ساخت صدا) گم شود، برنامه «در حال پخش» می‌ماند ولی صدایی نیست.
+     این نگهبان هر ۱٫۵ ثانیه وضعیت را می‌سنجد و در صورت گیرکردن، پخش را از همان جمله دوباره راه می‌اندازد. */
+  var wdPhase = 'idle', wdAt = 0, wdProg = 0, wdGapMs = 0, wdNat = false, wdPosN = 0, wdKick = 0, wdLen = 200, wdGid = 0, wdGrace = 0, wdFails = [];
+  function wdSet(p, ms, nat){
+    wdPhase = p; wdAt = wdProg = Date.now(); wdGapMs = ms || 0; wdNat = !!nat; wdPosN = 0; wdKick = 0;
+  }
+  function wdLog(why){ try { if (window.__elog) window.__elog.add('watchdog', why + ' | جمله ' + idx + ' | فاز ' + wdPhase); } catch (e) {} }
+  function wdRecover(why){
+    var now = Date.now(), ph = wdPhase;
+    wdLog(why);
+    wdFails = wdFails.filter(function(t){ return now - t < 90000; }); wdFails.push(now);
+    if (wdFails.length > 3) { var m = token; playing = false; wdSet('idle'); cancelAll(); ui(); status('پخش چند بار پشت‌سرهم قطع شد. دکمهٔ پخش را دوباره بزنید؛ اگر تکرار شد «پیشرفته ‹ گزارش خطا» را ببینید.'); return; }
+    if (ph === 'prep') {   /* ساخت صدا گیر کرده: صف ساخت و کش نیمه‌کاره را رها کن */
+      LN.forEach(function(l){ l.q = Promise.resolve(); });
+      try { clearCache(); } catch (e) {}
+    }
+    start(idx);
+  }
+  function wdTick(){
+    if (!playing || wdPhase === 'idle') return;
+    var now = Date.now();
+    if (now < wdGrace) return;
+    if (wdPhase === 'prep') {
+      if (now - wdAt > Math.max(40000, wdLen / Math.max(pSpeed, 2) * 3000 + 15000)) wdRecover('ساخت صدا گیر کرد');
+    } else if (wdPhase === 'gap') {
+      if (now - wdAt > wdGapMs + 3500) { wdLog('تایمر فاصله گم شد'); wdGid++; advance(token); }
+    } else if (wdPhase === 'play') {
+      if (wdNat) {
+        var rt = Math.max(0.5, +$('#rate').value || 1), est = (curC ? curC.text.length / 7 / rt : 20) * 1000 + 10000;
+        var lim = wdPosN >= 2 ? 8000 : est;
+        if (document.hidden) lim *= 3;
+        if (now - wdProg > lim) wdRecover('پخش بومی بی‌حرکت ماند');
+      } else {
+        var el = audio;
+        if (el.ended) {
+          if (now - wdProg > 1500 && typeof el.onended === 'function') { wdLog('رویداد پایان صدا گم شد'); wdProg = now; el.onended(); }
+        } else if (el.paused) {
+          if (wdKick++ === 0) { try { el.play().catch(function(){}); } catch (e) {} }
+          else if (wdKick > 2) wdRecover('صدا متوقف شده بود');
+        } else if (now - wdProg > 8000) wdRecover('صدا یخ زد');
+      }
+    }
+  }
+  setInterval(wdTick, 1500);
+  /* بعد از برگشت به برنامه (قفل صفحه، برنامهٔ دیگر) تایمرها و رویدادهای عقب‌افتاده فرصت رسیدن دارند */
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden) return;
+    wdGrace = Date.now() + 3000; wdProg = Date.now();
+    setTimeout(wdTick, 3200);
+  });
   function advance(my){
     if (my !== token || !playing) return;
     idx++;
@@ -2627,11 +2678,13 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     return Math.round(ms / Math.pow(r, 0.6));
   }
   function gap(my){
-    setTimeout(function(){ advance(my); }, pauseMs(idx));
+    var ms = pauseMs(idx), gid = ++wdGid;
+    wdSet('gap', ms);
+    setTimeout(function(){ if (gid !== wdGid) return; advance(my); }, ms);
   }
   function fail(my, msg){
     if (my !== token) return;
-    playing = false; ui(); status(msg);
+    playing = false; wdSet('idle'); ui(); status(msg);
   }
   /* handle بومی که حافظه‌اش آزاد شده (سقف PCM) نباید پخش را متوقف کند؛ ورودی کش را دور بریز و دوباره بساز (کش دیسک آن را فوری می‌کند) */
   function dropChunkCache(c){
@@ -2675,7 +2728,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     }).catch(function(){});
   }
   function playNp(c, url, my, chained){
-    curC = c; npCur = npH(url); npCurC = c; npMy = my;
+    curC = c; npCur = npH(url); npCurC = c; npMy = my; wdSet('play', 0, true);
     if (!chained) NP.playerPlay({ handle: npCur, rate: +$('#rate').value || 1 }).catch(function(e){
       if (isNoHandle(e) && !c._rec) {
         c._rec = 1; dropChunkCache(c);
@@ -2709,7 +2762,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     if (isNp(url)) { playNp(c, url, my, false); return; }
     var other = el === audioA ? audioB : audioA;
     other.onended = null; other.ontimeupdate = null; other.onerror = null;
-    audio = el; curC = c; el._b = baked || 1;
+    audio = el; curC = c; el._b = baked || 1; wdSet('play', 0, false);
     wireFx(true);
     el.onended = function(){
       el.ontimeupdate = null;
@@ -2727,7 +2780,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       gap(my);
     };
     el.onerror = function(){ fail(my, 'پخش صدا ناموفق بود.'); };
-    el.ontimeupdate = function(){ followChunk(c); };
+    el.ontimeupdate = function(){ wdProg = Date.now(); followChunk(c); };
     if (el.src !== url) el.src = url;
     applyRate(el);
     el.play().catch(function(e){ fail(my, 'پخش صدا ناموفق بود: ' + e.message); });
@@ -2739,6 +2792,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     var my = token;
     var c = planChunk(idx, cn === 0, lastLen);
     cn++; lastLen = c.text.length;
+    wdSet('prep'); wdLen = c.text.length;
     var firstOne = cn === 1;
     status('در حال آماده‌سازی صدا…');
     var t0 = Date.now(), tk = setInterval(function(){ if (my !== token || !playing) clearInterval(tk); else status('در حال آماده‌سازی صدا (' + nf.format(c.text.length) + ' نویسه)… ' + nf.format(Math.round((Date.now() - t0) / 1000)) + ' ثانیه'); }, 1000);
@@ -2765,6 +2819,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     token++;
     var my = token;
     cn = 0; lastLen = 0;
+    wdSet('prep'); wdLen = 200;
     if (typeof i === 'number') npCancel();   /* پرش به جای دیگر: ساخت‌های کهنهٔ صف را رها کن تا شروع جدید معطل نماند */
     cancelAll();
     setupFx();
@@ -2774,6 +2829,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   }
   function pause(){
     playing = false; token++; clearTimeout(seekT);
+    wdSet('idle');
     cancelAll();
     ui();
   }
