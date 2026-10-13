@@ -31,6 +31,10 @@ N="$T/node_modules"
 # پاک‌سازی فایل‌های قدیمی Tesseract (دیگر استفاده نمی‌شوند)
 rm -rf "$D/ocr/lang" "$D/ocr/tesseract.min.js" "$D/ocr/worker.min.js" "$D"/ocr/tesseract-core*
 cp "$N/onnxruntime-web/dist/ort.min.js" "$N/onnxruntime-web/dist/ort-wasm-simd.wasm" "$D/ocr/ort/"
+# فایل‌های اختیاری شتاب WebGPU (اگر نباشند، OCR با WASM SIMD کار می‌کند)
+for f in ort.webgpu.min.js ort-wasm-simd.jsep.wasm; do
+  [ -s "$N/onnxruntime-web/dist/$f" ] && cp "$N/onnxruntime-web/dist/$f" "$D/ocr/ort/" || echo "WARN: $f not found; WebGPU disabled" >&2
+done
 cp "$N/pdfjs-dist/build/pdf.min.js" "$N/pdfjs-dist/build/pdf.worker.min.js" "$D/lib/"
 [ -d "$N/pdfjs-dist/cmaps" ] && cp -r "$N/pdfjs-dist/cmaps/." "$D/lib/cmaps/" || echo "WARN: cmaps not found" >&2
 [ -d "$N/pdfjs-dist/standard_fonts" ] && cp -r "$N/pdfjs-dist/standard_fonts/." "$D/lib/standard_fonts/" || echo "WARN: standard_fonts not found" >&2
