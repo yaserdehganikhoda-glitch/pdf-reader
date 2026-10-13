@@ -561,6 +561,20 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
         <button class="btn wide" id="libClear" type="button" hidden>حذف همهٔ فایل‌های ذخیره‌شده</button>
       </section>
 
+      <details class="acc" id="stBox">
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></i><span class="stt"><b>مدیریت حافظه و آرشیو</b><small>سهمیه، پاک‌سازی هوشمند و ZIP</small></span></summary>
+        <div class="in">
+          <p class="hint" id="stInfo"></p>
+          <div class="field"><label for="stCap"><span>سقف حجم کتابخانه</span></label>
+            <select id="stCap"><option value="200">۲۰۰ مگابایت</option><option value="500">۵۰۰ مگابایت</option><option value="1000">۱ گیگابایت</option><option value="2000">۲ گیگابایت</option><option value="0">بدون سقف</option></select></div>
+          <div class="slist"><label class="chk"><input type="checkbox" id="stAuto" checked><span class="st"><b>حذف خودکار قدیمی‌ترین‌ها (LRU)</b><small>هنگام کمبود سهمیه یا عبور از سقف، PDFهایی که مدت بیشتری باز نشده‌اند حذف می‌شوند. فایل در حال خواندن هرگز حذف نمی‌شود؛ جای خواندن و نتیجهٔ OCR می‌ماند.</small></span></label></div>
+          <button class="btn wide" id="stTrim" type="button">پاک‌سازی قدیمی‌ترین فایل‌ها (تا ۶۰٪ سقف)</button>
+          <div class="two"><button class="btn" id="stExp" type="button">صادرات ZIP</button><button class="btn" id="stImp" type="button">واردات ZIP</button></div>
+          <input type="file" id="stZip" accept=".zip,application/zip" hidden>
+          <p class="hint" id="stMsg" aria-live="polite"></p>
+        </div>
+      </details>
+
       <details class="acc" id="vfbox" hidden>
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></i><span class="stt"><b>پوشهٔ ذخیرهٔ صداها</b><small>نسخهٔ پشتیبان صداهای دانلودشده</small></span></summary>
         <div class="in">
@@ -690,6 +704,13 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
             <select id="pcLimit" aria-label="حداکثر حجم حافظهٔ نهان صدا"><option value="200">حداکثر ۲۰۰ مگابایت</option><option value="600">حداکثر ۶۰۰ مگابایت</option><option value="1500">حداکثر ۱٫۵ گیگابایت</option><option value="3000">حداکثر ۳ گیگابایت</option></select>
             <button type="button" class="btn sm" id="pcClear">پاک‌کردن حافظهٔ نهان صدا</button>
           </div>
+          <p class="hint" id="acInfo"></p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0">
+            <button type="button" class="btn sm" id="acExp">خروجی ZIP حافظهٔ نهان</button>
+            <button type="button" class="btn sm" id="acImp">ورودی ZIP</button>
+            <input type="file" id="acFile" accept=".zip,application/zip" hidden>
+          </div>
+          <p class="hint" id="acMsg" aria-live="polite"></p>
         </div>
       </details>
     </div>
@@ -736,12 +757,13 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19l7-7M14 4l1.5 3.5L19 9l-3.5 1.5L14 14l-1.5-3.5L9 9l3.5-1.5z"/></svg></i><span class="stt"><b>پاک‌سازی و اصلاح متن</b><small>سرصفحه، نقطه‌چین، حروف عربی و فاصله‌گذاری</small></span></summary>
         <div class="in">
           <div class="slist">
-            <label class="chk"><input type="checkbox" id="oDots" checked><span class="st"><b>حذف نقطه‌چین و خط‌چین</b><small>در فهرست‌ها و فهرست مطالب.</small></span></label>
+            <label class="chk"><input type="checkbox" id="oDots" checked><span class="st"><b>حذف نقطه‌چین، خط‌چین و خطوط جداکننده</b><small>نقطه‌چین فهرست‌ها، خط‌های افقی (-----، ═════) و نمادهای تزئینی تکراری (★ ★ ★).</small></span></label>
             <label class="chk"><input type="checkbox" id="oHdr" checked><span class="st"><b>حذف سرصفحه، پاصفحه و شمارهٔ صفحه</b></span></label>
             <label class="chk"><input type="checkbox" id="oNorm" checked><span class="st"><b>یکدست‌سازی حروف</b><small>«ي ك ى» عربی به فارسی، و حذف اعراب و کشیده.</small></span></label>
             <label class="chk"><input type="checkbox" id="oFix" checked><span class="st"><b>اصلاح فاصله‌گذاری</b><small>نیم‌فاصله و فاصله اطراف نشانه‌ها.</small></span></label>
             <label class="chk"><input type="checkbox" id="oScript" checked><span class="st"><b>کنار گذاشتن متن زبان‌های دیگر</b><small>غیرفارسی و غیرلاتین، مثل ارمنی.</small></span></label>
             <label class="chk"><input type="checkbox" id="oGlue" checked><span class="st"><b>اصلاح کلمات چسبیدهٔ OCR</b><small>«دراین»، «کردهاست»، «میشود»، «کتابها».</small></span></label>
+            <label class="chk"><input type="checkbox" id="oToc" checked><span class="st"><b>مرتب‌سازی فهرست مطالب</b><small>عنوان را از شمارهٔ صفحه یا کد درهم‌رفته (مثل ۱۵۲-۴) جدا می‌کند و هر مدخل را در یک سطر می‌گذارد.</small></span></label>
             <label class="chk"><input type="checkbox" id="oPause" checked><span class="st"><b>مکث طبیعی در جمله‌های بلند</b><small>ویرگول پیش از «که»، «اما»، «زیرا» و پایان بند شرطی؛ سپس تکه‌کردن تا بیشینهٔ طول.</small></span></label>
             <label class="chk"><input type="checkbox" id="oSpell" checked><span class="st"><b>اصلاح املای خروجی OCR</b><small>حروف مشابه (ب/پ/ت، ج/ح)، نویسه‌های اشتباه و کشیده؛ فقط روی صفحه‌های OCR.</small></span></label>
           </div>
@@ -1183,8 +1205,9 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   document.addEventListener('visibilitychange', function(){ if (!document.hidden && window.PiperTTS) { vfFirst = false; vfRefresh(); updatePiperStatus(); } });
 
   /* ---------- text settings / OCR ---------- */
+/*@@TXW:A*/
   var O = { ln: 'auto', maxl: 100, script: true, ocr: 'auto' }, pdfDoc = null, rawItems = [], ocrPages = {}, ocrKey = '', need = [], dropped = 0, ocrBusy = false, ocrStop = false, tessP = null, rawImg = [];
-  function opts(){ var g = function(i){ return $('#' + i); }; return { ln: g('lnMode').value, dots: g('oDots').checked, hdr: g('oHdr').checked, norm: g('oNorm').checked, script: g('oScript').checked, pos: g('oPos').checked, cols: g('oCols').checked && g('oPos').checked, fix: g('oFix').checked, glue: g('oGlue').checked, spell: g('oSpell').checked, pause: g('oPause').checked, from: Math.max(0, +g('pgFrom').value || 0), to: Math.max(0, +g('pgTo').value || 0), maxl: +g('maxL').value, ocr: g('ocrMode').value, enc: g('encMode').value }; }
+  function opts(){ var g = function(i){ return $('#' + i); }; return { ln: g('lnMode').value, dots: g('oDots').checked, hdr: g('oHdr').checked, norm: g('oNorm').checked, script: g('oScript').checked, pos: g('oPos').checked, cols: g('oCols').checked && g('oPos').checked, fix: g('oFix').checked, glue: g('oGlue').checked, spell: g('oSpell').checked, pause: g('oPause').checked, toc: g('oToc').checked, from: Math.max(0, +g('pgFrom').value || 0), to: Math.max(0, +g('pgTo').value || 0), maxl: +g('maxL').value, ocr: g('ocrMode').value, enc: g('encMode').value }; }
   function optsFix(o){ if (o.from && o.to && o.from > o.to) { var x = o.from; o.from = o.to; o.to = x; } return o; }
   var CW = new Set('و در به از که این را با است برای آن یک تا هم بر یا هر شد می'.split(' '));
   function bad(t){
@@ -1211,14 +1234,40 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     ['utf-8', 'windows-1256', 'iso-8859-6'].forEach(function(e){ var x = reenc(t, e), sc = cwScore(x); if (sc > bs + 2) { best = x; bs = sc; } });
     return best;
   }
+  /* ===== خطوط جداکنندهٔ افقی و نویسه‌های تزئینی تکراری (------، ══════، ★ ★ ★، * * *، ─◆─ …) ===== */
+  var stripRules = (function(){
+    var D = '[-_=~*#+^‒–—―‾¯‗∗∙⋅·•‧٭⁂﹉-﹏＿＝\\u2500-\\u259F\\u25A0-\\u25FF\\u2600-\\u27BF\\u2B00-\\u2BFF]',
+        LINE = new RegExp('^[ \\t]*(?:' + D + '[ \\t]*){3,}$'), DOTS = /^[ \t]*(?:[.·•][ \t]*){4,}$|^[ \t]*(?:…[ \t]*){2,}$/,
+        RUN = new RegExp('(' + D + ')(?:[ \\t]*\\1){3,}', 'g'), HEAD = new RegExp('^[ \\t]*(' + D + ')(?:[ \\t]*\\1){2,}[ \\t]*(?=\\S)'), TAIL = new RegExp('(?<=\\S)[ \\t]*(' + D + ')(?:[ \\t]*\\1){2,}[ \\t]*$');
+    function sep(l){
+      var s = l.replace(/[ \t]/g, '');
+      if (DOTS.test(l)) return true;
+      return s.length >= 3 && LINE.test(l) && new Set(s).size <= 3;
+    }
+    return function(t){
+      if (!t) return t;
+      return t.replace(/\f/g, '\n').split('\n').map(function(l){
+        if (sep(l)) return '';
+        return l.replace(RUN, ' ').replace(HEAD, '').replace(TAIL, '');
+      }).join('\n').replace(/\n{3,}/g, '\n\n');
+    };
+  })();
   function prep(t){
-    if (O.dots) t = t.replace(/(?:[ \t]*[.·•‧․…_]){4,}/g, ' ').replace(/[-–—=_]{4,}/g, ' ');
+    if (O.dots) t = stripRules(t).replace(/(?:[ \t]*[.·•‧․…_]){4,}/g, ' ').replace(/[-–—=_]{4,}/g, ' ');
     return t;
   }
   /* پس از NFKC در clean اجرا می‌شود (شکل‌های نمایشی عربی تازه آن‌جا به ي/ك تبدیل می‌شوند). تنوین «ً» و همزهٔ «ٔ» برای تلفظ (مثلاً، خانهٔ) می‌مانند */
+  /* ===== یکدست‌سازی تایپوگرافی فارسی: ي ى ك ة و شکل‌های هم‌خانواده ← ی ک ه (و ارقام عربی ← فارسی) ===== */
+  var PA_MAP = { 'ي': 'ی', 'ى': 'ی', 'ې': 'ی', 'ۍ': 'ی', 'ێ': 'ی', 'ك': 'ک', 'ڪ': 'ک', 'ػ': 'ک', 'ة': 'ه', 'ۃ': 'ه', 'ھ': 'ه', 'ہ': 'ه' },
+      PA_RE = /[يىېۍێكڪػةۃھہ]/g, PA_DG = /[\u0660-\u0669]/g;
+  function persianize(t, digits){
+    if (!t) return t;
+    t = t.replace(PA_RE, function(c){ return PA_MAP[c]; });
+    return digits === false ? t : t.replace(PA_DG, function(c){ return String.fromCharCode(c.charCodeAt(0) + 0x90); });
+  }
   function normL(t){
     if (!O.norm) return t;
-    return t.replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/[\u0647\u06D5]\u0654/g, '\u06C0').replace(/[\u064C-\u0653\u0655-\u065F\u0670\u0640\u06D6-\u06ED]/g, '');
+    return persianize(t).replace(/[\u0647\u06D5]\u0654/g, '\u06C0').replace(/[\u064C-\u0653\u0655-\u065F\u0670\u0640\u06D6-\u06ED]/g, '');
   }
   function pdir(s){ var r = (s.match(/[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/g) || []).length, l = (s.match(/[A-Za-z\u00C0-\u024F\u0370-\u058F]/g) || []).length; return r >= l ? 'rtl' : 'ltr'; }
   function keepScript(o){
@@ -1240,35 +1289,32 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     });
     return out;
   }
-  function colBands(a){
-    var fs = a.map(fsOf).sort(function(p, q){ return p - q; }), mf = fs[fs.length >> 1] || 10, x0 = Infinity, x1 = -Infinity;
-    a.forEach(function(it){ var l = it.transform[4], r = l + (it.width || 0); if (l < x0) x0 = l; if (r > x1) x1 = r; });
-    var W = x1 - x0; if (a.length < 12 || W < mf * 12) return [a];
-    var bw = mf / 3, nb = Math.ceil(W / bw) + 1, cnt = new Array(nb).fill(0), sh = a.filter(function(it){ return (it.width || 0) < W * 0.6; });
-    if (sh.length < 10) return [a];
-    sh.forEach(function(it){ var l = it.transform[4], b0 = Math.floor((l - x0) / bw), b1 = Math.floor((l + (it.width || 0) - x0) / bw); for (var b = Math.max(0, b0); b <= Math.min(nb - 1, b1); b++) cnt[b]++; });
-    var lim = Math.floor(sh.length * 0.01), lo = Math.floor(nb * 0.25), hi = Math.ceil(nb * 0.75), bs = 0, be = -1, st = -1;
-    for (var b = lo; b <= hi; b++) {
-      if (cnt[b] <= lim) { if (st < 0) st = b; if (b - st + 1 > be - bs + 1 || be < 0) { bs = st; be = b; } } else st = -1;
-    }
-    if (be < 0 || (be - bs + 1) * bw < mf * 1.2) return [a];
-    var g0 = x0 + bs * bw, g1 = x0 + (be + 1) * bw, gm = (g0 + g1) / 2;
-    var nl = sh.filter(function(it){ return it.transform[4] + (it.width || 0) / 2 < gm; }).length;
-    if (nl < sh.length * 0.25 || nl > sh.length * 0.75) return [a];
-    var rtl = a.filter(function(it){ return RTLCH.test(it.str); }).length * 2 >= a.length, bands = [], L = [], R = [];
-    var flush = function(){ (rtl ? [R, L] : [L, R]).forEach(function(c){ if (c.length) bands.push(c); }); L = []; R = []; };
+  /* ===== ترتیب خوانش صفحات چندستونی با مختصات X و Y: ستون راست کامل، سپس ستون چپ (XY-cut؛ عنوان و پاورقی عبوری نوار جدا می‌شوند) ===== */
+  function colOrder(a){
+    var fs = a.map(fsOf).sort(function(p, q){ return p - q; }), mf = fs[fs.length >> 1] || 10, rows = [], segs = [], out = [];
+    var rtl = a.filter(function(it){ return RTLCH.test(it.str); }).length * 2 >= a.length;
     a.slice().sort(function(p, q){ return q.transform[5] - p.transform[5]; }).forEach(function(it){
-      var l = it.transform[4], r = l + (it.width || 0);
-      if (l < g0 && r > g1) { flush(); bands.push([it]); } else if ((l + r) / 2 < gm) L.push(it); else R.push(it);
+      var r = rows[rows.length - 1];
+      if (r && Math.abs(r.y - it.transform[5]) < fsOf(it) * 0.5) r.a.push(it); else rows.push({ y: it.transform[5], a: [it] });
     });
-    flush();
-    return bands;
+    rows.forEach(function(r){                                       /* هر ردیف در فاصله‌های بزرگ افقی (شیار ستون‌ها) به پاره‌سطر شکسته می‌شود */
+      var cur = null;
+      r.a.sort(function(p, q){ return p.transform[4] - q.transform[4]; }).forEach(function(it){
+        var x0 = it.transform[4], x1 = x0 + (it.width || 0), f = fsOf(it);
+        if (cur && x0 - cur.bbox.x1 < mf * 1.8) { cur.it.push(it); if (x1 > cur.bbox.x1) cur.bbox.x1 = x1; if (-(r.y + f) < cur.bbox.y0) cur.bbox.y0 = -(r.y + f); }
+        else { cur = { it: [it], bbox: { x0: x0, x1: x1, y0: -(r.y + f), y1: -r.y } }; segs.push(cur); }
+      });
+    });
+    ocrOrder(segs, rtl ? 'rtl' : 'ltr').forEach(function(sg){
+      sg.it.sort(function(p, q){ return rtl ? q.transform[4] - p.transform[4] : p.transform[4] - q.transform[4]; });
+      sg.it.forEach(function(it, k){ out.push(Object.assign({}, it, { hasEOL: k === sg.it.length - 1 })); });
+    });
+    return out;
   }
   function lineSort(items){
     var a = items.filter(function(it){ return it.str && it.transform; }), out = [];
     if (!a.length) return items;
-    (O.cols ? colBands(a) : [a]).forEach(function(b){ out = out.concat(rowSort(b)); });
-    return out;
+    return O.cols ? colOrder(a) : rowSort(a);
   }
   function ocrTodo(){ return need.filter(function(p){ return ocrPages[p] == null; }); }
   function ocrHint(){ var k = ocrTodo().length; return k ? ' — ' + nf.format(k) + ' صفحه متن خراب یا بدون متن دارد و نیاز به OCR دارد (منو ‹ متن)' : ''; }
@@ -1287,6 +1333,22 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
         PAST = 'کرد|گفت|رفت|شد|داد|دید|خواست|آمد|برد|خورد|گرفت|بود|داشت|ماند|نوشت|خواند|توانست|دانست|آورد|ساخت|زد|رسید|پرسید|شنید|فهمید|گذاشت|کشید|ریخت|نشست|افتاد|یافت|ایستاد|انداخت|پرداخت|پنداشت|شمرد|خندید|پوشید|پخت|فروخت|گشت|دوید|ترسید|کوشید|پذیرفت|شناخت|فرستاد|خوابید|خرید|چید|دوخت|سوخت|شکست|شکفت|بخشید|بست|جست|رقصید|ماسید|نمود|نماید|فرمود|گذشت|گزید|گمارد|گمارید|یاوید|سپرد|بافت';
     var R = new RegExp(NB + '(ن?می)[ ]?(?!دانی' + NE + ')(?=(?:' + PRES + ')(?:م|ی|یم|ید|ند|یند|د)' + NE + '|(?:' + PAST + ')(?:م|ی|یم|ید|ند)?' + NE + ')', 'gu');
     return function(t){ return t.replace(R, '$1' + Z); };
+  })();
+  /* ===== تفکیک پسوند جمع و ضمیر متصل با نیم‌فاصله: کتابها ← کتاب‌ها، کتابهایم ← کتاب‌هایم، کتابمان ← کتاب‌مان ===== */
+  var splitSuffix = (function(){
+    var Z = '\u200c', CONN = /[بپتثجچحخسشصضطظعغفقکگلمنهیئ]$/,
+        PL = /^(\p{L}{2,}?)(ها|های|هایی)(?:مان|تان|شان|م|ت|ش)?$/u, PR = /^(\p{L}{3,})(مان|تان|شان|ش)$/u,
+        KEEP = new Set('تنها تنهای تنهایی انتها انتهای انتهایی منتها منتهای منتهایی گرانبها گرانبهای کمبها بیبها'.split(' ')),
+        DENY_W = new Set('ایمان آسمان زمان مهمان پیمان گمان کمان فرمان درمان سامان پریشان درخشان نشان دبستان بوستان گلستان ارمغان'.split(' ')),
+        DENY_SH = /(?:ایش|اهش|امش|وشش|سش|ینش|نش|ردش|ودش)$/;
+    return function(w){
+      if (w.length < 4 || KEEP.has(w)) return w;
+      var m = PL.exec(w);
+      if (m) return CONN.test(m[1]) ? m[1] + Z + w.slice(m[1].length) : w;                  /* پس از حرف نچسب (کارها) نیازی به نیم‌فاصله نیست */
+      m = PR.exec(w);
+      if (m && !DENY_W.has(w) && CONN.test(m[1]) && (m[2] !== 'ش' || !DENY_SH.test(w)) && ocrSpell.has(m[1]) && !ocrSpell.has(w)) return m[1] + Z + m[2];   /* ضمیر: فقط وقتی ریشه در فرهنگ‌واژه باشد */
+      return w;
+    };
   })();
   var glueFix = (function(){
     var Z = '\u200c',
@@ -1324,7 +1386,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
         .replace(RK, '$1 $2').replace(RV, 'و $1').replace(RP, '$1 $2')
         .replace(R2, ' $1').replace(R2c, Z + '$1')
         .replace(R4a, Z).replace(R4b, '')
-        .replace(RTOK, function(w){ return RHA.test(w) ? w.slice(0, -2) + Z + 'ها' : w; })
+        .replace(RTOK, splitSuffix)
         .replace(R5a, '$1 ').replace(R5b, '$1 ')
         .replace(R5c, '$1 ').replace(R5d, '$1' + Z).replace(R5e, '$1 ');
       return t.replace(/[ ]{2,}/g, ' ');
@@ -1404,9 +1466,231 @@ var ocrSpell = (function(){
   }
   fix.freq = function(pages){ var m = new Map(); pages.forEach(function(p){ (p.match(TOK) || []).forEach(function(w){ m.set(w, (m.get(w) || 0) + 1); }); }); return m; };
   fix.reset = function(){ D = null; memo.clear(); };
+  fix.has = function(w){ if (!D) build(); return D.has(w); };
   return fix;
 })();
+  /* ===== فهرست مطالب: جداکردن عنوان از شمارهٔ صفحه/کد درهم‌رفته (۱۵۲-۴ ← «صفحه‌های ۱۵۲ تا ۱۵۴») و یک مدخل در هر سطر ===== */
+  var tocFix = (function(){
+    var DG = '[\\d۰-۹٠-٩]', PG = new RegExp('^' + DG + '{1,4}(?:[-–]' + DG + '{1,4})?$'), LDG = /(?:[.·…•_]{3,}|(?:[.·•][ \t]){3,}[.·•]?|[-–—]{3,})/g, LD1 = /(?:[.·…•_]{3,}|(?:[.·•][ \t]){3,}|[-–—]{3,})/,
+        LAB = /^(?:فصل|بخش|ماده|بند|گفتار|قسمت|تبصره|مورد|جدول|شکل|نمودار|پیوست|chapter|section|fig|table)$/i, HEAD = /^\s*(?:فهرست(?:\s+مطالب)?|محتوا|سرفصل‌ها|contents|table of contents)\s*$/i;
+    function asc(s){ return s.replace(/[۰-۹]/g, function(c){ return c.charCodeAt(0) - 0x6F0; }).replace(/[٠-٩]/g, function(c){ return c.charCodeAt(0) - 0x660; }); }
+    function sty(n, like){ var o = /[۰-۹]/.test(like) ? 0x6F0 : /[٠-٩]/.test(like) ? 0x660 : 0; return o ? String(n).replace(/\d/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 48 + o); }) : String(n); }
+    function pw(p){                                                    /* ۱۵۲-۴ ← «صفحه‌های ۱۵۲ تا ۱۵۴» */
+      var r = p.split(/[-–]/), a, b;
+      if (r.length === 2) {
+        a = asc(r[0]); b = asc(r[1]); if (b.length < a.length) b = a.slice(0, a.length - b.length) + b;
+        if (+b > +a) return 'صفحه‌های ' + sty(a, p) + ' تا ' + sty(b, p);
+      }
+      return 'صفحهٔ ' + p;
+    }
+    function parse(s){
+      var tk = s.replace(LDG, ' \u0001 ').trim().split(/\s+/), E = [], cur = [], ld = false, k, t, hasL;
+      for (k = 0; k < tk.length; k++) {
+        t = tk[k];
+        if (t === '\u0001') { ld = true; continue; }
+        hasL = cur.some(function(w){ return /\p{L}/u.test(w); });
+        if (PG.test(t) && hasL && (ld || k === tk.length - 1 || (/[-–]/.test(t) && !LAB.test(cur[cur.length - 1] || '')))) { E.push({ t: cur.join(' '), p: t }); cur = []; }
+        else cur.push(t);
+        ld = false;
+      }
+      if (cur.length) E.push({ t: cur.join(' '), p: null });
+      return E;
+    }
+    function ttl(x){ return x.replace(/[\s.:،؛\-–—·…]+$/, '').trim(); }
+    return function(t){
+      if (!t || !/[\d۰-۹٠-٩]/.test(t)) return t;
+      var L = t.split('\n'), info = L.map(function(l){
+        var s = l.trim(), E, last;
+        if (!s) return { blank: 1 };
+        if (s.length > 140) return null;
+        E = parse(s); if (!E.some(function(e){ return e.p; })) return null;
+        last = E[E.length - 1]; if (!last.p && /[.!?؟]$/.test(last.t)) return null;
+        return { E: E, strong: LD1.test(s) };
+      }), out = L.slice(), i = 0, j, k, run, cnt, str, pg, mono, mx, h, e;
+      while (i < L.length) {
+        if (!info[i] || info[i].blank) { i++; continue; }
+        for (j = i, run = []; j < L.length && info[j] && (!info[j].blank || (info[j + 1] && !info[j + 1].blank && info[j + 1].E)); j++) if (info[j].E) run.push(j);
+        cnt = run.length; str = run.filter(function(x){ return info[x].strong; }).length;
+        h = i - 1; while (h >= 0 && !L[h].trim()) h--;
+        pg = []; run.forEach(function(x){ info[x].E.forEach(function(e){ if (e.p) pg.push(+asc(e.p.split(/[-–]/)[0])); }); });
+        mono = pg.every(function(v, q){ return !q || v >= pg[q - 1]; }); mx = Math.max.apply(null, pg);
+        if (str >= 2 || (h >= 0 && HEAD.test(L[h]) && cnt >= 2) || (cnt >= 4 && mono && mx >= 10)) {
+          run.forEach(function(x){
+            out[x] = info[x].E.map(function(e){ var s = ttl(e.t); return e.p ? s + '، ' + pw(e.p) + '.' : s; }).join('\n');
+          });
+        }
+        i = Math.max(j, i + 1);
+      }
+      return out.join('\n');
+    };
+  })();
+  function tocFx(x){ return O.toc !== false ? tocFix(x) : x; }
+  /* ===== معماری چندریسمانی: RPC روی MessageChannel (پورت اختصاصی) + Transferable ===== */
+  function wkBoot(){
+    var port = null;
+    self.onmessage = function(e){
+      if (!e.data || !e.data.port) return;
+      port = e.data.port;
+      port.onmessage = function(m){
+        var q = m.data, f = H[q.t], r;
+        if (!f) { if (q.id) port.postMessage({ id: q.id, err: 'no handler ' + q.t }); return; }
+        try { r = f(q.d, function(v){ port.postMessage({ id: q.id, pr: v }); }); }
+        catch (x) { if (q.id) port.postMessage({ id: q.id, err: String((x && x.message) || x) }); return; }
+        if (!q.id) return;
+        Promise.resolve(r).then(function(v){
+          var tr = v && v.__tr;
+          if (tr) port.postMessage({ id: q.id, r: v.r }, tr); else port.postMessage({ id: q.id, r: v });
+        }, function(x){ port.postMessage({ id: q.id, err: String((x && x.message) || x) }); });
+      };
+      port.postMessage({ rdy: 1 });
+    };
+  }
+  function wkRpc(src){
+    var url, w, ch, pend = {}, n = 0, ok = true;
+    try {
+      url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+      w = new Worker(url); ch = new MessageChannel();
+    } catch (e) { try { if (url) URL.revokeObjectURL(url); } catch (x) {} return null; }
+    var port = ch.port1;
+    function die(){
+      if (!ok) return; ok = false;
+      try { w.terminate(); } catch (e) {} try { port.close(); } catch (e) {} try { URL.revokeObjectURL(url); } catch (e) {}
+      var q = pend; pend = {}; Object.keys(q).forEach(function(k){ q[k].rej(new Error('worker')); });
+    }
+    port.onmessage = function(e){
+      var d = e.data, p;
+      if (d.rdy) { try { URL.revokeObjectURL(url); } catch (x) {} return; }
+      p = pend[d.id]; if (!p) return;
+      if (d.pr !== undefined) { if (p.pr) p.pr(d.pr); return; }
+      delete pend[d.id];
+      if (d.err) p.rej(new Error(d.err)); else p.res(d.r);
+    };
+    w.onerror = die;
+    try { w.postMessage({ port: ch.port2 }, [ch.port2]); } catch (e) { die(); return null; }
+    return {
+      alive: function(){ return ok; },
+      kill: die,
+      post: function(t, d, tr){ if (ok) { try { port.postMessage({ t: t, d: d }, tr || []); } catch (e) {} } },
+      call: function(t, d, tr, pr){
+        return new Promise(function(res, rej){
+          if (!ok) { rej(new Error('worker')); return; }
+          var id = ++n; pend[id] = { res: res, rej: rej, pr: pr };
+          try { port.postMessage({ id: id, t: t, d: d }, tr || []); } catch (e) { delete pend[id]; rej(e); }
+        });
+      }
+    };
+  }
+  /* --- Worker پیش‌پردازش تصویر OCR (تخت‌سازی، Otsu، حذف نویز، Deskew) --- */
+  function ocwGlue(){
+    H.enh = function(d){
+      var a = enhanceBuf(new Uint8ClampedArray(d.b), d.w, d.h, d.o);
+      return { __tr: [d.b], r: { b: d.b, a: a } };
+    };
+  }
+  var ocw = null;
+  function ocwGet(){
+    if (ocw === null) {
+      ocw = false;
+      try { if (window.Worker && window.MessageChannel) ocw = wkRpc('var H = {};' + skewAngle.toString() + ';' + enhanceBuf.toString() + ';(' + ocwGlue.toString() + ')();(' + wkBoot.toString() + ')();') || false; } catch (e) { ocw = false; }
+    }
+    return ocw && ocw.alive() ? ocw : null;
+  }
+  /* --- Worker پردازش متن: ادغام سطرها، پاک‌سازی، تفکیک جمله‌ها، تحلیل ریسک گفتار --- */
+  var TXW_MK = ['/*@@' + 'TXW:A*/', '/*@@' + 'TXW:/A*/', '/*@@' + 'TXW:B*/', '/*@@' + 'TXW:/B*/'];
+  var TXW_OVR = 'var $=function(){throw new Error("DOM")},__S={};function fixOn(){return !!__S.fixOn}function fixHi(){return !!__S.fixOn&&!!__S.fixHi}function ezOn(){return __S.ezOn!==false}function humOn(){return __S.humOn!==false}function phLexOn(){return __S.phLexOn!==false}function citeOn(){return __S.citeOn!==false}function sOn(){return !!__S.fixOn&&!!__S.fixPro}function engine(){return "piper"}';
+  function txwSrc(){
+    var s = '', i, t;
+    for (i = 0; i < document.scripts.length; i++) { t = document.scripts[i].textContent; if (t && t.indexOf(TXW_MK[0]) >= 0) { s = t; break; } }
+    var a0 = s.indexOf(TXW_MK[0]), a1 = s.indexOf(TXW_MK[1]), b0 = s.indexOf(TXW_MK[2]), b1 = s.indexOf(TXW_MK[3]);
+    if (a0 < 0 || a1 < a0 || b0 < 0 || b1 < b0) return '';
+    return s.slice(a0 + TXW_MK[0].length, a1) + '\n' + s.slice(b0 + TXW_MK[2].length, b1);
+  }
+  function txwGlue(){
+    var azId = 0;
+    rawItems = []; rawImg = [];
+    H.doc = function(){ rawItems = []; rawImg = []; };
+    H.items = function(d){ rawItems[d.p - 1] = d.its; if (d.img) rawImg[d.p] = true; };
+    H.process = function(d){
+      var i, emp = [], badp = [], n = d.n;
+      for (i = 0; i < n; i++) if (!rawItems[i]) rawItems[i] = [];
+      O = d.O; ocrPages = d.ocr || {};
+      var inR = function(p){ return (!O.from || p >= O.from) && (!O.to || p <= O.to); };
+      var pg = rawItems.map(function(it, i){ return ocrPages[i + 1] != null ? ocrPages[i + 1] : joinItems(O.pos ? lineSort(it) : it); });
+      if (O.enc !== 'none') pg = pg.map(function(t, i){ return ocrPages[i + 1] != null ? t : O.enc === 'auto' ? pickEnc(t) : reenc(t, O.enc); });
+      pg.forEach(function(t, i){ if (ocrPages[i + 1] != null) return; if (t.replace(/\s/g, '').length < 3) emp.push(i + 1); else if (bad(t)) badp.push(i + 1); });
+      if (badp.length > n * 0.3) { badp = []; emp = []; pg.forEach(function(t, i){ if (ocrPages[i + 1] == null) badp.push(i + 1); }); }
+      var imgp = emp.filter(function(p){ return rawImg[p]; }), pure = emp.filter(function(p){ return !rawImg[p]; });
+      need = (O.ocr === 'off' ? [] : O.ocr === 'always' ? pg.map(function(t, i){ return i + 1; }) : badp.concat(imgp, pure.length > n * 0.5 ? pure : [])).filter(inR);
+      if (O.ocr !== 'off') badp.forEach(function(q){ pg[q - 1] = ''; });
+      if (O.hdr) pg = dropRepeats(pg);
+      var fq = O.spell ? ocrSpell.freq(pg.filter(function(t, i){ return ocrPages[i + 1] != null; })) : null;
+      pg = pg.map(function(t, i){
+        if (!inR(i + 1)) return '';
+        var s = normL(clean(prep(ocrPages[i + 1] != null ? ocrPurge(tocFx(t)) : tocFx(t)), O.ln));
+        if (O.glue) s = glueFix(s);
+        if (O.spell && ocrPages[i + 1] != null) s = ocrSpell(s, fq);
+        return tidy(s);
+      });
+      dropped = 0;
+      var pre = pg.map(function(txt){
+        var paras = [];
+        txt.split(/\n+/).forEach(function(par){ var ss = splitSentences(par); if (O.script) ss = ss.filter(keepScript); if (ss.length) paras.push(ss); });
+        return paras;
+      });
+      return { need: need, dropped: dropped, pre: pre };
+    };
+    H.analyze = function(d, prog){
+      __S = d.S; dictP = d.dictP; dictG = d.dictG; parseDict();
+      var my = ++azId, N = d.t.length, i = 0, tot = {}, uns = {}, risky = 0, risk = new Uint8Array(N);
+      return new Promise(function(res){
+        (function step(){
+          if (my !== azId) { res(null); return; }
+          var end = Math.min(N, i + 200);
+          for (; i < end; i++) {
+            var r = { uns: {} };
+            ttsText(d.t[i], 'device', r, d.c[i]);
+            Object.keys(r).forEach(function(k){ if (k !== 'uns') tot[k] = (tot[k] || 0) + r[k]; });
+            Object.keys(r.uns).forEach(function(w){ var e = uns[w] || (uns[w] = { s: r.uns[w], n: 0 }); e.n++; });
+            if (Object.keys(r.uns).length || r.iso || r.rep || r.elong) { risk[i] = 1; risky++; }
+          }
+          prog(i / N);
+          if (i < N) setTimeout(step, 0);
+          else res({ __tr: [risk.buffer], r: { risk: risk.buffer, tot: tot, uns: uns, risky: risky } });
+        })();
+      });
+    };
+  }
+  var txw = null;
+  function txwGet(){
+    if (txw === null) {
+      txw = false;
+      try {
+        var src = (window.Worker && window.MessageChannel) ? txwSrc() : '';
+        if (src) txw = wkRpc('var H = {};' + src + '\n' + TXW_OVR + ';(' + txwGlue.toString() + ')();(' + wkBoot.toString() + ')();') || false;
+      } catch (e) { txw = false; }
+    }
+    return txw && txw.alive() ? txw : null;
+  }
+  function slimItems(its){
+    var o = new Array(its.length), i, x;
+    for (i = 0; i < its.length; i++) { x = its[i]; o[i] = { str: x.str, transform: x.transform, width: x.width, hasEOL: x.hasEOL }; }
+    return o;
+  }
+  var procRun = 0;
   function process(keep){
+    var W = txwGet();
+    if (!W) { processSync(keep); return Promise.resolve(); }
+    var my = ++procRun, kp = keep && sents[idx] ? sents[idx].page : 0;
+    O = optsFix(opts()); stopAll(); clearCache();
+    return W.call('process', { O: O, ocr: ocrPages, n: rawItems.length }).then(function(r){
+      if (my !== procRun) return;
+      if (playing) stopAll();
+      need = r.need;
+      build(null, r.pre, r.dropped); warmPiper(); analyze(); ocrInfo();
+      if (kp) { for (var i = 0; i < sents.length; i++) if (sents[i].page >= kp) { idx = i; break; } mark(true); }
+    }, function(){ if (my === procRun) processSync(keep); });
+  }
+  function processSync(keep){
     var kp = keep && sents[idx] ? sents[idx].page : 0, n = rawItems.length, emp = [], badp = [];
     var inR = function(p){ return (!O.from || p >= O.from) && (!O.to || p <= O.to); };
     O = optsFix(opts()); stopAll(); clearCache();
@@ -1421,7 +1705,7 @@ var ocrSpell = (function(){
     var fq = O.spell ? ocrSpell.freq(pg.filter(function(t, i){ return ocrPages[i + 1] != null; })) : null;
     pg = pg.map(function(t, i){
       if (!inR(i + 1)) return '';
-      var s = normL(clean(prep(ocrPages[i + 1] != null ? ocrPurge(t) : t), O.ln));
+      var s = normL(clean(prep(ocrPages[i + 1] != null ? ocrPurge(tocFx(t)) : tocFx(t)), O.ln));
       if (O.glue) s = glueFix(s);
       if (O.spell && ocrPages[i + 1] != null) s = ocrSpell(s, fq);
       return tidy(s);
@@ -1488,9 +1772,10 @@ var ocrSpell = (function(){
     for (a = best - 0.5; a <= best + 0.5; a += 0.1) { v = score(a); if (v > bs) { bs = v; best = a; } }
     return (Math.abs(best) < 0.2 || bs < s0 * 1.03) ? 0 : best;
   }
-  function enhance(cv, cx, o){
+  /* هستهٔ خالص پیش‌پردازش (بدون DOM): هم در ریسمان اصلی (پشتیبان) و هم در Worker اجرا می‌شود */
+  function enhanceBuf(d, w, h, o){
     o = o || {};
-    var w = cv.width, h = cv.height, n = w * h, im = cx.getImageData(0, 0, w, h), d = im.data, G = new Uint8Array(n), i, x, y, r, e, m, g;
+    var n = w * h, G = new Uint8Array(n), i, x, y, r, e, m, g;
     for (i = 0; i < n; i++) G[i] = (d[4 * i] * 77 + d[4 * i + 1] * 150 + d[4 * i + 2] * 29) >> 8;
     /* ۱) تخت‌سازی پس‌زمینه: تقسیم بر بیشینهٔ روشنایی هر بلوک (حذف سایه و لکهٔ اسکن) */
     var bs = Math.max(16, Math.round(Math.max(w, h) / 40)), bw = Math.ceil(w / bs), bh = Math.ceil(h / bs), B = new Uint8Array(bw * bh), xb = new Uint16Array(w), bx, by;
@@ -1513,7 +1798,7 @@ var ocrSpell = (function(){
     var K = new Uint8Array(n), cnt = 0;
     for (i = 0; i < n; i++) { K[i] = G[i] <= t ? 1 : 0; cnt += K[i]; }
     if (cnt > n * 0.5) { for (i = 0; i < n; i++) K[i] ^= 1; cnt = n - cnt; }      /* صفحهٔ تیره: وارونه */
-    if (cnt < n * 0.0005) return 0;                                                  /* صفحهٔ تقریباً خالی */
+    if (cnt < n * 0.0005) return null;                                                  /* صفحهٔ تقریباً خالی */
     /* ۳) حذف نویز نمک‌وفلفلی: پیکسل جداافتادهٔ مشکی پاک، سوراخ تک‌پیکسلی سفید پر می‌شود */
     if (o.denoise !== false) {
       var C = new Uint8Array(K), s8;
@@ -1526,13 +1811,32 @@ var ocrSpell = (function(){
     /* ۴) تشخیص زاویهٔ کجی با پروفایل تصویر افقی (±۱۰ درجه) */
     var ang = o.deskew === false ? 0 : skewAngle(K, w, h, cnt);
     for (i = 0; i < n; i++) { g = K[i] ? 0 : 255; d[4 * i] = d[4 * i + 1] = d[4 * i + 2] = g; d[4 * i + 3] = 255; }
-    cx.putImageData(im, 0, 0);
+    return ang;
+  }
+  function deskewDraw(cv, cx, w, h, ang){
     if (ang) {
       var tc = document.createElement('canvas'); tc.width = w; tc.height = h; tc.getContext('2d').drawImage(cv, 0, 0);
       cx.save(); cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h); cx.translate(w / 2, h / 2); cx.rotate(-ang * Math.PI / 180); cx.drawImage(tc, -w / 2, -h / 2); cx.restore();
       tc.width = 0;
     }
     return ang;
+  }
+  function enhance(cv, cx, o){
+    var w = cv.width, h = cv.height, im = cx.getImageData(0, 0, w, h), a = enhanceBuf(im.data, w, h, o);
+    if (a === null) return 0;
+    cx.putImageData(im, 0, 0);
+    return deskewDraw(cv, cx, w, h, a);
+  }
+  /* نسخهٔ ناهمگام: بافر پیکسل‌ها (Transferable) به Worker می‌رود و بدون کپی برمی‌گردد؛ ریسمان اصلی آزاد می‌ماند */
+  function enhanceAsync(cv, cx, o){
+    var W = ocwGet();
+    if (!W) return Promise.resolve(enhance(cv, cx, o));
+    var w = cv.width, h = cv.height, im = cx.getImageData(0, 0, w, h), buf = im.data.buffer;
+    return W.call('enh', { b: buf, w: w, h: h, o: o }, [buf]).then(function(r){
+      if (r.a === null) return 0;
+      cx.putImageData(new ImageData(new Uint8ClampedArray(r.b), w, h), 0, 0);
+      return deskewDraw(cv, cx, w, h, r.a);
+    }, function(){ return enhance(cv, cx, o); });
   }
   /* ===== حذف نویسه‌های زائد و نمادهای تصادفی خروجی OCR (کاربیج حاشیه) ===== */
   var ocrPurge = (function(){
@@ -1544,7 +1848,7 @@ var ocrSpell = (function(){
         FMK = /(?![\p{Script=Arabic}\p{Script=Latin}\p{Script=Greek}\p{Script=Inherited}\p{Script=Common}])\p{M}/gu,
         PUN = /^[.,،؛:!?؟…»«)(\]\[\-–—"'%٪\/]{1,2}$/, LET = /[\p{L}\p{N}]/gu, ARB = /\p{Script=Arabic}/gu;
     function line(t){
-      t = t.replace(WS, ' ').replace(CF, '').replace(SEP, ' ').replace(SYM, '').replace(FOR, '').replace(FMK, '').replace(/(^|\s)\p{M}+/gu, '$1')
+      t = stripKashida(t).replace(WS, ' ').replace(CF, '').replace(SEP, ' ').replace(SYM, '').replace(FOR, '').replace(FMK, '').replace(/(^|\s)\p{M}+/gu, '$1')
            .replace(/\.{4,}/g, ' ').replace(/[-–—=]{2,}/g, ' ').replace(/([،,؛:;!?؟])\1+/g, '$1');
       var tk = t.split(/\s+/).filter(function(w){ return w && (/[\p{L}\p{N}]/u.test(w) || PUN.test(w)); }), nl, ns, one, i, ar, lt;
       t = tk.join(' ');
@@ -1669,7 +1973,7 @@ var ocrSpell = (function(){
           var cv = document.createElement('canvas'); cv.width = Math.ceil(vp.width); cv.height = Math.ceil(vp.height);
           var cx = cv.getContext('2d', { willReadFrequently: true }); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
           await page.render({ canvasContext: cx, viewport: vp, background: '#fff' }).promise;
-          enhance(cv, cx);
+          await enhanceAsync(cv, cx);
           var r = await wk.recognize(cv);
           pages[pn] = ocrText(r.data, lang === 'eng' ? 'ltr' : 'rtl'); done++;
           cv.width = 0; page.cleanup();
@@ -1699,6 +2003,271 @@ var ocrSpell = (function(){
   function kvSet(k, v){
     return kvOpen().then(function(db){ return db ? new Promise(function(res){ try { var tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = function(){ res(true); }; tx.onerror = tx.onabort = function(){ res(false); }; } catch (e) { res(false); } }) : false; });
   }
+  /* ---------- حافظهٔ نهان صدا در IndexedDB: سهمیه، حذف LRU هوشمند، آرشیو ZIP ---------- */
+  var ACH_VER = 'a1', ach = { db: null, tot: -1, q: Promise.resolve(), pers: false, busy: false };
+  function achLock(fn){ var p = ach.q.then(fn); ach.q = p.catch(function(){}); return p; }
+  function achOpen(){
+    return ach.db || (ach.db = new Promise(function(res){
+      try {
+        var r = indexedDB.open('pdfreader-audio', 1);
+        r.onupgradeneeded = function(){ var d = r.result; d.createObjectStore('a'); d.createObjectStore('m', { keyPath: 'k' }).createIndex('t', 't'); };
+        r.onsuccess = function(){ var d = r.result; d.onversionchange = function(){ try { d.close(); } catch (e) {} ach.db = null; }; res(d); };
+        r.onerror = r.onblocked = function(){ res(null); };
+      } catch (e) { res(null); }
+    }));
+  }
+  /* مجموع حجم: فقط فراداده (نه خود Blobها) پیمایش می‌شود و در حافظه نگه داشته می‌شود */
+  function achStat(){
+    return achOpen().then(function(db){
+      if (!db) return { n: 0, b: 0 };
+      return new Promise(function(res){
+        var n = 0, t = 0;
+        try {
+          var q = db.transaction('m').objectStore('m').openCursor();
+          q.onsuccess = function(){ var c = q.result; if (c) { n++; t += c.value.n; c.continue(); } else { ach.tot = t; res({ n: n, b: t }); } };
+          q.onerror = function(){ res({ n: 0, b: 0 }); };
+        } catch (e) { res({ n: 0, b: 0 }); }
+      });
+    });
+  }
+  function achTotal(){ return ach.tot >= 0 ? Promise.resolve(ach.tot) : achStat().then(function(r){ return r.b; }); }
+  /* سقف مجاز = کمینهٔ «حد انتخابی کاربر» و «نصف فضای آزادِ سهمیهٔ مرورگر» (سهمیه منهای مصرف بقیهٔ برنامه) */
+  function achBudget(){
+    var o = $('#pcLimit'), lim = (o ? +o.value || 200 : 200) * 1048576;
+    try {
+      if (navigator.storage && navigator.storage.estimate) return navigator.storage.estimate().then(function(e){
+        if (!e || !e.quota) return lim;
+        var others = Math.max(0, (e.usage || 0) - Math.max(0, ach.tot));
+        return Math.min(lim, Math.max(0, e.quota - others) * 0.5);
+      }, function(){ return lim; });
+    } catch (x) {}
+    return Promise.resolve(lim);
+  }
+  /* حذف LRU: قدیمی‌ترین دسترسی‌ها اول حذف می‌شوند تا مجموع به target برسد */
+  function achEvict(db, target){
+    return new Promise(function(res){
+      try {
+        var tx = db.transaction(['a', 'm'], 'readwrite'), ms = tx.objectStore('m'), as = tx.objectStore('a'), cu = ms.index('t').openCursor(), tot = ach.tot;
+        cu.onsuccess = function(){
+          var c = cu.result; if (!c || tot <= target) return;
+          tot -= c.value.n; as.delete(c.value.k); c.delete(); c.continue();
+        };
+        tx.oncomplete = function(){ ach.tot = Math.max(0, tot); res(true); };
+        tx.onerror = tx.onabort = function(){ ach.tot = -1; res(false); };
+      } catch (e) { ach.tot = -1; res(false); }
+    });
+  }
+  function achWrite(db, key, blob, meta){
+    return new Promise(function(res){
+      try {
+        var tx = db.transaction(['a', 'm'], 'readwrite'), ms = tx.objectStore('m'), old = 0, now = Date.now(),
+            m = { k: key, n: blob.size, t: meta && meta.t && meta.t < now ? meta.t : now, v: (meta && meta.v) || '', sr: (meta && meta.sr) || 22050, np: (meta && meta.np) || 0 },
+            g = ms.get(key);
+        g.onsuccess = function(){ if (g.result) old = g.result.n; tx.objectStore('a').put(blob, key); ms.put(m); };
+        tx.oncomplete = function(){
+          ach.tot = Math.max(0, ach.tot) + blob.size - old;
+          try { if (!ach.pers && navigator.storage && navigator.storage.persist) { ach.pers = true; navigator.storage.persist(); } } catch (e) {}
+          res(true);
+        };
+        tx.onerror = tx.onabort = function(){ var nm = tx.error && tx.error.name; ach.tot = -1; res(nm === 'QuotaExceededError' ? 'quota' : false); };
+      } catch (e) { res(false); }
+    });
+  }
+  function achPut(key, blob, meta){
+    return achLock(function(){
+      return achOpen().then(function(db){
+        if (!db || !blob || blob.size < 1024) return false;
+        return achTotal().then(achBudget).then(function(bud){
+          if (bud < 8388608 || blob.size > bud / 2) return false;
+          var go = function(){ return achWrite(db, key, blob, meta); };
+          return (ach.tot + blob.size > bud ? achEvict(db, bud * 0.9 - blob.size) : Promise.resolve(true)).then(go).then(function(r){
+            if (r !== 'quota') return r === true;
+            return achTotal().then(function(t){ return achEvict(db, t * 0.5); }).then(go).then(function(r2){ return r2 === true; });
+          });
+        });
+      });
+    }).catch(function(){ return false; });
+  }
+  function achGet(key){
+    return achOpen().then(function(db){
+      if (!db) return null;
+      return new Promise(function(res){
+        try {
+          var tx = db.transaction(['a', 'm'], 'readwrite'), out = null, g = tx.objectStore('a').get(key);
+          g.onsuccess = function(){
+            var b = g.result; if (!b) return;
+            var ms = tx.objectStore('m'), mg = ms.get(key);
+            mg.onsuccess = function(){
+              var m = mg.result;
+              if (!m) { tx.objectStore('a').delete(key); return; }
+              if (Date.now() - m.t > 60000) { m.t = Date.now(); ms.put(m); }   /* به‌روزرسانی زمان دسترسی (LRU) بدون نوشتن‌های پیاپی */
+              out = { b: b, m: m };
+            };
+          };
+          tx.oncomplete = function(){ res(out); };
+          tx.onerror = tx.onabort = function(){ res(null); };
+        } catch (e) { res(null); }
+      });
+    });
+  }
+  function achClear(){
+    return achLock(function(){
+      return achOpen().then(function(db){
+        if (!db) return false;
+        return new Promise(function(res){
+          try { var tx = db.transaction(['a', 'm'], 'readwrite'); tx.objectStore('a').clear(); tx.objectStore('m').clear(); tx.oncomplete = function(){ ach.tot = 0; res(true); }; tx.onerror = tx.onabort = function(){ ach.tot = -1; res(false); }; } catch (e) { res(false); }
+        });
+      });
+    }).catch(function(){ return false; });
+  }
+  function achTrim(){
+    return achLock(function(){
+      return achOpen().then(function(db){
+        if (!db) return;
+        return achTotal().then(achBudget).then(function(bud){ if (ach.tot > bud) return achEvict(db, bud * 0.9); });
+      });
+    }).catch(function(){});
+  }
+  /* امضای کامل پارامترهای ساخت صدا؛ هر تغییری در آن‌ها کلید دیگری می‌سازد */
+  function achSig(c, v){
+    var tempo = VOICE_TEMPOS[v.id] || VOICE_TEMPO, fxp = $('#enh').checked ? fxProf(v.id) : null, st = styleParams();
+    return [ACH_VER, v.id, st[0], st[1], cleanLevel(), clarityLevel(), fxp ? fxp.pk + ',' + fxp.hs + ',' + fxp.lp : 0, tempo, PART_GAP, c.mid ? 1 : 0, paceSpeed(c.text),
+      (c.parts || []).map(function(q){ return q.s + ':' + q.t; }).join('\u0001'), c.text].join('|');
+  }
+  function achHash(str){
+    var u = new TextEncoder().encode(str), i;
+    if (window.crypto && crypto.subtle && crypto.subtle.digest) return crypto.subtle.digest('SHA-256', u).then(function(d){
+      var a = new Uint8Array(d), h = ''; for (i = 0; i < 16; i++) h += (a[i] < 16 ? '0' : '') + a[i].toString(16); return h;
+    });
+    var h1 = 0x811c9dc5, h2 = 0x1b873593;
+    for (i = 0; i < u.length; i++) { h1 = Math.imul(h1 ^ u[i], 16777619); h2 = Math.imul(h2 + u[i], 2246822519) ^ (h2 >>> 13); }
+    var hx = function(n){ return ('00000000' + (n >>> 0).toString(16)).slice(-8); };
+    return Promise.resolve('f' + hx(h1) + hx(h2) + hx(u.length));
+  }
+  function achLookup(c, v){
+    return achHash(achSig(c, v)).then(function(key){
+      return achGet(key).then(function(r){
+        var b = null;
+        if (r && r.b && r.b.size) { b = r.b; b.sr = r.m.sr; b.gen = 0; b.hit = 1; b.np = r.m.np; }
+        return { key: key, hit: b };
+      });
+    }).catch(function(){ return { key: null, hit: null }; });
+  }
+  /* --- ZIP (بدون فشرده‌سازی؛ WAV از قبل حجیم است و ذخیره‌ی خام، سریع و کم‌مصرف است) --- */
+  var crcT = null;
+  function crc32(u){
+    if (!crcT) { crcT = new Int32Array(256); for (var n = 0, k, v; n < 256; n++) { v = n; for (k = 0; k < 8; k++) v = (v & 1) ? (v >>> 1) ^ 0xEDB88320 : v >>> 1; crcT[n] = v; } }
+    var c = -1, i; for (i = 0; i < u.length; i++) c = crcT[(c ^ u[i]) & 255] ^ (c >>> 8);
+    return (c ^ -1) >>> 0;
+  }
+  function zDos(d){ return { t: (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1), d: ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate() }; }
+  function zLocal(nm, crc, size, dt){
+    var h = new DataView(new ArrayBuffer(30 + nm.length));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, 0, true); h.setUint16(10, dt.t, true); h.setUint16(12, dt.d, true);
+    h.setUint32(14, crc, true); h.setUint32(18, size, true); h.setUint32(22, size, true); h.setUint16(26, nm.length, true); h.setUint16(28, 0, true);
+    new Uint8Array(h.buffer).set(nm, 30); return h.buffer;
+  }
+  function zCentral(nm, crc, size, dt, off){
+    var h = new DataView(new ArrayBuffer(46 + nm.length));
+    h.setUint32(0, 0x02014b50, true); h.setUint16(4, 20, true); h.setUint16(6, 20, true); h.setUint16(8, 0x0800, true); h.setUint16(10, 0, true); h.setUint16(12, dt.t, true); h.setUint16(14, dt.d, true);
+    h.setUint32(16, crc, true); h.setUint32(20, size, true); h.setUint32(24, size, true); h.setUint16(28, nm.length, true);
+    h.setUint32(42, off, true);
+    new Uint8Array(h.buffer).set(nm, 46); return h.buffer;
+  }
+  function achTick(){ return new Promise(function(r){ setTimeout(r, 0); }); }
+  function achMsg(t){ var e = $('#acMsg'); if (e) e.textContent = t || ''; }
+  async function achExport(){
+    var db = await achOpen(); if (!db) throw new Error('IndexedDB در دسترس نیست.');
+    var metas = await new Promise(function(res){
+      try { var q = db.transaction('m').objectStore('m').getAll(); q.onsuccess = function(){ res(q.result || []); }; q.onerror = function(){ res([]); }; } catch (e) { res([]); }
+    });
+    if (!metas.length) return null;
+    metas.sort(function(a, b){ return a.t - b.t; });
+    var te = new TextEncoder(), parts = [], cen = [], off = 0, done = [], dt = zDos(new Date()), i, m, b, u, crc, nm, lh;
+    for (i = 0; i < metas.length; i++) {
+      m = metas[i];
+      b = await new Promise(function(res){ try { var g = db.transaction('a').objectStore('a').get(m.k); g.onsuccess = function(){ res(g.result || null); }; g.onerror = function(){ res(null); }; } catch (e) { res(null); } });
+      if (!b) continue;
+      u = new Uint8Array(await b.arrayBuffer()); crc = crc32(u); nm = te.encode('audio/' + m.k + '.wav');
+      lh = zLocal(nm, crc, u.length, dt); parts.push(lh, b); cen.push(zCentral(nm, crc, u.length, dt, off)); off += lh.byteLength + u.length; done.push(m);
+      u = null;
+      if (off > 3.5e9) break;
+      if (i % 4 === 3) { achMsg('در حال ساخت آرشیو… ' + nf.format(i + 1) + ' از ' + nf.format(metas.length)); await achTick(); }
+    }
+    if (!done.length) return null;
+    var man = te.encode(JSON.stringify({ app: 'pdf-voice-reader', ver: ACH_VER, entries: done })), mn = te.encode('manifest.json'), mc = crc32(man);
+    lh = zLocal(mn, mc, man.length, dt); parts.push(lh, man); cen.push(zCentral(mn, mc, man.length, dt, off)); off += lh.byteLength + man.length;
+    var cs = 0; cen.forEach(function(x){ cs += x.byteLength; });
+    var eo = new DataView(new ArrayBuffer(22));
+    eo.setUint32(0, 0x06054b50, true); eo.setUint16(8, cen.length, true); eo.setUint16(10, cen.length, true); eo.setUint32(12, cs, true); eo.setUint32(16, off, true);
+    var d = new Date(), z = function(n){ return (n < 10 ? '0' : '') + n; };
+    return { blob: new Blob(parts.concat(cen, [eo.buffer]), { type: 'application/zip' }), n: done.length, name: 'audio-cache-' + d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) + '.zip' };
+  }
+  function achSave(blob, name){
+    var dl = function(){
+      var u = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(u); }, 60000);
+      return true;
+    }, f = null;
+    try { f = new File([blob], name, { type: 'application/zip' }); } catch (e) {}
+    if (f && navigator.share && navigator.canShare && navigator.canShare({ files: [f] })) {
+      return navigator.share({ files: [f], title: name }).then(function(){ return true; }, function(e){ return (e && e.name === 'AbortError') ? true : dl(); });
+    }
+    return Promise.resolve(dl());
+  }
+  async function zData(file, e){
+    var lh = new DataView(await file.slice(e.lo, e.lo + 30).arrayBuffer());
+    if (lh.getUint32(0, true) !== 0x04034b50) return null;
+    var st = e.lo + 30 + lh.getUint16(26, true) + lh.getUint16(28, true), raw = file.slice(st, st + e.cs);
+    if (e.meth === 0) return new Uint8Array(await raw.arrayBuffer());
+    if (e.meth === 8 && typeof DecompressionStream === 'function') {
+      try { return new Uint8Array(await new Response(raw.stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer()); } catch (x) { return null; }
+    }
+    return null;
+  }
+  async function achImport(file){
+    var sz = file.size, tail, p = -1, i, td = new TextDecoder();
+    if (sz < 22) throw new Error('فایل ZIP معتبر نیست.');
+    tail = new Uint8Array(await file.slice(Math.max(0, sz - 65557)).arrayBuffer());
+    for (i = tail.length - 22; i >= 0; i--) if (tail[i] === 0x50 && tail[i + 1] === 0x4b && tail[i + 2] === 5 && tail[i + 3] === 6) { p = i; break; }
+    if (p < 0) throw new Error('فایل ZIP معتبر نیست.');
+    var eo = new DataView(tail.buffer, tail.byteOffset + p, 22), cnt = eo.getUint16(10, true), cds = eo.getUint32(12, true), cdo = eo.getUint32(16, true);
+    if (cnt > 100000 || cdo + cds > sz) throw new Error('ساختار ZIP پشتیبانی نمی‌شود.');
+    var cdb = await file.slice(cdo, cdo + cds).arrayBuffer(), cd = new DataView(cdb), cu = new Uint8Array(cdb), o = 0, ents = [], man = null, e, nl, ok = 0, skip = 0, mm = {};
+    for (i = 0; i < cnt && o + 46 <= cd.byteLength; i++) {
+      if (cd.getUint32(o, true) !== 0x02014b50) break;
+      nl = cd.getUint16(o + 28, true);
+      ents.push({ meth: cd.getUint16(o + 10, true), crc: cd.getUint32(o + 16, true), cs: cd.getUint32(o + 20, true), us: cd.getUint32(o + 24, true), lo: cd.getUint32(o + 42, true), nm: td.decode(cu.subarray(o + 46, o + 46 + nl)) });
+      o += 46 + nl + cd.getUint16(o + 30, true) + cd.getUint16(o + 32, true);
+    }
+    for (i = 0; i < ents.length; i++) if (ents[i].nm === 'manifest.json') {
+      try { var mu = await zData(file, ents[i]); if (mu) man = JSON.parse(td.decode(mu)); } catch (x) {}
+    }
+    if (man && Array.isArray(man.entries)) man.entries.forEach(function(x){ if (x && typeof x.k === 'string') mm[x.k] = x; });
+    for (i = 0; i < ents.length; i++) {
+      e = ents[i];
+      var mt = /^audio\/([a-f0-9]{16,64})\.wav$/.exec(e.nm);
+      if (!mt || e.us > 67108864 || e.us < 1024) continue;
+      var u = null;
+      try { u = await zData(file, e); } catch (x) {}
+      if (!u || u.length !== e.us || crc32(u) !== e.crc || u[0] !== 0x52 || u[1] !== 0x49 || u[2] !== 0x46 || u[3] !== 0x46) { skip++; continue; }
+      var im = mm[mt[1]] || {};
+      if (await achPut(mt[1], new Blob([u], { type: 'audio/wav' }), { v: String(im.v || ''), sr: +im.sr || 22050, np: +im.np || 0, t: +im.t || 0 })) ok++; else skip++;
+      u = null;
+      if (i % 4 === 3) { achMsg('در حال وارد کردن… ' + nf.format(i + 1) + ' از ' + nf.format(ents.length)); await achTick(); }
+    }
+    return { ok: ok, skip: skip };
+  }
+  function achUi(){
+    var el = $('#acInfo'); if (!el) return;
+    var st = navigator.storage;
+    Promise.all([achStat(), st && st.estimate ? st.estimate().catch(function(){ return null; }) : null, st && st.persisted ? st.persisted().catch(function(){ return false; }) : false]).then(function(a){
+      var t = 'حافظهٔ نهان آفلاین (IndexedDB): ' + nf.format(a[0].n) + ' قطعه، ' + pcFmt(a[0].b), e = a[1];
+      if (e && e.quota) t += ' — فضای مصرفی برنامه ' + pcFmt(e.usage || 0) + ' از ' + pcFmt(e.quota) + ' (' + nf.format(Math.round((e.usage || 0) * 1000 / e.quota) / 10) + '٪)' + (a[2] ? ' — ذخیرهٔ پایدار' : '');
+      el.textContent = t + '.';
+    });
+  }
   function ocrSave(k, o){
     return kvSet(k, o).then(function(ok){ if (!ok) sset(k, JSON.stringify(o)); else { try { localStorage.removeItem(k); } catch (e) {} } });
   }
@@ -1710,33 +2279,83 @@ var ocrSpell = (function(){
   }
 
   /* ---------- PDF -> text ---------- */
+  /* ===== حذف کشیدهٔ (کسیدا/تطویل U+0640): کشیدگی میان حروف، خط پرکنندهٔ ـــ و «ـ» تنها ===== */
+  function stripKashida(t){
+    if (!t || t.indexOf('\u0640') < 0) return t;
+    return t.replace(/^[ \t]*\u0640+[ \t]*$/gm, '').replace(/[ \t]+\u0640+(?=[ \t]|$)/gm, '').replace(/\u0640+[ \t]+(?=[ \t]|$)/gm, '').replace(/\u0640+/g, '');
+  }
   function clean(t, mode){
-    t = t.replace(/(?<=[\u0600-\u06FF.،؛:)»"])[\u00b2\u00b3\u00b9\u2070\u2074-\u2079\u2080-\u2089]+/g, '').normalize('NFKC').replace(/[\u00ad\u200b\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '');
+    t = stripKashida(t).replace(/(?<=[\u0600-\u06FF.،؛:)»"])[\u00b2\u00b3\u00b9\u2070\u2074-\u2079\u2080-\u2089]+/g, '').normalize('NFKC').replace(/[\u00ad\u200b\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '');
     t = t.replace(/[ \t\u00a0]+/g, ' ').replace(/ *\n */g, '\n');
+    return joinBrokenLines(t, mode);
+  }
+  /* ===== چسباندن سطرهای شکستهٔ PDF: بدون نقطهٔ پایان + سطر بعد ادامهٔ جمله (حرف کوچک لاتین یا کلمهٔ فارسی) ← یک فاصله ===== */
+  var JB_END = /[.!?؟…؛:]["»”')\]]*$/, JB_ITEM = /^(?:[-–—•●▪■◦*·]\s|\(?[\d۰-۹٠-٩]+[.)\-–:]\s|[A-Za-z]\)\s)/;
+  function joinable(l, nx, shortLn){
+    var lw;
+    if (JB_END.test(l)) {                                              /* پایان جمله: فقط مخفف («Dr.» + حرف کوچک») ادامه است */
+      lw = (l.match(/(\S+?)\.$/) || [])[1];
+      return /^[a-z]/.test(nx) && !!lw && (ABR.test(lw) || /^[A-Za-z]$/.test(lw));
+    }
+    if (JB_ITEM.test(nx)) return false;                                /* آیتم فهرست یا شمارهٔ بند */
+    if (/^[a-z]/.test(nx)) return true;                                /* ادامهٔ لاتین */
+    if (/^[A-Z]/.test(nx)) return /[،,]$/.test(l);                     /* جملهٔ تازه یا عنوان */
+    return !(shortLn && !/[،,]$/.test(l));                             /* فارسی: سطر کوتاه بدون ویرگول = عنوان/پایان بند */
+  }
+  function joinBrokenLines(t, mode){
     var ls = t.split('\n'), ln = ls.map(function(l){ return l.length; }).filter(Boolean).sort(function(a, b){ return a - b; });
     var ref = ln.length ? ln[Math.floor(ln.length * 0.9)] : 0, out = '';
     ls.forEach(function(l, i){
-      var nx = ls[i + 1];
+      var nx = ls[i + 1], brk;
       if (nx === undefined) { out += l; return; }
       if (!l || !nx) { out += l + '\n'; return; }
       if (/[A-Za-z]-$/.test(l) && /^[a-z]/.test(nx)) { out += l.slice(0, -1); return; }
       if (/\u200c$/.test(l) && /^\p{L}/u.test(nx)) { out += l; return; }
-      var brk = mode === 'line' || (mode !== 'join' && (/[.!?؟…؛:]["»”')\]]*$/.test(l) || (ref >= 40 && l.length < ref * 0.45 && !/[،,]$/.test(l))));
+      brk = mode === 'line' || (mode !== 'join' && !joinable(l, nx, ref >= 40 && l.length < ref * 0.45));
       out += l + (brk ? '\n' : ' ');
     });
     return out.trim();
   }
+  /* ===== فاصلهٔ علائم نگارشی: حذف هر فاصله پیش از , ، ; ؛ . ? ؟ ! : و یک فاصلهٔ استاندارد پس از آن‌ها (بدون آسیب به اعداد اعشاری، سه‌نقطه، آدرس و نام فایل) ===== */
+  var fixPunct = (function(){
+    var PRO = /(?:https?:\/\/|www\.)\S+|[\w.+-]+@[\w-]+\.[\w.-]+|\b[\w-]+(?:\.[\w-]+)*\.(?:com|org|net|edu|gov|ir|io|co|info|pdf|txt|html?|js|css|png|jpe?g|docx?|xlsx?|json|zip)\b/gi,
+        RUN = /[ \t\u00a0]*([.,،;؛!?؟…:]+)([ \t\u00a0]*)/gu, DG = /[\d۰-۹٠-٩]/, LT = /[\p{L}\p{N}\u0001]/u, AR = /[\u0600-\u06FF]/;
+    return function(t){
+      if (!t) return t;
+      var keep = [];
+      t = t.replace(PRO, function(m){ var tail = (m.match(/[.,;:!?؟،؛)»"']+$/) || [''])[0], core = m.slice(0, m.length - tail.length); keep.push(core); return '\u0001' + (keep.length - 1) + '\u0002' + tail; });
+      t = t.replace(RUN, function(m, run, sp, off, str){
+        var prev = str.charAt(off - 1), next = str.charAt(off + m.length), b = /^[ \t\u00a0]/.test(m), a = sp.length > 0, ch = run.length === 1 ? run : '', after;
+        if (!next || next === '\n') return run;                                              /* پایان سطر */
+        if (next === '\u0002') return m;                                                      /* درون نشانی/نام فایل */
+        if (DG.test(prev) && DG.test(next) && (ch === '.' || ch === ',' || ch === '،' || ch === ':') && (!a || !b)) return m;   /* اعشار، هزارگان، ساعت */
+        if (DG.test(prev) && DG.test(next) && ch === '.' && b && !a) return m;                /* «3 .5» دست‌نخورده */
+        if (/[.,،;؛!?؟…:]/.test(next)) return run;                                          /* علامت پشت‌سرهم با فاصله: «... ؛» */
+        if (/[)\]}»”’"']/.test(next)) return run;                                             /* علامت پیش از بستن پرانتز/نقل‌قول */
+        if (/[«“(\[]/.test(next)) after = ' ';
+        else if (!LT.test(next)) after = a ? ' ' : '';
+        else if (ch === '.' && !b && !a) {                                                    /* «a.txt»، «U.S.A»، «3.5»: چسبیده بماند مگر پایان جمله */
+          after = (/[\u0600-\u06FF]/.test(next) || (/[A-Z]/.test(next) && /[a-z\u0600-\u06FF\d)]/.test(prev))) ? ' ' : '';
+        }
+        else if (ch === ':' && !a && !AR.test(prev)) after = '';                              /* «key:value» */
+        else after = ' ';
+        if (run.length > 1 && /^\.+$/.test(run) && !a && !LT.test(next)) after = '';
+        return run + after;
+      });
+      return t.replace(/\u0001(\d+)\u0002/g, function(m, i){ return keep[+i]; });
+    };
+  })();
   function tidy(t){
     if (!O.fix) return t;
     return t.split('\n').map(function(l){
-      return l.replace(/\s*\u200c\s*/g, '\u200c').replace(/\u200c{2,}/g, '\u200c')
+      l = l.replace(/\s*\u200c\s*/g, '\u200c').replace(/\u200c{2,}/g, '\u200c')
         .replace(/(?<![\p{L}])\u200c|\u200c(?![\p{L}])/gu, '')
-        .replace(/[ \t]+([،؛؟!?])/g, '$1').replace(/(\p{L})[ \t]+([.:])(?=\s|$)/gu, '$1$2')
-        .replace(/([،؛؟])(?=[\p{L}\p{N}])/gu, function(m, c, o, str){ return (c === '،' && /[\d۰-۹٠-٩]/.test(str[o - 1] || '') && /[\d۰-۹٠-٩]/.test(str[o + 1] || '')) ? c : c + ' '; }).replace(/[،]{2,}/g, '،')
+      ;
+      return fixPunct(l).replace(/[،]{2,}/g, '،')
         .replace(/\([ \t]+/g, '(').replace(/[ \t]+\)/g, ')').replace(/«[ \t]+/g, '«').replace(/[ \t]+»/g, '»').trim();
     }).join('\n');
   }
-  var ABR = /^(?:dr|mr|mrs|ms|prof|vs|fig|vol|pp|jr|sr|st|دکتر|مهندس)$/i;
+  var ABR = /^(?:dr|mr|mrs|ms|prof|vs|fig|vol|pp|jr|sr|st|inc|ltd|co|corp|no|eg|ie|etc|approx|dept|est|ed|eds|al|دکتر|مهندس|استاد|آقای|خانم|سرهنگ|سرتیپ|سردار|حجت|شهید|مرحوم|پروفسور)$/i;
   var NB_AFTER = new Set('و یا که از به در با تا را برای بر بی چون اگر این آن هر همه یک چند نه هم نیز بین میان طی مثل مانند جز چه کدام آنچه اینکه آنکه چنان بسیار بیشتر کمتر بعضی برخی'.split(' '));
   var NB_BEFORE = new Set('را ها های ای است بود شد می نمی هم نیز هست هستند باشد بودند شدند دارد دارند ام ایم اید اند ات اش مان تان شان تر ترین'.split(' '));
   var BR_BEFORE = new Set('اما ولی لیکن بلکه زیرا بنابراین همچنین چون اگر وقتی هنگامی تا چنانچه هرچند اگرچه یعنی سپس'.split(' '));
@@ -1866,6 +2485,7 @@ var ocrSpell = (function(){
     }
     return out;
   }
+/*@@TXW:/A*/
   async function hasImg(page){
     try {
       var ol = await page.getOperatorList(), o = pdfjsLib.OPS, set = new Set([o.paintImageXObject, o.paintInlineImageXObject, o.paintImageMaskXObject, o.paintJpegXObject].filter(Boolean));
@@ -1884,17 +2504,19 @@ var ocrSpell = (function(){
       if (pdfDoc) { try { pdfDoc.destroy(); } catch (e) {} }
       pdfDoc = await pdfjsLib.getDocument({ data: buf, cMapUrl: new URL('lib/cmaps/', location.href).href, cMapPacked: true, standardFontDataUrl: new URL('lib/standard_fonts/', location.href).href }).promise;
       var pdf = pdfDoc; rawItems = []; rawImg = [];
+      var W0 = txwGet(); if (W0) W0.post('doc');
       for (var p = 1; p <= pdf.numPages; p++) {
         status('استخراج متن: صفحهٔ ' + nf.format(p) + ' از ' + nf.format(pdf.numPages));
         var page = await pdf.getPage(p);
         var its = (await page.getTextContent()).items; rawItems.push(its);
         if (!its.some(function(x){ return x.str && x.str.trim(); })) rawImg[p] = await hasImg(page);
+        if (W0) W0.post('items', { p: p, its: slimItems(its), img: !!rawImg[p] });
         page.cleanup();
         if (p % 8 === 0) await new Promise(function(r){ setTimeout(r, 0); });
       }
       ocrKey = 'ocr:' + file.name + ':' + file.size;
       ocrPages = await ocrLoad(ocrKey);
-      process();
+      await process();
       curKey = 'pos:' + file.name + ':' + file.size;
       var sv = parseInt(sget(curKey, '0'), 10);
       if (sv > 0 && sv < sents.length) { idx = sv; mark(true); }
@@ -1911,8 +2533,8 @@ var ocrSpell = (function(){
     unrList[q] = 1; clearTimeout(unrT);
     unrT = setTimeout(function(){ var l = unrList; unrList = {}; Object.keys(l).forEach(function(k){ unrenderPage(+k); }); }, 500);
   }
-  function build(pages){
-    dropped = 0; sents = []; idx = 0; curEl = null; pageParas = {}; pgEls = {}; plan = {};
+  function build(pages, pre, drp){
+    dropped = drp || 0; sents = []; idx = 0; curEl = null; pageParas = {}; pgEls = {}; plan = {};
     if (pgObs) pgObs.disconnect();
     if (pgObsU) pgObsU.disconnect();
     unrList = {}; clearTimeout(unrT);
@@ -1924,10 +2546,10 @@ var ocrSpell = (function(){
     pgObsU = pgObs ? new IntersectionObserver(function(es){
       es.forEach(function(en){ if (!en.isIntersecting) unrQ(+en.target.dataset.p); });
     }, { root: $('#stage'), rootMargin: '7000px 0px' }) : null;
-    pages.forEach(function(txt, pi){
-      var paras = [];
-      txt.split(/\n+/).forEach(function(par){
-        var ss = splitSentences(par), ids = []; if (O.script) ss = ss.filter(keepScript);
+    (pre || pages).forEach(function(txt, pi){
+      var paras = [], pp = pre ? txt : txt.split(/\n+/).map(function(par){ var ss = splitSentences(par); if (O.script) ss = ss.filter(keepScript); return ss; });
+      pp.forEach(function(ss){
+        var ids = [];
         ss.forEach(function(o, k){ ids.push(sents.length); sents.push({ text: o.t, cont: o.c, page: pi + 1, el: null, pe: k === ss.length - 1 }); });
         if (ids.length) paras.push(ids);
       });
@@ -1964,12 +2586,12 @@ var ocrSpell = (function(){
   }
 
   /* ---------- playback ---------- */
-  var audioA = new Audio(), audioB = new Audio(), audio = audioA, nxt = null, curC = null;
+  var audioA = new Audio(), audioB = new Audio(), audio = audioA, nxt = null, curC = null, hoT = 0;
   [audioA, audioB].forEach(function(a){ a.preservesPitch = true; a.webkitPreservesPitch = true; });
   var cache = {}, nid = 0, curNid = '', gen = 0, cn = 0, seekT = 0, pSpeed = 18, pSamples = 0, pPatched = 0, pBoot = 0, pFirst = 0, pInfo = null, plan = {}, lastLen = 0;
   var SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
   function cancelAll(){
-    gen++; nxt = null; curC = null;
+    gen++; nxt = null; curC = null; clearTimeout(hoT);
     if (npPlay) { npCur = 0; try { NP.playerStop().catch(function(){}); } catch (e) {} }
     [audioA, audioB].forEach(function(a){ try { a.onended = null; a.onerror = null; a.ontimeupdate = null; a.pause(); } catch (e) {} });
   }
@@ -1988,6 +2610,7 @@ var ocrSpell = (function(){
     });
   }
   var PIPER_TO = 'ساخت صدا بیش از حد طول کشید. دوباره امتحان کنید؛ اگر تکرار شد، برنامه را ببندید و دوباره باز کنید.';
+/*@@TXW:B*/
   var ON = ['صفر','یک','دو','سه','چهار','پنج','شش','هفت','هشت','نه','ده','یازده','دوازده','سیزده','چهارده','پانزده','شانزده','هفده','هجده','نوزده'],
       TN = ['','','بیست','سی','چهل','پنجاه','شصت','هفتاد','هشتاد','نود'],
       HN = ['','صد','دویست','سیصد','چهارصد','پانصد','ششصد','هفتصد','هشتصد','نهصد'],
@@ -2038,7 +2661,7 @@ var ocrSpell = (function(){
   function dmy(d, m, y, mons){ return ' ' + ordFa(+d) + ' ' + mons[+m] + ' ' + numFa(String(+y)) + ' '; }
   var NEG_RE = /(?<!\d\s*)(?<![\p{L}\d\-–\/.])[-−](?=\d)/gu;
   var userDict = [], dictG = '', dictP = '', docName = '';
-  function normCh(t){ return t.replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/ة/g, 'ه'); }
+  function normCh(t){ return persianize(t, false); }
   function parseDict(){
     userDict = [];
     /* واژه‌نامهٔ همین فایل اول می‌آید تا بر واژه‌نامهٔ همهٔ فایل‌ها اولویت داشته باشد */
@@ -2208,7 +2831,7 @@ var ocrSpell = (function(){
         .replace(/\u200c+/g, '\u200c').replace(/(?<![\p{L}\p{M}])\u200c|\u200c(?![\p{L}\p{M}])/gu, '');
     } else t = t.replace(/\u200c/g, '');
     t = t.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, ' ').replace(/\.{4,}/g, ', ').replace(/[_=\-–—]{3,}/g, ' ').replace(/&/g, ' و ')
-      .replace(/[«»"“”]/g, '').replace(/\s*[(\[]\s*/g, ', ').replace(/\s*[)\]]\s*/g, ', ')
+      .replace(/[»”]\s+(?=[\p{L}\p{N}])/gu, ', ').replace(/[«»"“”]/g, '').replace(/\s*[(\[]\s*/g, ', ').replace(/\s*[)\]]\s*/g, ', ')
       .replace(/[•▪■◆●○◦*_#|~^<>{}\\\/]/g, ' ').replace(/\s*[–—]\s*/g, ', ')
       .replace(/،/g, ',').replace(/؛/g, ';').replace(/؟/g, '?').replace(/…/g, '...').replace(/\s+/g, ' ').replace(/\s+([,.;:!?])/g, '$1').replace(/^[,\s]+/, '').trim();
     t = t.replace(/,\s*([.!?;:])/g, '$1').replace(/,\s*,/g, ',');
@@ -2249,9 +2872,10 @@ var ocrSpell = (function(){
   function citeOn(){ var e = document.getElementById('fixCite'); return !e || e.checked; }
   var ACRO_W = { NASA: 'ناسا', NATO: 'ناتو', UNESCO: 'یونسکو', OPEC: 'اوپک', FIFA: 'فیفا', UEFA: 'یوفا', COVID: 'کووید', UNICEF: 'یونیسف', ASCII: 'اسکی', LASER: 'لیزر', RADAR: 'رادار', AIDS: 'ایدز', BRICS: 'بریکس', ASEAN: 'آسه آن', WHO: 'سازمان جهانی بهداشت', UN: 'سازمان ملل', EU: 'اتحادیه اروپا', UK: 'بریتانیا', USA: 'آمریکا', IMF: 'صندوق بین‌المللی پول' };
   var RE_ACRO = new RegExp('(?<![A-Za-z])(?:' + Object.keys(ACRO_W).join('|') + ')(?![A-Za-z])', 'g');
-  var ACL = /^(?:pdf|url|html|css|api|sql|usb|cpu|gpu|ram|ssd|gpt|dna|rna|mri|vpn|gps|pc|tv|ai|ml|atm|ocr|seo|ui|ux|ceo)$/;
+  var ACL = /^(?:pdf|url|html|css|api|sql|usb|cpu|gpu|ram|ssd|gpt|dna|rna|mri|vpn|gps|pc|tv|ai|ml|atm|ocr|seo|ui|ux|ceo|http|https|nlp|llm|gdp|tts|jpg|jpeg|png|gif|mp3|mp4|sdk|cdn|dns|ip|php|xml)$/;
   var EN = {};
   ('internet:اینترنت,online:آنلاین,offline:آفلاین,google:گوگل,youtube:یوتیوب,facebook:فیسبوک,instagram:اینستاگرام,telegram:تلگرام,whatsapp:واتساپ,twitter:توییتر,linkedin:لینکدین,microsoft:مایکروسافت,windows:ویندوز,android:اندروید,iphone:آیفون,apple:اپل,samsung:سامسونگ,amazon:آمازون,python:پایتون,java:جاوا,javascript:جاوا اسکریپت,linux:لینوکس,github:گیت هاب,git:گیت,code:کد,data:دیتا,database:دیتابیس,software:سافت ویر,hardware:هارد ویر,server:سرور,client:کلاینت,user:یوزر,email:ایمیل,website:وب سایت,web:وب,app:اپ,application:اپلیکیشن,mobile:موبایل,computer:کامپیوتر,laptop:لپ تاپ,file:فایل,folder:فولدر,link:لینک,click:کلیک,download:دانلود,upload:آپلود,update:آپدیت,login:لاگین,password:پسورد,account:اکانت,video:ویدئو,audio:آدیو,chat:چت,ok:اوکی,wifi:وای فای,bluetooth:بلوتوث,the:د,and:اند,of:آو,to:تو,in:این,is:ایز,for:فور,with:ویت,by:بای,or:اور,on:آن,be:بی,are:آر,was:واز,this:دیس,that:دت,from:فروم,not:نات,all:آل,new:نیو,one:وان,two:تو,you:یو,we:وی,he:هی,she:شی,they:دی,my:مای,your:یور,his:هیز,her:هر,what:وات,how:هاو,why:وای,who:هو,when:ون,where:ور,which:ویچ,type:تایپ,test:تست,text:تکست,system:سیستم,model:مدل,digital:دیجیتال,design:دیزاین,project:پروژه,team:تیم,business:بیزنس,science:ساینس,technology:تکنولوژی,health:هلث,life:لایف,world:ورلد,time:تایم,home:هوم,page:پیج,book:بوک,note:نوت,list:لیست,menu:منو,button:باتن,screen:اسکرین,image:ایمیج,photo:فوتو,music:میوزیک,game:گیم,play:پلی,stop:استاپ,start:استارت,pause:پاز,next:نکست,back:بک,share:شیر,like:لایک,follow:فالو,post:پست,story:استوری,live:لایو,no:نو,yes:یس,hello:هلو,hi:های,thanks:تنکس,please:پلیز,sorry:سوری').split(',').forEach(function(x){ var k = x.indexOf(':'); EN[x.slice(0, k)] = x.slice(k + 1); });
+  ('chatgpt:چت جی پی تی,openai:اوپن ای آی,gmail:جیمیل,yahoo:یاهو,outlook:اوت لوک,excel:اکسل,powerpoint:پاورپوینت,zoom:زوم,skype:اسکایپ,tiktok:تیک تاک,netflix:نتفلیکس,uber:اوبر,tesla:تسلا,bitcoin:بیت کوین,blockchain:بلاک چین,wikipedia:ویکی پدیا,wiki:ویکی,ios:آی او اس,mac:مک,cloud:کلود,network:نتورک,machine:ماشین,learning:لرنینگ,deep:دیپ,neural:نورال,algorithm:الگوریتم,framework:فریم ورک,browser:براوزر,software:سافت ویر,smartphone:اسمارت فون,tablet:تبلت,script:اسکریپت,api:ای پی آی,cookie:کوکی,cache:کش,bug:باگ,debug:دیباگ,open:اوپن,source:سورس,free:فری,pro:پرو,plus:پلاس,max:مکس,mini:مینی,smart:اسمارت,super:سوپر,center:سنتر,market:مارکت,shop:شاپ,store:استور,brand:برند,level:لول,mode:مود,off:آف,low:لو,high:های,full:فول,lite:لایت,version:ورژن,edition:ادیشن,report:ریپورت,case:کیس,study:استادی,review:ریویو,feedback:فیدبک,marketing:مارکتینگ,management:منجمنت,manager:منیجر,leader:لیدر,startup:استارتاپ,online:آنلاین').split(',').forEach(function(x){ var k = x.indexOf(':'); if (!EN[x.slice(0, k)]) EN[x.slice(0, k)] = x.slice(k + 1); });
   var TL = [['tion','شن'],['sion','ژن'],['ture','چر'],['tch','چ'],['igh','آی'],['ind','ایند'],['ild','ایلد'],['ing','ینگ'],['ee','ی'],['ea','ی'],['oo','و'],['ou','او'],['ow','او'],['oi','ویی'],['oy','ویی'],['ai','ی'],['ay','ی'],['ey','ی'],['ie','ی'],['oa','و'],['au','ا'],['aw','ا'],['ew','یو'],['ch','چ'],['sh','ش'],['th','ث'],['ph','ف'],['wh','و'],['ck','ک'],['qu','کو'],['kn','ن'],['wr','ر'],['gh','گ'],['ng','نگ'],['ss','س'],['ll','ل'],['tt','ت'],['pp','پ'],['ff','ف'],['dd','د'],['bb','ب'],['mm','م'],['nn','ن'],['rr','ر'],['zz','ز'],['cc','ک'],['gg','گ']];
   var CS = { b: 'ب', d: 'د', f: 'ف', h: 'ه', j: 'ج', k: 'ک', l: 'ل', m: 'م', n: 'ن', p: 'پ', q: 'ک', r: 'ر', t: 'ت', v: 'و', w: 'و', x: 'کس', z: 'ز' };
   function translit(w){
@@ -2304,6 +2928,23 @@ var ocrSpell = (function(){
     }).replace(/\s+/g, ' ').replace(/\s+([,.;:!?])/g, '$1').trim();
   }
   function sOn(){ return fixOn() && $('#fixPro').checked; }
+  var FRAC = { '½': 'یک دوم', '⅓': 'یک سوم', '⅔': 'دو سوم', '¼': 'یک چهارم', '¾': 'سه چهارم' },
+      U2 = { mph: 'مایل بر ساعت', lb: 'پوند', lbs: 'پوند', oz: 'اونس', mi: 'مایل', ft: 'فوت', hr: 'ساعت', hrs: 'ساعت', min: 'دقیقه', mins: 'دقیقه', sec: 'ثانیه', secs: 'ثانیه', ms: 'میلی‌ثانیه', l: 'لیتر', ha: 'هکتار' };
+  function numPre(t){
+    var dg = function(x){ return x.split('').map(function(c){ return ON[+c]; }).join(' '); };
+    return t.replace(/(?<![\d.\/])(09\d{2})[\s-]?(\d{3})[\s-]?(\d{4})(?![\d.])/g, function(_, a, b, c){ return ' ' + dg(a) + ', ' + dg(b) + ', ' + dg(c) + ' '; })
+      .replace(/(?<![\d.])(\d{4})[\s-](\d{4})[\s-](\d{4})[\s-](\d{4})(?!\d)/g, function(_, a, b, c, d){ return ' ' + [a, b, c, d].map(dg).join(', ') + ' '; })
+      .replace(/(?<![A-Za-z])e-?mail(?![A-Za-z])/gi, ' ایمیل ')
+      .replace(/(\d)\s*([½⅓⅔¼¾])/g, function(_, d, f){ return d + ' و ' + FRAC[f] + ' '; })
+      .replace(/[½⅓⅔¼¾]/g, function(f){ return ' ' + FRAC[f] + ' '; })
+      .replace(/(?<!\d)(\d{1,2}):([0-5]\d):([0-5]\d)(?!\d)/g, function(_, h, m, q){ return ' ' + (+h) + ' ساعت' + (+m ? ' و ' + (+m) + ' دقیقه' : '') + (+q ? ' و ' + (+q) + ' ثانیه' : '') + ' '; })
+      .replace(/(?<![\d.])(\d{1,3})(?:st|nd|rd|th)(?![A-Za-z])/gi, function(_, n){ bump('ord'); return ' ' + ordFa(+n) + ' '; })
+      .replace(/(\d)\s*(mph|lbs?|oz|mi|ft|hrs?|mins?|secs?|ms|l|ha)(?![\p{L}\d\/])/giu, function(_, d, u){ return d + ' ' + U2[u.toLowerCase()] + ' '; })
+      .replace(/(?<![\p{L}\d.])(\d+(?:\.\d+)?)\s?[kK](?![\p{L}\d])/gu, '$1 هزار ')
+      .replace(/(\d)\s?M(?![\p{L}\d])/gu, '$1 میلیون ')
+      .replace(/£\s*(\d+(?:\.\d+)?)/g, '$1 پوند ').replace(/¥\s*(\d+(?:\.\d+)?)/g, '$1 ین ')
+      .replace(/[~≈]\s*(?=\d)/g, ' حدود ').replace(/±/g, ' مثبت منفی ').replace(/#\s*(?=\d)/g, ' شماره ');
+  }
   /* پیش‌اصلاحِ نمادها پیش از تبدیل عدد: ارز پسوندی، ریاضی، توان، شماره تلفن، «COVID-19»، «سازمان ملل (UN)» */
   function preFix(t){
     t = t.replace(/(?:https?:\/\/|www\.)\S+|\S+@\S+\.\S+/g, ' ').replace(/@(?=[A-Za-z0-9_])/g, ' ');
@@ -2343,7 +2984,7 @@ var ocrSpell = (function(){
       t = digitsAscii(t);
       if (citeOn()) t = fxr(t, RE_CITE, 'ref', ' ');
       t = fxr(t, ADV_N, 'spell', function(m){ return m.slice(0, -1) + 'ن'; });
-      t = preFix(t);
+      t = preFix(numPre(t));
       ABBR.forEach(function(a){ t = t.replace(a[0], a[1]); });
       SPELL.forEach(function(r){ t = fxr(t, r[0], 'spell', r[1]); });
       if (fixHi()) {
@@ -2384,9 +3025,9 @@ var ocrSpell = (function(){
   var PH_INIT = mkPh('بنابراین|همچنین|البته|در واقع|درواقع|به طور کلی|علاوه بر این|افزون بر این|با این حال|با این وجود|با این همه|از این رو|به عبارت دیگر|به عبارتی|برای مثال|مثلن|متاسفانه|متأسفانه|خوشبختانه|از سوی دیگر|از طرف دیگر|از یک سو|از یک طرف|به علاوه|در این صورت|در غیر این صورت|به هر حال|به هر روی|در عین حال|در حقیقت|به طور خلاصه|آری|بله|خب|امروزه|به نظر من|اولن|ثانین|ثالثن|رابعن');
   var PH_INIT_H = mkPh('بنابراین|همچنین|البته|در واقع|درواقع|به طور کلی|علاوه بر این|افزون بر این|با این حال|با این وجود|با این همه|از این رو|به عبارت دیگر|به عبارتی|برای مثال|مثلن|متاسفانه|متأسفانه|خوشبختانه|از سوی دیگر|از طرف دیگر|از یک سو|از یک طرف|به علاوه|در این صورت|در غیر این صورت|به هر حال|به هر روی|در عین حال|در حقیقت|به طور خلاصه|آری|بله|خب|امروزه|به نظر من|اولن|ثانین|ثالثن|رابعن|در نهایت|در پایان|در مجموع|در ادامه|در نتیجه|درنتیجه|به همین دلیل|به همین علت|به این ترتیب|بدین ترتیب|از این گذشته|به هر ترتیب|با وجود این|با این اوصاف|در عوض|در این میان|در این بین|در این باره|در این زمینه|نخست|لذا|خلاصه|عمدتن|معمولن|احتمالن|قطعن|مسلمن|طبیعتن|اتفاقن|ضمنن|ظاهرن|یقینن|اساسن|اصولن|مثلن');
   var PH_STRONG = mkPh('اما|ولی|لیکن|بلکه|زیرا|بنابراین');
-  var PH_WEAK = mkPh('همچنین|یعنی|اگرچه|اگر چه|هرچند|هر چند|در حالی که|در حالیکه|با این حال|با این وجود|با این همه|علاوه بر این|افزون بر این|در عین حال|به عبارت دیگر|به عبارتی|برای مثال|به همین دلیل|به همین علت|از این رو|چرا که|از آنجا که|از آنجایی که|به طوری که|ضمن اینکه|با اینکه|حال آنکه|مگر اینکه|مگر آنکه|در صورتی که|به شرطی که|پیش از اینکه|پس از اینکه|بدون اینکه|به جای اینکه|به محض اینکه|در نتیجه|درنتیجه');
+  var PH_WEAK = mkPh('همچنین|یعنی|اگرچه|اگر چه|هرچند|هر چند|در حالی که|در حالیکه|با این حال|با این وجود|با این همه|علاوه بر این|افزون بر این|در عین حال|به عبارت دیگر|به عبارتی|برای مثال|به همین دلیل|به همین علت|از این رو|چرا که|از آنجا که|از آنجایی که|به طوری که|ضمن اینکه|با اینکه|حال آنکه|مگر اینکه|مگر آنکه|در صورتی که|به شرطی که|پیش از اینکه|پس از اینکه|بدون اینکه|به جای اینکه|به محض اینکه|در نتیجه|درنتیجه|به ویژه|به خصوص|برای نمونه|به بیان دیگر|به طور مثال');
   var NOCOMMA_PREV = { 'و': 1, 'که': 1, 'یا': 1, 'تا': 1, 'چون': 1, 'اگر': 1, 'از': 1, 'به': 1, 'در': 1, 'با': 1, 'برای': 1, 'نیز': 1, 'هم': 1 };
-  var P_SPLIT = { 'تا': 40, 'چون': 40, 'اگر': 40, 'وقتی': 40, 'زیرا': 50, 'ولی': 50, 'اما': 50, 'بلکه': 50, 'سپس': 30, 'همچنین': 30, 'هنگامی': 30, 'چنانچه': 40 };
+  var P_SPLIT = { 'تا': 40, 'چون': 40, 'اگر': 40, 'وقتی': 40, 'زیرا': 50, 'ولی': 50, 'اما': 50, 'بلکه': 50, 'سپس': 30, 'همچنین': 30, 'هنگامی': 30, 'چنانچه': 40, 'که': 22 };
   var TA_SKIP = /^(?:حدی|حدودی|کنون|حال|آنجا|زمانی|زمان|چند|اندازه‌ای|اندازهای|آن|به|همین|آخر|ابد|پایان|امروز|دیروز|فردا|اینجا|اینکه)$/;
   var P_LIM = 15;
   function phAt(ws, i, phs){
@@ -2412,6 +3053,7 @@ var ocrSpell = (function(){
           if (bad) continue;
         }
         if (NOCOMMA_PREV[pkw(ws[i - 1])]) continue;
+        if (w === 'که' && /^(?:چرا|آنچه|هرچه|چنان|طوری|همین|همان|مگر|بس|حال|آنجا|اینجا|آن|این|مثل|مانند|اینکه|آنکه|هر|هیچ|همانطور|همان‌طور)$/.test(pkw(ws[i - 1]))) continue;
       } else if (w === 'و' && len > 20 && i - a >= 7 && b - i >= 7 && !NUMW[pkw(ws[i - 1])] && !NUMW[pkw(ws[i + 1] || '')]) sc = 10;
       else continue;
       sc -= Math.abs(i - mid);
@@ -2441,14 +3083,34 @@ var ocrSpell = (function(){
     }).join(' ');
   }
 
+/*@@TXW:/B*/
   var fixRun = 0;
   function analyze(){
-    var my = ++fixRun, N = sents.length, i = 0, tot = {}, uns = {}, risky = 0;
+    var my = ++fixRun, N = sents.length;
     $('#fixMsg').textContent = '';
     $('#fixChips').textContent = ''; $('#fixUnsHead').hidden = true; $('#fixBreak').textContent = '';
     for (var q = 0; q < N; q++) { sents[q].risk = false; if (sents[q].el) sents[q].el.classList.remove('risk'); }
     if (!N) { $('#fixStats').textContent = 'پس از باز کردن یک PDF، نتیجهٔ بررسی اینجا نشان داده می‌شود.'; return; }
     if (!fixOn()) { $('#fixStats').textContent = 'تصحیح گفتار خاموش است؛ متن بدون اصلاح خوانده می‌شود.'; return; }
+    var W = txwGet();
+    if (W) {
+      var tt = new Array(N), cc = new Array(N), z;
+      for (z = 0; z < N; z++) { tt[z] = sents[z].text; cc[z] = !!sents[z].cont; }
+      $('#fixStats').textContent = 'در حال بررسی جمله‌ها… ' + nf.format(0) + '٪';
+      W.call('analyze', { t: tt, c: cc, S: { fixOn: fixOn(), fixHi: $('#fixHi').checked, fixPro: $('#fixPro').checked, ezOn: ezOn(), humOn: humOn(), phLexOn: phLexOn(), citeOn: citeOn() }, dictP: dictP, dictG: dictG }, null, function(f){
+        if (my === fixRun) $('#fixStats').textContent = 'در حال بررسی جمله‌ها… ' + nf.format(Math.round(f * 100)) + '٪';
+      }).then(function(r){
+        if (my !== fixRun || !r) return;
+        var rk = new Uint8Array(r.risk), k, s2;
+        for (k = 0; k < N; k++) { s2 = sents[k]; if (!s2) break; s2.risk = !!rk[k]; if (s2.el) s2.el.classList.toggle('risk', s2.risk); }
+        analyzeDone(r.tot, r.uns, r.risky, N);
+      }, function(){ if (my === fixRun) analyzeLocal(my, N); });
+      return;
+    }
+    analyzeLocal(my, N);
+  }
+  function analyzeLocal(my, N){
+    var i = 0, tot = {}, uns = {}, risky = 0;
     (function step(){
       if (my !== fixRun) return;
       $('#fixStats').textContent = 'در حال بررسی جمله‌ها… ' + nf.format(Math.round(i * 100 / N)) + '٪';
@@ -2463,6 +3125,10 @@ var ocrSpell = (function(){
         if (s.el) s.el.classList.toggle('risk', s.risk);
       }
       if (i < N) { setTimeout(step, 0); return; }
+      analyzeDone(tot, uns, risky, N);
+    })();
+  }
+  function analyzeDone(tot, uns, risky, N){
       var ws = Object.keys(uns).sort(function(a, b){ return uns[b].n - uns[a].n; });
       tot.uns = ws.length;
       var all = 0, parts = [];
@@ -2478,7 +3144,6 @@ var ocrSpell = (function(){
         b.onclick = function(){ addDict(w, uns[w].s); };
         box.appendChild(b);
       });
-    })();
   }
   function dictStat(v){
     var ok = 0, bad = 0;
@@ -2783,24 +3448,32 @@ var ocrSpell = (function(){
         if (ay > KN) { ay = KN + RG * Math.tanh((ay - KN) / RG); y = y < 0 ? -ay : ay; }
         out[i] = y;
       }
-      var fi = Math.min(len, Math.round(sr * 0.004)), fo = Math.min(len, Math.round(sr * 0.012));
-      for (i = 0; i < fi; i++) out[i] = out[i] * i / fi;
-      for (i = 0; i < fo; i++) out[len - 1 - i] = out[len - 1 - i] * i / fo;
+      var fi = Math.min(len >> 1, Math.round(sr * 0.006)), fo = Math.min(len >> 1, Math.round(sr * 0.016));
+      for (i = 0; i < fi; i++) out[i] = out[i] * (0.5 - 0.5 * Math.cos(Math.PI * i / fi));
+      for (i = 0; i < fo; i++) out[len - 1 - i] = out[len - 1 - i] * (0.5 - 0.5 * Math.cos(Math.PI * i / fo));
       return new Blob([wavHdr(sr, len * 2), out], { type: 'audio/wav' });
     });
   }
   var actx = null, fxSrcs = [], fxIn = null;
+  /* latencyHint=playback: بافر بزرگ‌تر و مصرف کمتر CPU/باتری؛ sampleRate هم‌نرخ صدای Piper (۲۲٫۰۵kHz) تا بازنمونه‌برداری و بار فیلترها کم شود */
+  function mkCtx(sr){
+    var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+    var o = { latencyHint: 'playback' }; if (sr) o.sampleRate = sr;
+    try { return new AC(o); } catch (e) {}
+    try { return new AC({ latencyHint: 'playback' }); } catch (e) {}
+    try { return new AC(); } catch (e) {}
+    return null;
+  }
   function setupFx(){
     if (actx || npOK || !$('#enh').checked) return;   /* در موتور بومی، EQ و لیمیتر در Kotlin اعمال می‌شود */
-    var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     try {
-      actx = new AC(); fxSrcs = [actx.createMediaElementSource(audioA), actx.createMediaElementSource(audioB)];
+      actx = mkCtx(22050); if (!actx) return; fxSrcs = [actx.createMediaElementSource(audioA), actx.createMediaElementSource(audioB)];
       var hp = actx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 75;
       var ls = actx.createBiquadFilter(); ls.type = 'lowshelf'; ls.frequency.value = 180; ls.gain.value = 1.3;
       var ds = actx.createBiquadFilter(); ds.type = 'peaking'; ds.frequency.value = 7000; ds.Q.value = 1.3; ds.gain.value = -1.8;
       var pk = actx.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 2800; pk.Q.value = 0.9; pk.gain.value = 2.5;
       var hs = actx.createBiquadFilter(); hs.type = 'highshelf'; hs.frequency.value = 6000; hs.gain.value = 2;
-      var lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 20000; lp.Q.value = 0.707;
+      var lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 10500; lp.Q.value = 0.707;
       var cp = actx.createDynamicsCompressor(); cp.threshold.value = -22; cp.knee.value = 24; cp.ratio.value = 3; cp.attack.value = 0.005; cp.release.value = 0.15;
       var gn = actx.createGain(); gn.gain.value = 1.1;
       var lm = actx.createDynamicsCompressor(); lm.threshold.value = -2; lm.knee.value = 0; lm.ratio.value = 20; lm.attack.value = 0.001; lm.release.value = 0.08;
@@ -2955,7 +3628,10 @@ var ocrSpell = (function(){
     var ln = 0, L;
     if (!pwBad) for (var q = 1; q < LN.length; q++) if (LN[q].b < LN[ln].b) ln = q;
     L = LN[ln]; L.b++;
-    var pr = L.q.then(function(){
+    var prev = L.q, ak = null;
+    var pr = (npPlay ? Promise.resolve(null) : achLookup(c, v).then(function(r){ ak = r.key; return r.hit; })).then(function(h){
+      if (h) return h;
+      return prev.then(function(){
       if (g !== gen) throw new Error('cancelled');
       var t0 = Date.now();
       return piperPredict(c.text, v.id, ln, c.parts).then(function(b){
@@ -2968,7 +3644,8 @@ var ocrSpell = (function(){
         perf();
         return b;
       });
-    }).then(function(b){ return typeof b.gen === 'number' ? b : polish(b, c.mid).catch(function(){ return b; }); }).then(function(b){ if (b.nh) return 'np:' + b.nh; var u = URL.createObjectURL(b); rawBlob[u] = b; return u; });
+    }).then(function(b){ return typeof b.gen === 'number' ? b : polish(b, c.mid).catch(function(){ return b; }); }).then(function(b){ if (ak && !b.nh) achPut(ak, b, { v: v.id, sr: b.sr, np: b.np }); return b; });
+    }).then(function(b){ if (b.nh) return 'np:' + b.nh; var u = URL.createObjectURL(b); rawBlob[u] = b; return u; });
     L.q = pr.catch(function(){});
     pr.then(function(){ L.b--; }, function(){ L.b--; });
     pr.catch(function(){ delete cache[ck]; });
@@ -3015,6 +3692,7 @@ var ocrSpell = (function(){
   var wdPhase = 'idle', wdAt = 0, wdProg = 0, wdGapMs = 0, wdNat = false, wdPosN = 0, wdKick = 0, wdLen = 200, wdGid = 0, wdGrace = 0, wdFails = [];
   function wdSet(p, ms, nat){
     wdPhase = p; wdAt = wdProg = Date.now(); wdGapMs = ms || 0; wdNat = !!nat; wdPosN = 0; wdKick = 0;
+    try { bgmDuckPhase(p, ms || 0); } catch (e) {}
   }
   function wdLog(why){ try { if (window.__elog) window.__elog.add('watchdog', why + ' | جمله ' + idx + ' | فاز ' + wdPhase); } catch (e) {} }
   function wdRecover(why){
@@ -3075,11 +3753,13 @@ var ocrSpell = (function(){
       /* مکث انسانی: بسته به نوع پایان، طول جمله و پایان بند؛ با نوسان ظریف تا ریتم مکانیکی نشود */
       var len = t.length, qs = /[?؟]["»”')\]]*$/.test(t), ex = /!["»”')\]]*$/.test(t);
       if (q.pe) ms = (!strong && !soft && len < 80) ? 800 : (qs ? 600 : 520 + Math.min(140, len * 0.7));
-      else if (q.cont && !strong) ms = 70;
+      else if (q.cont && !strong) ms = 30;
       else ms = (qs ? 250 : ex ? 230 : strong ? 200 : soft ? 175 : 160) + Math.min(90, len * 0.6);
+      if (/(?:…|\.{3})["»”')\]]*$/.test(t)) ms += 220;
+      if (sents[i + 1] && sents[i + 1].page !== q.page) ms += 200;
       ms *= 0.94 + (hStr(t) % 13) / 100;
     } else if (q.pe) ms = (!strong && !soft && t.length < 80) ? 720 : (/[?؟]["»”')\]]*$/.test(t) ? 470 : 410);
-    else if (q.cont && !strong) ms = 60;
+    else if (q.cont && !strong) ms = 25;
     else ms = strong ? 170 : soft ? 130 : 160;
     return Math.round(ms / Math.pow(r, 0.6));
   }
@@ -3170,23 +3850,38 @@ var ocrSpell = (function(){
     other.onended = null; other.ontimeupdate = null; other.onerror = null;
     audio = el; curC = c; el._b = baked || 1; wdSet('play', 0, false);
     wireFx(true);
+    var done = 0, late = 0, goFn = null, LAT = 45;
+    function hand(delay){
+      var n = nxt;
+      if (done || !(n && n.url && n.my === my && my === token && playing && !sents[c.end].pe && c.end + 1 < sents.length)) return false;
+      done = 1; el.ontimeupdate = null;
+      goFn = function(){
+        goFn = null;
+        if (nxt !== n || my !== token || !playing) return;
+        cn++; lastLen = n.c.text.length; idx = n.c.start; mark(true);
+        playEl(n.el, n.c, n.url, my, n.b);
+      };
+      if (delay > 0) hoT = setTimeout(goFn, delay); else goFn();
+      return true;
+    }
     el.onended = function(){
+      if (done) { if (goFn && ++late > 1) { clearTimeout(hoT); goFn(); } return; }   /* تایمر تحویل عقب افتاده (پس‌زمینه): نگهبان را اجرا می‌کند */
       el.ontimeupdate = null;
       idx = c.end;
-      var n = nxt;
-      if (n && n.url && n.my === my && my === token && playing && !sents[c.end].pe && c.end + 1 < sents.length) {
-        var go = function(){
-          if (nxt !== n || my !== token || !playing) return;
-          cn++; lastLen = n.c.text.length; idx = n.c.start; mark(true);
-          playEl(n.el, n.c, n.url, my, n.b);
-        }, pm = pauseMs(c.end);
-        if (pm > 0) setTimeout(go, pm); else go();
-        return;
-      }
+      if (hand(pauseMs(c.end) - LAT)) return;
       gap(my);
     };
     el.onerror = function(){ fail(my, 'پخش صدا ناموفق بود.'); };
-    el.ontimeupdate = function(){ wdProg = Date.now(); followChunk(c); };
+    /* تحویل بدون‌وقفه: زمان‌بندی شروع تکهٔ بعد از روی زمان باقی‌ماندهٔ تکهٔ فعلی (نه تأخیر رویداد ended)، با جبران تأخیر شروع پخش */
+    el.ontimeupdate = function(){
+      wdProg = Date.now(); followChunk(c);
+      if (done) return;
+      var d = el.duration, rt = el.playbackRate || 1;
+      if (d && isFinite(d) && el.currentTime > 0) {
+        var rem = (d - el.currentTime) / rt * 1000;
+        if (rem < 700) hand(Math.max(0, rem - 20, rem + pauseMs(c.end) - LAT));
+      }
+    };
     if (el.src !== url) el.src = url;
     applyRate(el);
     el.play().catch(function(e){ fail(my, 'پخش صدا ناموفق بود: ' + e.message); });
@@ -3304,7 +3999,8 @@ var ocrSpell = (function(){
         var id = file.name + ':' + file.size, now = Date.now(), e = a.filter(function(x){ return x.id === id; })[0];
         if (e) { e.opened = now; e.pages = pages; e.total = total; return kvSet('lib:index', a); }
         if (!$('#libAuto').checked) return;
-        return kvSet('lib:f:' + id, file).then(function(ok){
+        var k = {}; k[id] = 1;
+        return stRoom(a, file.size, k).then(function(){ return kvSet('lib:f:' + id, file); }).then(function(ok){ return ok || (stAutoOn() ? stEvict(a, file.size * 1.5, k) : Promise.resolve()).then(function(){ return kvSet('lib:f:' + id, file); }); }).then(function(ok){
           if (!ok) throw new Error('store');
           a.unshift({ id: id, name: file.name, size: file.size, added: now, opened: now, pages: pages, total: total });
           return kvSet('lib:index', a).then(function(ok2){ if (!ok2) throw new Error('store'); try { navigator.storage.persist(); } catch (x) {} });
@@ -3362,36 +4058,207 @@ var ocrSpell = (function(){
   };
   $('#libAuto').checked = sget('libAuto', '1') !== '0';
   $('#libAuto').onchange = function(){ sset('libAuto', this.checked ? '1' : '0'); };
+
+  /* ---------- مدیریت حافظه: سهمیه، LRU، آرشیو ZIP ---------- */
+  var stBusy = false, CRCT = null;
+  function stAutoOn(){ return sget('stAuto', '1') !== '0'; }
+  function stCapB(){ var m = +sget('stCap', '1000'); return m > 0 ? m * 1048576 : 0; }
+  function stEst(){ try { return navigator.storage && navigator.storage.estimate ? navigator.storage.estimate().catch(function(){ return null; }) : Promise.resolve(null); } catch (e) { return Promise.resolve(null); } }
+  function stSum(a){ return a.reduce(function(s, e){ return s + (e.size || 0); }, 0); }
+  function stMsg(t){ $('#stMsg').textContent = t || ''; }
+  function stLock(b){ stBusy = b; ['stTrim', 'stExp', 'stImp'].forEach(function(i){ $('#' + i).disabled = b; }); }
+  function stRender(){
+    var el = $('#stInfo'); if (!el) return;
+    Promise.all([stEst(), libIdx(), navigator.storage && navigator.storage.persisted ? navigator.storage.persisted().catch(function(){ return false; }) : false]).then(function(r){
+      var s = r[0], a = r[1];
+      el.textContent = 'کتابخانه: ' + libSize(stSum(a)) + ' (' + nf.format(a.length) + ' فایل)' + (s && s.quota ? ' — مصرف کل: ' + libSize(s.usage) + ' از ' + libSize(s.quota) + ' (' + nf.format(Math.round(s.usage * 100 / s.quota)) + '٪)' : '') + (r[2] ? ' — حافظه پایدار است.' : '');
+    }).catch(function(){});
+  }
+  /* حذف قدیمی‌ترین‌ها (بر اساس آخرین بازشدن) تا freed ≥ deficit؛ فایل جاری و keep محافظت می‌شوند. a درجا تغییر می‌کند و فهرست ذخیره می‌شود */
+  function stEvict(a, deficit, keep){
+    var cur = curKey.slice(4), ps = [], n = 0, freed = 0;
+    a.slice().sort(function(x, y){ return (x.opened || 0) - (y.opened || 0); }).forEach(function(e){
+      if (freed >= deficit || keep[e.id] || e.id === cur) return;
+      freed += e.size || 0; n++; a.splice(a.indexOf(e), 1); ps.push(kvDel('lib:f:' + e.id));
+    });
+    return Promise.all(ps).then(function(){ return n ? kvSet('lib:index', a) : 0; }).then(function(){ return { n: n, freed: freed }; });
+  }
+  function stRoom(a, need, keep){
+    if (!stAutoOn()) return Promise.resolve({ n: 0 });
+    var cap = stCapB(), d = cap ? stSum(a) + need - cap : 0;
+    return stEst().then(function(s){
+      if (s && s.quota) d = Math.max(d, need * 1.2 + 2e7 - (s.quota - s.usage));
+      return d > 0 ? stEvict(a, d, keep) : { n: 0 };
+    });
+  }
+  /* ZIP بدون فشرده‌سازی (store): Blob تکه‌تکه ساخته می‌شود و فقط یک فایل هم‌زمان در حافظه است */
+  function crc32(u){
+    var c = -1, i, n, k, v;
+    if (!CRCT) { CRCT = new Uint32Array(256); for (n = 0; n < 256; n++) { v = n; for (k = 0; k < 8; k++) v = v & 1 ? 0xEDB88320 ^ (v >>> 1) : v >>> 1; CRCT[n] = v >>> 0; } }
+    for (i = 0; i < u.length; i++) c = CRCT[(c ^ u[i]) & 255] ^ (c >>> 8);
+    return (c ^ -1) >>> 0;
+  }
+  async function zipBlob(items){
+    var te = new TextEncoder(), parts = [], cd = [], off = 0, i, it, nm, h, d, c, z, crc, sz;
+    for (i = 0; i < items.length; i++) {
+      it = items[i]; nm = te.encode(it.n); sz = it.b.size;
+      crc = crc32(new Uint8Array(await it.b.arrayBuffer()));
+      h = new Uint8Array(30 + nm.length); d = new DataView(h.buffer);
+      d.setUint32(0, 0x04034b50, true); d.setUint16(4, 20, true); d.setUint16(6, 0x0800, true); d.setUint16(12, 0x21, true);
+      d.setUint32(14, crc, true); d.setUint32(18, sz, true); d.setUint32(22, sz, true); d.setUint16(26, nm.length, true); h.set(nm, 30);
+      c = new Uint8Array(46 + nm.length); z = new DataView(c.buffer);
+      z.setUint32(0, 0x02014b50, true); z.setUint16(4, 20, true); z.setUint16(6, 20, true); z.setUint16(8, 0x0800, true); z.setUint16(14, 0x21, true);
+      z.setUint32(16, crc, true); z.setUint32(20, sz, true); z.setUint32(24, sz, true); z.setUint16(28, nm.length, true); z.setUint32(42, off, true); c.set(nm, 46);
+      parts.push(h, it.b); cd.push(c); off += h.length + sz;
+    }
+    var cs = cd.reduce(function(s, x){ return s + x.length; }, 0), e = new Uint8Array(22), ev = new DataView(e.buffer);
+    ev.setUint32(0, 0x06054b50, true); ev.setUint16(8, items.length, true); ev.setUint16(10, items.length, true); ev.setUint32(12, cs, true); ev.setUint32(16, off, true);
+    return new Blob(parts.concat(cd, [e]), { type: 'application/zip' });
+  }
+  async function zipRead(f){
+    var tl = Math.min(f.size, 65557), t = new DataView(await f.slice(f.size - tl).arrayBuffer()), e = -1, i, p = 0, out = [], td = new TextDecoder();
+    for (i = tl - 22; i >= 0; i--) if (t.getUint32(i, true) === 0x06054b50) { e = i; break; }
+    if (e < 0) throw new Error('فایل ZIP معتبر نیست.');
+    var cnt = t.getUint16(e + 10, true), cs = t.getUint32(e + 12, true), co = t.getUint32(e + 16, true), cd = new DataView(await f.slice(co, co + cs).arrayBuffer());
+    for (i = 0; i < cnt && p + 46 <= cd.byteLength && cd.getUint32(p, true) === 0x02014b50; i++) {
+      var nl = cd.getUint16(p + 28, true);
+      out.push({ n: td.decode(new Uint8Array(cd.buffer, p + 46, nl)), m: cd.getUint16(p + 10, true), s: cd.getUint32(p + 20, true), o: cd.getUint32(p + 42, true) });
+      p += 46 + nl + cd.getUint16(p + 30, true) + cd.getUint16(p + 32, true);
+    }
+    return out;
+  }
+  function zipData(f, en){
+    return f.slice(en.o, en.o + 30).arrayBuffer().then(function(b){
+      var d = new DataView(b), s = en.o + 30 + d.getUint16(26, true) + d.getUint16(28, true), sl = f.slice(s, s + en.s);
+      if (en.m === 0) return sl;
+      if (en.m === 8 && window.DecompressionStream) return new Response(sl.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob();
+      throw new Error('روش فشرده‌سازی این ZIP پشتیبانی نمی‌شود.');
+    });
+  }
+  function stDl(b, n){
+    var u = URL.createObjectURL(b), a = document.createElement('a');
+    a.href = u; a.download = n; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(u); }, 60000);
+  }
+  function stDeliver(b, n){
+    var f = new File([b], n, { type: 'application/zip' });
+    if (navigator.canShare && navigator.share && navigator.canShare({ files: [f] })) return navigator.share({ files: [f], title: n }).catch(function(e){ if (!e || e.name !== 'AbortError') stDl(b, n); });
+    stDl(b, n); return Promise.resolve();
+  }
+  async function stExport(){
+    var a = await libIdx(), items = [], man = { v: 1, dict: sget('dict', ''), files: [] }, i, e, b, o, has;
+    if (!a.length) { stMsg('کتابخانه خالی است.'); return; }
+    for (i = 0; i < a.length; i++) {
+      e = a[i]; stMsg('آماده‌سازی ' + nf.format(i + 1) + ' از ' + nf.format(a.length) + '…');
+      b = await kvGet('lib:f:' + e.id); if (!b) continue;
+      items.push({ n: 'pdf/' + i + '.pdf', b: b });
+      o = await ocrLoad('ocr:' + e.id); has = o && Object.keys(o).length > 0;
+      if (has) items.push({ n: 'ocr/' + i + '.json', b: new Blob([JSON.stringify(o)]) });
+      man.files.push({ id: e.id, name: e.name, size: e.size, added: e.added, opened: e.opened, pages: e.pages, total: e.total, pos: sget('pos:' + e.id, '0'), dict: sget('dict:' + e.name, ''), f: i, o: has ? 1 : 0 });
+    }
+    items.unshift({ n: 'manifest.json', b: new Blob([JSON.stringify(man)]) });
+    stMsg('در حال ساخت ZIP…');
+    var z = await zipBlob(items); items = null;
+    await stDeliver(z, 'pdf-reader-' + new Date().toISOString().slice(0, 10) + '.zip');
+    stMsg(nf.format(man.files.length) + ' فایل صادر شد (' + libSize(z.size) + ').');
+  }
+  async function stImport(file){
+    var en = await zipRead(file), by = {}, man, a, have = {}, n = 0, i, m, pe, b, o;
+    en.forEach(function(x){ by[x.n] = x; });
+    if (!by['manifest.json']) throw new Error('این ZIP آرشیو این برنامه نیست.');
+    man = JSON.parse(await (await zipData(file, by['manifest.json'])).text());
+    await libLock(async function(){
+      a = await libIdx(); a.forEach(function(x){ have[x.id] = 1; });
+      var keep = {}; (man.files || []).forEach(function(x){ keep[x.id] = 1; });
+      for (i = 0; i < (man.files || []).length; i++) {
+        m = man.files[i]; pe = by['pdf/' + m.f + '.pdf'];
+        if (!pe || have[m.id]) continue;
+        stMsg('واردات ' + nf.format(i + 1) + ' از ' + nf.format(man.files.length) + '…');
+        b = new Blob([await zipData(file, pe)], { type: 'application/pdf' });
+        await stRoom(a, b.size, keep);
+        if (!(await kvSet('lib:f:' + m.id, b))) throw new Error('حافظه پر است؛ سقف را افزایش دهید یا فایل‌های قدیمی را حذف کنید.');
+        a.unshift({ id: m.id, name: m.name, size: m.size, added: m.added, opened: m.opened, pages: m.pages, total: m.total });
+        await kvSet('lib:index', a);
+        if (m.o && by['ocr/' + m.f + '.json']) { o = JSON.parse(await (await zipData(file, by['ocr/' + m.f + '.json'])).text()); await ocrSave('ocr:' + m.id, o); }
+        if (+m.pos) sset('pos:' + m.id, m.pos);
+        if (m.dict && !sget('dict:' + m.name, '')) sset('dict:' + m.name, m.dict);
+        have[m.id] = 1; n++;
+      }
+    });
+    if (man.dict && !dictG) { dictSetText('all', man.dict); parseDict(); dictShow(); }
+    return n;
+  }
+  function stRun(fn){
+    if (stBusy) return; stLock(true);
+    Promise.resolve().then(fn).catch(function(e){ stMsg('ناموفق: ' + em(e)); }).then(function(){ stLock(false); libRender(); stRender(); });
+  }
+  $('#stCap').value = sget('stCap', '1000'); if (!$('#stCap').value) $('#stCap').value = '1000';
+  $('#stCap').onchange = function(){ sset('stCap', this.value); stMsg(''); };
+  $('#stAuto').checked = stAutoOn();
+  $('#stAuto').onchange = function(){ sset('stAuto', this.checked ? '1' : '0'); };
+  $('#stBox').addEventListener('toggle', function(){ if (this.open) { try { navigator.storage.persist(); } catch (e) {} stRender(); } });
+  $('#stTrim').onclick = function(){
+    stRun(function(){
+      return libIdx().then(function(a){
+        var tot = stSum(a), cap = stCapB(), d = tot - (cap || tot) * 0.6;
+        return d > 0 ? stEvict(a, d, {}) : { n: 0, freed: 0 };
+      }).then(function(r){ stMsg(r.n ? nf.format(r.n) + ' فایل قدیمی حذف شد و ' + libSize(r.freed) + ' آزاد شد.' : 'چیزی برای حذف نبود.'); });
+    });
+  };
+  $('#stExp').onclick = function(){ stRun(stExport); };
+  $('#stImp').onclick = function(){ if (!stBusy) $('#stZip').click(); };
+  $('#stZip').onchange = function(){
+    var f = this.files[0]; this.value = ''; if (!f) return;
+    stRun(function(){ return stImport(f).then(function(n){ stMsg(nf.format(n) + ' فایل وارد شد.'); }); });
+  };
   $('#libBox').addEventListener('toggle', function(){ if (this.open) libRender(); });
   libRender();
 
   /* ---------- background music ---------- */
-  var bgm = { el: null, ctx: null, gain: null, url: '', loaded: false, preview: false, off: 0, re: 0, blocked: false };
+  var bgm = { el: null, ctx: null, gain: null, dk: null, dm: 1, dT: 0, url: '', loaded: false, preview: false, off: 0, re: 0, blocked: false };
   var BGM_MAX = 0.6;
   function bgmLevel(){ var v = Math.max(0, Math.min(100, +$('#bgmLvl').value || 0)) / 100; return BGM_MAX * v * v; }
   function bgmWant(){ return !!(bgm.loaded && (bgm.preview || (playing && $('#bgmOn').checked))); }
   function bgmGraph(){
     if (bgm.ctx) return true;
-    var AC = window.AudioContext || window.webkitAudioContext; if (!AC || !bgm.el) return false;
+    if (!bgm.el) return false;
     try {
-      var c = new AC(), src = c.createMediaElementSource(bgm.el);
+      var c = mkCtx(0), src = c.createMediaElementSource(bgm.el);
       function bq(type, f, q, g){ var n = c.createBiquadFilter(); n.type = type; n.frequency.value = f; if (q) n.Q.value = q; if (g !== undefined) n.gain.value = g; return n; }
       /* فیلترهای ملایم: فرکانس‌های اصلی گفتار کمی کم می‌شود، ولی موسیقی همچنان واضح شنیده می‌شود */
       var hp = bq('highpass', 80, 0.7), mid = bq('peaking', 1000, 0.7, -4), pres = bq('peaking', 3000, 0.9, -3), lp = bq('lowpass', 9000, 0.6);
       var cp = c.createDynamicsCompressor(); cp.threshold.value = -24; cp.knee.value = 20; cp.ratio.value = 3; cp.attack.value = 0.02; cp.release.value = 0.3;
       var mk = c.createGain(); mk.gain.value = 1.5;
       var g = c.createGain(); g.gain.value = 0;
-      src.connect(hp); hp.connect(mid); mid.connect(pres); pres.connect(lp); lp.connect(cp); cp.connect(mk); mk.connect(g); g.connect(c.destination);
-      bgm.ctx = c; bgm.gain = g;
+      var dk = c.createGain(); dk.gain.value = bgm.dm;   /* گرهٔ داکینگ: جدا از ولوم کاربر تا هر دو بدون تداخل نرم تغییر کنند */
+      src.connect(hp); hp.connect(mid); mid.connect(pres); pres.connect(lp); lp.connect(cp); cp.connect(mk); mk.connect(g); g.connect(dk); dk.connect(c.destination);
+      bgm.ctx = c; bgm.gain = g; bgm.dk = dk;
       try { bgm.el.volume = 1; } catch (e) {}
       c.onstatechange = function(){ if (bgmWant() && c.state !== 'running') { try { c.resume(); } catch (e) {} } };
-    } catch (e) { bgm.ctx = null; bgm.gain = null; return false; }
+    } catch (e) { bgm.ctx = null; bgm.gain = null; bgm.dk = null; return false; }
     return true;
   }
   function bgmSetGain(v, tc){
     if (bgm.gain) {
       try { var t = bgm.ctx.currentTime; bgm.gain.gain.cancelScheduledValues(t); bgm.gain.gain.setTargetAtTime(v, t, tc); } catch (e) { try { bgm.gain.gain.value = v; } catch (x) {} }
-    } else if (bgm.el) { try { bgm.el.volume = Math.max(0, Math.min(1, v * 2)); } catch (e) {} }
+    } else if (bgm.el) { try { bgm.el.volume = Math.max(0, Math.min(1, v * 2 * bgm.dm)); } catch (e) {} }
+  }
+  /* داکینگ هوشمند: هنگام گفتار حمله‌ی سریع، در مکث‌های کوتاه بین جمله‌ها نگه‌داشتن (بدون پمپاژ)، در مکث‌های بلند رهاسازی نرم */
+  var DUCK = 0.4, DUCK_ATK = 0.05, DUCK_REL = 0.45;
+  function bgmDuckTo(m, tc){
+    if (bgm.dm === m) return;
+    bgm.dm = m;
+    if (bgm.dk) {
+      try { var t = bgm.ctx.currentTime, pr = bgm.dk.gain; pr.cancelScheduledValues(t); pr.setValueAtTime(pr.value, t); pr.setTargetAtTime(m, t, tc); } catch (e) { try { bgm.dk.gain.value = m; } catch (x) {} }
+    } else if (bgm.el && bgmWant()) bgmSetGain(bgmLevel(), 0);
+  }
+  function bgmDuckPhase(ph, ms){
+    clearTimeout(bgm.dT);
+    if (ph === 'play') { if (!bgm.preview && bgm.loaded) bgmDuckTo(DUCK, DUCK_ATK); return; }
+    if (ph === 'gap' && ms < 500) return;
+    var hold = ph === 'idle' ? 0 : ph === 'gap' ? 260 : 900;
+    if (!hold) { bgmDuckTo(1, DUCK_REL); return; }
+    bgm.dT = setTimeout(function(){ bgmDuckTo(1, DUCK_REL); }, hold);
   }
   function bgmPlay(){
     var el = bgm.el; if (!el || !el.paused) return;
@@ -3631,6 +4498,7 @@ var ocrSpell = (function(){
   function pcFmt(b){ return b >= 1048576 ? nf.format(Math.round(b / 104857.6) / 10) + ' مگابایت' : nf.format(Math.max(0, Math.round(b / 1024))) + ' کیلوبایت'; }
   function pcRefresh(){
     var el = $('#pcInfo'); if (!el) return;
+    achUi();
     if (!npOK || !NP || !NP.cacheInfo) { el.textContent = 'حافظهٔ نهان صدا: فقط در اپ اندروید با موتور بومی کار می‌کند.'; return; }
     NP.cacheInfo().then(function(r){
       el.textContent = 'حافظهٔ نهان صدا: ' + pcFmt(r.bytes || 0) + ' از حداکثر ' + pcFmt(r.max || 0) + ' (' + nf.format(r.files || 0) + ' جمله). باز کردن دوبارهٔ همین کتاب با همین گوینده و تنظیمات، فوری می‌شود.';
@@ -3638,8 +4506,25 @@ var ocrSpell = (function(){
     }).catch(function(){ el.textContent = 'این APK هنوز حافظهٔ نهان صدا ندارد؛ پلاگین Kotlin جدید را در پروژه بگذارید و دوباره بسازید.'; });
   }
   $('#advBox').addEventListener('toggle', function(){ if (this.open) pcRefresh(); });
-  $('#pcClear').onclick = function(){ if (!npOK || !NP || !NP.cacheClear) { pcRefresh(); return; } NP.cacheClear().then(pcRefresh, pcRefresh); };
-  $('#pcLimit').onchange = function(){ if (!npOK || !NP || !NP.cacheLimit) return; NP.cacheLimit({ mb: +this.value }).then(pcRefresh, pcRefresh); };
+  (function(){ var v = sget('pcLim', ''), o = $('#pcLimit'); if (v && o && o.querySelector('option[value="' + v + '"]')) o.value = v; })();
+  $('#pcClear').onclick = function(){ achClear().then(achUi); if (!npOK || !NP || !NP.cacheClear) { pcRefresh(); return; } NP.cacheClear().then(pcRefresh, pcRefresh); };
+  $('#pcLimit').onchange = function(){ sset('pcLim', this.value); achTrim().then(achUi); if (!npOK || !NP || !NP.cacheLimit) return; NP.cacheLimit({ mb: +this.value }).then(pcRefresh, pcRefresh); };
+  $('#acExp').onclick = function(){
+    if (ach.busy) return; ach.busy = true; achMsg('در حال ساخت آرشیو…');
+    achExport().then(function(r){
+      if (!r) { achMsg('حافظهٔ نهان صدا خالی است؛ چیزی برای خروجی نیست.'); return; }
+      return achSave(r.blob, r.name).then(function(){ achMsg(nf.format(r.n) + ' قطعه در آرشیو ZIP قرار گرفت (' + pcFmt(r.blob.size) + ').'); });
+    }).catch(function(e){ achMsg('خروجی ناموفق بود: ' + em(e)); }).then(function(){ ach.busy = false; });
+  };
+  $('#acImp').onclick = function(){ if (!ach.busy) $('#acFile').click(); };
+  $('#acFile').onchange = function(){
+    var f = this.files[0]; this.value = '';
+    if (!f || ach.busy) return;
+    ach.busy = true; achMsg('در حال وارد کردن آرشیو…');
+    achImport(f).then(function(r){ achMsg(nf.format(r.ok) + ' قطعه وارد شد' + (r.skip ? ' (' + nf.format(r.skip) + ' قطعه رد شد: خراب، تکراری یا خارج از سهمیه)' : '') + '.'); achUi(); })
+      .catch(function(e){ achMsg('ورودی ناموفق بود: ' + em(e)); }).then(function(){ ach.busy = false; });
+  };
+  setTimeout(function(){ achTrim(); }, 5000);
   $('#smartPace').onchange = function(){ sset('smartPace', this.checked ? '1' : '0'); changed(); warmPiper(); };
   $('#enh').onchange = function(){ sset('enh', this.checked ? '1' : '0'); if (npOK) { changed(); return; } setupFx(); wireFx(engine() === 'piper'); };
   dictG = sget('dict', ''); parseDict(); dictShow();
@@ -3747,7 +4632,7 @@ var ocrSpell = (function(){
     [['play', function(){ if (!playing) start(); }], ['pause', function(){ if (playing) pause(); }], ['previoustrack', function(){ seekTo(idx - 1); }], ['nexttrack', function(){ seekTo(idx + 1); }]].forEach(function(a){ navigator.mediaSession.setActionHandler(a[0], a[1]); });
   } catch (e) {} }
 
-  var TXT_IDS = ['lnMode','oDots','oHdr','oNorm','oFix','oScript','oPos','oCols','maxL','pgFrom','pgTo','ocrMode','ocrLang','ocrQ','encMode','oGlue','oSpell','oPause'], TXT_DEF = {};
+  var TXT_IDS = ['lnMode','oDots','oHdr','oNorm','oFix','oScript','oPos','oCols','maxL','pgFrom','pgTo','ocrMode','ocrLang','ocrQ','encMode','oGlue','oSpell','oPause','oToc'], TXT_DEF = {};
   TXT_IDS.forEach(function(id){
     var e = $('#' + id), c = e.type === 'checkbox'; TXT_DEF[id] = c ? e.checked : e.value;
     var v = sget('o_' + id, null);
@@ -3818,7 +4703,7 @@ var ocrSpell = (function(){
     for (i = 0; i < ps.length; i++) ps[i].classList.toggle('on', ps[i].dataset.panel === t);
     curTabNow = t; setTimeout(function(){ sset('tab', t); }, 0); $('#mbody').scrollTop = 0; segRefresh();
     var TT = { lib: 'کتابخانه', voice: 'صدا', text: 'متن', view: 'نمایش' }; $('#menuTitle').textContent = TT[t] || 'منو'; markNav();
-    if (t === 'lib') setTimeout(libRender, 80);
+    if (t === 'lib') setTimeout(function(){ libRender(); stRender(); }, 80);
   }
   function openMenu(t){
     showTab(t || sget('tab', 'lib'));
