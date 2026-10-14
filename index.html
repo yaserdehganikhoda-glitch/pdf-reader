@@ -1174,7 +1174,9 @@ body.fs .fsx:hover,body.fs .fsx:focus-visible{opacity:1}
     return new Blob([u], { type: type });
   }
   /* منبع مدل‌های دانلودی (Hugging Face)؛ فایل‌های .onnx و .onnx.json در حافظهٔ دائمی بومی (فایل‌سیستم برنامه) ذخیره و فقط یک بار دانلود می‌شوند؛ نشست ONNX هم فقط برای گوینده‌ی فعال در حافظه می‌ماند */
-  var MODEL_SRC = { 'fa_IR-mana-medium': { onnx: 'https://huggingface.co/MahtaFetrat/Mana-Persian-Piper/resolve/main/fa_IR-mana-medium.onnx', json: 'https://huggingface.co/MahtaFetrat/Mana-Persian-Piper/resolve/main/fa_IR-mana-medium.onnx.json', sr: 22050 } };
+  var MODEL_SRC = { 'fa_IR-mana-medium': { onnx: 'https://huggingface.co/MahtaFetrat/Mana-Persian-Piper/resolve/main/fa_IR-mana-medium.onnx', json: 'https://huggingface.co/MahtaFetrat/Mana-Persian-Piper/resolve/main/fa_IR-mana-medium.onnx.json', sr: 22050,
+    alts: [ { onnx: 'https://huggingface.co/MahtaFetrat/Mana-Persian-Piper/resolve/ad9dd8518bedf517bd7cbc9f63b8e5c844bf5bc0/fa_IR-mana-medium.onnx', json: 'https://huggingface.co/MahtaFetrat/Mana-Persian-Piper/resolve/ad9dd8518bedf517bd7cbc9f63b8e5c844bf5bc0/fa_IR-mana-medium.onnx.json' },
+            { onnx: 'https://huggingface.co/omid3098/dio-piper-fa/resolve/main/fa_IR-dio-piper-fa.onnx', json: 'https://huggingface.co/omid3098/dio-piper-fa/resolve/main/fa_IR-dio-piper-fa.onnx.json' } ] } };
   var VOICE_TEMPOS = { 'fa_IR-gyro-medium': 0.92, 'fa_IR-mana-medium': 1 };   /* ضریب سرعت اختصاصی هر گوینده در ساخت صدا (بدون کشیدن صدا)؛ کمتر از ۱ = کندتر. گوینده‌ای که اینجا نیست با سرعت اصلی خودش می‌خواند */
   var VOICE_TEMPO = 1;   /* ۱ = سرعت اصلی و دست‌نخوردهٔ مدل، همان لحظهٔ نصب صدا */
   var PART_GAP = 0.12;   /* ثانیه: سکوت بین جمله‌های یک تکه (هر جمله جدا ساخته و در حافظهٔ نهان نگه داشته می‌شود) */
@@ -1210,7 +1212,22 @@ body.fs .fsx:hover,body.fs .fsx:focus-visible{opacity:1}
     download: function(id, cb){
       var h = null, done = function(){ try { if (h && h.remove) h.remove(); } catch (e) {} };
       return Promise.resolve(NP.addListener('progress', function(e){ if (cb) cb({ loaded: e.loaded, total: e.total, stage: e.stage, n: e.n }); }))
-        .then(function(x){ h = x; return NP.download(MODEL_SRC[id] ? { id: id, onnx: MODEL_SRC[id].onnx, json: MODEL_SRC[id].json } : { id: id }); })
+        .then(function(x){
+          h = x;
+          var m = MODEL_SRC[id];
+          if (!m) return NP.download({ id: id });
+          /* تلاش پشت‌سرهم روی آدرس‌های جایگزین؛ هر شکست در لاگ خطا ثبت می‌شود تا آدرس خراب مشخص شود */
+          var list = [{ onnx: m.onnx, json: m.json }].concat(m.alts || []), i = 0;
+          var next = function(){
+            var a = list[i++];
+            return Promise.resolve(NP.download({ id: id, onnx: a.onnx, json: a.json })).catch(function(e){
+              try { if (window.__elog) window.__elog.add('voice-dl', a.onnx + ' => ' + String((e && (e.message || e.errorMessage)) || e)); } catch (x) {}
+              if (i < list.length) return next();
+              throw e;
+            });
+          };
+          return next();
+        })
         .then(function(r){ done(); return r; }, function(e){ done(); throw e; });
     },
     predict: function(o){
