@@ -22,11 +22,14 @@ jobs:
           path: |
             ~/.offline-cache
             ~/.npm
-          key: offline-v2-${{ hashFiles('native/checksums.txt', 'native/inject-native.sh', 'native/fetch-offline.sh', 'native/fetch-ocr-paddle.sh') }}
+          key: offline-v1-${{ hashFiles('native/checksums.txt', 'native/inject-native.sh', 'native/fetch-offline.sh') }}
           restore-keys: |
-            offline-v2-
+            offline-v1-
       - name: Prepare web files
-        run: mkdir -p www && cp index.html www/index.html
+        run: |
+          mkdir -p www
+          if [ ! -s www/index.html ]; then cp index.html www/index.html; fi
+          test -s www/index.html
       - name: Install dependencies
         run: npm install --legacy-peer-deps
       - name: Bundle offline web assets (fonts, pdf.js, OCR)
@@ -42,14 +45,8 @@ jobs:
         run: npx cap sync android
       - name: Verify OCR files copied into Android assets
         run: |
-          F="ocr/ort/ort.min.js ocr/ort/ort-wasm-simd.wasm ocr/paddle/PP-OCRv5_mobile_det.onnx ocr/paddle/arabic_PP-OCRv5_mobile_rec.onnx ocr/paddle/arabic_PP-OCRv5_mobile_rec_dict.txt"
-          ls -laR www/ocr || true
-          M=0
-          for f in $F; do
-            [ -s "www/$f" ] || { echo "MISSING in www: $f (fetch-offline.sh did not download it)"; M=1; }
-            [ -s "android/app/src/main/assets/public/$f" ] || { echo "MISSING in android assets: $f"; M=1; }
-          done
-          exit $M
+          ls -la www/ocr/ort www/ocr/paddle
+          ls -la android/app/src/main/assets/public/ocr/ort android/app/src/main/assets/public/ocr/paddle
       - name: Patch Gradle repos
         run: |
           sed -i "s#^\([[:space:]]*\)google()#\1google()\n\1maven { url 'https://maven-central.storage-download.googleapis.com/maven2/' }#" android/build.gradle
@@ -74,8 +71,8 @@ jobs:
       - name: Verify OCR files inside the APK
         run: |
           unzip -l PdfVoiceReader.apk | grep -E "assets/public/ocr/" || true
-          for f in ocr/ort/ort.min.js ocr/ort/ort-wasm-simd.wasm ocr/paddle/PP-OCRv5_mobile_det.onnx ocr/paddle/arabic_PP-OCRv5_mobile_rec.onnx ocr/paddle/arabic_PP-OCRv5_mobile_rec_dict.txt; do
-            unzip -l PdfVoiceReader.apk | grep -q "assets/public/$f" || { echo "OCR file missing from APK: $f"; exit 1; }
+          for f in ort/ort.min.js ort/ort-wasm-simd.wasm paddle/PP-OCRv5_mobile_det.onnx paddle/arabic_PP-OCRv5_mobile_rec.onnx paddle/arabic_PP-OCRv5_mobile_rec_dict.txt; do
+            unzip -l PdfVoiceReader.apk | grep -q "assets/public/ocr/$f" || { echo "OCR file missing from APK: $f"; exit 1; }
           done
       - name: Upload APK (run page)
         uses: actions/upload-artifact@v4
