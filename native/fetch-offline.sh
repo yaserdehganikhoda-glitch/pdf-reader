@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # One-time (needs internet). Usage: bash fetch-offline.sh <folder-next-to-index.html>
-# Creates ocr/ (Tesseract engine + fas/eng data), lib/ (pdf.js + cmaps + standard fonts) and fonts/ (Vazirmatn, Noto Naskh Arabic) for fully offline use.
+# Creates ocr/ (onnxruntime-web + PaddleOCR PP-OCRv5 Arabic/Persian models), lib/ (pdf.js + cmaps + standard fonts) and fonts/ (Vazirmatn, Noto Naskh Arabic) for fully offline use.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 CACHE="${OFFLINE_CACHE:-$HOME/.offline-cache}"; mkdir -p "$CACHE"
@@ -22,24 +22,32 @@ dl() {
   echo "$f"
 }
 D="$(cd "${1:-.}" && pwd)"
-mkdir -p "$D/ocr/lang" "$D/lib/cmaps" "$D/lib/standard_fonts" "$D/fonts/files"
+mkdir -p "$D/ocr/ort" "$D/ocr/paddle" "$D/lib/cmaps" "$D/lib/standard_fonts" "$D/fonts/files"
 T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
 cd "$T"
 npm init -y >/dev/null
-npm i --prefer-offline --no-audit --no-fund tesseract.js@5.1.1 tesseract.js-core@5.1.1 pdfjs-dist@3.11.174 @fontsource/vazirmatn@5 @fontsource/noto-naskh-arabic@5 >/dev/null
+npm i --prefer-offline --no-audit --no-fund onnxruntime-web@1.17.3 pdfjs-dist@3.11.174 @fontsource/vazirmatn@5 @fontsource/noto-naskh-arabic@5 >/dev/null
 N="$T/node_modules"
-cp "$N/tesseract.js/dist/tesseract.min.js" "$N/tesseract.js/dist/worker.min.js" "$D/ocr/"
-cp "$N"/tesseract.js-core/tesseract-core*lstm.wasm.js "$D/ocr/"
+# پاک‌سازی فایل‌های قدیمی Tesseract (دیگر استفاده نمی‌شوند)
+rm -rf "$D/ocr/lang" "$D/ocr/tesseract.min.js" "$D/ocr/worker.min.js" "$D"/ocr/tesseract-core*
+cp "$N/onnxruntime-web/dist/ort.min.js" "$N/onnxruntime-web/dist/ort-wasm-simd.wasm" "$D/ocr/ort/"
+# فایل‌های اختیاری شتاب WebGPU (اگر نباشند، OCR با WASM SIMD کار می‌کند)
+for f in ort.webgpu.min.js ort-wasm-simd.jsep.wasm; do
+  [ -s "$N/onnxruntime-web/dist/$f" ] && cp "$N/onnxruntime-web/dist/$f" "$D/ocr/ort/" || echo "WARN: $f not found; WebGPU disabled" >&2
+done
 cp "$N/pdfjs-dist/build/pdf.min.js" "$N/pdfjs-dist/build/pdf.worker.min.js" "$D/lib/"
 [ -d "$N/pdfjs-dist/cmaps" ] && cp -r "$N/pdfjs-dist/cmaps/." "$D/lib/cmaps/" || echo "WARN: cmaps not found" >&2
 [ -d "$N/pdfjs-dist/standard_fonts" ] && cp -r "$N/pdfjs-dist/standard_fonts/." "$D/lib/standard_fonts/" || echo "WARN: standard_fonts not found" >&2
-for L in fas eng; do
-  TD="$(dl "https://github.com/tesseract-ocr/tessdata_best/raw/main/$L.traineddata" "$L.traineddata")"
-  # بدون .gz ذخیره می‌شود (اندروید/WebView با فایل‌های .gz داخل assets مشکل دارد؛ در برنامه gzip:false استفاده می‌شود)
-  rm -f "$D/ocr/lang/$L.traineddata.gz"
-  cp "$TD" "$D/ocr/lang/$L.traineddata"
-  [ "$(stat -c %s "$D/ocr/lang/$L.traineddata")" -gt 1000000 ] || { echo "download failed: $L" >&2; exit 1; }
-done
+# مدل‌های PaddleOCR (PP-OCRv5 عربی/فارسی، ONNX) با بررسی sha256
+HF="https://huggingface.co/vladadu/pp-ocrv5-arabic-mobile-onnx/resolve/main"
+pm() {  # pm نام‌فایل sha256
+  local f; f="$(dl "$HF/$1" "$1")"
+  [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$2" ] || { echo "CHECKSUM MISMATCH: $1" >&2; rm -f "$f"; exit 1; }
+  cp "$f" "$D/ocr/paddle/$1"
+}
+pm PP-OCRv5_mobile_det.onnx c8d9b07063420ce5365c74e42532de48238feeeedcdb7a330b195708bc38a93f
+pm arabic_PP-OCRv5_mobile_rec.onnx 4e2f4ae42104e1b272463966c56ddafa3c6ad98ce9d8c7ed765ce66666ea13e1
+pm arabic_PP-OCRv5_mobile_rec_dict.txt 7f92f7dbb9b75a4787a83bfb4f6d14a8ab515525130c9d40a9036f61cf6999e9
 python3 - "$N" "$D/fonts" <<'PY' || echo "WARN: fonts not built; system fonts will be used" >&2
 import re, shutil, sys
 N, O = sys.argv[1:3]
@@ -56,12 +64,9 @@ for pkg, ws in need.items():
         css.append(t)
 open(f"{O}/fonts.css", "w", encoding="utf-8").write("\n".join(css))
 PY
-# موتور ONNX و مدل‌های PaddleOCR (فارسی/عربی)
-bash "$HERE/fetch-ocr-paddle.sh" "$D"
 # بررسی نهایی: موارد ضروری
-for f in ocr/tesseract.min.js ocr/worker.min.js ocr/lang/fas.traineddata ocr/lang/eng.traineddata lib/pdf.min.js lib/pdf.worker.min.js ocr/ort/ort.min.js ocr/ort/ort-wasm-simd.wasm ocr/paddle/PP-OCRv5_mobile_det.onnx ocr/paddle/arabic_PP-OCRv5_mobile_rec.onnx ocr/paddle/arabic_PP-OCRv5_mobile_rec_dict.txt; do
+for f in ocr/ort/ort.min.js ocr/ort/ort-wasm-simd.wasm ocr/paddle/PP-OCRv5_mobile_det.onnx ocr/paddle/arabic_PP-OCRv5_mobile_rec.onnx ocr/paddle/arabic_PP-OCRv5_mobile_rec_dict.txt lib/pdf.min.js lib/pdf.worker.min.js; do
   [ -s "$D/$f" ] || { echo "missing: $f" >&2; exit 1; }
 done
-ls "$D"/ocr/tesseract-core*lstm.wasm.js >/dev/null
 [ -s "$D/fonts/fonts.css" ] || echo "WARN: fonts/fonts.css missing" >&2
 echo "OK -> $D/ocr , $D/lib , $D/fonts"

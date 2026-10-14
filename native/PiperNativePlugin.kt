@@ -339,18 +339,6 @@ class PiperNativePlugin : Plugin() {
             var netDone = false
             // نصب تکراری (مثلاً هم‌زمان با بارگذاری از پوشه): اگر صدا کامل نصب است کاری لازم نیست
             if (okMark(id).exists() && findOnnx(voiceDir(id)) != null) { call.resolve(); return@execute }
-            // مدل خام Piper (بدون بستهٔ sherpa): آدرس onnx و json از برنامه می‌آید؛ tokens و متادیتا خودمان ساخته می‌شود
-            val rawOnnx = call.getString("onnx"); val rawJson = call.getString("json")
-            if (rawOnnx != null && rawJson != null && id !in bundledIds()) {
-                try {
-                    installRaw(id, rawOnnx, rawJson) { l, t -> notifyListeners("progress", JSObject().put("loaded", l).put("total", t)) }
-                    call.resolve()
-                } catch (e: Throwable) {
-                    voiceDir(id).deleteRecursively()
-                    call.reject("نصب ناموفق: ${e.message}")
-                }
-                return@execute
-            }
             try {
                 // بدون کپی موقت: جریان asset مستقیم به bz2 و tar می‌رود (نصف فضا و زمان)؛ پیشرفت از روی بایت‌های خوانده‌شده
                 // اگر صدا همراه APK بود از assets؛ وگرنه (حالت پیش‌فرض) بعد از نصب از اینترنت دانلود می‌شود
@@ -393,62 +381,6 @@ class PiperNativePlugin : Plugin() {
                 call.reject("نصب ناموفق: ${e.message}")
             }
         }
-    }
-
-    private val ESPEAK_URL = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/espeak-ng-data.tar.bz2"
-
-    private fun varint(n: Int): ByteArray {
-        val o = java.io.ByteArrayOutputStream(); var v = n
-        while (v >= 0x80) { o.write((v and 0x7F) or 0x80); v = v ushr 7 }
-        o.write(v); return o.toByteArray()
-    }
-
-    /** افزودن متادیتای sherpa به انتهای فایل ONNX (ModelProto.metadata_props = فیلد ۱۴؛ الحاق بایت‌ها معتبر است) */
-    private fun appendMeta(onnx: File, kv: List<Pair<String, String>>) {
-        java.io.FileOutputStream(onnx, true).use { out ->
-            for ((k, v) in kv) {
-                val kb = k.toByteArray(Charsets.UTF_8); val vb = v.toByteArray(Charsets.UTF_8)
-                val e = java.io.ByteArrayOutputStream()
-                e.write(0x0A); e.write(varint(kb.size)); e.write(kb)
-                e.write(0x12); e.write(varint(vb.size)); e.write(vb)
-                val eb = e.toByteArray()
-                out.write(0x72); out.write(varint(eb.size)); out.write(eb)
-            }
-        }
-    }
-
-    /** نصب مدل خام Piper (مثل mana): دانلود json و onnx، ساخت tokens.txt، افزودن متادیتا، و تأمین espeak-ng-data */
-    private fun installRaw(id: String, onnxUrl: String, jsonUrl: String, emit: (Long, Long) -> Unit) {
-        if (ttsId == id) releaseEngine(id)
-        val jsonPart = File(root(), "$id.json.dl"); jsonPart.delete()
-        val onnxPart = File(root(), "$id.onnx.dl")
-        fetchResumable(jsonUrl, jsonPart) { _, _ -> }
-        val cfg = org.json.JSONObject(jsonPart.readText(Charsets.UTF_8))
-        val map = cfg.getJSONObject("phoneme_id_map")
-        fetchResumable(onnxUrl, onnxPart, emit)
-        val dst = voiceDir(id); dst.deleteRecursively(); dst.mkdirs()
-        val sb = StringBuilder()
-        val ks = map.keys()
-        while (ks.hasNext()) { val k = ks.next(); sb.append(k).append(' ').append(map.getJSONArray(k).getInt(0)).append('\n') }
-        File(dst, "tokens.txt").writeText(sb.toString(), Charsets.UTF_8)
-        val onnx = File(dst, "$id.onnx")
-        if (!onnxPart.renameTo(onnx)) { onnxPart.copyTo(onnx, true); onnxPart.delete() }
-        val sr = cfg.optJSONObject("audio")?.optInt("sample_rate", 22050) ?: 22050
-        appendMeta(onnx, listOf(
-            "model_type" to "vits", "comment" to "piper", "language" to "Persian",
-            "voice" to (cfg.optJSONObject("espeak")?.optString("voice", "fa") ?: "fa"),
-            "has_espeak" to "1", "n_speakers" to cfg.optInt("num_speakers", 1).toString(), "sample_rate" to sr.toString()
-        ))
-        // داده‌ٔ espeak: اگر صدای دیگری آن را دارد همان استفاده می‌شود، وگرنه یک‌بار دانلود می‌شود
-        if (sharedEspeak(id) == null) {
-            val ep = File(root(), "espeak-ng-data.dl")
-            fetchResumable(ESPEAK_URL, ep) { _, _ -> }
-            try { java.io.FileInputStream(ep).use { extract(it, dst) } } finally { ep.delete() }
-            if (!File(findRoot(dst), "espeak-ng-data").isDirectory) throw IllegalStateException("دادهٔ espeak نصب نشد")
-        }
-        jsonPart.delete()
-        if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists()) throw IllegalStateException("فایل‌های مدل کامل نیست")
-        okMark(id).writeText("1")
     }
 
     /** دانلود با ادامه از نقطهٔ قطع (Range) و تلاش مجدد خودکار؛ فایل ناقص در part می‌ماند */
