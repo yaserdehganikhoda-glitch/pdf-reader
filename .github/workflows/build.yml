@@ -26,10 +26,7 @@ jobs:
           restore-keys: |
             offline-v1-
       - name: Prepare web files
-        run: |
-          mkdir -p www
-          if [ ! -s www/index.html ]; then cp index.html www/index.html; fi
-          test -s www/index.html
+        run: mkdir -p www && cp index.html www/index.html
       - name: Install dependencies
         run: npm install --legacy-peer-deps
       - name: Bundle offline web assets (fonts, pdf.js, OCR)
@@ -45,8 +42,8 @@ jobs:
         run: npx cap sync android
       - name: Verify OCR files copied into Android assets
         run: |
-          ls -la www/ocr/ort www/ocr/paddle
-          ls -la android/app/src/main/assets/public/ocr/ort android/app/src/main/assets/public/ocr/paddle
+          ls -la www/ocr www/ocr/lang
+          ls -la android/app/src/main/assets/public/ocr android/app/src/main/assets/public/ocr/lang
       - name: Patch Gradle repos
         run: |
           sed -i "s#^\([[:space:]]*\)google()#\1google()\n\1maven { url 'https://maven-central.storage-download.googleapis.com/maven2/' }#" android/build.gradle
@@ -71,9 +68,7 @@ jobs:
       - name: Verify OCR files inside the APK
         run: |
           unzip -l PdfVoiceReader.apk | grep -E "assets/public/ocr/" || true
-          for f in ort/ort.min.js ort/ort-wasm-simd.wasm paddle/PP-OCRv5_mobile_det.onnx paddle/arabic_PP-OCRv5_mobile_rec.onnx paddle/arabic_PP-OCRv5_mobile_rec_dict.txt; do
-            unzip -l PdfVoiceReader.apk | grep -q "assets/public/ocr/$f" || { echo "OCR file missing from APK: $f"; exit 1; }
-          done
+          unzip -l PdfVoiceReader.apk | grep -E "assets/public/ocr/lang/(fas|eng)\.traineddata" || { echo "OCR data missing from APK"; exit 1; }
       - name: Upload APK (run page)
         uses: actions/upload-artifact@v4
         with:
