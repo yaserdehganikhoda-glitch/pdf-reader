@@ -22,9 +22,9 @@ jobs:
           path: |
             ~/.offline-cache
             ~/.npm
-          key: offline-v1-${{ hashFiles('native/checksums.txt', 'native/inject-native.sh', 'native/fetch-offline.sh') }}
+          key: offline-v2-${{ hashFiles('native/checksums.txt', 'native/inject-native.sh', 'native/fetch-offline.sh') }}
           restore-keys: |
-            offline-v1-
+            offline-v2-
       - name: Prepare web files
         run: mkdir -p www && cp index.html www/index.html
       - name: Install dependencies
@@ -42,8 +42,14 @@ jobs:
         run: npx cap sync android
       - name: Verify OCR files copied into Android assets
         run: |
-          ls -la www/ocr www/ocr/lang
-          ls -la android/app/src/main/assets/public/ocr android/app/src/main/assets/public/ocr/lang
+          F="ocr/ort/ort.min.js ocr/ort/ort-wasm-simd.wasm ocr/paddle/PP-OCRv5_mobile_det.onnx ocr/paddle/arabic_PP-OCRv5_mobile_rec.onnx ocr/paddle/arabic_PP-OCRv5_mobile_rec_dict.txt"
+          ls -laR www/ocr || true
+          M=0
+          for f in $F; do
+            [ -s "www/$f" ] || { echo "MISSING in www: $f (fetch-offline.sh did not download it)"; M=1; }
+            [ -s "android/app/src/main/assets/public/$f" ] || { echo "MISSING in android assets: $f"; M=1; }
+          done
+          exit $M
       - name: Patch Gradle repos
         run: |
           sed -i "s#^\([[:space:]]*\)google()#\1google()\n\1maven { url 'https://maven-central.storage-download.googleapis.com/maven2/' }#" android/build.gradle
@@ -68,7 +74,9 @@ jobs:
       - name: Verify OCR files inside the APK
         run: |
           unzip -l PdfVoiceReader.apk | grep -E "assets/public/ocr/" || true
-          unzip -l PdfVoiceReader.apk | grep -E "assets/public/ocr/lang/(fas|eng)\.traineddata" || { echo "OCR data missing from APK"; exit 1; }
+          for f in ocr/ort/ort.min.js ocr/ort/ort-wasm-simd.wasm ocr/paddle/PP-OCRv5_mobile_det.onnx ocr/paddle/arabic_PP-OCRv5_mobile_rec.onnx ocr/paddle/arabic_PP-OCRv5_mobile_rec_dict.txt; do
+            unzip -l PdfVoiceReader.apk | grep -q "assets/public/$f" || { echo "OCR file missing from APK: $f"; exit 1; }
+          done
       - name: Upload APK (run page)
         uses: actions/upload-artifact@v4
         with:
