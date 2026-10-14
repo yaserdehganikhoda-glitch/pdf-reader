@@ -3644,6 +3644,109 @@ var ocrSpell = (function(){
       return w;
     });
   }
+  /* ---------- ابهام‌زدایی بافتاری چندتلفظی‌ها (Context-aware homograph disambiguation) ----------
+     واژه‌هایی مثل «گل» (گُل/گِل)، «مهر» (مِهر/مُهر/مَهر)، «مرد» (مَرد/مُرد)، «پر» (پُر/پَر) بدون اعراب یک شکل‌اند. برای هر واژه چند «حس» داریم؛
+     هر حس نشانه‌های بافتی چپ (L) و راست (R) دارد: کلمهٔ مجاور ۲ امتیاز، تا فاصلهٔ ۳ کلمه ۱ امتیاز، دنبالهٔ «الف_ب» ۳ امتیاز؛ «$» پایان بند، «^» آغاز بند،
+     «ک+» پیشوندی. مرز بند (ویرگول/نقطه…) از پنجره عبور داده نمی‌شود. حس برنده باید ≥۲ امتیاز و ≥۱ اختلاف داشته باشد، وگرنه حس پیش‌فرض (*) یا هیچ (شکل ساده).
+     #p: افزودن امتیاز جمع «ها/های»، #r: حس فقط با نشانهٔ راست معتبر است. این مرحله پس از سایر مراحل اجرا می‌شود و واژه‌های اعراب‌دار (واژه‌نامهٔ کاربر) را دست نمی‌زند. */
+  var HOM_SRC = [
+    'گل:گُل* L[باغ بوته شاخه دسته بوی عطر رز بنفشه غنچه ساقه کاشت چید پرپر خوشبو سرخ سفید زرد صورتی زیبا گلدان بازی] R[رز سرخ سفید زرد صورتی بنفش لاله نرگس یاس زیبا پرپر زد زدن خوشبو تساوی]|گِل L[کاه خشت آجر کوزه سفال خاک پا_در پا_توی] R[و_لای و_لجن رس سفال کوزه آجر خشت سیمان گلی]',
+    'مهر:مِهر* L[ماه عشق محبت لطف] R[و_محبت و_ماه و_وفا و_عطوفت مادری پدری ورز ورزی ورزید]|مُهر L[امضا_و پای زیر] R[و_موم تأیید تایید باطل زد زدن زدند امضا لاک سربی پستی دولتی رسمی خورد]|مَهر L[قبول تعیین] R[عروس مهریه و_مهریه]',
+    'کرد:کُرد#p L[قوم زبان مردم اهالی اهل شهروندان عرب_و ترک_و لر_و فارس_و بلوچ_و آذری_و ایران عراق ترکیه سوریه] R[زبان زبانان و_ترک و_لر و_عرب و_فارس و_بلوچ و_ترکمن]',
+    'مرد:مَرد* L[یک آن این هر هیچ چند دو سه چهار پنج پیر جوان خوب بد آقا تنها] R[و_زن مسن میانسال جوان عمل و_زنان و_کودک]|مُرد#r L[او وی پدرم مادرم پدرش مادرش مادربزرگ پدربزرگ که تا وقتی بالاخره سرانجام آنگاه] R[$ و که تا اما ولی پس بعد چون سپس]',
+    'پر:پُر* R[از شد شدند شده کرد کنید کن است بود میشود میکند انرژی رنگ مصرف تکرار طرفدار بازدید سر_و_صدا]|پَر L[بال_و] R[زد زدن کشید پرواز قو طاووس کبوتر مرغ پرنده و_بال کاه]',
+    'گرد:گَرد R[و_غبار و_خاک غبار خاک]|گِرد L[صورت چهره میز] R[هم آمدند آمد آوردند آورد آورده]',
+    'علم:عِلم* L[دانش کسب تحصیل] R[و_دین و_صنعت و_فناوری و_دانش و_ادب و_عمل]|عَلَم L[پرچم افراشتن افراشته برافراشت درفش سینهزنی عزاداری] R[و_کتل کشی علمدار]',
+    'ترک:تُرک#p L[زبان قوم آذری مردم ایرانی] R[زبان تبار استانبول و_فارس و_کرد و_لر]|تَرک R[کرد کردن کنید کنم کن میکند کند کردند شد شده نمود تحصیل اعتیاد وطن خانه]|تَرَک R[برداشت برداشته خورد خورده خوردگی میخورد برمیدارد]',
+    'شکر:شُکر L[خدا_را] R[خدا کرد کردن کنم گزار گزاری الهی]|شِکَر L[قاشق چای قند_و کیسه] R[ریخت بریز نریز و_قند قند میریزی شیرین]',
+    'کشت:کِشت L[زمین سطح] R[و_کار و_صنعت و_زرع برنج گندم محصول بذر]|کُشت L[را] R[$ و_کشتار]',
+    'کرم:کِرم R[ابریشم خاکی شبتاب سیب میوه]|کَرَم L[لطف رحمت احسان] R[و_بخشش و_لطف و_رحمت و_احسان خدا]|کِرِم L[دست صورت ضدآفتاب آرایشی مرطوب پودر] R[دست صورت ضدآفتاب ضدچروک ضدلک پودر مرطوبکننده]',
+    'دور:دَور L[یک دو سه چهار چند هر] R[دوم اول سوم آخر باطل انتخابات]',
+    'سیر:سَیر R[و_سیاحت و_سفر و_سلوک تاریخی تکاملی تحول نزولی صعودی]',
+    'ده:دِه L[شهر_و] R[و_شهر نشین کدخدا آبادی]',
+    'ملک:مَلَک L[فرشته] R[مقرب الموت و_فرشته]|مِلک L[خرید فروش اجاره سند] R[شخصی سند اجاره فروش خرید مسکونی]',
+    'قدر:قَدَر L[این آن همین همان هر چه به]|قَدر L[شب] R[دانی]',
+    'نقل:نُقل L[شیرینی عروسی] R[و_نبات و_شیرینی نبات]|نَقل R[قول مکان کرد کردن میکند شد]',
+    'مثل:مَثَل L[ضرب] R[معروف قدیمی ایرانی فارسی قدیم]',
+    'نفس:نَفس L[عزت اعتماد_به تزکیه تهذیب] R[اماره لوامه پرستی]|نَفَس L[یک] R[کشید کشیدن بکش عمیق تنگی میکشد بکشید]',
+    'خرد:خِرَد L[عقل دانش] R[ورزی ورز و_دانش جمعی]|خُرد L[پول] R[شد کرد کن کنید میشود میکند و_ریز و_کلان]',
+    'حسن:حَسَن*|حُسن R[نیت نظر خلق و_قبح تفاهم سلیقه]',
+    'چرا:چَرا L[گوسفند گاو دام گله] R[میکردند رفتند مرتع علف میروند]',
+    'بنا:بِنا*|بَنّا L[استاد] R[و_نجار و_کارگر و_معمار]',
+    'سر:سِر L[افشای کشف] R[دل نهان الهی خدا مگو]'
+  ];
+  var HOM = null, HOM_D = /[\u064B-\u065F\u0670\u200c]/g, HOM_TK = /^([^\p{L}\p{M}\u200c]*)([\p{L}\p{M}\u200c]*)([\s\S]*)$/u;
+  function homNorm(w){ return w.replace(HOM_D, ''); }
+  function homInit(){
+    HOM = {};
+    var cu = function(str){
+      return (str || '').split(/\s+/).filter(Boolean).map(function(c){ var p = /\+$/.test(c); return { q: c.replace(/\+$/, '').split('_').map(homNorm), pre: p }; });
+    };
+    HOM_SRC.forEach(function(ln){
+      var i = ln.indexOf(':'), ent = [];
+      ln.slice(i + 1).split('|').forEach(function(sp){
+        var m = /^\s*(\S+?)(\*)?((?:#[pr])*)\s*(?:L\[([^\]]*)\])?\s*(?:R\[([^\]]*)\])?\s*$/.exec(sp);
+        if (m) ent.push({ v: m[1], def: !!m[2], p: m[3].indexOf('#p') >= 0, r: m[3].indexOf('#r') >= 0, L: cu(m[4]), R: cu(m[5]) });
+      });
+      HOM[homNorm(ln.slice(0, i))] = ent;
+    });
+  }
+  function homSide(cues, W, B, i, dir){
+    var sc = 0, k, c, q, n, d, j, x, ok, N = W.length;
+    for (k = 0; k < cues.length; k++) {
+      c = cues[k]; q = c.q; n = q.length;
+      if (n === 1 && q[0] === '$') { if (dir > 0 && (i === N - 1 || B[i])) sc += 2; continue; }
+      if (n === 1 && q[0] === '^') { if (dir < 0 && (i === 0 || B[i - 1])) sc += 2; continue; }
+      if (n > 1) {
+        ok = true;
+        for (x = 0; x < n && ok; x++) {
+          j = dir > 0 ? i + 1 + x : i - n + x;
+          ok = j >= 0 && j < N && W[j] === q[x] && !B[dir > 0 ? j - 1 : j];
+        }
+        if (ok) sc += 3;
+        continue;
+      }
+      for (d = 1; d <= 3; d++) {
+        j = i + dir * d;
+        if (j < 0 || j >= N || (dir > 0 ? B[j - 1] : B[j])) break;
+        if (c.pre ? W[j].indexOf(q[0]) === 0 : W[j] === q[0]) { sc += d === 1 ? 2 : 1; break; }
+      }
+    }
+    return sc;
+  }
+  function homPick(ent, W, B, i, suf){
+    var best = null, b1 = 0, b2 = 0, def = null, k, s, rr, sc;
+    for (k = 0; k < ent.length; k++) {
+      s = ent[k]; rr = homSide(s.R, W, B, i, 1);
+      sc = homSide(s.L, W, B, i, -1) + rr;
+      if (s.r && !rr) sc = 0;
+      if (s.p && suf) sc += suf === 2 ? 2 : 1;
+      if (s.def) def = s;
+      if (sc > b1) { b2 = b1; b1 = sc; best = s; } else if (sc > b2) b2 = sc;
+    }
+    if (best && b1 >= 2 && b1 - b2 >= 1) { if (best !== def) bump('hom'); return best; }
+    return def;
+  }
+  function homApply(t){
+    if (!HOM) homInit();
+    var ws = t.split(' '), n = ws.length, W = new Array(n), B = new Array(n), P = new Array(n), i, m, core, key, ent, suf, sm, c0;
+    for (i = 0; i < n; i++) {
+      m = HOM_TK.exec(ws[i]); P[i] = null;
+      if (!m) { W[i] = ''; B[i] = 0; continue; }
+      core = m[2]; W[i] = homNorm(core); B[i] = /[,.;:!?]/.test(m[3]) ? 1 : 0;
+      c0 = core.replace(/\u0650$/, '');
+      if (!W[i] || /[\u064B-\u065F\u0670]/.test(c0)) continue;   /* اعرابِ از پیش‌گذاشته‌شده دست نمی‌خورد */
+      key = W[i]; ent = HOM[key]; suf = 0;
+      if (!ent && (sm = /^(.{2,}?)(ها|های|هایی)$/.exec(key)) && HOM[sm[1]]) { ent = HOM[sm[1]]; suf = sm[2] === 'ها' ? 2 : 1; }
+      if (ent) P[i] = { ent: ent, suf: suf, lead: m[1], trail: m[3], ez: c0.length !== core.length ? '\u0650' : '', sfx: suf ? (/(\u200c?(?:ها|های|هایی))$/.exec(c0) || ['', ''])[1] : '' };
+    }
+    for (i = 0; i < n; i++) {
+      if (!P[i]) continue;
+      var p = P[i], sel = homPick(p.ent, W, B, i, p.suf);
+      if (sel) ws[i] = p.lead + sel.v + p.sfx + p.ez + p.trail;
+    }
+    return ws.join(' ');
+  }
   function ttsBase(t, eng, cont, pre){
     eng = eng || engine();
     if (phFa()) t = t.replace(/\u0647\u0654/g, '\u06C0');
@@ -3681,10 +3784,11 @@ var ocrSpell = (function(){
       .replace(/،/g, ',').replace(/؛/g, ';').replace(/؟/g, '?').replace(/…/g, '...').replace(/\s+/g, ' ').replace(/\s+([,.;:!?])/g, '$1').replace(/^[,\s]+/, '').trim();
     t = t.replace(/,\s*([.!?;:])/g, '$1').replace(/,\s*,/g, ',');
     t = prosody(t);
+    if (phLexOn()) t = homApply(t);
     return endMark(t, cont);
   }
   /* ---------- smart speech fixer (تصحیح‌گر هوشمند گفتار) ---------- */
-  var CATS = { num: 'عدد/تاریخ/ساعت', ord: 'عدد ترتیبی و رومی', sym: 'نماد', ez: 'کسرهٔ اضافه', spell: 'املای پرخطا', acr: 'سرواژه', iso: 'حروف جداافتاده', elong: 'کشیدگی حروف', rep: 'تکرار', ref: 'پیوند و ارجاع', uns: 'نامطمئن', pause: 'مکث دستوری' };
+  var CATS = { num: 'عدد/تاریخ/ساعت', ord: 'عدد ترتیبی و رومی', sym: 'نماد', ez: 'کسرهٔ اضافه', hom: 'چندتلفظی', spell: 'املای پرخطا', acr: 'سرواژه', iso: 'حروف جداافتاده', elong: 'کشیدگی حروف', rep: 'تکرار', ref: 'پیوند و ارجاع', uns: 'نامطمئن', pause: 'مکث دستوری' };
   function fixOn(){ return $('#fixOn').checked; }
   function fixHi(){ return $('#fixOn').checked && $('#fixHi').checked; }
   var CUR = null;
@@ -4264,7 +4368,52 @@ var ocrSpell = (function(){
     h.setUint32(24, sr, true); h.setUint32(28, sr * 2, true); h.setUint16(32, 2, true); h.setUint16(34, 16, true); w(36, 'data'); h.setUint32(40, n, true);
     return h.buffer;
   }
+  /* نسخهٔ خودکفا (بدون وابستگی بیرونی جز wavHdr) برای اجرا در Worker: ورودی ArrayBuffer WAV؛ خروجی ArrayBuffer یا null (= بدون تغییر) */
+  function wavPack(sr, o16){
+    var b = new ArrayBuffer(44 + o16.length * 2); new Uint8Array(b).set(new Uint8Array(wavHdr(sr, o16.length * 2))); new Int16Array(b, 44, o16.length).set(o16); return b;
+  }
+  function polishAb(ab, mid){
+    var dv = new DataView(ab);
+    if (ab.byteLength < 48 || dv.getUint32(0) !== 0x52494646 || dv.getUint16(20, true) !== 1 || dv.getUint16(22, true) !== 1 || dv.getUint16(34, true) !== 16) return null;
+    var o = 12, ds = -1, dl = 0;
+    while (o + 8 <= ab.byteLength) {
+      var id = dv.getUint32(o), sz = dv.getUint32(o + 4, true);
+      if (id === 0x64617461) { ds = o + 8; dl = (!sz || sz > ab.byteLength - ds) ? ab.byteLength - ds : sz; break; }
+      o += 8 + sz + (sz & 1);
+    }
+    if (ds < 0) return null;
+    var sr = dv.getUint32(24, true), n = dl >> 1, x = new Int16Array(ab.slice(ds, ds + n * 2)), i, pk = 0;
+    for (i = 0; i < n; i++) { var m = Math.abs(x[i]); if (m > pk) pk = m; }
+    if (!pk) return null;
+    var th = Math.max(250, pk * 0.012), a = 0, b = n - 1;
+    while (a < n && Math.abs(x[a]) < th) a++;
+    while (b > a && Math.abs(x[b]) < th) b--;
+    if (b - a < sr * 0.1) return null;
+    a = Math.max(0, a - Math.round(sr * 0.03)); b = Math.min(n - 1, b + Math.round(sr * (mid ? 0.03 : 0.05)));
+    var len = b - a + 1, out = new Int16Array(len), mean = 0, ss = 0, pk2 = 1;
+    for (i = 0; i < len; i++) mean += x[a + i];
+    mean /= len;
+    for (i = 0; i < len; i++) { var v = x[a + i] - mean, av = Math.abs(v); ss += v * v; if (av > pk2) pk2 = av; }
+    var rms = Math.sqrt(ss / len) || 1, g = Math.max(0.5, Math.min(5, 4800 / rms, 40000 / pk2)), KN = 22000, RG = 10000;
+    for (i = 0; i < len; i++) {
+      var y = (x[a + i] - mean) * g, ay = Math.abs(y);
+      if (ay > KN) { ay = KN + RG * Math.tanh((ay - KN) / RG); y = y < 0 ? -ay : ay; }
+      out[i] = y;
+    }
+    var fi = Math.min(len >> 1, Math.round(sr * 0.006)), fo = Math.min(len >> 1, Math.round(sr * 0.016));
+    for (i = 0; i < fi; i++) out[i] = out[i] * (0.5 - 0.5 * Math.cos(Math.PI * i / fi));
+    for (i = 0; i < fo; i++) out[len - 1 - i] = out[len - 1 - i] * (0.5 - 0.5 * Math.cos(Math.PI * i / fo));
+    return wavPack(sr, out);
+  }
   function polish(blob, mid){
+    return blob.arrayBuffer().then(function(ab){
+      return dspWorker(0, ab, mid ? 1 : 0).then(function(o){
+        if (o === null) return polishMain(blob, mid);
+        return o.b ? new Blob([o.b], { type: 'audio/wav' }) : blob;
+      });
+    });
+  }
+  function polishMain(blob, mid){
     return blob.arrayBuffer().then(function(ab){
       var dv = new DataView(ab);
       if (ab.byteLength < 48 || dv.getUint32(0) !== 0x52494646 || dv.getUint16(20, true) !== 1 || dv.getUint16(22, true) !== 1 || dv.getUint16(34, true) !== 16) return blob;
@@ -4314,17 +4463,30 @@ var ocrSpell = (function(){
     if (actx || npOK || !$('#enh').checked) return;   /* در موتور بومی، EQ و لیمیتر در Kotlin اعمال می‌شود */
     try {
       actx = mkCtx(22050); if (!actx) return; fxSrcs = [actx.createMediaElementSource(audioA), actx.createMediaElementSource(audioB)];
-      var hp = actx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 75;
-      var ls = actx.createBiquadFilter(); ls.type = 'lowshelf'; ls.frequency.value = 180; ls.gain.value = 1.3;
-      var ds = actx.createBiquadFilter(); ds.type = 'peaking'; ds.frequency.value = 7000; ds.Q.value = 1.3; ds.gain.value = -1.8;
-      var pk = actx.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 2800; pk.Q.value = 0.9; pk.gain.value = 2.5;
-      var hs = actx.createBiquadFilter(); hs.type = 'highshelf'; hs.frequency.value = 6000; hs.gain.value = 2;
-      var lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 10500; lp.Q.value = 0.707;
-      var cp = actx.createDynamicsCompressor(); cp.threshold.value = -22; cp.knee.value = 24; cp.ratio.value = 3; cp.attack.value = 0.005; cp.release.value = 0.15;
+      function bq(type, f, q, g){ var n = actx.createBiquadFilter(); n.type = type; n.frequency.value = f; n.Q.value = q; if (g !== undefined) n.gain.value = g; return n; }
+      /* HP/LP مرتبهٔ ۴ باتروورث (دو بخش پشت‌سرهم): ۲۴dB/اکتاو برای حذف هوم/لرزش پایین و خش‌خش بالا */
+      var hp = bq('highpass', 75, 0.5412), hp2 = bq('highpass', 75, 1.3066);
+      var ls = bq('lowshelf', 180, 0.707, 1.3);
+      var ds = bq('peaking', 7000, 1.3, -1.8);
+      var pk = bq('peaking', 2800, 0.9, 2.5);
+      var hs = bq('highshelf', 6000, 0.707, 2);
+      var lp = bq('lowpass', 10500, 0.5412), lp2 = bq('lowpass', 10500, 1.3066);
+      /* کمپرسور هموارکنندهٔ بلندی: attack کندتر تا گذراهای واجی (ک ت پ) له نشوند، knee نرم و ratio ملایم؛ آستانه و گین جبرانی هوشمند در fxLoop تنظیم می‌شوند */
+      var cp = actx.createDynamicsCompressor(); cp.threshold.value = -25; cp.knee.value = 30; cp.ratio.value = 2.5; cp.attack.value = 0.012; cp.release.value = 0.2;
       var gn = actx.createGain(); gn.gain.value = 1.1;
-      var lm = actx.createDynamicsCompressor(); lm.threshold.value = -2; lm.knee.value = 0; lm.ratio.value = 20; lm.attack.value = 0.001; lm.release.value = 0.08;
-      hp.connect(ls); ls.connect(pk); pk.connect(ds); ds.connect(hs); hs.connect(lp); lp.connect(cp); cp.connect(gn); gn.connect(lm); lm.connect(actx.destination);
-      fxIn = hp; fxN = { pk: pk, hs: hs, lp: lp };
+      /* لیمیتر نهایی (ceiling ‎-3dB) + برش نرم WaveShaper به‌عنوان تور ایمنی برای هر قلهٔ باقی‌مانده (جلوگیری از کلیپ) */
+      var lm = actx.createDynamicsCompressor(); lm.threshold.value = -3; lm.knee.value = 0; lm.ratio.value = 20; lm.attack.value = 0.001; lm.release.value = 0.1;
+      var ws = actx.createWaveShaper(), cv = new Float32Array(1025), ci, cx, cy;
+      for (ci = 0; ci < 1025; ci++) { cx = ci / 512 - 1; cy = Math.abs(cx); cy = cy < 0.8 ? cy : 0.8 + 0.18 * Math.tanh((cy - 0.8) / 0.18); cv[ci] = cx < 0 ? -cy : cy; }
+      ws.curve = cv; ws.oversample = 'none';
+      /* گیت/اکسپندر زمان‌واقعی: AnalyserNode سطح را پیش از DelayNode (۴۰ms lookahead) می‌سنجد و GainNode پس از آن، نویز سکوت‌ها را تا ۶dB- نرم کم می‌کند؛ lv = تراز خودکار آهستهٔ بلندی */
+      var an = actx.createAnalyser(); an.fftSize = 512; an.smoothingTimeConstant = 0;
+      var dl = actx.createDelay(0.1); dl.delayTime.value = 0.04;
+      var gt = actx.createGain(), lv = actx.createGain();
+      hp.connect(hp2); hp2.connect(ls); ls.connect(pk); pk.connect(ds); ds.connect(hs); hs.connect(lp); lp.connect(lp2);
+      lp2.connect(an); lp2.connect(dl); dl.connect(gt); gt.connect(lv); lv.connect(cp); cp.connect(gn); gn.connect(lm); lm.connect(ws); ws.connect(actx.destination);
+      fxIn = hp; fxN = { pk: pk, hs: hs, lp: lp, lp2: lp2, hp: hp, hp2: hp2, ds: ds, cp: cp, an: an, gt: gt, lv: lv, dl: dl };
+      fxUpgrade(actx);
       applyFxProfile();
     } catch (e) { actx = null; fxN = null; }
   }
@@ -4335,20 +4497,78 @@ var ocrSpell = (function(){
     var i; if (id) for (i = 0; i < FXP.length; i++) if (FXP[i][0].test(id)) return FXP[i][1];
     return FXD;
   }
+  /* شدت «حالت کند» ۰…۱: از سرعت ۰٫۹۷ (۰) تا ۰٫۵ (۱)؛ کشیدن زمان نویز و دانه‌دانه‌شدن فرکانس‌های بالا را بارزتر می‌کند */
+  function slowAmt(){ var r = +$('#rate').value || 1; return r >= 0.97 ? 0 : Math.min(1, (0.97 - r) / 0.47); }
   function applyFxProfile(){
     if (!actx || !fxN) return;
-    var v = currentVoice(), p = FXD, i, t = actx.currentTime;
+    var v = currentVoice(), p = FXD, i, t = actx.currentTime, s = slowAmt(), lpf;
     if (v) for (i = 0; i < FXP.length; i++) if (FXP[i][0].test(v.id)) { p = FXP[i][1]; break; }
+    lpf = p.lp > 9000 ? p.lp - (p.lp - 9000) * s : p.lp;
     try {
-      fxN.pk.gain.setTargetAtTime(p.pk, t, 0.05);
-      fxN.hs.gain.setTargetAtTime(p.hs, t, 0.05);
-      fxN.lp.frequency.setTargetAtTime(p.lp, t, 0.05);
+      fxN.pk.gain.setTargetAtTime(p.pk * (1 - 0.3 * s), t, 0.05);
+      fxN.hs.gain.setTargetAtTime(p.hs * (1 - s), t, 0.05);
+      fxN.lp.frequency.setTargetAtTime(lpf, t, 0.05);
+      fxN.lp2.frequency.setTargetAtTime(lpf, t, 0.05);
+      fxN.hp.frequency.setTargetAtTime(75 + 25 * s, t, 0.05);
+      fxN.hp2.frequency.setTargetAtTime(75 + 25 * s, t, 0.05);
+      fxN.ds.gain.setTargetAtTime(-1.8 - 1.4 * s, t, 0.05);
+      fxN.cp.release.setTargetAtTime(0.2 + 0.2 * s, t, 0.05);
     } catch (e) {}
   }
+  /* حلقهٔ کنترل هوشمند (هر ۲۵ms، فقط هنگام پخش): گیت نرم سکوت + تراز آهستهٔ بلندی + آستانهٔ تطبیقی کمپرسور؛ بافر و تایمر یکتا → بدون نشت حافظه */
+  /* ارتقا به AudioWorklet: گیت + تراز بلندی روی ترد صوتی (نمونه‌دقیق، lookahead ‎۱۲ms)؛ دیگر تایمر/Analyser در رشتهٔ اصلی لازم نیست. اگر پشتیبانی/بارگذاری نشد، حلقهٔ Analyser می‌ماند. */
+  var FXW = 'class P extends AudioWorkletProcessor{constructor(){super();var L=Math.max(1,Math.round(sampleRate*0.012));this.L=L;this.r=new Float32Array(L);this.w=0;this.pe=0.05;this.g=1;this.lv=-21;this.lg=1;this.ca=1-Math.exp(-128/(sampleRate*0.008));this.cr=1-Math.exp(-128/(sampleRate*0.07));this.cl=1-Math.exp(-128/(sampleRate*0.4));}' +
+    'process(i,o){var x=i[0]&&i[0][0],y=o[0];if(!x)return true;var n=x.length,s=0,k,r,th,t,g0,g1,l0,l1,c,v,a=y[0],R=this.r,L=this.L,w=this.w,m;for(k=0;k<n;k++)s+=x[k]*x[k];r=Math.sqrt(s/n);this.pe=r>this.pe?r:this.pe*0.9977;th=Math.max(0.001,this.pe*0.02);t=r>=th?1:Math.max(0.5,r/th);g0=this.g;this.g+=(t-g0)*(t>g0?this.ca:this.cr);g1=this.g;if(r>th*6&&r>0.01)this.lv+=(20*Math.log10(r)-this.lv)*0.0093;t=Math.max(0.8,Math.min(1.6,Math.pow(10,(-21-this.lv)/20)));l0=this.lg;this.lg+=(t-l0)*this.cl;l1=this.lg;for(k=0;k<n;k++){c=k/n;v=R[w];R[w]=x[k];if(++w>=L)w=0;a[k]=v*(g0+(g1-g0)*c)*(l0+(l1-l0)*c);}this.w=w;for(m=1;m<y.length;m++)y[m].set(a);return true;}}registerProcessor("fx-ctl",P);';
+  function fxUpgrade(ctx){
+    if (!ctx.audioWorklet || !window.AudioWorkletNode) return;
+    var url; try { url = URL.createObjectURL(new Blob([FXW], { type: 'text/javascript' })); } catch (e) { return; }
+    ctx.audioWorklet.addModule(url).then(function(){
+      URL.revokeObjectURL(url);
+      if (actx !== ctx || !fxN) return;
+      var N = fxN, wk = new AudioWorkletNode(ctx, 'fx-ctl', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
+      N.lp2.connect(wk); wk.connect(N.cp);
+      N.lp2.disconnect(N.an); N.lp2.disconnect(N.dl); N.lv.disconnect(N.cp);
+      N.wk = wk; fxStop();
+      try { N.cp.threshold.cancelScheduledValues(ctx.currentTime); N.cp.threshold.value = -25; } catch (e) {}
+      wk.onprocessorerror = function(){
+        try { N.lp2.connect(N.an); N.lp2.connect(N.dl); N.lv.connect(N.cp); N.lp2.disconnect(wk); wk.disconnect(); } catch (e) {}
+        N.wk = null; if (playing) fxStart();
+      };
+    }).catch(function(){ try { URL.revokeObjectURL(url); } catch (e) {} });
+  }
+  var fxTm = 0, fxBuf = null, fxPe = 0.05, fxLv = -21, fxG = 1;
+  function fxStop(){
+    if (fxTm) { clearInterval(fxTm); fxTm = 0; }
+    try { if (actx && fxN) fxN.gt.gain.setTargetAtTime(1, actx.currentTime, 0.02); } catch (e) {}
+    fxG = 1;
+  }
+  function fxLoop(){
+    if (!actx || !fxN || fxN.wk || !playing || actx.state !== 'running') { fxStop(); return; }
+    var an = fxN.an, b = fxBuf || (fxBuf = new Float32Array(an.fftSize)), i, sq = 0, r, t = actx.currentTime, th, g, lg, pl;
+    if (document.hidden) { if (fxG !== 1) { fxG = 1; try { fxN.gt.gain.setTargetAtTime(1, t, 0.02); } catch (e) {} } return; }   /* تایمر پس‌زمینه کند می‌شود؛ گیت باز می‌ماند */
+    an.getFloatTimeDomainData(b);
+    for (i = 0; i < b.length; i++) sq += b[i] * b[i];
+    r = Math.sqrt(sq / b.length);
+    fxPe = r > fxPe ? r : fxPe * 0.99;
+    th = Math.max(0.001, fxPe * 0.02);   /* ‎-34dB زیر قلهٔ سطح گفتار */
+    g = r >= th ? 1 : Math.max(0.5, r / th);
+    try {
+      fxN.gt.gain.setTargetAtTime(g, t, g >= fxG ? 0.008 : 0.07);
+      if (r > th * 6 && r > 0.01) fxLv += (20 * Math.log(r) / Math.LN10 - fxLv) * 0.04;
+      lg = Math.max(0.8, Math.min(1.6, Math.pow(10, (-21 - fxLv) / 20)));
+      pl = fxLv + 20 * Math.log(lg) / Math.LN10;
+      fxN.lv.gain.setTargetAtTime(lg, t, 0.4);
+      fxN.cp.threshold.setTargetAtTime(Math.max(-34, Math.min(-16, pl - 5)), t, 0.4);
+    } catch (e) {}
+    fxG = g;
+  }
+  function fxStart(){ if (!fxTm && actx && fxN && !fxN.wk) fxTm = setInterval(fxLoop, 25); }
   $('#enh').addEventListener('change', function(){ if (playing) { setupFx(); wireFx(true); } });
   function wireFx(on){
     if (!actx) return;
-    try { fxSrcs.forEach(function(f){ f.disconnect(); f.connect(on && $('#enh').checked ? fxIn : actx.destination); }); if (actx.state !== 'running') actx.resume(); } catch (e) {}
+    var e = on && $('#enh').checked;
+    try { fxSrcs.forEach(function(f){ f.disconnect(); f.connect(e ? fxIn : actx.destination); }); if (actx.state !== 'running') actx.resume(); } catch (x) {}
+    if (e) fxStart(); else fxStop();
   }
   /* ---------- slow speech: pitch-preserving time-stretch (WSOLA), baked into the audio ---------- */
   /* WSOLA با اتصال «توان‌ثابت»: هر هم‌پوشانی صریح میان‌محو می‌شود و وزن‌ها با همبستگی دو تکه (rho) طوری‌اند که توان ثابت بماند.
@@ -4356,19 +4576,43 @@ var ocrSpell = (function(){
   function wsolaCore(x, sr, rate){
     var n = x.length, N = Math.round(sr * (rate < 1 ? 0.040 : 0.032)), i, j, m, k, q, tp, ref, best, bs, c, v, o, a, b, ab, ea, eb, rho, uq, wo;
     N += N & 1;
-    var Hs = N >> 1, Ha = Hs * rate, D = Math.round(sr * 0.015), P = D, frames = Math.ceil(n / Ha) + 2;
-    var xp = new Float32Array(n + N + 2 * D + 8); xp.set(x, P);
+    var Hs = N >> 1, D = Math.round(sr * 0.015), P = D;
+    /* نرخ محلی وابسته به محتوا: واج‌های گذرا/سایشی (ک ت پ س ش ف…) کمتر کشیده می‌شوند تا «لکنت/پژواک» نگیرند؛
+       مصوت‌های پایدار و سکوت بیشتر کشیده می‌شوند تا میانگین کل دقیقاً برابر rate بماند. بلوک‌های ۱۰ms: انرژی + نرخ عبور از صفر + جهش انرژی. */
+    var B = Math.max(1, Math.round(sr * 0.010)), nb = Math.ceil(n / B), en = new Float32Array(nb), lab = new Uint8Array(nb), lr = new Float32Array(nb), z, s0, pkr = 0, ps, f1 = 0, rmin = rate;
+    for (i = 0; i < nb; i++) {
+      s0 = 0; z = 0; ps = 0; var e1 = Math.min(n, (i + 1) * B);
+      for (j = i * B; j < e1; j++) { v = x[j]; s0 += v * v; if ((v > 0) !== (ps > 0)) z++; ps = v; }
+      en[i] = Math.sqrt(s0 / (e1 - i * B)); lab[i] = 0; lr[i] = z / (e1 - i * B);   /* lr موقتاً ZCR */
+      if (en[i] > pkr) pkr = en[i];
+    }
+    var sum = 0, cnt = 0;
+    for (i = 0; i < nb; i++) if (en[i] > 0.05 * pkr) { sum += en[i]; cnt++; }
+    var em = cnt ? sum / cnt : pkr;
+    for (i = 0; i < nb; i++) {
+      if (en[i] < 0.03 * pkr) continue;                                   /* سکوت: قابل‌کشیدن */
+      var pe = i ? Math.max(en[i - 1], 0.02 * pkr) : 0.02 * pkr;
+      if (lr[i] > 0.18 || en[i] < 0.12 * em || en[i] > 1.8 * pe) { lab[i] = 1; if (i && en[i] > 1.8 * pe) lab[i - 1] = 1; }
+    }
+    for (i = 0; i < nb; i++) f1 += lab[i];
+    f1 /= nb;
+    var ro = Math.min(1, Math.pow(rate, 0.5)), den = 1 / rate - f1 / ro, rv = den > 0 ? (1 - f1) / den : rate;
+    if (rate >= 1 || f1 < 0.04 || f1 > 0.8 || !(rv >= rate * 0.7 && rv <= 1)) { ro = rate; rv = rate; }
+    for (i = 0; i < nb; i++) lr[i] = lab[i] ? ro : rv;
+    rmin = Math.min(ro, rv);
+    var maxF = Math.ceil(n / (Hs * rmin)) + 3, xp = new Float32Array(n + N + 2 * D + 8); xp.set(x, P);
     var u = new Float32Array(Hs); for (i = 0; i < Hs; i++) u[i] = 0.5 - 0.5 * Math.cos(Math.PI * (i + 0.5) / Hs);
-    var out = new Float32Array(frames * Hs + N + 8);
+    var out = new Float32Array(maxF * Hs + N + 8);
     function sc(cand, rf, st){
       var s = 0, e = 0, a, q;
       for (q = 0; q < Hs; q += st) { a = xp[cand + P + q]; s += a * xp[rf + P + q]; e += a * a; }
       return s / Math.sqrt(e + 1e-6);
     }
     for (j = 0; j < Hs; j++) out[j] = xp[P + j];
-    var prev = 0, last = 0;
-    for (m = 1; m < frames; m++) {
-      tp = Math.round(m * Ha);
+    var prev = 0, last = 0, pos = 0;
+    for (m = 1; m < maxF; m++) {
+      pos += Hs * lr[Math.min(nb - 1, (pos / B) | 0)];
+      tp = Math.round(pos);
       if (tp >= n) break;
       ref = prev + Hs;
       best = tp; bs = sc(tp, ref, 4);
@@ -4390,32 +4634,80 @@ var ocrSpell = (function(){
     }
     o = (last + 1) * Hs;
     for (j = 0; j < Hs; j++) out[o + j] = xp[prev + Hs + P + j];
-    var L = Math.min(Math.round(n / rate), out.length), res = new Float32Array(L), f = Math.min(L, Math.round(sr * 0.01));
+    var L = Math.min((last + 2) * Hs, out.length, Math.round(n / rate)), res = new Float32Array(L), f = Math.min(L, Math.round(sr * 0.01));
     res.set(out.subarray(0, L));
     for (i = 0; i < f; i++) res[L - 1 - i] *= i / f;
     return res;
   }
+  /* پاک‌سازی آفلاین PCM (بدون وابستگی بیرونی؛ داخل Worker هم اجرا می‌شود).
+     post=0 (پیش از کشیدن زمان): HP مرتبهٔ ۴ در ۷۰Hz + ناچ ۵۰Hz (هوم برق شهر) تا لرزش زیر در WSOLA تکرار/پخش نشود.
+     post=1 (پس از کشیدن): LP مرتبهٔ ۴ وابسته به سرعت + اکسپندر نرم با lookahead برای خش‌خش لابه‌لای مکث‌ها (حداکثر ۶dB-، بی‌خطر برای دم کلمات). عملیات درجا روی x. */
+  function dspPass(x, sr, rate, post){
+    var n = x.length, i, k, s = Math.min(1, Math.max(0, (1 - rate) / 0.5));
+    function bq(t, f, q){
+      var w = 2 * Math.PI * f / sr, c = Math.cos(w), a = Math.sin(w) / (2 * q), b0, b1, b2, a0 = 1 + a;
+      if (t === 0) { b0 = (1 + c) / 2; b1 = -(1 + c); b2 = b0; }
+      else if (t === 1) { b0 = (1 - c) / 2; b1 = 1 - c; b2 = b0; }
+      else { b0 = 1; b1 = -2 * c; b2 = 1; }
+      return [b0 / a0, b1 / a0, b2 / a0, -2 * c / a0, (1 - a) / a0];
+    }
+    function run(m){
+      var b0 = m[0], b1 = m[1], b2 = m[2], a1 = m[3], a2 = m[4], x1 = 0, x2 = 0, y1 = 0, y2 = 0, v, y;
+      for (i = 0; i < n; i++) { v = x[i]; y = b0 * v + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2; x2 = x1; x1 = v; y2 = y1; y1 = y; x[i] = y; }
+    }
+    if (n < 64) return x;
+    if (!post) {
+      run(bq(0, 70, 0.5412)); run(bq(0, 70, 1.3066));
+      if (sr > 400) run(bq(2, 50, 10));
+      return x;
+    }
+    var fc = Math.min(sr * 0.42, 10000 - 2500 * s);
+    run(bq(1, fc, 0.5412)); run(bq(1, fc, 1.3066));
+    var pk = 0, v, e = 0, env = new Float32Array(n), ar = Math.exp(-1 / (sr * 0.004)), rr = Math.exp(-1 / (sr * 0.06));
+    for (i = 0; i < n; i++) { v = x[i] < 0 ? -x[i] : x[i]; if (v > pk) pk = v; e = v > e ? v + (e - v) * ar : v + (e - v) * rr; env[i] = e; }
+    var th = Math.max(0.0015, pk * 0.005), fl = 0.5, g = 1, look = Math.round(sr * 0.008), go = Math.exp(-1 / (sr * 0.003)), gc = Math.exp(-1 / (sr * 0.04)), t, c;
+    for (i = 0; i < n; i++) {
+      k = i + look < n ? env[i + look] : env[n - 1];
+      t = k >= th ? 1 : Math.max(fl, k / th);
+      c = t > g ? go : gc; g = t + (g - t) * c;
+      x[i] *= g;
+    }
+    /* فید کسینوسی سر/ته تکه: صفرشدن دامنه در مرز تکه‌ها = بدون پاپ/کلیک هنگام تحویل بین دو المنت صوتی */
+    var fi = Math.min(n >> 2, Math.round(sr * 0.005)), fo = Math.min(n >> 2, Math.round(sr * 0.014));
+    for (i = 0; i < fi; i++) x[i] *= 0.5 - 0.5 * Math.cos(Math.PI * i / fi);
+    for (i = 0; i < fo; i++) x[n - 1 - i] *= 0.5 - 0.5 * Math.cos(Math.PI * i / fo);
+    return x;
+  }
+  /* Worker یکتا برای همهٔ کارهای سنگین PCM (کشیدن زمان WSOLA، پاک‌سازی، پولیش): تبدیل Int16↔Float32 هم داخل Worker است و ArrayBuffer با Transferable (بدون کپی) می‌رود؛ رشتهٔ اصلی هیچ حلقهٔ سنگینی ندارد. k=1 کشیدن زمان (a=rate)، k=0 پولیش (a=mid) */
   var swk = null, swN = 0, swWait = {};
-  function workerStretch(x, sr, rate){
+  function stretchAb(ab, r){
+    var w = wavPcm(ab), i; if (!w || !w.x.length) return null;
+    var f = new Float32Array(w.x.length); for (i = 0; i < f.length; i++) f[i] = w.x[i] / 32768;
+    dspPass(f, w.sr, r, 0);
+    var o = dspPass(wsolaCore(f, w.sr, r), w.sr, r, 1), out = new Int16Array(o.length), v;
+    if (!o.length) return null;
+    for (i = 0; i < o.length; i++) { v = Math.round(o[i] * 32768); out[i] = v > 32767 ? 32767 : v < -32768 ? -32768 : v; }
+    return wavPack(w.sr, out);
+  }
+  function dspWorker(k, ab, a){
     return new Promise(function(res){
       if (swk === null) {
         try {
-          swk = new Worker(URL.createObjectURL(new Blob(['var wsola=' + wsolaCore.toString() + ';self.onmessage=function(e){var d=e.data;try{var o=wsola(new Float32Array(d.b),d.sr,d.r);self.postMessage({id:d.id,b:o.buffer},[o.buffer]);}catch(x){self.postMessage({id:d.id,e:1});}};'], { type: 'text/javascript' })));
-          swk.onmessage = function(e){ var d = e.data, w = swWait[d.id]; if (!w) return; delete swWait[d.id]; w(d.e ? null : new Float32Array(d.b)); };
+          var src = [wsolaCore, dspPass, wavPcm, wavHdr, wavPack, polishAb, stretchAb].map(function(fn){ return 'var ' + fn.name + '=' + fn.toString() + ';'; }).join('') +
+            'self.onmessage=function(e){var d=e.data,o=null;try{o=d.k?stretchAb(d.ab,d.a):polishAb(d.ab,d.a);self.postMessage({id:d.id,b:o},o?[o]:[]);}catch(x){self.postMessage({id:d.id,e:1});}};';
+          var u = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+          swk = new Worker(u); URL.revokeObjectURL(u);
+          swk.onmessage = function(e){ var d = e.data, w = swWait[d.id]; if (!w) return; delete swWait[d.id]; w(d.e ? null : { b: d.b }); };
           swk.onerror = function(){ var q = swWait; swWait = {}; swk = false; Object.keys(q).forEach(function(id){ q[id](null); }); };
         } catch (e) { swk = false; }
       }
       if (!swk) { res(null); return; }
-      var id = ++swN, cp = x.slice();
-      swWait[id] = res;
-      try { swk.postMessage({ id: id, b: cp.buffer, sr: sr, r: rate }, [cp.buffer]); } catch (e) { delete swWait[id]; res(null); }
+      var id = ++swN; swWait[id] = res;
+      try { swk.postMessage({ id: id, k: k, ab: ab, a: a }, [ab]); } catch (e) { delete swWait[id]; res(null); }
     });
   }
-  function stretchPcm(x, sr, rate){
-    return workerStretch(x, sr, rate).then(function(o){
-      if (o) return o;
-      return new Promise(function(res){ setTimeout(function(){ try { res(wsolaCore(x, sr, rate)); } catch (e) { res(null); } }, 0); });
-    });
+  function stretchPcm(x, sr, rate){   /* فقط مسیر اضطراری (Worker در دسترس نیست) */
+    return new Promise(function(res){ setTimeout(function(){ try { res(dspPass(wsolaCore(dspPass(x, sr, rate, 0), sr, rate), sr, rate, 1)); } catch (e) { res(null); } }, 0); });
   }
   function wavPcm(ab){
     var dv = new DataView(ab);
@@ -4430,6 +4722,14 @@ var ocrSpell = (function(){
     return { sr: dv.getUint32(24, true), x: new Int16Array(ab.slice(ds, ds + (dl >> 1) * 2)) };
   }
   function stretchBlob(blob, r){
+    return blob.arrayBuffer().then(function(ab){
+      return dspWorker(1, ab, r).then(function(o){
+        if (o === null) return stretchBlobMain(blob, r);
+        return o.b ? new Blob([o.b], { type: 'audio/wav' }) : null;
+      });
+    });
+  }
+  function stretchBlobMain(blob, r){
     return blob.arrayBuffer().then(function(ab){
       var w = wavPcm(ab), i; if (!w || !w.x.length) return null;
       var f = new Float32Array(w.x.length); for (i = 0; i < f.length; i++) f[i] = w.x[i] / 32768;
@@ -5278,7 +5578,7 @@ var ocrSpell = (function(){
   function setRate(v){
     v = Math.round(Math.max(RMIN, Math.min(RMAX, +v || 1)) / RSTEP) * RSTEP; v = Math.round(v * 100) / 100;
     $('#rate').value = v; showVals(); sset('rate', v);
-    [audioA, audioB].forEach(applyRate);
+    [audioA, audioB].forEach(applyRate); applyFxProfile();
     if (npPlay) { try { NP.playerRate({ rate: +$('#rate').value || 1 }).catch(function(){}); } catch (e) {} }
     clearTimeout(rpT); rpT = setTimeout(function(){ if (!npPlay && playing && curC) primeNext(curC, token); }, 250);
   }
