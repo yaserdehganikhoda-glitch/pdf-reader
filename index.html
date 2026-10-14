@@ -530,6 +530,52 @@ body.fs .fsx:hover,body.fs .fsx:focus-visible{opacity:1}
 #menu .mh h2{color:#fff!important;font-size:1.15rem}
 #menu #menuClose{width:44px;height:44px;min-width:44px;min-height:44px;border-radius:50%;background:#fff!important;border:0!important;opacity:1;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 #menu #menuClose svg{stroke:#4f46e5!important;stroke-width:2.8;width:22px;height:22px}
+/* ===== پرداخت نهایی چیدمان: فاصله‌گذاری یکنواخت، هدف لمسی ≥۴۶px، خوانایی، وضعیت‌ها ===== */
+:root{--gp:12px;--tp:46px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mbody{overscroll-behavior:contain;scroll-padding-top:70px}
+.mbody>.panel{padding-block:14px 32px;display:grid;gap:var(--gp);align-content:start}
+#menu .mh{position:sticky;top:0;z-index:3}
+details.acc{border-radius:20px;overflow:hidden;transition:border-color .2s}
+details.acc[open]{border-color:color-mix(in srgb,var(--accent) 38%,var(--line))}
+details.acc>summary{min-height:62px;padding:10px 14px;gap:12px;-webkit-tap-highlight-color:transparent}
+details.acc>summary:active{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+details.acc>.in{gap:var(--gp);padding:2px 14px 16px}
+details.acc>summary .stt b{font-size:.95rem}
+details.acc>summary .stt small{font-size:.74rem;line-height:1.55}
+details.sub>summary{min-height:44px}
+.hint{font-size:.76rem;line-height:1.85;color:var(--muted);margin:0}
+.btn{min-height:var(--tp);border-radius:14px;padding:6px 16px}
+.btn.sm{min-height:40px}
+.btn.primary{box-shadow:0 10px 18px -12px var(--accent)}
+.btnrow{gap:10px}
+select,textarea,input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]){box-sizing:border-box;min-height:var(--tp);border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font:inherit;padding:8px 12px;max-width:100%}
+textarea{line-height:1.8}
+select:focus,textarea:focus,input:focus{border-color:var(--accent)}
+input[type=checkbox],input[type=radio],input[type=range]{accent-color:var(--accent)}
+input[type=checkbox],input[type=radio]{width:22px;height:22px;flex:none}
+.chk{min-height:54px;gap:12px;align-items:center;-webkit-tap-highlight-color:transparent}
+.slist{border-radius:18px}
+.slist>.chk{padding:10px 14px}
+.seg{border-radius:16px}
+.seg button{min-height:42px}
+.bnav button{font-size:.7rem;min-height:48px}
+.bnav button[aria-current="true"]{font-weight:800}
+.qm{max-height:calc(100% - 24px)}
+.qt{min-height:72px}
+/* وضعیت آفلاین: ردیف‌های منظم به‌جای متن پیوسته */
+#offRes{display:grid;gap:8px}
+.orow{display:grid;grid-template-columns:28px 1fr;gap:4px 10px;align-items:start;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--ink) 2.5%,transparent)}
+.orow .ob{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.85rem;background:color-mix(in srgb,#059669 16%,transparent);color:#059669}
+.orow.opt .ob{background:color-mix(in srgb,#d97706 16%,transparent);color:#d97706}
+.orow.bad{border-color:color-mix(in srgb,#dc2626 45%,var(--line))}
+.orow.bad .ob{background:color-mix(in srgb,#dc2626 16%,transparent);color:#dc2626}
+.orow .ot{font-size:.84rem;font-weight:600;line-height:1.7;min-width:0}
+.orow .on{grid-column:2;font-size:.74rem;color:var(--muted);line-height:1.7}
+.omiss{grid-column:2;margin:0;padding:8px 10px;list-style:none;display:grid;gap:4px;border-radius:10px;background:color-mix(in srgb,#dc2626 7%,transparent);direction:ltr;text-align:left}
+.omiss li{font:.7rem/1.5 ui-monospace,monospace;word-break:break-all}
+.osum{font-size:.78rem;line-height:1.8;color:var(--muted);padding:2px 4px}
+@media (max-width:380px){details.acc>summary{padding-inline:10px}details.acc>.in{padding-inline:10px}}
 </style>
 </head>
 <body>
@@ -1326,7 +1372,7 @@ body.fs .fsx:hover,body.fs .fsx:focus-visible{opacity:1}
   function offDiag(){
     var out = $('#offRes'), rows = [];
     out.textContent = 'در حال بررسی…';
-    var add = function(ok, t, opt, nt){ rows.push({ ok: !!ok, t: t, opt: !!opt, nt: nt }); };
+    var add = function(ok, t, opt, nt, miss){ rows.push({ ok: !!ok, t: t, opt: !!opt, nt: nt, miss: miss }); };
     return Promise.all([
       probe('fonts/fonts.css'), probe('lib/pdf.min.js'), probe('lib/pdf.worker.min.js'),
       probe('lib/cmaps/UniJIS-UCS2-H.bcmap'), probe('lib/standard_fonts/LiberationSans-Regular.ttf'),
@@ -1338,18 +1384,22 @@ body.fs .fsx:hover,body.fs .fsx:focus-visible{opacity:1}
       add(r[0], 'فونت‌های فارسی', true);
       add(r[1] && r[2] && window.pdfjsLib, 'نمایش PDF (pdf.js)');
       add(r[3] && r[4], 'نگاشت‌ها و فونت‌های کمکی PDF', true);
-      add(r[5], 'موتور و مدل‌های OCR (PaddleOCR)' + (r[5] ? '' : (probeBad.length ? ' — پیدا نشد: ' + probeBad.join(' ، ') : '')));
+      add(r[5], 'موتور و مدل‌های OCR (PaddleOCR)', false, null, r[5] ? null : probeBad.slice());
       add(npOK, 'موتور صدای بومی');
       add(b.length > 0 || s.length > 0, 'صداهای فارسی: ' + nf.format(s.length) + ' نصب‌شده' + (b.length ? '، ' + nf.format(b.length) + ' همراه برنامه' : ' (بعد از نصب برنامه دانلود می‌شوند)'), true, '');
       out.textContent = '';
       var bad = 0;
       rows.forEach(function(x){
         if (!x.ok && !x.opt) bad++;
-        var p = document.createElement('p'); p.className = 'hint';
-        p.textContent = (x.ok ? '✓ ' : (x.opt ? '△ ' : '✗ ')) + x.t + (!x.ok && x.opt ? (x.nt != null ? x.nt : ' (اختیاری؛ نبودنش مشکلی ایجاد نمی‌کند)') : '');
+        var p = document.createElement('div'); p.className = 'orow ' + (x.ok ? 'ok' : (x.opt ? 'opt' : 'bad'));
+        var ob = document.createElement('span'); ob.className = 'ob'; ob.textContent = x.ok ? '✓' : (x.opt ? '△' : '✗');
+        var ot = document.createElement('span'); ot.className = 'ot'; ot.textContent = x.t;
+        p.appendChild(ob); p.appendChild(ot);
+        if (!x.ok && x.opt) { var on = document.createElement('span'); on.className = 'on'; on.textContent = x.nt != null ? x.nt : 'اختیاری؛ نبودنش مشکلی ایجاد نمی‌کند'; if (on.textContent) p.appendChild(on); }
+        if (x.miss && x.miss.length) { var ul = document.createElement('ul'); ul.className = 'omiss'; x.miss.forEach(function(f){ var li = document.createElement('li'); li.textContent = f; ul.appendChild(li); }); p.appendChild(ul); }
         out.appendChild(p);
       });
-      var m = document.createElement('p'); m.className = 'hint';
+      var m = document.createElement('p'); m.className = 'osum';
       m.textContent = bad ? 'برخی فایل‌های لازم داخل برنامه نیست؛ لاگ مرحلهٔ ساخت را بررسی کنید.' : (rows[rows.length - 1].ok ? 'همه‌چیز لازم داخل برنامه است و اینترنت لازم نیست.' : 'فایل‌های برنامه کامل است؛ فقط برای نصب صدا (یک‌بار) اینترنت لازم است.');
       out.appendChild(m);
     }).catch(function(e){ out.textContent = 'بررسی انجام نشد: ' + em(e); });
