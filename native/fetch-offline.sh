@@ -56,8 +56,10 @@ for pkg, ws in need.items():
         css.append(t)
 open(f"{O}/fonts.css", "w", encoding="utf-8").write("\n".join(css))
 PY
+# موتور ONNX و مدل‌های PaddleOCR (فارسی/عربی)
+bash "$HERE/fetch-ocr-paddle.sh" "$D"
 # بررسی نهایی: موارد ضروری
-for f in ocr/tesseract.min.js ocr/worker.min.js ocr/lang/fas.traineddata ocr/lang/eng.traineddata lib/pdf.min.js lib/pdf.worker.min.js; do
+for f in ocr/tesseract.min.js ocr/worker.min.js ocr/lang/fas.traineddata ocr/lang/eng.traineddata lib/pdf.min.js lib/pdf.worker.min.js ocr/ort/ort.min.js ocr/ort/ort-wasm-simd.wasm ocr/paddle/PP-OCRv5_mobile_det.onnx ocr/paddle/arabic_PP-OCRv5_mobile_rec.onnx ocr/paddle/arabic_PP-OCRv5_mobile_rec_dict.txt; do
   [ -s "$D/$f" ] || { echo "missing: $f" >&2; exit 1; }
 done
 ls "$D"/ocr/tesseract-core*lstm.wasm.js >/dev/null
