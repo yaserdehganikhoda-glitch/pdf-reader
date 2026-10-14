@@ -22,7 +22,7 @@ jobs:
           path: |
             ~/.offline-cache
             ~/.npm
-          key: offline-v2-${{ hashFiles('native/checksums.txt', 'native/inject-native.sh', 'native/fetch-offline.sh') }}
+          key: offline-v2-${{ hashFiles('native/checksums.txt', 'native/inject-native.sh', 'native/fetch-offline.sh', 'native/fetch-ocr-paddle.sh') }}
           restore-keys: |
             offline-v2-
       - name: Prepare web files
