@@ -329,11 +329,114 @@ class PiperNativePlugin : Plugin() {
 
     private val VOICE_BASE = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models"
 
+    // ---------- Mana-Persian-Piper: مدل خام Piper (.onnx + .json) که بعد از نصب برنامه دانلود می‌شود ----------
+    private val MANA_ID = "fa_IR-mana-medium"
+    // آینهٔ دوم برای شبکه‌هایی که huggingface.co در آن‌ها کند یا مسدود است؛ فایل ناقص از همان نقطه ادامه می‌یابد
+    private val MANA_BASES = listOf(
+        "https://huggingface.co/MahtaFetrat/Mana-Persian-Piper/resolve/main/",
+        "https://hf-mirror.com/MahtaFetrat/Mana-Persian-Piper/resolve/main/"
+    )
+    private fun fetchMirrors(path: String, part: File, emit: (Long, Long) -> Unit) {
+        var last: Throwable? = null
+        for (b in MANA_BASES) {
+            try { fetchResumable(b + path, part, emit); return } catch (e: IllegalStateException) { last = e }
+        }
+        throw last ?: IllegalStateException("دانلود ناموفق")
+    }
+    private val ESPEAK_DONOR = "fa_IR-gyro-medium"   // فقط برای کپی espeak-ng-data (مدل Mana خودش espeak ندارد)
+
+    private fun varint(o: ByteArrayOutputStream, v0: Int) {
+        var v = v0
+        while (v >= 0x80) { o.write((v and 0x7f) or 0x80); v = v ushr 7 }
+        o.write(v)
+    }
+
+    /** sherpa-onnx متادیتای ONNX را لازم دارد؛ مدل خام Piper ندارد. فیلد ۱۴ (metadata_props) به انتهای فایل پروتوباف اضافه می‌شود (الحاق معتبر است، بدون تجزیهٔ مدل) */
+    private fun appendOnnxMeta(onnx: File, kv: List<Pair<String, String>>) {
+        val out = ByteArrayOutputStream()
+        for ((k, v) in kv) {
+            val kb = k.toByteArray(Charsets.UTF_8); val vb = v.toByteArray(Charsets.UTF_8)
+            val e = ByteArrayOutputStream()
+            e.write(0x0A); varint(e, kb.size); e.write(kb)
+            e.write(0x12); varint(e, vb.size); e.write(vb)
+            out.write(0x72); varint(out, e.size()); out.write(e.toByteArray())
+        }
+        FileOutputStream(onnx, true).use { it.write(out.toByteArray()) }
+    }
+
+    private fun downloadMana(call: PluginCall) {
+        val id = MANA_ID
+        io.execute {
+            if (okMark(id).exists() && findOnnx(voiceDir(id)) != null) { call.resolve(); return@execute }
+            val partOnnx = File(root(), "$id.dl")
+            val partJson = File(root(), "$id.json.dl")
+            try {
+                if (ttsId == id) releaseEngine(id)
+                // فضای خالی: دانلود + کپی نهایی + espeak (حدود ۳۵۰ مگابایت در بدترین حالت)
+                if (root().usableSpace < 350_000_000L) throw IllegalStateException("فضای خالی گوشی کافی نیست (حداقل ۳۵۰ مگابایت)")
+                val emit = { l: Long, t: Long -> notifyListeners("progress", JSObject().put("loaded", l).put("total", t)) }
+                // ۱) espeak-ng-data: از صدای gyro (اگر نصب نیست، یک‌بار دانلود می‌شود)
+                var donorBytes = 0L
+                var espeakSrc: File? = sharedEspeak(id)
+                if (espeakSrc == null) {
+                    val dpart = File(root(), "$ESPEAK_DONOR.dl")
+                    fetchResumable("$VOICE_BASE/vits-piper-$ESPEAK_DONOR.tar.bz2", dpart) { l, t -> emit(l, t + 66_000_000L) }
+                    donorBytes = dpart.length()
+                    val dd = voiceDir(ESPEAK_DONOR)
+                    dd.deleteRecursively(); dd.mkdirs()
+                    java.io.FileInputStream(dpart).use { extract(it, dd) }
+                    if (findOnnx(dd) == null || !File(findRoot(dd), "tokens.txt").exists())
+                        throw IllegalStateException("فایل‌های espeak کامل نیست")
+                    okMark(ESPEAK_DONOR).writeText("1")
+                    dpart.delete()
+                    espeakSrc = File(findRoot(dd), "espeak-ng-data").takeIf { it.isDirectory }
+                }
+                if (espeakSrc == null) throw IllegalStateException("espeak-ng-data پیدا نشد")
+                // ۲) پیکربندی و مدل (با ادامه پس از قطع شبکه)
+                fetchMirrors("$id.onnx.json", partJson) { _, _ -> }
+                fetchMirrors("$id.onnx", partOnnx) { l, t -> emit(donorBytes + l, donorBytes + t) }
+                if (partOnnx.length() < 10_000_000L) { partOnnx.delete(); throw IllegalStateException("فایل مدل ناقص یا نامعتبر است؛ دوباره امتحان کنید") }
+                val cfg = org.json.JSONObject(partJson.readText(Charsets.UTF_8))
+                val pt = cfg.optString("phoneme_type", "espeak")
+                if (pt != "espeak") throw IllegalStateException("نوع آوانگاری مدل ($pt) پشتیبانی نمی‌شود")
+                val idMap = cfg.getJSONObject("phoneme_id_map")
+                val sr = cfg.optJSONObject("audio")?.optInt("sample_rate", 22050) ?: 22050
+                val ns = cfg.optInt("num_speakers", 1)
+                val voice = cfg.optJSONObject("espeak")?.optString("voice", "fa") ?: "fa"
+                // ۳) چیدن فایل‌ها: onnx + tokens.txt + espeak-ng-data
+                val dst = voiceDir(id)
+                dst.deleteRecursively(); dst.mkdirs()
+                val onnx = File(dst, "$id.onnx")
+                partOnnx.copyTo(onnx, overwrite = true)
+                val sb = StringBuilder()
+                val ks = idMap.keys()
+                while (ks.hasNext()) { val k = ks.next(); sb.append(k).append(' ').append(idMap.getJSONArray(k).getInt(0)).append('\n') }
+                File(dst, "tokens.txt").writeText(sb.toString(), Charsets.UTF_8)
+                File(dst, "$id.onnx.json").writeText(partJson.readText(Charsets.UTF_8), Charsets.UTF_8)
+                espeakSrc.copyRecursively(File(dst, "espeak-ng-data"), overwrite = true)
+                appendOnnxMeta(onnx, listOf(
+                    "model_type" to "vits", "comment" to "piper", "language" to "Persian", "voice" to voice,
+                    "has_espeak" to "1", "n_speakers" to ns.toString(), "sample_rate" to sr.toString()
+                ))
+                if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists())
+                    throw IllegalStateException("فایل‌های مدل کامل نیست")
+                okMark(id).writeText("1")
+                partOnnx.delete(); partJson.delete()
+                emit(1, 1)
+                call.resolve()
+            } catch (e: Throwable) {
+                voiceDir(id).deleteRecursively()   // فایل‌های ناقص دانلود (.dl) برای ادامه می‌مانند
+                call.reject("نصب ناموفق: ${e.message}")
+            }
+        }
+    }
+
     /** نصب صدا: از assets اگر همراه APK باشد، وگرنه دانلود مستقیم و استخراج هم‌زمان؛ سپس بررسی کامل‌بودن */
     @PluginMethod
     fun download(call: PluginCall) {
         val id = call.getString("id") ?: return call.reject("id")
         if (!Regex("[A-Za-z0-9_-]+").matches(id)) return call.reject("شناسهٔ صدا نامعتبر است")
+        if (id == MANA_ID) { downloadMana(call); return }
         io.execute {
             val part = File(root(), "$id.dl")
             var netDone = false
@@ -346,12 +449,15 @@ class PiperNativePlugin : Plugin() {
                 val total0: Long
                 val fromNet = id !in bundledIds()
                 val emit = { l: Long, t: Long -> notifyListeners("progress", JSObject().put("loaded", l).put("total", t)) }
+                // فضای خالی: فایل فشرده + استخراج (حدود ۳ برابر حجم صدا)
+                if (fromNet && root().usableSpace < 300_000_000L) throw IllegalStateException("فضای خالی گوشی کافی نیست (حداقل ۳۰۰ مگابایت)")
                 if (!fromNet) {
                     total0 = try { context.assets.openFd("voices/$id.tar.bz2").use { it.length } } catch (e: Throwable) { 70_000_000L }
                     src = context.assets.open("voices/$id.tar.bz2")
                 } else {
                     fetchResumable("$VOICE_BASE/vits-piper-$id.tar.bz2", part, emit)
                     netDone = true
+                    if (part.length() < 5_000_000L) throw IllegalStateException("فایل دانلودشده ناقص یا نامعتبر است؛ دوباره امتحان کنید")
                     total0 = part.length()
                     src = java.io.FileInputStream(part)
                 }
@@ -1516,9 +1622,17 @@ private object Stretch {
         }
     }
 
+    /**
+     * WSOLA با اتصال «توان‌ثابت».
+     * علت صدای «غغغ/غرغر» هنگام کندکردن: قاب‌ها با پنجرهٔ Hann جمع می‌شدند؛ وقتی دو قاب هم‌فاز نیستند (حروف سایشی مثل س ش خ غ ه ف، یا آغاز/پایان واج)
+     * مجموع توان در وسط هر هم‌پوشانی ~۳dB می‌افتد و صدا با ریتم قاب‌ها (~۵۰Hz) بالا و پایین می‌شود.
+     * اینجا هر هم‌پوشانی صریح میان‌محو (crossfade) می‌شود و وزن‌ها با همبستگی دو تکه (rho) طوری انتخاب می‌شوند که توان ثابت بماند
+     * (rho=۱ → میان‌محو خطی/Hann؛ rho=۰ → میان‌محو هم‌توان). محدودیت «فقط رو به جلو» هم برداشته شد: پنجرهٔ جست‌وجو را تنگ می‌کرد و
+     * هم‌ترازی فاز را خراب می‌کرد (در سرعت‌های ≤۰٫۵ غرغر شدید روی واکه‌ها).
+     */
     private fun wsola(x: FloatArray, sr: Int, rate: Double): FloatArray {
         val n = x.size
-        var nn = Math.round(sr * 0.032).toInt(); nn += nn and 1
+        var nn = Math.round(sr * (if (rate < 1.0) 0.040 else 0.032)).toInt(); nn += nn and 1
         val hs = nn shr 1
         val ha = hs * rate
         val d = Math.round(sr * 0.015).toInt()
@@ -1526,7 +1640,7 @@ private object Stretch {
         val frames = Math.ceil(n / ha).toInt() + 2
         val xp = FloatArray(n + nn + 2 * d + 8)
         System.arraycopy(x, 0, xp, p, n)
-        val win = FloatArray(nn) { (0.5 - 0.5 * Math.cos(2.0 * Math.PI * it / nn)).toFloat() }
+        val u = DoubleArray(hs) { 0.5 - 0.5 * Math.cos(Math.PI * (it + 0.5) / hs) }   // منحنی محوشدن ورودی (۰→۱)
         val out = FloatArray(frames * hs + nn + 8)
         fun sc(cand: Int, rf: Int, st: Int): Double {
             var s = 0.0; var e = 0.0
@@ -1534,27 +1648,44 @@ private object Stretch {
             while (q < hs) { val a = xp[cand + p + q]; s += a * xp[rf + p + q]; e += a * a; q += st }
             return s / Math.sqrt(e + 1e-6)
         }
-        for (j in 0 until nn) out[j] = xp[p + j] * (if (j < hs) 1f else win[j])
+        for (j in 0 until hs) out[j] = xp[p + j]
         var prev = 0
+        var last = 0
         for (m in 1 until frames) {
             val tp = Math.round(m * ha).toInt()
             if (tp >= n) break
-            val ref = prev + hs
+            val ref = prev + hs                      // ادامهٔ طبیعی قاب قبلی (دُم قبلی)
+            val lo = tp - d
+            val hi = tp + d
             var best = tp
             var bs = sc(tp, ref, 4)
-            var c = tp - d
-            while (c <= tp + d) { val v = sc(c, ref, 4); if (v > bs) { bs = v; best = c }; c += 2 }
+            var c = lo
+            while (c <= hi) { val v = sc(c, ref, 4); if (v > bs) { bs = v; best = c }; c += 2 }
             var k = best
             bs = Double.NEGATIVE_INFINITY
             for (c2 in best - 2..best + 2) {
-                if (c2 < tp - d || c2 > tp + d) continue
+                if (c2 < lo || c2 > hi) continue
                 val v = sc(c2, ref, 1)
                 if (v > bs) { bs = v; k = c2 }
             }
+            // همبستگی واقعی دُم قبلی و سرِ قاب جدید → وزن‌های توان‌ثابت
+            var ab = 0.0; var ea = 0.0; var eb = 0.0
+            for (q in 0 until hs) {
+                val a = xp[ref + p + q].toDouble(); val b = xp[k + p + q].toDouble()
+                ab += a * b; ea += a * a; eb += b * b
+            }
+            val rho = Math.min(1.0, Math.max(0.0, ab / Math.sqrt(ea * eb + 1e-12)))
             val o = m * hs
-            for (j in 0 until nn) out[o + j] += xp[k + p + j] * win[j]
+            for (q in 0 until hs) {
+                val uq = u[q]
+                val wo = -rho * uq + Math.sqrt(Math.max(rho * rho * uq * uq - uq * uq + 1.0, 0.0))
+                out[o + q] = (xp[ref + p + q] * wo + xp[k + p + q] * uq).toFloat()
+            }
             prev = k
+            last = m
         }
+        val oe = (last + 1) * hs
+        for (j in 0 until hs) out[oe + j] = xp[prev + hs + p + j]   // دُم قاب آخر
         val len = Math.min(Math.round(n / rate).toInt(), out.size)
         val res = out.copyOf(len)
         val f = Math.min(len, Math.round(sr * 0.01).toInt())
