@@ -161,9 +161,6 @@ linear-gradient(180deg,var(--bg1),var(--bg0));animation:drift 50s ease-in-out in
 .is-prep .play::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:3px solid transparent;border-top-color:var(--gold);animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .pills{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:2px}
-.spgrp{grid-column:1/-1;display:grid;grid-template-columns:52px 1fr 52px;gap:6px}
-.spgrp .pill{font-size:.9rem}
-.spgrp #spDn,.spgrp #spUp{font-size:1.25rem;line-height:1;padding:0}
 .pill,.rstep{touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .pill{font:inherit;font-size:.72rem;font-weight:600;min-height:34px;padding:2px 2px;white-space:nowrap;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;line-height:1.3;transition:border-color .2s,background .2s,transform .12s}
 .pill:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
@@ -198,7 +195,9 @@ input[type=range]:not(.rng){width:100%;accent-color:var(--accent)}
 .mh{background:linear-gradient(180deg,color-mix(in srgb,var(--accent-2) 11%,transparent),transparent);flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(8px + env(safe-area-inset-top,0px)) 14px 6px 10px}
 .mh h2{margin:0;font-size:1.1rem;font-weight:800}
 .tabs{flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin:0 12px 2px;padding:3px;border-radius:15px;background:color-mix(in srgb,var(--ink) 7%,transparent)}
-.tab{font:inherit;font-size:.84rem;font-weight:600;border:0;background:transparent;color:var(--muted);border-radius:12px;min-height:36px;cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
+.tab{font:inherit;font-size:.78rem;font-weight:600;border:0;background:transparent;color:var(--muted);border-radius:12px;min-height:54px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:background .2s,color .2s,box-shadow .2s}
+.tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-selected="true"] svg{color:var(--accent)}
 .tab[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:var(--dock-in),0 4px 12px -5px var(--dsh);box-shadow:var(--dock-in),0 4px 12px -5px var(--dsh)}
 .tab[aria-selected="true"]{background-image:linear-gradient(180deg,transparent,color-mix(in srgb,var(--accent) 9%,transparent))}
 .mbody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -380,36 +379,37 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
 :root[data-fx="flat"] .play,
 :root[data-fx="flat"] .btn.primary,
 :root[data-fx="flat"] .chip.on,
-:root[data-fx="flat"] .bnav .fab{background-image:none!important;background-color:var(--accent)!important}
 :root[data-fx="flat"] .hero-main,
 :root[data-fx="flat"] .mh,
 :root[data-fx="flat"] .tab[aria-selected="true"],
 :root[data-fx="flat"] .seg button[aria-checked="true"]{background-image:none!important}
 
-/* ===== نوار پایین: صفحه‌های منو + دکمهٔ اصلی در وسط ===== */
-:root{--nav-h:62px}
-.app{box-sizing:border-box;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px))}
+.app{box-sizing:border-box;padding-bottom:env(safe-area-inset-bottom,0px)}
 .frame{margin-bottom:8px}
-.bnav{position:fixed;z-index:60;inset-inline:0;bottom:0;height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;display:grid;grid-template-columns:1fr 1fr 82px 1fr 1fr;align-items:end;background:var(--paper);border-top:1px solid var(--paper-edge);border-radius:22px 22px 0 0;box-shadow:0 -8px 24px -14px rgba(0,0,0,.35)}
-.bnav button{font:inherit;font-size:.72rem;font-weight:600;border:0;background:transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:var(--nav-h);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.bnav svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.bnav button[aria-current="true"]{color:var(--accent)}
-.bnav .mid{justify-content:flex-end;padding-bottom:5px}
-.bnav .fab{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:0 8px 18px -8px var(--accent);border:3px solid var(--paper);transform:translateY(-6px)}
-.bnav .fab svg{width:26px;height:26px}
-.bnav .mid[aria-current="true"]{color:var(--accent)}
-.menu{width:100%;max-width:none;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));border-inline-end:0}
-.tabs{display:none}
-.mbody{padding-bottom:0}
 .mbody>.panel{max-width:640px;margin-inline:auto}
 .mhb{display:flex;gap:8px;align-items:center}
-.selbar{bottom:calc(var(--dock-h) + 14px + var(--nav-h) + env(safe-area-inset-bottom,0px))}
-#seekTip{bottom:calc(var(--dock-h) + 40px + var(--nav-h) + env(safe-area-inset-bottom,0px))}
-#fixTip{bottom:calc(var(--dock-h) + 24px + var(--nav-h) + env(safe-area-inset-bottom,0px))}
 
 /* ===== روان‌سازی اسکرول و جابه‌جایی تب‌ها ===== */
 :root:root{--glass:color-mix(in srgb,var(--card) 96%,transparent);--dock-bg:var(--glass)}
 .ibtn.round,.note,.dock,#seekTip,#fixTip,.scrim,.selbar{-webkit-backdrop-filter:none;backdrop-filter:none}
+
+/* ===== نوار پخش فشرده: حدود نصف ارتفاع قبلی (≈۲۲۰ ← ≈۱۱۵px)؛ همهٔ دکمه‌ها سر جایشان ماندند ===== */
+:root:root{--dock-h:122px}
+.dock{padding:0 10px 6px;border-radius:20px}
+.grab{padding:3px 28px;min-height:14px}
+#status{font-size:.72rem;line-height:1.45}
+.meta{position:absolute;top:0;inset-inline-end:14px;font-size:.68rem;line-height:14px;white-space:nowrap;pointer-events:none}
+input[type=range].rng{height:22px}
+.ctl{gap:0}
+.ctl .ibtn{min-width:40px;min-height:38px;padding:2px 4px}
+.ctl .ibtn svg{width:22px;height:22px}
+.ibtn .cap{display:none}
+.play{width:44px;height:44px}
+.play svg{width:22px;height:22px}
+.is-prep .play::after{inset:-4px;border-width:2px}
+.pills{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:0}
+.pill{min-height:28px;padding:1px 6px;font-size:.74rem;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:380px){.play{width:42px;height:42px}}
 .aura{animation:none;inset:0}
 .is-playing #reader span.cur{animation:none}
 @media (hover:none){#reader span:hover:not(.cur){background:none}}
@@ -524,8 +524,6 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 6l-6 6 6 6M19 6l-6 6 6 6"/></svg><span class="cap">صفحه</span></button>
       </div>
       <div class="pills">
-        <div class="spgrp"><button class="pill" id="spDn" type="button" aria-label="کندتر (یک گام ریز)">−</button><button class="pill" id="spBtn" type="button" aria-label="سرعت؛ لمس برای بازگشت به ۱×" title="لمس: بازگشت به ۱×"></button><button class="pill" id="spUp" type="button" aria-label="تندتر (یک گام ریز)">+</button></div>
-        <button class="pill" id="slBtn" type="button" aria-label="تایمر خواب">تایمر خواب</button>
         <button class="pill" id="locBtn" type="button" disabled aria-label="رفتن به محل خواندن">محل خواندن</button>
         <button class="pill" id="stop" type="button" disabled>توقف</button>
       </div>
@@ -570,15 +568,6 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   </div>
 </div>
 
-<!-- ===================== نوار پایین ===================== -->
-<nav class="bnav" id="bnav" aria-label="بخش‌های برنامه">
-  <button type="button" data-go="lib"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4v16H5zM11 4h4v16h-4zM17.5 5l3 .8-3.6 14-3-.8z"/></svg><span>کتابخانه</span></button>
-  <button type="button" data-go="voice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg><span>صدا</span></button>
-  <button type="button" class="mid" data-go="main" aria-current="true"><span class="fab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2-1.5-5-2-8-1.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-13c-3-.5-6 0-8 1.5zM12 6v13"/></svg></span><span>خواندن</span></button>
-  <button type="button" data-go="text"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/></svg><span>متن</span></button>
-  <button type="button" data-go="view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></svg><span>نمایش</span></button>
-</nav>
-
 <!-- ===================== منو ===================== -->
 <div class="scrim" id="scrim" aria-hidden="true"></div>
 <aside class="menu" id="menu" role="dialog" aria-modal="true" aria-labelledby="menuTitle" aria-hidden="true" inert>
@@ -591,10 +580,10 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     </div>
   </div>
   <div class="tabs" id="tabs" role="tablist" aria-label="بخش‌های منو">
-    <button class="tab" role="tab" data-tab="lib" aria-selected="true">کتابخانه</button>
-    <button class="tab" role="tab" data-tab="voice" aria-selected="false" tabindex="-1">صدا</button>
-    <button class="tab" role="tab" data-tab="text" aria-selected="false" tabindex="-1">متن</button>
-    <button class="tab" role="tab" data-tab="view" aria-selected="false" tabindex="-1">نمایش</button>
+    <button class="tab" role="tab" data-tab="lib" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4v16H5zM11 4h4v16h-4zM17.5 5l3 .8-3.6 14-3-.8z"/></svg><span>کتابخانه</span></button>
+    <button class="tab" role="tab" data-tab="voice" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg><span>صدا</span></button>
+    <button class="tab" role="tab" data-tab="text" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/></svg><span>متن</span></button>
+    <button class="tab" role="tab" data-tab="view" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></svg><span>نمایش</span></button>
   </div>
 
   <div class="mbody" id="mbody">
@@ -656,6 +645,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
         </div>
         <div id="piperbox" class="grp" hidden>
           <p class="hint" id="pstat"></p>
+          <progress id="pbar" max="100" value="0" hidden style="width:100%;height:8px"></progress>
           <div class="btnrow">
             <button class="btn primary" id="pdl" type="button">نصب صدای فارسی</button>
             <button class="btn" id="pRef" type="button" title="بررسی دوبارهٔ فایل‌های صدا">تازه‌سازی</button>
@@ -669,6 +659,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
         <div class="field">
           <span class="flab">سبک گفتار</span>
           <select id="vstyle" data-seg aria-label="سبک گفتار">
+            <option value="calm" data-short="آرام" data-desc="لحن نرم، یکدست و بی‌شتاب با مکث‌های بازتر؛ شنیدن راحت و آرامش‌بخش، مناسب کتاب و گوش‌دادن طولانی (پیشنهادی).">آرام (دلنشین و آرامش‌بخش)</option>
             <option value="stable" data-short="پایدار" data-desc="یکنواخت و بی‌نوسان؛ مناسب کتاب‌های بلند و متن‌های رسمی.">پایدار (یکنواخت‌تر، مناسب کتاب)</option>
             <option value="balanced" data-short="متعادل" data-desc="تعادل میان پایداری و حالت؛ مناسب بیشتر متن‌ها.">متعادل</option>
             <option value="natural" data-short="انسانی" data-desc="نزدیک‌ترین حالت به لحن یک گوینده انسانی: زیر و بمی و ریتم طبیعی (پیشنهادی).">انسانی (پیشنهادی)</option>
@@ -713,6 +704,15 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
           </div>
           <div class="chips rchips" id="rateChips"></div>
           <p class="hint">سرعت کمتر از ۱× بدون تغییر زیر و بمی ساخته می‌شود.</p>
+        </div>
+      </section>
+
+      <section class="grp">
+        <h3>تایمر خواب</h3>
+        <div class="field">
+          <label><span>توقف خودکار پخش</span><span id="slV">خاموش</span></label>
+          <div class="chips" id="slChips"></div>
+          <p class="hint">پس از زمان انتخاب‌شده، پخش خودکار متوقف می‌شود.</p>
         </div>
       </section>
 
@@ -979,7 +979,6 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   function showVals(){
     var r = +$('#rate').value, ch = document.querySelectorAll('#rateChips .chip'), i;
     $('#rateV').textContent = nf.format(r) + '×';
-    $('#spBtn').textContent = 'سرعت ' + nf.format(r) + '×';
     fillRng($('#rate'));
     for (i = 0; i < ch.length; i++) ch[i].classList.toggle('on', Math.abs(+ch[i].dataset.v - r) < 0.001);
   }
@@ -990,7 +989,8 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   /* ---------- voices ---------- */
   var piperVoices = [
     { id: 'fa_IR-gyro-medium', name: 'gyro (medium)', lang: 'fa-IR', gender: 'm', fa: true },
-    { id: 'fa_IR-ganji-medium', name: 'ganji (medium)', lang: 'fa-IR', gender: 'm', fa: true }
+    { id: 'fa_IR-ganji-medium', name: 'ganji (medium)', lang: 'fa-IR', gender: 'm', fa: true },
+    { id: 'fa_IR-mana-medium', name: 'mana (medium)', lang: 'fa-IR', gender: '?', mb: 63, fa: true }
   ];
   var HAVE = [];   /* صداهای دانلودشده؛ با «تازه‌سازی» دوباره بررسی می‌شود */
   var FEM_ID = /coqui-|negar|shiva|mahtab|haaniye/i;
@@ -1078,21 +1078,41 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       status(e && e.reason === 'call' ? 'پخش به‌خاطر تماس تلفنی متوقف شد.' : 'پخش با جداشدن هدفون یا بلندگو متوقف شد.');
     });
   }
+  /* مدل‌های دانلودی پس از نصب (فقط .onnx و .json؛ نه داخل APK). نشانی‌ها به بومی هم داده می‌شود */
+  var HF_MANA = 'https://huggingface.co/MahtaFetrat/Mana-Persian-Piper/resolve/main/';
+  var MODEL_URLS = {
+    'fa_IR-mana-medium': { onnx: HF_MANA + 'fa_IR-mana-medium.onnx', json: HF_MANA + 'fa_IR-mana-medium.onnx.json' }
+  };
+  function dlArgs(id){ var u = MODEL_URLS[id]; return u ? { id: id, url: u.onnx, onnxUrl: u.onnx, jsonUrl: u.json, configUrl: u.json, resume: true } : { id: id }; }
+  function waitOnline(){
+    if (navigator.onLine !== false) return Promise.resolve();
+    return new Promise(function(res){ var f = function(){ window.removeEventListener('online', f); res(); }; window.addEventListener('online', f); });
+  }
   var NATIVE_PIPER = {
     voices: function(){
       var all = [
         { key: 'fa_IR-gyro-medium', name: 'gyro', quality: 'medium', language: { family: 'fa' } },
         { key: 'fa_IR-ganji-medium', name: 'ganji', quality: 'medium', language: { family: 'fa' } },
         { key: 'fa_IR-ganji_adabi-medium', name: 'ganji_adabi', quality: 'medium', language: { family: 'fa' } },
+        { key: 'fa_IR-mana-medium', name: 'mana', quality: 'medium', mb: 63, language: { family: 'fa' } },
         { key: 'fa_en-rezahedayatfar-ibrahimwalk-medium', name: 'reza_ibrahim (fa+en)', quality: 'medium', language: { family: 'fa' } }
       ];
       return Promise.resolve(NP.bundled ? NP.bundled() : null).then(function(r){ var ids = (r && r.ids) || []; return ids.length ? all.filter(function(v){ return ids.indexOf(v.key) >= 0; }) : all; }, function(){ return all; });
     },
     stored: function(){ return NP.stored().then(function(r){ return (r && r.ids) || []; }); },
     download: function(id, cb){
-      var h = null, done = function(){ try { if (h && h.remove) h.remove(); } catch (e) {} };
+      var h = null, done = function(){ try { if (h && h.remove) h.remove(); } catch (e) {} }, tries = 0;
+      var once = function(){ return NP.download(dlArgs(id)); };
+      /* قطع اینترنت: منتظر «online» می‌ماند و تا ۶ بار خودکار ادامه می‌دهد (بومی فایل ناقص را از ابتدا/ادامه می‌گیرد) */
+      var run = function(){
+        return once().catch(function(e){
+          if (++tries > 6) throw e;
+          if (cb) cb({ stage: 'retry', n: tries });
+          return waitOnline().then(function(){ return new Promise(function(r){ setTimeout(r, 1200 * tries); }); }).then(run);
+        });
+      };
       return Promise.resolve(NP.addListener('progress', function(e){ if (cb) cb({ loaded: e.loaded, total: e.total, stage: e.stage, n: e.n }); }))
-        .then(function(x){ h = x; return NP.download({ id: id }); })
+        .then(function(x){ h = x; return run(); })
         .then(function(r){ done(); return r; }, function(e){ done(); throw e; });
     },
     predict: function(o){
@@ -1171,16 +1191,20 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     var v = engVoice(), btn = $('#pdl'), st = $('#pstat');
     if (!v) return;
     btn.disabled = true;
+    var bar = $('#pbar'); bar.value = 0; bar.hidden = false;
+    if (navigator.onLine === false) st.textContent = 'اینترنت قطع است؛ با وصل‌شدن، دانلود خودکار شروع می‌شود…';
     ensurePiper().then(function(ok){ if (!ok) throw new Error('موتور Piper بارگذاری نشد.'); return PiperTTS.download(v.id, function(pr){
+      if (pr && pr.stage === 'retry') { st.textContent = 'اتصال قطع شد؛ تلاش مجدد ' + nf.format(pr.n) + ' از ۶ (پس از وصل‌شدن اینترنت ادامه می‌یابد)…'; return; }
       if (pr && pr.stage === 'extract') { st.textContent = 'در حال آماده‌سازی فایل‌های صدا… (فایل ' + nf.format(pr.n || 0) + ') — تا چند دقیقه صبر کنید'; return; }
-      if (pr && pr.total) st.textContent = 'در حال نصب: ' + nf.format(Math.round(pr.loaded * 100 / pr.total)) + '٪';
+      if (pr && pr.total) { var pc = Math.round(pr.loaded * 100 / pr.total); bar.value = pc; st.textContent = 'در حال نصب: ' + nf.format(pc) + '٪ (' + nf.format(Math.round(pr.loaded / 1048576)) + ' از ' + nf.format(Math.round(pr.total / 1048576)) + ' مگابایت)'; }
     }); }).then(function(){
       st.textContent = 'در حال آزمایش صدا…';
       return piperPredict('سلام.', v.id);
     }).then(function(){ updatePiperStatus(); warmPiper(); vfAuto(v.id); }).catch(function(e){
       st.textContent = 'نصب صدا ناموفق بود: ' + (e && e.message ? e.message : e);
-    }).then(function(){ btn.disabled = false; });
+    }).then(function(){ btn.disabled = false; $('#pbar').hidden = true; });
   };
+  window.addEventListener('offline', function(){ if (!$('#pbar').hidden) $('#pstat').textContent = 'اینترنت قطع شد؛ دانلود تا وصل‌شدن مجدد منتظر می‌ماند.'; });
   /* ---------- وضعیت آفلاین: بررسی وجود فایل‌های داخل برنامه ---------- */
   function offDiag(){
     var out = $('#offRes'), rows = [];
@@ -3508,7 +3532,8 @@ var ocrSpell = (function(){
   /* ---------- کسرهٔ اضافهٔ خودکار ----------
      موتور آوایی بدون نشانهٔ اضافه، «صدای کتاب» را بی‌کسره و رباتی می‌خواند. این‌جا بین دو کلمهٔ پشت‌سرهم (اسم/صفت) که
      هیچ نشانه‌گذاری میانشان نیست، کسره می‌گذاریم. کلمه‌های ربطی، فعل، ضمیر، عدد و حرف اضافه را رد می‌کنیم؛ تحلیل دستوری نیست و تقریبی است. */
-  function ezOn(){ var e = document.getElementById('ezAuto'); return !e || e.checked; }
+  function isMana(){ var v = document.getElementById('voice'); return !!v && v.value === 'fa_IR-mana-medium'; }   /* مدل Mana با آوانگاریِ آگاه از کسره و هم‌نگاشت‌ها آموزش دیده؛ برایش همیشه روشن */
+  function ezOn(){ if (isMana()) return true; var e = document.getElementById('ezAuto'); return !e || e.checked; }
   function humOn(){ var e = document.getElementById('humPace'); return !e || e.checked; }
   function lexOn(){ return true; }
   function hStr(s){ var h = 0, i; for (i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
@@ -3587,7 +3612,7 @@ var ocrSpell = (function(){
      فارسی بدون اعراب نوشته می‌شود و موتور آوایی کوتاه‌مصوت‌ها را برای واژه‌های پرکاربرد گاهی اشتباه حدس می‌زند.
      این‌جا برای همین واژه‌ها شکل اعرابدار می‌گذاریم. نشانه‌ها (بعد از حرف): a = فتحه ، e = کسره ، o = ضمه.
      واژه‌نامهٔ کاربر همیشه اولویت دارد (چون پیش از این مرحله با نشانگر جایگزین شده). برای افزودن واژه، فقط به LEX_SRC اضافه کنید. */
-  function phLexOn(){ var e = document.getElementById('phLex'); return !e || e.checked; }
+  function phLexOn(){ if (isMana()) return true; var e = document.getElementById('phLex'); return !e || e.checked; }
   var LEX_SRC = 'کeتاب کeشوaر مaدرeسه دانeشگاه دانeش مaردoم زaمان زaمین جaهان اeنسان اeجتeماع اeقتeصاد سیاسaت حoکومaت دaولaت قoدرaت عaدالaت حoقوق حaق مaسئaله مoشکeل رaوeش هaفته ساعaت دaقیقه قaرن نaتیجه دaلیل عeلaت هaدaف بaرنامه سیستeم اeطلاعات تaحقیق پoژوهeش مoطالeعه آموزeش دانeشجو مoعaلeم اoستاد دانeشمaند نویسaنده شاعeر کeتابخانه خانeواده پeدaر مادaر فaرزaند بaرادaر دoشمaن عeشق زeندگی مaرگ زaن کoدaک جaوان بoزoرگ کوچaک سaخت مoهeم لازeم مoمکeن دoرoست غaلaط اeشتeباه واقeعی حaقیقaت واقeعیaت مaفهوم کaلeمه جoمله صaفحه مaتن فaصل بaخش قeسمaت نaوع شaکل رaنگ صeدا صaوت گویaنده نeگاه چaشم دaست قaلب دeل جeسم بaدaن مaغز آتaش دaریا جaنگaل دaرaخت گoل غaذا قaهوه رeستوران فaلافeل تeهران اeصفaهان مaشهaد تaبریز خoراسان زaبان اaدaبیات شeعر رoمان هoنaر نaقاشی عeلم پeزeشک پeزeشکی بیمارeستان دaرمان سaلامaت بaهداشت وaرزeش موسابeقه شoغل شeرکaت مoدیر مoدیریaت تaولید فoروش خaرید قeیمaت هaزینه دaرآمaد تeجارaت صaنعaت کeشاوaرزی لeباس نaخ چaرخ مaسیر سaفaر موسافeر هoتل قeطار هaواپeیما بeسیار هaمه چaند چaندین بaعضی بaرخی دیگaر هaمین هaمان چaنین چaنان مeثل مانaند مeثال نaمونه هaمیشه هaنوز اaکنون هaرگز هaمواره بaعد قaبل بaین طaبaق عeلاوه کaمتaر بeهتaر بaدتaر تaمام کامeل چeطور چeگونه چaقدر کoجا کoدام هaر هیچکaس هaمگی وaقت دaفعه مaرتaبه کoل پoر پoل پoشت خoد خoدaم خoدeت خoدeش خoدeمان خoدeتان خoدeشان شoکر عoذر ذeکر فeکر ذeهن صaبر عoمر عaصر شoهرaت ثaروaت گaرم سaرد سaبز سoرخ زaرد سeفید قeرمeز نارaنجی بaنaفش بoلند کوشeش تaند سaریع نeشان نeشانه نaقش نoقطه نaظaر نeظام مeللaت مeللی مaذهaب خoدا خoداوaند پیامبaر قoرآن اoمید غaم خaشم تaرس مeهرaبان مeهر اaصل اaساس اeرتeباط اeجازه اeستeفاده اaهaمیaت اeمکان اeحتeمال اeطلاع اeعتeماد اeقدام اeنتeخاب اeنتeظار اaرزeش اaثaر اeدامه اeبتeدا اeنتeها اaکثaر اaکثaریaت اeجرا اeصلاح اeضافه اaفزایeش رoشد توسeعه تaوaجoه تaفاوoت تaغییر تaصمیم تaجرoبه تeعداد تaلاش تaرکیب تaرجoمه جeهaت جaدید قaدیمی موختaلeف موشابeه موستaقیم موناسeب مaجموعه مoحیط مaحصول مaنبaع مaوقeعیaت مaسئول مaسئولیaت موشارeکaت مaعمولی مaعرeفی مeعیار مaنطeق مaنطeقه نaسل نeسبaت نeظارaت وaضع وaضعیaت وoجود وaظیفه هaدaف هaمکاری هaمراه مoحaمaد عaلی حaسaن حoسeین رeضا مaهدی اaحمaد اaمیر مaحمود اeبراهیم اeسماعیل یوسoف جaعفaر کاظeم باقeر تaقی هادی صادeق سaعید حaمید مaجید فaرهاد بaهرام کامران پaرویز شaهرام فاطeمه زaهرا مaریaم زaینaب';
   var LEX = null, LEX_SUF = {};
   'ها های هایی هایم هایت هایش هایمان هایتان هایشان ام ات اش مان تان شان ای ایم اید اند تر ترین'.split(' ').forEach(function(w){ LEX_SUF[w] = 1; });
@@ -4140,15 +4165,16 @@ var ocrSpell = (function(){
     return pws[l];
   }
   /* ---------- سبک گفتار و سرعت هوشمند (نسخهٔ بومی) ---------- */
-  var STYLES = { stable: [0.5, 0.6], balanced: [0.6, 0.7], natural: [0.667, 0.8], lively: [0.75, 0.9] };   /* «انسانی» = مقدار پیش‌فرض خودِ مدل‌های Piper */
-  function styleParams(){ return STYLES[$('#vstyle').value] || STYLES.natural; }
+  var STYLES = { calm: [0.55, 0.65], stable: [0.5, 0.6], balanced: [0.6, 0.7], natural: [0.667, 0.8], lively: [0.75, 0.9] };   /* calm: لحن نرم و یکدست، کمی آهسته‌تر و با مکث‌های بازتر */   /* «انسانی» = مقدار پیش‌فرض خودِ مدل‌های Piper */
+  function isCalm(){ return $('#vstyle').value === 'calm'; }
+  function styleParams(){ PART_GAP = isCalm() ? 0.2 : 0.12; return STYLES[$('#vstyle').value] || STYLES.natural; }
   function lvl03(id){ var v = +$(id).value; return v >= 0 && v <= 3 ? v : 2; }
   function cleanLevel(){ return lvl03('#vclean'); }     /* حذف نویز و صداهای اضافه در موتور بومی: ۰ خاموش … ۳ قوی */
   function clarityLevel(){ return lvl03('#vclarity'); } /* شفافیت و رسایی: ۰ خاموش … ۳ قوی */
   /* سرعت نسبی ۰٫۹۱ تا ۱: هرچه جمله سنگین‌تر (کلمهٔ بلند، عدد، لاتین، نشانه‌گذاری زیاد)، کمی آهسته‌تر */
   function paceSpeed(t){
-    var smart = $('#smartPace').checked;
-    if (!smart) return 1;
+    var smart = $('#smartPace').checked, cf = isCalm() ? 0.94 : 1;   /* حالت آرام: ۶٪ کندتر، بی‌شتاب */
+    if (!smart) return cf;
     var n = t.length; if (n < 8) return 1;
     var sp = 1;
     if (smart) {
@@ -4162,7 +4188,7 @@ var ocrSpell = (function(){
       d = Math.min(1, d * 1.8);
       sp = 1 - 0.09 * d;
     }
-    return Math.round(sp * 100) / 100;
+    return Math.round(sp * cf * 100) / 100;
   }
   var mainKit = null;
   function piperPredict(text, id, l, parts){
@@ -4325,20 +4351,22 @@ var ocrSpell = (function(){
     try { fxSrcs.forEach(function(f){ f.disconnect(); f.connect(on && $('#enh').checked ? fxIn : actx.destination); }); if (actx.state !== 'running') actx.resume(); } catch (e) {}
   }
   /* ---------- slow speech: pitch-preserving time-stretch (WSOLA), baked into the audio ---------- */
+  /* WSOLA با اتصال «توان‌ثابت»: هر هم‌پوشانی صریح میان‌محو می‌شود و وزن‌ها با همبستگی دو تکه (rho) طوری‌اند که توان ثابت بماند.
+     (جمع ساده با Hann در بخش‌های ناهم‌فاز/سایشی ~۳dB افت می‌کرد و ریتم قاب‌ها به‌صورت «غغغ» شنیده می‌شد.) */
   function wsolaCore(x, sr, rate){
-    var n = x.length, N = Math.round(sr * 0.032), i, j, m, k, tp, ref, best, bs, c, v, o;
+    var n = x.length, N = Math.round(sr * (rate < 1 ? 0.040 : 0.032)), i, j, m, k, q, tp, ref, best, bs, c, v, o, a, b, ab, ea, eb, rho, uq, wo;
     N += N & 1;
     var Hs = N >> 1, Ha = Hs * rate, D = Math.round(sr * 0.015), P = D, frames = Math.ceil(n / Ha) + 2;
     var xp = new Float32Array(n + N + 2 * D + 8); xp.set(x, P);
-    var win = new Float32Array(N); for (i = 0; i < N; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / N);
+    var u = new Float32Array(Hs); for (i = 0; i < Hs; i++) u[i] = 0.5 - 0.5 * Math.cos(Math.PI * (i + 0.5) / Hs);
     var out = new Float32Array(frames * Hs + N + 8);
     function sc(cand, rf, st){
       var s = 0, e = 0, a, q;
       for (q = 0; q < Hs; q += st) { a = xp[cand + P + q]; s += a * xp[rf + P + q]; e += a * a; }
       return s / Math.sqrt(e + 1e-6);
     }
-    for (j = 0; j < N; j++) out[j] = xp[P + j] * (j < Hs ? 1 : win[j]);
-    var prev = 0;
+    for (j = 0; j < Hs; j++) out[j] = xp[P + j];
+    var prev = 0, last = 0;
     for (m = 1; m < frames; m++) {
       tp = Math.round(m * Ha);
       if (tp >= n) break;
@@ -4350,10 +4378,18 @@ var ocrSpell = (function(){
         if (c < tp - D || c > tp + D) continue;
         v = sc(c, ref, 1); if (v > bs) { bs = v; k = c; }
       }
+      ab = 0; ea = 0; eb = 0;
+      for (q = 0; q < Hs; q++) { a = xp[ref + P + q]; b = xp[k + P + q]; ab += a * b; ea += a * a; eb += b * b; }
+      rho = ab / Math.sqrt(ea * eb + 1e-12); rho = rho < 0 ? 0 : rho > 1 ? 1 : rho;
       o = m * Hs;
-      for (j = 0; j < N; j++) out[o + j] += xp[k + P + j] * win[j];
-      prev = k;
+      for (q = 0; q < Hs; q++) {
+        uq = u[q]; wo = -rho * uq + Math.sqrt(Math.max(rho * rho * uq * uq - uq * uq + 1, 0));
+        out[o + q] = xp[ref + P + q] * wo + xp[k + P + q] * uq;
+      }
+      prev = k; last = m;
     }
+    o = (last + 1) * Hs;
+    for (j = 0; j < Hs; j++) out[o + j] = xp[prev + Hs + P + j];
     var L = Math.min(Math.round(n / rate), out.length), res = new Float32Array(L), f = Math.min(L, Math.round(sr * 0.01));
     res.set(out.subarray(0, L));
     for (i = 0; i < f; i++) res[L - 1 - i] *= i / f;
@@ -4581,6 +4617,7 @@ var ocrSpell = (function(){
     } else if (q.pe) ms = (!strong && !soft && t.length < 80) ? 720 : (/[?؟]["»”')\]]*$/.test(t) ? 470 : 410);
     else if (q.cont && !strong) ms = 25;
     else ms = strong ? 170 : soft ? 130 : 160;
+    if (isCalm()) ms *= 1.3;   /* حالت آرام: مکث‌ها بازتر، مثل نفس‌گیری آرام گوینده */
     return Math.round(ms / Math.pow(r, 0.6));
   }
   function gap(my){
@@ -5264,21 +5301,28 @@ var ocrSpell = (function(){
     btn.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); step(); } });
   }
   holdRepeat($('#rateDn'), -1); holdRepeat($('#rateUp'), 1);
-  holdRepeat($('#spDn'), -1); holdRepeat($('#spUp'), 1);
   showVals();
-  $('#spBtn').onclick = function(){ setRate(1); };   /* لمس عدد سرعت = بازگشت به ۱× */
-  var SLP = [0, 10, 20, 30, 60], slI = 0, slEnd = 0, slT = 0, slL = 0;
-  function slLabel(){ $('#slBtn').textContent = slEnd ? 'خواب: ' + nf.format(Math.max(1, Math.ceil((slEnd - Date.now()) / 60000))) + ' دقیقه' : 'تایمر خواب'; }
-  function slOff(){ clearTimeout(slT); clearInterval(slL); slEnd = 0; slLabel(); }
-  $('#slBtn').onclick = function(){
-    slI = (slI + 1) % SLP.length; slOff();
-    var m = SLP[slI];
-    if (!m) { status('تایمر خواب خاموش شد.'); return; }
+  /* تایمر خواب (در منو ‹ صدا): خاموش / ۱۰ / ۲۰ / ۳۰ / ۶۰ دقیقه */
+  var SLP = [0, 10, 20, 30, 60], slSel = 0, slEnd = 0, slT = 0, slL = 0;
+  function slLabel(){
+    $('#slV').textContent = slEnd ? nf.format(Math.max(1, Math.ceil((slEnd - Date.now()) / 60000))) + ' دقیقه مانده' : 'خاموش';
+    document.querySelectorAll('#slChips .chip').forEach(function(c){ c.classList.toggle('on', +c.dataset.v === slSel); });
+  }
+  function slOff(){ clearTimeout(slT); clearInterval(slL); slEnd = 0; slSel = 0; slLabel(); }
+  function slSet(m){
+    clearTimeout(slT); clearInterval(slL); slEnd = 0; slSel = m;
+    if (!m) { slLabel(); status('تایمر خواب خاموش شد.'); return; }
     slEnd = Date.now() + m * 60000;
-    slT = setTimeout(function(){ slOff(); slI = 0; if (playing) pause(); status('تایمر خواب: پخش متوقف شد.'); }, m * 60000);
+    slT = setTimeout(function(){ slOff(); if (playing) pause(); status('تایمر خواب: پخش متوقف شد.'); }, m * 60000);
     slL = setInterval(slLabel, 20000); slLabel();
     status('تایمر خواب: ' + nf.format(m) + ' دقیقه');
-  };
+  }
+  SLP.forEach(function(m){
+    var c = document.createElement('button'); c.type = 'button'; c.className = 'chip'; c.dataset.v = m;
+    c.textContent = m ? nf.format(m) + ' دقیقه' : 'خاموش';
+    c.onclick = function(){ slSet(m); }; $('#slChips').appendChild(c);
+  });
+  slLabel();
   $('#locBtn').onclick = function(){ if (curEl) curEl.scrollIntoView({ block: 'center', behavior: fxCalm() ? 'auto' : 'smooth' }); };
   $('#prev').onclick = function(){ seekTo(idx - 1); };
   $('#next').onclick = function(){ seekTo(idx + 1); };
@@ -5302,8 +5346,8 @@ var ocrSpell = (function(){
     if (was) start();
   };
   $('#enh').checked = sget('enh', '1') !== '0';
-  if (sget('vstyleV', '') !== '2') { sset('vstyle', 'natural'); sset('vstyleV', '2'); }   /* سبک «انسانی» پیش‌فرض تازه */
-  $('#vstyle').value = sget('vstyle', 'natural'); if (!STYLES[$('#vstyle').value]) $('#vstyle').value = 'natural';
+  if (sget('vstyleV', '') !== '3') { sset('vstyle', 'calm'); sset('vstyleV', '3'); }   /* سبک «آرام» پیش‌فرض تازه */
+  $('#vstyle').value = sget('vstyle', 'calm'); if (!STYLES[$('#vstyle').value]) $('#vstyle').value = 'calm';
   $('#vstyle').onchange = function(){ sset('vstyle', this.value); changed(); warmPiper(); };
   ['vclean', 'vclarity'].forEach(function(id){
     var el = $('#' + id); el.value = sget(id, '2'); if (['0', '1', '2', '3'].indexOf(el.value) < 0) el.value = '2';
@@ -5526,13 +5570,13 @@ var ocrSpell = (function(){
     for (i = 0; i < tabs.length; i++) { var on = tabs[i].dataset.tab === t; tabs[i].setAttribute('aria-selected', on ? 'true' : 'false'); tabs[i].tabIndex = on ? 0 : -1; }
     for (i = 0; i < ps.length; i++) ps[i].classList.toggle('on', ps[i].dataset.panel === t);
     curTabNow = t; setTimeout(function(){ sset('tab', t); }, 0); $('#mbody').scrollTop = 0; segRefresh();
-    var TT = { lib: 'کتابخانه', voice: 'صدا', text: 'متن', view: 'نمایش' }; $('#menuTitle').textContent = TT[t] || 'منو'; markNav();
+    var TT = { lib: 'کتابخانه', voice: 'صدا', text: 'متن', view: 'نمایش' }; $('#menuTitle').textContent = TT[t] || 'منو';
     if (t === 'lib') setTimeout(function(){ libRender(); stRender(); }, 80);
   }
   function openMenu(t){
     showTab(t || sget('tab', 'lib'));
     if (menuIsOpen) return;
-    menuIsOpen = true; menuFocus = document.activeElement; markNav();
+    menuIsOpen = true; menuFocus = document.activeElement;
     menuEl.removeAttribute('inert'); menuEl.setAttribute('aria-hidden', 'false');
     document.body.classList.add('menu-open');
     $('#menuBtn').setAttribute('aria-expanded', 'true');
@@ -5541,7 +5585,7 @@ var ocrSpell = (function(){
   }
   function closeMenu(fromPop){
     if (!menuIsOpen) return;
-    menuIsOpen = false; markNav();
+    menuIsOpen = false;
     document.body.classList.remove('menu-open');
     menuEl.setAttribute('aria-hidden', 'true'); menuEl.setAttribute('inert', '');
     $('#menuBtn').setAttribute('aria-expanded', 'false');
@@ -5555,17 +5599,6 @@ var ocrSpell = (function(){
   $('#menuBtn').onclick = function(){ if (menuIsOpen) closeMenu(); else openMenu(); };
   $('#menuClose').onclick = function(){ closeMenu(); };
   $('#scrim').onclick = function(){ closeMenu(); };
-  /* نوار پایین: صفحه‌های منو چپ و راست، «خواندن» در وسط */
-  function markNav(){
-    var cur = menuIsOpen ? curTabNow : 'main';
-    document.querySelectorAll('#bnav button').forEach(function(b){ if (b.dataset.go === cur) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
-  }
-  document.querySelectorAll('#bnav button').forEach(function(b){
-    b.onclick = function(){
-      var g = this.dataset.go;
-      if (g === 'main') { closeMenu(); try { if (curEl) follow(curEl); } catch (e) {} } else openMenu(g);
-    };
-  });
   /* خروج از برنامه */
   function exitFallback(){
     try { var A = CAP && CAP.Plugins && CAP.Plugins.App; if (A && A.exitApp) { A.exitApp(); return; } } catch (e) {}
