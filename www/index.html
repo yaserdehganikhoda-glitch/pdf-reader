@@ -58,9 +58,10 @@ try{var _f=localStorage.getItem('fx');if(_f==='off')_f='flat';if(_f!=='full'&&_f
 /* ===== پایه ===== */
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
-html,body{margin:0;height:100%;overflow:hidden}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
 body{background:var(--bg0);color:var(--ink);font-family:var(--font);line-height:1.8;text-rendering:optimizeLegibility;-webkit-text-size-adjust:100%}
 button{font:inherit;color:inherit}
+button,summary,label,select,input,[role=button]{touch-action:manipulation}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:10px}
 .aura{position:fixed;inset:-20%;z-index:0;pointer-events:none;
 background:radial-gradient(42% 38% at 80% 10%,color-mix(in srgb,var(--accent-2) 36%,transparent),transparent 70%),
@@ -3297,7 +3298,9 @@ var ocrSpell = (function(){
       return ol.fnArray.some(function(f){ return set.has(f); });
     } catch (e) { return true; }
   }
+  var loadTok = 0, loadTask = null;
   async function loadFile(file){
+    var lt = ++loadTok; posFlush();
     if (!window.pdfjsLib) { status('کتابخانهٔ PDF داخل برنامه پیدا نشد (پوشهٔ lib را با fetch-offline.sh بسازید).'); return; }
     if (ocrBusy) { ocrStop = true; while (ocrBusy) await new Promise(function(r){ setTimeout(r, 60); }); }
     curKey = '';
@@ -3306,14 +3309,23 @@ var ocrSpell = (function(){
     docName = file.name; dictP = sget('dict:' + docName, ''); parseDict(); dictShow();   /* واژه‌نامهٔ همین فایل */
     try {
       var buf = await file.arrayBuffer();
+      if (lt !== loadTok) return;
       if (pdfDoc) { try { pdfDoc.destroy(); } catch (e) {} }
-      pdfDoc = await pdfjsLib.getDocument({ data: buf, cMapUrl: new URL('lib/cmaps/', location.href).href, cMapPacked: true, standardFontDataUrl: new URL('lib/standard_fonts/', location.href).href }).promise;
+      if (loadTask) { try { loadTask.destroy(); } catch (e) {} }
+      pdfDoc = null;
+      loadTask = pdfjsLib.getDocument({ data: buf, cMapUrl: new URL('lib/cmaps/', location.href).href, cMapPacked: true, standardFontDataUrl: new URL('lib/standard_fonts/', location.href).href });
+      var doc = await loadTask.promise;
+      if (lt !== loadTok) { try { doc.destroy(); } catch (e) {} return; }
+      pdfDoc = doc;
       var pdf = pdfDoc; rawItems = []; rawImg = [];
       var W0 = txwGet(); if (W0) W0.post('doc');
       for (var p = 1; p <= pdf.numPages; p++) {
         status('استخراج متن: صفحهٔ ' + nf.format(p) + ' از ' + nf.format(pdf.numPages));
         var page = await pdf.getPage(p);
-        var its = (await page.getTextContent()).items; rawItems.push(its);
+        if (lt !== loadTok) { try { page.cleanup(); } catch (e) {} return; }
+        var its = (await page.getTextContent()).items;
+        if (lt !== loadTok) { try { page.cleanup(); } catch (e) {} return; }
+        rawItems.push(its);
         if (!its.some(function(x){ return x.str && x.str.trim(); })) rawImg[p] = await hasImg(page);
         if (W0) W0.post('items', { p: p, its: slimItems(its), img: !!rawImg[p] });
         page.cleanup();
@@ -3321,7 +3333,9 @@ var ocrSpell = (function(){
       }
       ocrKey = 'ocr:' + file.name + ':' + file.size;
       ocrPages = await ocrLoad(ocrKey);
+      if (lt !== loadTok) return;
       await process();
+      if (lt !== loadTok) return;
       curKey = 'pos:' + file.name + ':' + file.size;
       var sv = parseInt(sget(curKey, '0'), 10);
       if (sv > 0 && sv < sents.length) { idx = sv; mark(true); }
@@ -3330,6 +3344,7 @@ var ocrSpell = (function(){
       if (!sents.length) status(ocrHint().replace(/^ — /, '')); else status(file.name + ' — ' + nf.format(pdf.numPages) + ' صفحه، ' + nf.format(sents.length) + ' جمله' + (idx ? ' — ادامه از جملهٔ ' + nf.format(idx + 1) : '') + ocrHint());
       if (O.ocr !== 'off' && ocrTodo().length) runOcr();
     } catch (e) {
+      if (lt !== loadTok) return;
       status('خواندن فایل ناموفق بود: ' + (e && e.message ? e.message : e));
     }
   }
@@ -4742,6 +4757,9 @@ var ocrSpell = (function(){
   function stopAll(){
     pause(); idx = 0; mark(false);
   }
+  var posT = 0;
+  function posSave(){ clearTimeout(posT); posT = setTimeout(posFlush, 700); }
+  function posFlush(){ clearTimeout(posT); posT = 0; if (curKey) sset(curKey, idx); }
   function mark(scroll){
     if (curEl) curEl.classList.remove('cur');
     curEl = null;
@@ -4752,7 +4770,7 @@ var ocrSpell = (function(){
       $('#pos').textContent = 'جملهٔ ' + nf.format(idx + 1) + ' از ' + nf.format(sents.length);
       $('#pageInfo').textContent = 'صفحهٔ ' + nf.format(sents[idx].page);
       $('#seek').max = sents.length - 1; $('#seek').value = idx; fillRng($('#seek'));
-      if (curKey) sset(curKey, idx);
+      if (curKey) posSave();
     } else {
       $('#pos').textContent = '—';
       $('#pageInfo').textContent = '';
@@ -5087,7 +5105,7 @@ var ocrSpell = (function(){
   ['pointerdown', 'touchend', 'click', 'keydown'].forEach(function(t){
     document.addEventListener(t, function(){
       if (bgm.loaded && bgmWant() && (bgm.blocked || (bgm.el && bgm.el.paused) || (bgm.ctx && bgm.ctx.state !== 'running'))) musicSync();
-    }, true);
+    }, { capture: true, passive: true });
   });
   function bgmUi(){
     $('#bgmDel').disabled = !bgm.loaded;
@@ -5637,7 +5655,8 @@ var ocrSpell = (function(){
     var f = e.dataTransfer.files[0]; if (f) loadFile(f);
   });
 
-  window.addEventListener('pagehide', function(){ cancelAll(); });
+  window.addEventListener('pagehide', function(){ posFlush(); cancelAll(); });
+  document.addEventListener('visibilitychange', function(){ if (document.hidden) posFlush(); });
 })();
 </script>
 </body>
