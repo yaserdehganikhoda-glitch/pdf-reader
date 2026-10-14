@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # One-time (needs internet). Usage: bash fetch-offline.sh <folder-next-to-index.html>
-# Creates ocr/ (onnxruntime-web + PaddleOCR PP-OCRv5 Arabic/Persian models), lib/ (pdf.js + cmaps + standard fonts) and fonts/ (Vazirmatn, Noto Naskh Arabic) for fully offline use.
+# Creates ocr/ (onnxruntime-web + PaddleOCR PP-OCRv5 Arabic/Persian models), lib/ (pdf.js + cmaps + standard fonts) fonts/ (Vazirmatn, Noto Naskh Arabic) ocr/sr/ (optional super-resolution model) and stt/ (Whisper speech-to-text via Transformers.js; models: STT_MODELS="whisper-tiny whisper-base"; plus the document Q&A model stt/models/onnx-community/Qwen2.5-0.5B-Instruct, skip with QA=0) for fully offline use.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 CACHE="${OFFLINE_CACHE:-$HOME/.offline-cache}"; mkdir -p "$CACHE"
@@ -48,6 +48,43 @@ pm() {  # pm نام‌فایل sha256
 pm PP-OCRv5_mobile_det.onnx c8d9b07063420ce5365c74e42532de48238feeeedcdb7a330b195708bc38a93f
 pm arabic_PP-OCRv5_mobile_rec.onnx 4e2f4ae42104e1b272463966c56ddafa3c6ad98ce9d8c7ed765ce66666ea13e1
 pm arabic_PP-OCRv5_mobile_rec_dict.txt 7f92f7dbb9b75a4787a83bfb4f6d14a8ab515525130c9d40a9036f61cf6999e9
+# گفتار به متن آفلاین (Whisper از طریق Transformers.js): stt/lib + stt/models ؛ اختیاری است و خطای آن OCR را متوقف نمی‌کند
+stt() {
+  local ver="${TRANSFORMERS_VER:-3.5.1}" m f n tg
+  mkdir -p "$D/stt/lib" "$T/stt"
+  ( cd "$T/stt" && npm pack "@huggingface/transformers@$ver" --silent >/dev/null && tar xzf ./*.tgz ) || return 1
+  cp "$T/stt/package/dist/transformers.min.js" "$D/stt/lib/" || return 1
+  cp "$T"/stt/package/dist/*.wasm "$T"/stt/package/dist/*.mjs "$D/stt/lib/" 2>/dev/null || true
+  for m in ${STT_MODELS:-whisper-tiny}; do
+    mkdir -p "$D/stt/models/Xenova/$m/onnx"
+    for f in config.json generation_config.json preprocessor_config.json tokenizer.json tokenizer_config.json onnx/encoder_model_quantized.onnx onnx/decoder_model_merged_quantized.onnx; do
+      n="stt-$m-${f//\//_}"
+      tg="$(dl "https://huggingface.co/Xenova/$m/resolve/main/$f" "$n")" || return 1
+      cp "$tg" "$D/stt/models/Xenova/$m/$f"
+    done
+  done
+}
+stt || echo "WARN: stt (Whisper) not built; speech-to-text disabled" >&2
+# مدل زبانی کوچک برای «پرسش و پاسخ از سند» (Qwen2.5-0.5B-Instruct، q8 ≈ ۵۱۰MB) ← stt/models/<مدل>/ ؛ اختیاری (بدون آن، پاسخ استخراجی نشان داده می‌شود)
+# غیرفعال: QA=0 ؛ مدل دیگر: QA_MODEL=onnx-community/... (باید با MODELS.q05 در index.html هم‌نام باشد)
+qa() {
+  if [ "${QA:-1}" = "0" ]; then return 0; fi
+  local m="${QA_MODEL:-onnx-community/Qwen2.5-0.5B-Instruct}" f n tg
+  mkdir -p "$D/stt/models/$m/onnx"
+  for f in config.json generation_config.json tokenizer.json tokenizer_config.json onnx/model_quantized.onnx; do
+    n="qa-${m//\//_}-${f//\//_}"
+    tg="$(dl "https://huggingface.co/$m/resolve/main/$f" "$n")" || return 1
+    cp "$tg" "$D/stt/models/$m/$f"
+  done
+}
+qa || echo "WARN: QA model not downloaded; document Q&A falls back to extractive answers" >&2
+# مدل اختیاری ارتقای وضوح (Super-Resolution) ← ocr/sr/sr.onnx ؛ آدرس دیگر: SR_URL=... (ورودی [1,3,H,W] در بازهٔ 0..1، خروجی با ضریب صحیح)
+srm() {
+  mkdir -p "$D/ocr/sr"
+  local f; f="$(dl "${SR_URL:-https://huggingface.co/Xenova/swin2SR-lightweight-x2-64/resolve/main/onnx/model.onnx}" "sr-model.onnx")" || return 1
+  cp "$f" "$D/ocr/sr/sr.onnx"
+}
+srm || echo "WARN: SR model not downloaded; AI super-resolution disabled" >&2
 python3 - "$N" "$D/fonts" <<'PY' || echo "WARN: fonts not built; system fonts will be used" >&2
 import re, shutil, sys
 N, O = sys.argv[1:3]
