@@ -524,6 +524,12 @@ body.fs .top,body.fs .bnav{display:none}
 body.fs .frame{margin-bottom:0;border-radius:0}
 body.fs .fsx{display:inline-flex;position:fixed;z-index:61;top:calc(8px + env(safe-area-inset-top,0px));inset-inline-start:8px;min-width:40px;min-height:40px;opacity:.5;background:var(--glass,var(--card))}
 body.fs .fsx:hover,body.fs .fsx:focus-visible{opacity:1}
+/* ===== هر صفحهٔ منو مستقل: بدون زبانه، با ضربدر برای بازگشت به صفحهٔ اصلی ===== */
+#menu .tabs{display:none!important}
+#menu .mh{background:#4f46e5;background:var(--hdr,#4f46e5);color:#fff;min-height:58px;border-radius:28px 28px 0 0;padding-inline:16px}
+#menu .mh h2{color:#fff!important;font-size:1.15rem}
+#menu #menuClose{width:44px;height:44px;min-width:44px;min-height:44px;border-radius:50%;background:#fff!important;border:0!important;opacity:1;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+#menu #menuClose svg{stroke:#4f46e5!important;stroke-width:2.8;width:22px;height:22px}
 </style>
 </head>
 <body>
@@ -697,7 +703,7 @@ body.fs .fsx:hover,body.fs .fsx:focus-visible{opacity:1}
   <div class="mh">
     <h2 id="menuTitle">منو</h2>
     <div class="mhb">
-      <button class="ibtn round" id="menuClose" type="button" aria-label="بستن منو">
+      <button class="ibtn round" id="menuClose" type="button" aria-label="بستن و بازگشت به صفحهٔ اصلی">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </button>
     </div>
