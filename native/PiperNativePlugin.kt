@@ -161,7 +161,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r3-calm-gap"))
     }
 
     @PluginMethod
@@ -793,16 +793,20 @@ class PiperNativePlugin : Plugin() {
                 val sr = eng.sampleRate()
                 // هر جمله جدا (برای کش)؛ بدون parts کل متن یک جمله حساب می‌شود
                 val items = ArrayList<Pair<String, Float>>()
+                val itemGaps = ArrayList<Float>()   // مکث (ثانیه) پس از هر جمله؛ بدون g همان gap سراسری
                 if (partsArr != null && partsArr.length() > 0) {
                     for (i in 0 until partsArr.length()) {
                         val o = partsArr.getJSONObject(i)
                         items.add(Pair(o.optString("t", ""), o.optDouble("s", sp.toDouble()).toFloat().coerceIn(0.6f, 1.6f)))
+                        itemGaps.add(o.optDouble("g", gap.toDouble()).toFloat().coerceIn(0f, 1.5f))
                     }
-                } else items.add(Pair(text, sp))
+                } else { items.add(Pair(text, sp)); itemGaps.add(gap) }
                 val pieces = ArrayList<FloatArray>()
+                val pieceGaps = ArrayList<Int>()   // نمونه‌های سکوت پس از هر تکه
                 var genMs = 0L
                 var hit = 0
-                for ((pt, ps) in items) {
+                for ((ix, itp) in items.withIndex()) {
+                    val pt = itp.first; val ps = itp.second
                     if (pt.isBlank() || pt.none { it.isLetterOrDigit() }) continue
                     val key = hashKey("v1|$id|$ns|$nw|" + String.format(java.util.Locale.US, "%.2f", ps) + "|" + pt)
                     val cached = cacheGet(key, sr)
@@ -814,17 +818,17 @@ class PiperNativePlugin : Plugin() {
                         g
                     }
                     pieces.add(SpeechClean.process(s, sr, lvlClean, lvlClarity, strong))   // روی نسخهٔ خام کش؛ خودِ کش دست‌نخورده می‌ماند
+                    pieceGaps.add((itemGaps[ix] * sr).toInt())
                 }
                 if (pieces.isEmpty()) throw IllegalStateException("متن قابل‌خواندن ندارد")
-                val gapN = (gap * sr).toInt()
                 var total = 0
                 for (x in pieces) total += x.size
-                total += gapN * (pieces.size - 1)
+                for (j in 0 until pieces.size - 1) total += pieceGaps[j]   // مکث پس از جملهٔ j (نه ثابت؛ از نوع و طول همان جمله)
                 val all = FloatArray(total)
                 var pos = 0
                 for ((k, x) in pieces.withIndex()) {
                     System.arraycopy(x, 0, all, pos, x.size); pos += x.size
-                    if (k < pieces.size - 1) pos += gapN   // سکوت (صفر)
+                    if (k < pieces.size - 1) pos += pieceGaps[k]   // سکوت (صفر)
                 }
                 val pol = polish(all, sr)
                 val fin = if (fxOn) MasterFx.process(pol, sr, fxPk, fxHs, fxLp, strong) else pol
@@ -1321,7 +1325,8 @@ private object SpeechClean {
     }
 
     private fun enhance(x: FloatArray, sr: Int, cleanDb0: Double, beta: Double, silDb0: Double, cl: Double, strong: Boolean): FloatArray {
-        var cleanDb = cleanDb0
+        // مانا: عمق پاک‌سازی ۱۵٪ بیشتر از سایر صداها، ولی دیگر یک سطح بالاتر از انتخاب کاربر نمی‌رود (۱۸dB سقف)؛ شدت زیاد + بهرهٔ بی‌هموار = «نویز موزیکال»/غ‌غ‌غ
+        var cleanDb = if (strong) minOf(18.0, cleanDb0 * 1.15) else cleanDb0
         var silDb = silDb0
         val n = x.size
         var nn = 256
@@ -1454,7 +1459,7 @@ private object SpeechClean {
         val vcut = DoubleArray(frames)
         val vramp = DoubleArray(bins)
         val fz = DoubleArray(frames)      // صامت‌وار (سایشی) بودن هر فریم: ۰ واکه … ۱ سایشی
-        val hfDb = if (strong && cleanDb0 > 0.0) minOf(7.0, cleanDb0 * 0.4) else 0.0     // سطح ۲: ۴٫۸dB، سطح ۳: ۷dB
+        val hfDb = if (strong && cleanDb0 > 0.0) minOf(4.0, cleanDb0 * 0.3) else 0.0     // سطح ۲: ۳٫۶dB، سطح ۳: ۴dB (قبلاً تا ۷dB؛ صدا را خفه می‌کرد)
         if (hfDb > 0.0 && k1 < k3 && k3 + 2 < k4) {
             val kv1 = Math.round(4000.0 / df).toInt()
             val kv2 = Math.round(7000.0 / df).toInt()
@@ -1469,46 +1474,62 @@ private object SpeechClean {
             smoothZp(vcut, 0.25)
         }
 
-        // گذر ۲: Wiener تصمیم‌محور + دروازهٔ مکث + ارتقا، هموارسازی در فرکانس و زمان، بازسازی با هم‌پوشانی
+        // گذر ۲الف: Wiener تصمیم‌محور → سطح بهرهٔ کل جمله (فریم×باند، لگاریتمی) → هموارسازی → گذر ۲ب: اعمال و بازسازی با هم‌پوشانی
+        // علت «غ‌غ‌غ/خش آبکی»: بهرهٔ هر باند در هر فریم (۵٫۸ms) مستقل و فقط با فیلتر ۳تایی در فرکانس هموار می‌شد؛ باندهای منفرد که آستانه را رد می‌کردند
+        // به شکل «جزیره‌های» کوتاه (نویز موزیکال) از پردازش رد می‌شدند و روی واکه‌ها مدولاسیون تند در همان ریتم فریم‌ها می‌ساختند.
+        // اکنون بهره در لگاریتم هم در فرکانس (۵ باند) و هم در زمان (صفرفاز، رو به جلو و عقب) هموار می‌شود.
         val doWiener = cleanDb > 0.0 && reliable
         val gmin = if (cleanDb > 0.0) Math.pow(10.0, -cleanDb / 20.0) else 1.0
         val gsp = if (cleanDb > 0.0) Math.pow(10.0, -(0.5 * cleanDb) / 20.0) else 1.0   // کفِ بالاتر در فریم‌های گفتار: صامت‌های ضعیف خورده نشوند
         val gspFr = if (strong && cleanDb > 0.0) Math.pow(10.0, -(0.4 * cleanDb) / 20.0) else gsp   // مانا: در فریم‌های سایشی کف بالاتر؛ «س، ش، ف» ضعیف نخورند
         val sil = if (reliable && silDb > 0.0) Math.pow(10.0, -silDb / 20.0) else 1.0
-        val alpha = 0.92
-        val prevP = DoubleArray(bins)
-        val gPrev = DoubleArray(bins) { 1.0 }
-        val g = DoubleArray(bins)
+        val alpha = 0.93
+        val lg: FloatArray? = if (doWiener) FloatArray(frames * bins) else null   // ln(بهره) ≤ ۰؛ جملهٔ ۱۰ثانیه‌ای ≈ ۴٫۵MB
+        if (lg != null) {
+            val prevP = DoubleArray(bins)
+            for (m in 0 until frames) {
+                val gfl = gmin + ((gsp + (gspFr - gsp) * fz[m]) - gmin) * spS[m]
+                val o = m * bins
+                for (k in 0 until bins) {
+                    val p = pw[o + k]
+                    val gamma = p / noise[k]
+                    val xi = alpha * (prevP[k] / noise[k]) + (1.0 - alpha) * maxOf(gamma - 1.0, 0.0)
+                    var v = xi / (1.0 + xi)
+                    if (v < gfl) v = gfl
+                    if (v > 1.0) v = 1.0
+                    prevP[k] = p * v * v
+                    lg[o + k] = Math.log(v).toFloat()
+                }
+            }
+            val row = FloatArray(bins)
+            for (m in 0 until frames) {   // هموارسازی فرکانسی: میانگین ۵ باند
+                val o = m * bins
+                for (k in 0 until bins) {
+                    val a = maxOf(0, k - 2); val b = minOf(bins - 1, k + 2)
+                    var sm = 0f
+                    for (j in a..b) sm += lg[o + j]
+                    row[k] = sm / (b - a + 1)
+                }
+                System.arraycopy(row, 0, lg, o, bins)
+            }
+            val tc = 0.45f   // هموارسازی زمانی یک‌قطبی، رو به جلو و عقب (بدون تأخیر): حدود ۱۰ms؛ آغاز صامت‌ها محو نمی‌شود
+            for (m in 1 until frames) { val o = m * bins; val q = o - bins; for (k in 0 until bins) lg[o + k] = lg[q + k] + tc * (lg[o + k] - lg[q + k]) }
+            for (m in frames - 2 downTo 0) { val o = m * bins; val q = o + bins; for (k in 0 until bins) lg[o + k] = lg[q + k] + tc * (lg[o + k] - lg[q + k]) }
+        }
         val out = DoubleArray(xp.size)
         val norm = DoubleArray(xp.size)
         for (m in 0 until frames) {
             val o = m * hop
             for (i in 0 until nn) { re[i] = xp[o + i] * win[i]; im[i] = 0.0 }
             ft.forward(re, im)
-            if (doWiener) {
-                for (k in 0 until bins) {
-                    val p = re[k] * re[k] + im[k] * im[k]
-                    val gamma = p / noise[k]
-                    val xi = alpha * (prevP[k] / noise[k]) + (1.0 - alpha) * maxOf(gamma - 1.0, 0.0)
-                    g[k] = xi / (1.0 + xi)
-                }
-            }
-            val gfl = gmin + ((gsp + (gspFr - gsp) * fz[m]) - gmin) * spS[m]
             val silF = 1.0 - (1.0 - sil) * (1.0 - spS[m])
             val riderLin = Math.pow(10.0, rD[m] / 20.0)
             val bcDb = bC[m]
             val vcutDb = vcut[m]
+            val go = m * bins
             for (k in 0 until bins) {
                 var v = 1.0
-                if (doWiener) {
-                    v = if (k == 0 || k == half) g[k] else 0.25 * g[k - 1] + 0.5 * g[k] + 0.25 * g[k + 1]
-                    if (v < gfl) v = gfl
-                    val lim = gPrev[k] * 0.6        // بهره در یک فریم بیش از حد نیفتد (جلوگیری از «بریدگی» و نویز موزیکال)
-                    if (v < lim) v = lim
-                    if (v > 1.0) v = 1.0
-                    gPrev[k] = v
-                    prevP[k] = (re[k] * re[k] + im[k] * im[k]) * v * v
-                }
+                if (lg != null) { v = Math.exp(lg[go + k].toDouble()); if (v > 1.0) v = 1.0 }
                 var tot = v * silF * riderLin
                 if (bcDb > 0.01 || bcDb < -0.01) { if (taper[k] > 0.0) tot *= Math.pow(10.0, bcDb * taper[k] / 20.0) }
                 if (vcutDb > 0.01 && vramp[k] > 0.0) tot *= Math.pow(10.0, -vcutDb * vramp[k] / 20.0)
@@ -1677,7 +1698,7 @@ private object MasterFx {
         lowpass(lp.toDouble(), 1.085, sr).run(x)
         comp(x, sr, -22.0, 24.0, 3.0, 0.005, 0.15, 0.006)
         for (i in x.indices) x[i] *= 1.1
-        gate(x, sr, if (strong) -28.0 else -34.0, if (strong) -10.0 else -6.0)
+        gate(x, sr, if (strong) -32.0 else -34.0, if (strong) -7.0 else -6.0)   // مانا: گیت ملایم‌تر؛ حذف نویز طیفی کار اصلی را می‌کند و گیت تند، صامت‌های ضعیف و پایان واژه را به‌صورت «غ‌غ‌غ» می‌برد
         comp(x, sr, -2.0, 0.0, 20.0, 0.001, 0.08, 0.003)
         return FloatArray(x.size) { softClip(x[it]) }
     }
