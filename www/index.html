@@ -1122,7 +1122,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       /* ضریب پایه برای همهٔ گوینده‌ها یکسان است (۱ = سرعت اصلی مدل) */
       var tempo = VOICE_TEMPOS[o.voiceId] || VOICE_TEMPO, fxp = $('#enh').checked ? fxProf(o.voiceId) : null;
       var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo) }; }) : undefined;
-      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: (o.voiceId === 'fa_IR-mana-medium' && cleanLevel() > 0) ? Math.min(3, cleanLevel() + 1) : cleanLevel(), clarity: (o.voiceId === 'fa_IR-mana-medium') ? Math.min(1, clarityLevel()) : clarityLevel(), keep: npPlay, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0 }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; return b; });
+      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cleanLevel(), clarity: (o.voiceId === 'fa_IR-mana-medium') ? Math.min(1, clarityLevel()) : clarityLevel(), keep: npPlay, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0 }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; return b; });
     }
   };
 
@@ -1137,7 +1137,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
     } catch (e) {}
   }
   function logRender(){
-    var head = ['نسخه ۱۸ — ' + (onNative ? 'اندروید' : 'وب'), 'UA: ' + navigator.userAgent, 'rtf: ' + (rtf() ? rtf().toFixed(2) : '-')].join('\n');
+    var head = ['نسخه ۱۹ — ' + APP_BUILD + (npBuild ? ' / ' + npBuild : '') + ' — ' + (onNative ? 'اندروید' : 'وب'), 'UA: ' + navigator.userAgent, 'rtf: ' + (rtf() ? rtf().toFixed(2) : '-')].join('\n');
     var body = (window.__elog && window.__elog.items.length) ? window.__elog.items.join('\n') : '(خطایی ثبت نشده)';
     var ta = $('#logText');
     ta.value = head + '\n---\n' + body;
@@ -1154,7 +1154,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
   function ensurePiper(){
     if (npOK) return Promise.resolve(true);
     if (NP) {
-      if (!npTry) npTry = NP.ping().then(function(r){ npOK = true; try { npPlay = !!(r && r.player); if (npPlay) npListen(); } catch (e) { npPlay = false; } window.PiperTTS = NATIVE_PIPER; npCrashCheck(); try { ['mimic3-fa-haaniye_low', 'coqui-fa-negar', 'coqui-fa-shiva', 'coqui-fa-mahtab'].forEach(function(x){ NP.remove({ id: x }).catch(function(){}); }); } catch (e) {} return true; }, function(e){ npErr = String((e && (e.message || e.errorMessage || e.code)) || e || 'unknown'); NP = null; perf(); return false; });
+      if (!npTry) npTry = NP.ping().then(function(r){ npOK = true; npBuild = (r && r.build) || ''; buildBadge(); try { npPlay = !!(r && r.player); if (npPlay) npListen(); } catch (e) { npPlay = false; } window.PiperTTS = NATIVE_PIPER; npCrashCheck(); try { ['mimic3-fa-haaniye_low', 'coqui-fa-negar', 'coqui-fa-shiva', 'coqui-fa-mahtab'].forEach(function(x){ NP.remove({ id: x }).catch(function(){}); }); } catch (e) {} return true; }, function(e){ npErr = String((e && (e.message || e.errorMessage || e.code)) || e || 'unknown'); NP = null; perf(); return false; });
       return npTry.then(function(ok){ return ok ? true : ensurePiperWeb(); });
     }
     return ensurePiperWeb();
@@ -2837,7 +2837,7 @@ var ocrSpell = (function(){
     return kvOpen().then(function(db){ return db ? new Promise(function(res){ try { var tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = function(){ res(true); }; tx.onerror = tx.onabort = function(){ res(false); }; } catch (e) { res(false); } }) : false; });
   }
   /* ---------- حافظهٔ نهان صدا در IndexedDB: سهمیه، حذف LRU هوشمند، آرشیو ZIP ---------- */
-  var ACH_VER = 'a2', ach = { db: null, tot: -1, q: Promise.resolve(), pers: false, busy: false };
+  var ACH_VER = 'a3', ach = { db: null, tot: -1, q: Promise.resolve(), pers: false, busy: false };
   function achLock(fn){ var p = ach.q.then(fn); ach.q = p.catch(function(){}); return p; }
   function achOpen(){
     return ach.db || (ach.db = new Promise(function(res){
@@ -4420,9 +4420,19 @@ var ocrSpell = (function(){
     for (var k = i; k <= e; k++) t.push(ttsText(sents[k].text, undefined, undefined, sents[k].cont));
     return { start: i, end: e, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x){ return { t: x, s: paceSpeed(x) }; }) };   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
+  /* نشانهٔ نسخه: گوشهٔ بالای صفحه همیشه دیده می‌شود. اگر «html-r2» را می‌بینید فایل HTML جدید اعمال شده؛ اگر کنارش «plugin: kt-r2-mana-fix» بود پلاگین Kotlin هم جدید است (HTML داخل APK است؛ پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود) */
+  var APP_BUILD = 'html-r2 · 2026-10-15 · mana-fix', npBuild = '';
+  function buildBadge(){
+    try {
+      var b = document.getElementById('buildBadge');
+      if (!b) { b = document.createElement('div'); b.id = 'buildBadge'; b.setAttribute('aria-hidden', 'true'); b.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 1px);left:6px;z-index:99999;font:600 10px/1.3 monospace;direction:ltr;color:#fff;background:rgba(0,0,0,.55);padding:1px 6px;border-radius:6px;pointer-events:none;opacity:.8'; document.body.appendChild(b); }
+      b.textContent = APP_BUILD + (typeof NP !== 'undefined' && NP ? ' | plugin: ' + (npBuild || (typeof npOK !== 'undefined' && npOK ? 'old-APK' : '...')) : '');
+    } catch (e) {}
+  }
+  if (document.body) buildBadge(); else document.addEventListener('DOMContentLoaded', buildBadge);
   function perf(){
     var el = $('#pperf'); if (!el) return;
-    var a = ['نسخه ۱۸ (پایداری پخش)', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
+    var a = ['نسخه ۱۹ (' + APP_BUILD + (npBuild ? ' / ' + npBuild : '') + ')', onNative ? 'اپ اندروید' : 'مرورگر/وب‌سایت', 'Capacitor: ' + (CAP ? 'هست' : 'نیست') + '/' + (capPlat || '-') + '/bridge:' + (window.androidBridge ? 'بله' : 'خیر'), NP ? 'پلاگین: در انتظار' : 'پلاگین: ندارد'], r = 0;
     if (npOK) a.push('موتور بومی (sherpa-onnx)');
     if (npErr && !npOK) a.push('پلاگین بومی در این APK فعال نیست: ' + npErr);
     if (pwBad && !npOK) a.push('worker ناموفق بود؛ اجرا روی رشتهٔ اصلی (کندتر)');
@@ -4436,6 +4446,7 @@ var ocrSpell = (function(){
       if (r > 1.1) a.push('این گوشی از پخش زنده کندتر است');
     }
     el.textContent = a.join(' — ');
+    buildBadge();
   }
   function rtf(){ return pInfo && pSamples > 1 ? pInfo.sec / Math.max(0.1, pInfo.aud) : 0; }   /* نمونهٔ اول حساب نمی‌شود: زمان بارگذاری مدل را هم دارد */   /* نسبت زمان ساخت به زمان صدا؛ بالای ۱ یعنی ساخت از پخش کندتر است */
   function firstLim(){ return Math.max(40, Math.min(72, Math.round(pSpeed * 2.5))); }
@@ -4644,7 +4655,7 @@ var ocrSpell = (function(){
   }
   /* پروفایل تقویت صدا برای هر گوینده: صداهای کم‌کیفیت‌تر نویز زیر/بالا دارند، پس بالابَر نرم‌تر و حذف فرکانس‌های بالای بی‌فایده */
   var FXD = { pk: 2, hs: 0.8, lp: 10500 }, fxN = null,
-      FXP = [[/mana/i, { pk: 1, hs: 0, lp: 8000 }]];   /* مانا: خش در بالای طیف است؛ بدون بالابَر ترِبل و با کات بالاتر از ۸kHz */
+      FXP = [[/mana/i, { pk: 1, hs: 0, lp: 8500 }]];   /* مانا: خش در بالای طیف است؛ بدون بالابَر ترِبل و با کات بالاتر از ۸٫۵kHz (حذف نویز طیفی بومی کار اصلی را می‌کند، پس هوای صدا کمتر خفه می‌شود) */
   function fxProf(id){
     var i; if (id) for (i = 0; i < FXP.length; i++) if (FXP[i][0].test(id)) return FXP[i][1];
     return FXD;
