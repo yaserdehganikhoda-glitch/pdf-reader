@@ -1122,7 +1122,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       /* ضریب پایه برای همهٔ گوینده‌ها یکسان است (۱ = سرعت اصلی مدل) */
       var tempo = VOICE_TEMPOS[o.voiceId] || VOICE_TEMPO, fxp = $('#enh').checked ? fxProf(o.voiceId) : null;
       var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo) }; }) : undefined;
-      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: (o.voiceId === 'fa_IR-mana-medium' && cleanLevel() > 0) ? Math.min(3, cleanLevel() + 1) : cleanLevel(), clarity: clarityLevel(), keep: npPlay, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0 }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; return b; });
+      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: (o.voiceId === 'fa_IR-mana-medium' && cleanLevel() > 0) ? Math.min(3, cleanLevel() + 1) : cleanLevel(), clarity: (o.voiceId === 'fa_IR-mana-medium') ? Math.min(1, clarityLevel()) : clarityLevel(), keep: npPlay, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0 }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; return b; });
     }
   };
 
@@ -4360,7 +4360,7 @@ var ocrSpell = (function(){
     PART_GAP = isCalm() ? 0.2 : 0.12;
     var st = STYLES[$('#vstyle').value] || STYLES.natural, v, l;
     if (id === undefined) { v = currentVoice(); id = v && v.id; }
-    if (id === MANA_ID && (l = cleanLevel()) > 0) return [Math.min(st[0], [0, 0.6, 0.5, 0.42][l]), Math.min(st[1], [0, 0.75, 0.65, 0.55][l])];
+    if (id === MANA_ID && (l = cleanLevel()) > 0) return [Math.min(st[0], [0, 0.5, 0.4, 0.33][l]), Math.min(st[1], [0, 0.75, 0.65, 0.55][l])];
     return st;
   }
   function lvl03(id){ var v = +$(id).value; return v >= 0 && v <= 3 ? v : 2; }
@@ -4644,7 +4644,7 @@ var ocrSpell = (function(){
   }
   /* پروفایل تقویت صدا برای هر گوینده: صداهای کم‌کیفیت‌تر نویز زیر/بالا دارند، پس بالابَر نرم‌تر و حذف فرکانس‌های بالای بی‌فایده */
   var FXD = { pk: 2, hs: 0.8, lp: 10500 }, fxN = null,
-      FXP = [];
+      FXP = [[/mana/i, { pk: 1, hs: 0, lp: 8000 }]];   /* مانا: خش در بالای طیف است؛ بدون بالابَر ترِبل و با کات بالاتر از ۸kHz */
   function fxProf(id){
     var i; if (id) for (i = 0; i < FXP.length; i++) if (FXP[i][0].test(id)) return FXP[i][1];
     return FXD;
