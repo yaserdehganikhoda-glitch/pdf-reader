@@ -890,6 +890,9 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
           <p class="hint">واژه‌نامهٔ «این فایل» با نام همین PDF ذخیره می‌شود و هر بار که همان فایل را باز کنید خودکار برمی‌گردد. در متن هم می‌توانید کلمه را انتخاب (هایلایت) کنید و «افزودن به واژه‌نامه» را بزنید.</p>
           <textarea id="dict" dir="rtl" placeholder="مثلاً:&#10;خویش = خویش&#10;ChatGPT = چت جی پی تی"></textarea>
           <button class="btn primary wide" id="dictSave" type="button" disabled>ثبت و ذخیرهٔ واژه‌ها</button>
+          <div class="two"><button class="btn" id="dictExp" type="button">برون‌بری (.txt)</button><button class="btn" id="dictImp" type="button">درون‌ریزی</button></div>
+          <input type="file" id="dictFile" accept=".txt,text/plain" hidden>
+          <p class="hint">«الف | ب = تلفظ» چند شکل را با هم تعریف می‌کند، «/الگو/ = جایگزین» عبارت منظم است و خط‌های شروع‌شده با # توضیح‌اند. پسوندهای «‌ها، ‌های، ‌ی…» خودکار شناخته می‌شوند.</p>
           <p class="hint" id="dictMsg" aria-live="polite"></p>
         </div>
       </details>
@@ -1119,7 +1122,7 @@ details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid 
       /* ضریب پایه برای همهٔ گوینده‌ها یکسان است (۱ = سرعت اصلی مدل) */
       var tempo = VOICE_TEMPOS[o.voiceId] || VOICE_TEMPO, fxp = $('#enh').checked ? fxProf(o.voiceId) : null;
       var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo) }; }) : undefined;
-      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cleanLevel(), clarity: clarityLevel(), keep: npPlay, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0 }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; return b; });
+      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: (o.voiceId === 'fa_IR-mana-medium' && cleanLevel() > 0) ? Math.min(3, cleanLevel() + 1) : cleanLevel(), clarity: clarityLevel(), keep: npPlay, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0 }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; return b; });
     }
   };
 
@@ -2834,7 +2837,7 @@ var ocrSpell = (function(){
     return kvOpen().then(function(db){ return db ? new Promise(function(res){ try { var tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = function(){ res(true); }; tx.onerror = tx.onabort = function(){ res(false); }; } catch (e) { res(false); } }) : false; });
   }
   /* ---------- حافظهٔ نهان صدا در IndexedDB: سهمیه، حذف LRU هوشمند، آرشیو ZIP ---------- */
-  var ACH_VER = 'a1', ach = { db: null, tot: -1, q: Promise.resolve(), pers: false, busy: false };
+  var ACH_VER = 'a2', ach = { db: null, tot: -1, q: Promise.resolve(), pers: false, busy: false };
   function achLock(fn){ var p = ach.q.then(fn); ach.q = p.catch(function(){}); return p; }
   function achOpen(){
     return ach.db || (ach.db = new Promise(function(res){
@@ -2960,7 +2963,7 @@ var ocrSpell = (function(){
   }
   /* امضای کامل پارامترهای ساخت صدا؛ هر تغییری در آن‌ها کلید دیگری می‌سازد */
   function achSig(c, v){
-    var tempo = VOICE_TEMPOS[v.id] || VOICE_TEMPO, fxp = $('#enh').checked ? fxProf(v.id) : null, st = styleParams();
+    var tempo = VOICE_TEMPOS[v.id] || VOICE_TEMPO, fxp = $('#enh').checked ? fxProf(v.id) : null, st = styleParams(v.id);
     return [ACH_VER, v.id, st[0], st[1], cleanLevel(), clarityLevel(), fxp ? fxp.pk + ',' + fxp.hs + ',' + fxp.lp : 0, tempo, PART_GAP, c.mid ? 1 : 0, paceSpeed(c.text),
       (c.parts || []).map(function(q){ return q.s + ':' + q.t; }).join('\u0001'), c.text].join('|');
   }
@@ -3506,24 +3509,35 @@ var ocrSpell = (function(){
   var NEG_RE = /(?<!\d\s*)(?<![\p{L}\d\-–\/.])[-−](?=\d)/gu;
   var userDict = [], dictG = '', dictP = '', docName = '';
   function normCh(t){ return persianize(t, false); }
+  /* قالب هر خط: «کلمه = تلفظ». «الف | ب = تلفظ» چند شکل را یکی می‌کند؛ «/regex/i = جایگزین» (با $1…) برای الگو؛ خط‌های شروع‌شده با # توضیح‌اند.
+     کلمهٔ ساده با پسوندهای نیم‌فاصله‌ای (‌ها، ‌های، ‌ی، ‌ام…) هم یافت می‌شود و پسوند حفظ می‌شود. */
+  var DICT_SUF = '(?:\\u200c(?:ها|های|هایی|ی|ای|ام|ات|اش|مان|تان|شان))?';
   function parseDict(){
     userDict = [];
     /* واژه‌نامهٔ همین فایل اول می‌آید تا بر واژه‌نامهٔ همهٔ فایل‌ها اولویت داشته باشد */
     (dictP + '\n' + dictG).split('\n').forEach(function(l){
+      l = l.replace(/^\s+/, ''); if (!l || l.charAt(0) === '#') return;
       var p = l.indexOf('='); if (p < 1) return;
-      var a = normCh(l.slice(0, p).trim()), b = l.slice(p + 1).trim();
-      if (!a) return;
-      try { userDict.push({ re: new RegExp('(?<![\\p{L}\\p{N}\\u200c])' + a.replace(/[\\^$.*+?()[\]{}|\/]/g, '\\$&') + '(?![\\p{L}\\p{N}\\u200c])', /^[\x20-\x7e]+$/.test(a) ? 'giu' : 'gu'), to: b }); } catch (e) {}
+      var lhs = l.slice(0, p).trim(), b = l.slice(p + 1).trim(), rm = /^\/(.+)\/([iu]*)$/.exec(lhs);
+      if (rm) { try { userDict.push({ re: new RegExp(rm[1], 'g' + (rm[2].indexOf('i') >= 0 ? 'i' : '') + 'u'), to: b, rx: 1 }); } catch (e) {} return; }
+      lhs.split(/\s*\|\s*/).forEach(function(a){
+        a = normCh(a.trim()); if (!a) return;
+        try { userDict.push({ re: new RegExp('(?<![\\p{L}\\p{N}\\u200c])' + a.replace(/[\\^$.*+?()[\]{}|\/]/g, '\\$&') + '(?=' + DICT_SUF + '(?![\\p{L}\\p{N}\\u200c]))', /^[\x20-\x7e]+$/.test(a) ? 'giu' : 'gu'), to: b }); } catch (e) {}
+      });
     });
   }
   function dictIn(t){
-    for (var k = 0; k < userDict.length; k++) t = t.replace(userDict[k].re, String.fromCharCode(0xE100 + k));
+    for (var k = 0; k < userDict.length; k++) {
+      var d = userDict[k];
+      if (d.rx) t = t.replace(d.re, function(){ var m = arguments; return ' ' + d.to.replace(/\$(\d)/g, function(x, i){ return typeof m[+i] === 'string' ? m[+i] : ''; }) + ' '; });
+      else t = t.replace(d.re, String.fromCharCode(0xE100 + k));
+    }
     return t;
   }
   function dictOut(t, num){
-    return t.replace(/[\uE100-\uF8FF]/g, function(c){
+    return t.replace(/([\uE100-\uF8FF])(\u200c?)/g, function(m, c, z){
       var d = userDict[c.charCodeAt(0) - 0xE100]; if (!d) return ' ';
-      return ' ' + (num ? faNums(digitsAscii(d.to)) : d.to) + ' ';
+      return ' ' + (num ? faNums(digitsAscii(d.to)) : d.to) + (z || ' ');
     });
   }
   function endMark(t, cont){ return /[.!?;:,]$/.test(t) ? t : t + (cont ? ',' : '.'); }
@@ -3584,26 +3598,59 @@ var ocrSpell = (function(){
   })();
   function ezBad(w, cur){
     var c = w.replace(/\u200c/g, '');
-    if (c.length < (cur ? 3 : 2) || EZ_STOP[w] || EZ_VB.test(w) || (lexOn() && (EZ_STOP2[w] || EZ_VBX[w]))) return true;
+    if (c.length < (cur ? (/[او]$/.test(c) ? 2 : 3) : 2) || EZ_STOP[w] || EZ_VB.test(w) || (lexOn() && (EZ_STOP2[w] || EZ_VBX[w]))) return true;
     if (/^(?:می|نمی)\u200c/.test(w)) return true;
     if (/ند$/.test(w) && !EZ_NDOK.test(w)) return true;
-    if (cur && (/[اآویهةء\u200c]$/.test(w) || /\u200c(?:ام|ای|ایم|اید|اند)$/.test(w))) return true;
+    if (cur && (/[\u200cةءآ]$/.test(w) || /\u200c(?:ام|ای|ایم|اید|اند)$/.test(w))) return true;
     return false;
+  }
+  /* ---------- نوع کسرهٔ اضافه بر پایهٔ پایان واژه ----------
+     'k' = کسره روی همخوان پایانی («کتابِ»، «کتاب‌هایِ»، «پایِ» با ی)، 'e' = «ه» ناملفوظ → «ۀ» («خانهٔ»، «دربارهٔ»)،
+     'y' = پایان با مصوت بلند ا/و → افزودن «یِ» («پایِ»، «دانشجویِ»، «دنیایِ»)؛ null = کسره نمی‌گیرد (قید/جمع بدون ی/…). */
+  var EZ_HC = {}; 'وجه فقه شبه سفه نزه کنه اله جاه نگاه'.split(' ').forEach(function(w){ EZ_HC[w] = 1; });
+  var EZ_VADV = {}; 'بالا آیا ابدا عمدا اساسا اتفاقا نهایتا عموما کاملا مجددا صرفا نسبتا رسما عملا فعلا جدا کلا خصوصا مخصوصا اولا ثانیا ثالثا مولا حاشا الا لیکن چونکه آری نخیر'.split(' ').forEach(function(w){ EZ_VADV[w] = 1; });
+  var EZ_PREP = {}; 'روی زیر پیش کنار بالای جلوی پشت مقابل نزدیک داخل خارج درون بیرون طرف سمت اطراف وسط پایین روبروی درباره علیه مانند شبیه نظیر همانند غیر بجای عوض'.split(' ').forEach(function(w){ EZ_PREP[w] = 1; });
+  var EZ_PRON = {}; 'من تو او ما شما ایشان آنها آنان وی خود'.split(' ').forEach(function(w){ EZ_PRON[w] = 1; });
+  var EZ_NOPR = {}; 'کس هرکس دیشب امشب پارسال امسال پریشب بعد قبل دوباره'.split(' ').forEach(function(w){ EZ_NOPR[w] = 1; });
+  var EZ_PNAT = {}; 'زمان مهمان آسمان سامان ایمان رمان پیمان درمان فرمان کمان نشان کاشان عثمان سلمان'.split(' ').forEach(function(w){ EZ_PNAT[w] = 1; });
+  var EZ_PNAT2 = {}; 'اسم علم حکم قلم جسم رسم نظم وقت دوست دست حالت نقش'.split(' ').forEach(function(w){ EZ_PNAT2[w] = 1; });
+  function ezKind(w){
+    var c = w.replace(/\u200c/g, ''), L = c.charAt(c.length - 1);
+    if (L === 'ه') {
+      if (EZ_HC[c]) return 'k';
+      if (/ایه$/.test(c) || /[یل]وه$/.test(c)) return 'e';
+      if (/[اوی]ه$/.test(c)) return 'k';
+      return 'e';
+    }
+    if (L === 'ا') return (/ها$/.test(c) || EZ_VADV[c]) ? null : 'y';
+    if (L === 'و') return (c.length >= 3 && !EZ_VADV[c]) ? 'y' : null;
+    if (L === 'ی') {
+      if (/های$/.test(c)) return 'k';
+      if (/[او]ی$/.test(c) && c.length >= 3) return 'k';
+      return null;
+    }
+    return 'k';
   }
   function prevW(ws, i){ while (--i >= 0) if (ws[i]) return ws[i]; return ''; }
   var EZ_MON = {}; MON_FA.concat(MON_EN).forEach(function(w){ if (w) EZ_MON[w] = 1; });
   function ezAuto(t){
-    var ws = t.split(' '), i, n = 0, a, b;
+    var ws = t.split(' '), i, n = 0, a, b, bp, ty, c2;
     for (i = 0; i < ws.length - 1; i++) {
       a = ws[i];
       if (a === 'ماه' && EZ_MON[ws[i + 1].replace(/[,.;:!?،؛؟]+$/, '')]) { ws[i] = a + EZ_K; n++; continue; }   /* «ماهِ مرداد» */
-      if (!EZ_A.test(a) || ezBad(a, true)) continue;
-      b = ws[i + 1].replace(/[,.;:!?،؛؟]+$/, ''); if (!EZ_A.test(b) || ezBad(b, false)) continue;
-      if (lexOn() && (EZ_V[a] || EZ_V[b])) continue;   /* فعل کسره نمی‌گیرد و پیش از فعل هم کسره نمی‌آید */
-      if (EZ_NAME[a] && EZ_NAME[b]) continue;
+      if (a === 'همه' && /^(?:ما|شما|آنها|ایشان)$/.test(ws[i + 1].replace(/[,.;:!?،؛؟]+$/, ''))) { ws[i] = 'همه\u06C0'; n++; continue; }   /* «همهٔ ما» */
+      if (!EZ_A.test(a)) continue;
+      if (!EZ_PREP[a] && ezBad(a, true)) continue;   /* حرف‌اضافه‌های مرکب (روی/زیر/پیش/کنار/…) کسره می‌گیرند */
+      b = ws[i + 1].replace(/[,.;:!?،؛؟]+$/, ''); bp = !!EZ_PRON[b] && EZ_A.test(b);
+      if (!bp && (!EZ_A.test(b) || ezBad(b, false))) continue;
+      if (lexOn() && (EZ_V[a] || (!bp && EZ_V[b]))) continue;   /* فعل کسره نمی‌گیرد و پیش از فعل هم کسره نمی‌آید */
+      if (EZ_NAME[a] && (EZ_NAME[b] || bp)) continue;
       if (EZ_MON[b] && /(?:م|ام)$/.test(a)) continue;
-      if ((a === 'نفر' || a === 'تن') && EZ_STOP[prevW(ws, i)]) continue;   /* «هزار نفر شرکت کردند»: واحد شمارش بعد از عدد کسره نمی‌گیرد */   /* «دوازدهم مرداد»، نه «دوازدهمِ مرداد» */
-      ws[i] = a + EZ_K; n++;
+      if ((a === 'نفر' || a === 'تن') && EZ_STOP[prevW(ws, i)]) continue;   /* «هزار نفر شرکت کردند»: واحد شمارش بعد از عدد کسره نمی‌گیرد */
+      if (/(?:مان|تان|شان)$/.test(a) && !/ستان$/.test(a) && !EZ_PNAT[a]) continue;   /* ضمیر متصل: «دوستمان علی» */
+      if (bp && (EZ_NOPR[a] || (/[مشت]$/.test(a) && a.length > 3 && !EZ_PNAT2[a]))) continue;   /* «پدرم او را دید»، «هر کس تو را» */
+      ty = ezKind(a); if (!ty) continue;
+      ws[i] = ty === 'e' ? a.slice(0, -1) + '\u06C0' : ty === 'y' ? a + 'ی' + EZ_K : a + EZ_K; n++;
     }
     while (n-- > 0) bump('ez');
     return ws.join(' ');
@@ -3894,6 +3941,41 @@ var ocrSpell = (function(){
       .replace(/£\s*(\d+(?:\.\d+)?)/g, '$1 پوند ').replace(/¥\s*(\d+(?:\.\d+)?)/g, '$1 ین ')
       .replace(/[~≈]\s*(?=\d)/g, ' حدود ').replace(/±/g, ' مثبت منفی ').replace(/#\s*(?=\d)/g, ' شماره ');
   }
+  /* ---------- نرمال‌سازی تکمیلی پیش از تبدیل عدد (پس از digitsAscii) ----------
+     ساعت AM/PM، درصدِ پیشوندی و بازه‌ای، معادله (منهای/تقسیم‌بر/ضربدر)، نسبت و امتیاز (۳:۲)، شمارهٔ بند و نسخه (۳.۲.۱ / v1.2)، ۲۴/۷،
+     «جلد» پیش از «ص»، نقطهٔ ممیز ابتدایی، علامت‌های تکراری، و نیم‌فاصلهٔ «می‌ + فعل» و «‌ها/‌های» که با فاصله نوشته شده‌اند. */
+  var NUM_ID = '[\\u0622\\u0627-\\u063A\\u0641-\\u0648\\u067E\\u0686\\u0698\\u06A9\\u06AF\\u06CC]';
+  var INI_NAME = { 'ا': 'الف', 'آ': 'آ', 'ب': 'به', 'پ': 'په', 'ت': 'ته', 'ث': 'ثه', 'ج': 'جیم', 'چ': 'چه', 'ح': 'حه', 'خ': 'خه', 'د': 'دال', 'ذ': 'ذال', 'ر': 'ره', 'ز': 'زه', 'ژ': 'ژه', 'س': 'سین', 'ش': 'شین', 'ص': 'صاد', 'ض': 'ضاد', 'ط': 'طا', 'ظ': 'ظا', 'ع': 'عین', 'غ': 'غین', 'ف': 'فه', 'ق': 'قاف', 'ک': 'کاف', 'گ': 'گاف', 'ل': 'لام', 'م': 'میم', 'ن': 'نون', 'و': 'واو', 'ه': 'هه', 'ی': 'یه' };
+  function normPlus(t){
+    var N = '(\\d+(?:[.٫]\\d+)?)';
+    t = t.replace(/(ساعت\s+)?(?<![\d:.])(\d{1,2})(?::([0-5]\d))?\s*([ap])\.?m\.?(?![A-Za-z])/gi, function(_, sa, h, m, ap){
+      h = +h; var pm = ap.toLowerCase() === 'p';
+      var w = pm ? (h === 12 ? 'ظهر' : h < 5 ? 'بعدازظهر' : h < 8 ? 'عصر' : 'شب') : (h === 12 ? 'نیمه‌شب' : h < 5 ? 'بامداد' : 'صبح');
+      return ' ساعت ' + h + (m ? ':' + m : '') + ' ' + w + ' ';
+    });
+    t = t.replace(new RegExp(N + '\\s*[%٪]\\s*[-–]\\s*' + N + '\\s*[%٪]', 'g'), '$1 تا $2 درصد')
+      .replace(new RegExp('(?<![\\d\\p{L}])[%٪]\\s*' + N, 'gu'), '$1 درصد')
+      .replace(/(?<=^|\s)[.٫](\d+)(?!\d)/g, '0.$1');
+    t = t.replace(/(\d)\s*[-–−]\s*(\d)(?=[^.\n]*=)/g, '$1 منهای $2')
+      .replace(/(\d)\s*\/\s*(\d)(?=[^.\n]*=)/g, '$1 تقسیم بر $2')
+      .replace(/(?<=\d)\s*\*\s*(?=\d)/g, ' ضربدر ');
+    t = t.replace(/(نسبت\s+)(\d+)\s*:\s*(\d+)/g, '$1$2 به $3')
+      .replace(/(امتیاز|نتیجه|برتری|تساوی|برد|باخت|شکست)\s+(?:[^\d\s]+\s+)?(\d+)\s*:\s*(\d+)/g, function(m, k, a, b){ return k + ' ' + a + ' بر ' + b; })
+      .replace(/(?<![\d:])(\d{1,3}):(\d{1,3})(?![\d:])/g, function(m, a, b){ return (+b > 59 || +a > 24) ? a + ' به ' + b : m; });
+    t = t.replace(/(?<![\d/])24\s*\/\s*7(?![\d/])/g, ' بیست و چهار ساعته، هفت روز هفته ')
+      .replace(/(?<![\d.])(\d+(?:\.\d+){2,})(?![\d.])/g, function(m){ return m.split('.').join(' نقطه '); })
+      .replace(/((?:[vV]|ورژن|نسخه)\s?)(\d+)\.(\d+)(?![\d.])/g, '$1$2 نقطه $3')
+      .replace(/(?<![\p{L}])ج\s*(\d+)(?=\s*[,،]?\s*ص(?![\p{L}]))/gu, 'جلد $1')
+      .replace(/([!?؟])\1+/g, '$1');
+    t = t.replace(new RegExp('(?<![\\p{L}])(ن?می)\\s+(?=' + NUM_ID + '{2,}(?:م|ی|د|یم|ید|ند)(?![\\p{L}]))', 'gu'), '$1\u200c')
+      .replace(/(?<=[\p{L}])[ \t]+(ها|های|هایی)(?![\p{L}])/gu, '\u200c$1');
+    return t;
+  }
+  function initialsFix(t){
+    var nm = function(ini){ return ini.replace(new RegExp('(' + NUM_ID + ')\\.\\s*', 'g'), function(x, c){ return (INI_NAME[c] || c) + '\uE0FF '; }); };   /* نشانهٔ U+E0FF: ezAuto روی نام حرف‌ها کسره نگذارد؛ پس از ttsBase حذف می‌شود */
+    t = t.replace(new RegExp('((?:دکتر|مهندس|آقای|خانم|استاد|پروفسور|سید|حاج|شهید|علامه|مرحوم)\\s+)((?:' + NUM_ID + '\\.\\s*){1,3})(?=' + NUM_ID + '{2,})', 'g'), function(m, a, b){ return a + nm(b); });
+    return t.replace(new RegExp('(?<![\\p{L}])((?:' + NUM_ID + '\\.\\s*){2,3})(?=' + NUM_ID + '{2,})', 'gu'), function(m, b){ return nm(b); });
+  }
   /* پیش‌اصلاحِ نمادها پیش از تبدیل عدد: ارز پسوندی، ریاضی، توان، شماره تلفن، «COVID-19»، «سازمان ملل (UN)» */
   function preFix(t){
     t = t.replace(/(?:https?:\/\/|www\.)\S+|\S+@\S+\.\S+/g, ' ').replace(/@(?=[A-Za-z0-9_])/g, ' ');
@@ -3933,8 +4015,9 @@ var ocrSpell = (function(){
       t = digitsAscii(t);
       if (citeOn()) t = fxr(t, RE_CITE, 'ref', ' ');
       t = fxr(t, ADV_N, 'spell', function(m){ return m.slice(0, -1) + 'ن'; });
-      t = preFix(numPre(t));
+      t = preFix(normPlus(numPre(t)));
       ABBR.forEach(function(a){ t = t.replace(a[0], a[1]); });
+      t = initialsFix(t);
       SPELL.forEach(function(r){ t = fxr(t, r[0], 'spell', r[1]); });
       if (fixHi()) {
         t = fxr(t, RE_ISO, 'iso', function(m){ return m.replace(/\s/g, ''); });
@@ -3954,7 +4037,7 @@ var ocrSpell = (function(){
         CUR.ref = (CUR.ref || 0) + (t.match(/(?:https?:\/\/|www\.)\S+|\S+@\S+\.\S+|\[\s*[\d۰-۹]+(?:\s*[,،\-–]\s*[\d۰-۹]+)*\s*\]/g) || []).length;
         CUR.acr = (CUR.acr || 0) + (t.match(/(?<![A-Za-z])[A-Z]{2,5}(?![A-Za-z])/g) || []).filter(function(x){ return !romanVal(x); }).length;
       }
-      t = ttsBase(t, eng, cont, true);
+      t = ttsBase(t, eng, cont, true).replace(/\uE0FF/g, '');
       t = dedupe(latinPass(t));
       return endMark(t, cont);
     } finally { CUR = null; }
@@ -4097,7 +4180,7 @@ var ocrSpell = (function(){
   function dictStat(v){
     var ok = 0, bad = 0;
     String(v || '').split('\n').forEach(function(l){
-      if (!l.trim()) return;
+      if (!l.trim() || l.trim().charAt(0) === '#') return;
       var q = l.indexOf('=');
       if (q > 0 && l.slice(0, q).trim()) ok++; else bad++;
     });
@@ -4271,7 +4354,15 @@ var ocrSpell = (function(){
   /* ---------- سبک گفتار و سرعت هوشمند (نسخهٔ بومی) ---------- */
   var STYLES = { calm: [0.55, 0.65], stable: [0.5, 0.6], balanced: [0.6, 0.7], natural: [0.667, 0.8], lively: [0.75, 0.9] };   /* calm: لحن نرم و یکدست، کمی آهسته‌تر و با مکث‌های بازتر */   /* «انسانی» = مقدار پیش‌فرض خودِ مدل‌های Piper */
   function isCalm(){ return $('#vstyle').value === 'calm'; }
-  function styleParams(){ PART_GAP = isCalm() ? 0.2 : 0.12; return STYLES[$('#vstyle').value] || STYLES.natural; }
+  var MANA_ID = 'fa_IR-mana-medium';
+  /* noise_scale/noise_w در VITS هر دو نویز نمونه‌برداری‌اند؛ برای Mana (که خروجی‌اش خش و زبری دارد) سقف آن‌ها با سطح «حذف نویز» پایین می‌آید: ۱ ملایم … ۳ قوی */
+  function styleParams(id){
+    PART_GAP = isCalm() ? 0.2 : 0.12;
+    var st = STYLES[$('#vstyle').value] || STYLES.natural, v, l;
+    if (id === undefined) { v = currentVoice(); id = v && v.id; }
+    if (id === MANA_ID && (l = cleanLevel()) > 0) return [Math.min(st[0], [0, 0.6, 0.5, 0.42][l]), Math.min(st[1], [0, 0.75, 0.65, 0.55][l])];
+    return st;
+  }
   function lvl03(id){ var v = +$(id).value; return v >= 0 && v <= 3 ? v : 2; }
   function cleanLevel(){ return lvl03('#vclean'); }     /* حذف نویز و صداهای اضافه در موتور بومی: ۰ خاموش … ۳ قوی */
   function clarityLevel(){ return lvl03('#vclarity'); } /* شفافیت و رسایی: ۰ خاموش … ۳ قوی */
@@ -4372,7 +4463,61 @@ var ocrSpell = (function(){
   function wavPack(sr, o16){
     var b = new ArrayBuffer(44 + o16.length * 2); new Uint8Array(b).set(new Uint8Array(wavHdr(sr, o16.length * 2))); new Int16Array(b, 44, o16.length).set(o16); return b;
   }
-  function polishAb(ab, mid){
+  /* حذف نویز طیفی (Wiener/تفریق طیفی) برای خش ایستای خروجی مدل‌ها (به‌ویژه Mana): STFT با پنجرهٔ سینوسی ۵۱۲ نمونه و هاپ ۲۵۶ (بازسازی کامل)،
+     طیف نویز هر باند = صدک ۱۵ام توان در طول تکه (×۵ جبران اریبی)، هموارسازی در فرکانس، بهرهٔ طیفی با کف (floor) و هموارسازی زمانی برای جلوگیری از «نویز موسیقایی».
+     lvl: ۱…۳ شدت، strong: برای Mana شدیدتر. روی x (Float32 با هر مقیاس) درجا. */
+  function dnzSpec(x, sr, lvl, strong){
+    var N = 512, H = 256, B = 257, n = x.length, i, j, k, b;
+    if (n < N * 3 || lvl < 1) return x;
+    var al = [0, 1.0, 1.4, 1.9][lvl] * (strong ? 1.25 : 0.85), fl = [1, 0.35, 0.22, 0.14][lvl] * (strong ? 0.85 : 1.15);
+    var w = new Float64Array(N); for (i = 0; i < N; i++) w[i] = Math.sin(Math.PI * (i + 0.5) / N);
+    var rv = new Uint16Array(N), lg = 9; for (i = 0; i < N; i++) { var r = 0, v = i; for (j = 0; j < lg; j++) { r = (r << 1) | (v & 1); v >>= 1; } rv[i] = r; }
+    var cs = new Float64Array(N / 2), sn = new Float64Array(N / 2); for (i = 0; i < N / 2; i++) { cs[i] = Math.cos(2 * Math.PI * i / N); sn[i] = -Math.sin(2 * Math.PI * i / N); }
+    var re = new Float64Array(N), im = new Float64Array(N);
+    function fft(inv){
+      var sz, hf, st, a, bb, tr, ti, wr, wi, ia, ib;
+      for (i = 0; i < N; i++) { j = rv[i]; if (j > i) { tr = re[i]; re[i] = re[j]; re[j] = tr; tr = im[i]; im[i] = im[j]; im[j] = tr; } }
+      for (sz = 2; sz <= N; sz <<= 1) {
+        hf = sz >> 1; st = N / sz;
+        for (a = 0; a < N; a += sz) for (bb = 0; bb < hf; bb++) {
+          wr = cs[bb * st]; wi = inv ? -sn[bb * st] : sn[bb * st]; ia = a + bb; ib = ia + hf;
+          tr = re[ib] * wr - im[ib] * wi; ti = re[ib] * wi + im[ib] * wr;
+          re[ib] = re[ia] - tr; im[ib] = im[ia] - ti; re[ia] += tr; im[ia] += ti;
+        }
+      }
+    }
+    var K = Math.ceil((n + H) / H) + 1, xp = new Float32Array((K + 1) * H + N), P = new Float32Array(K * B), Gm = new Float32Array(K * B), y = new Float32Array(xp.length);
+    xp.set(x, H);
+    for (k = 0; k < K; k++) {
+      for (i = 0; i < N; i++) { re[i] = xp[k * H + i] * w[i]; im[i] = 0; }
+      fft(0);
+      for (b = 0; b < B; b++) P[k * B + b] = re[b] * re[b] + im[b] * im[b];
+    }
+    var nz = new Float32Array(B), tmp = new Float32Array(K), q = Math.min(K - 1, Math.floor(K * 0.15));
+    for (b = 0; b < B; b++) { for (k = 0; k < K; k++) tmp[k] = P[k * B + b]; tmp.sort(); nz[b] = tmp[q] * 5; }
+    var sm = new Float32Array(B);
+    for (b = 0; b < B; b++) { var s0 = 0, c0 = 0; for (j = -3; j <= 3; j++) if (b + j >= 0 && b + j < B) { s0 += nz[b + j]; c0++; } sm[b] = s0 / c0; }
+    var pg = new Float32Array(B).fill(1), g, d;
+    for (k = 0; k < K; k++) {
+      for (b = 0; b < B; b++) {
+        d = P[k * B + b] + 1e-9; g = 1 - al * sm[b] / d; g = g < fl * fl ? fl * fl : g; g = Math.sqrt(g);
+        g = g < pg[b] ? pg[b] * 0.5 + g * 0.5 : pg[b] * 0.2 + g * 0.8;   /* بازشدن سریع، بسته‌شدن نرم */
+        pg[b] = g; Gm[k * B + b] = g;
+      }
+    }
+    for (k = 0; k < K; k++) {
+      for (b = 1; b < B - 1; b++) Gm[k * B + b] = (Gm[k * B + b - 1] + 2 * Gm[k * B + b] + Gm[k * B + b + 1]) * 0.25;
+      for (i = 0; i < N; i++) { re[i] = xp[k * H + i] * w[i]; im[i] = 0; }
+      fft(0);
+      for (b = 0; b < B; b++) { g = Gm[k * B + b]; re[b] *= g; im[b] *= g; if (b > 0 && b < B - 1) { re[N - b] = re[b]; im[N - b] = -im[b]; } }
+      fft(1);
+      for (i = 0; i < N; i++) y[k * H + i] += re[i] / N * w[i];
+    }
+    for (i = 0; i < n; i++) x[i] = y[i + H];
+    return x;
+  }
+  function polishAb(ab, a2){
+    var mid = a2 & 1, dlv = (a2 >> 1) & 3, dstrong = (a2 >> 3) & 1;
     var dv = new DataView(ab);
     if (ab.byteLength < 48 || dv.getUint32(0) !== 0x52494646 || dv.getUint16(20, true) !== 1 || dv.getUint16(22, true) !== 1 || dv.getUint16(34, true) !== 16) return null;
     var o = 12, ds = -1, dl = 0;
@@ -4400,6 +4545,12 @@ var ocrSpell = (function(){
       if (ay > KN) { ay = KN + RG * Math.tanh((ay - KN) / RG); y = y < 0 ? -ay : ay; }
       out[i] = y;
     }
+    if (dlv > 0) {
+      var fz = new Float32Array(len), yv;
+      for (i = 0; i < len; i++) fz[i] = out[i];
+      dnzSpec(fz, sr, dlv, dstrong);
+      for (i = 0; i < len; i++) { yv = Math.round(fz[i]); out[i] = yv > 32767 ? 32767 : yv < -32768 ? -32768 : yv; }
+    }
     var fi = Math.min(len >> 1, Math.round(sr * 0.006)), fo = Math.min(len >> 1, Math.round(sr * 0.016));
     for (i = 0; i < fi; i++) out[i] = out[i] * (0.5 - 0.5 * Math.cos(Math.PI * i / fi));
     for (i = 0; i < fo; i++) out[len - 1 - i] = out[len - 1 - i] * (0.5 - 0.5 * Math.cos(Math.PI * i / fo));
@@ -4407,7 +4558,8 @@ var ocrSpell = (function(){
   }
   function polish(blob, mid){
     return blob.arrayBuffer().then(function(ab){
-      return dspWorker(0, ab, mid ? 1 : 0).then(function(o){
+      var cv = currentVoice(), dflag = (mid ? 1 : 0) | (cleanLevel() << 1) | (cv && cv.id === MANA_ID ? 8 : 0);
+      return dspWorker(0, ab, dflag).then(function(o){
         if (o === null) return polishMain(blob, mid);
         return o.b ? new Blob([o.b], { type: 'audio/wav' }) : blob;
       });
@@ -4693,7 +4845,7 @@ var ocrSpell = (function(){
     return new Promise(function(res){
       if (swk === null) {
         try {
-          var src = [wsolaCore, dspPass, wavPcm, wavHdr, wavPack, polishAb, stretchAb].map(function(fn){ return 'var ' + fn.name + '=' + fn.toString() + ';'; }).join('') +
+          var src = [wsolaCore, dspPass, wavPcm, wavHdr, wavPack, dnzSpec, polishAb, stretchAb].map(function(fn){ return 'var ' + fn.name + '=' + fn.toString() + ';'; }).join('') +
             'self.onmessage=function(e){var d=e.data,o=null;try{o=d.k?stretchAb(d.ab,d.a):polishAb(d.ab,d.a);self.postMessage({id:d.id,b:o},o?[o]:[]);}catch(x){self.postMessage({id:d.id,e:1});}};';
           var u = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
           swk = new Worker(u); URL.revokeObjectURL(u);
@@ -5696,6 +5848,28 @@ var ocrSpell = (function(){
   $('#enh').onchange = function(){ sset('enh', this.checked ? '1' : '0'); if (npOK) { changed(); return; } setupFx(); wireFx(engine() === 'piper'); };
   dictG = sget('dict', ''); parseDict(); dictShow();
   $('#dict').oninput = function(){ dictUi(); };
+  $('#dictExp').onclick = function(){
+    var v = $('#dict').value;
+    if (!v.trim()) { $('#dictMsg').textContent = 'واژه‌نامه خالی است.'; return; }
+    try {
+      var u = URL.createObjectURL(new Blob([v], { type: 'text/plain;charset=utf-8' })), a = document.createElement('a');
+      a.href = u; a.download = 'واژه‌نامه.txt'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(u); }, 4000);
+    } catch (e) { if (navigator.clipboard) { navigator.clipboard.writeText(v); $('#dictMsg').textContent = 'دانلود ممکن نشد؛ متن واژه‌نامه کپی شد.'; } }
+  };
+  $('#dictImp').onclick = function(){ $('#dictFile').click(); };
+  $('#dictFile').onchange = function(){
+    var f = this.files && this.files[0], inp = this; if (!f) return;
+    var r = new FileReader();
+    r.onload = function(){
+      var d = $('#dict'), have = {}, add = [];
+      d.value.split('\n').forEach(function(l){ have[l.trim()] = 1; });
+      String(r.result || '').replace(/^\ufeff/, '').split(/\r?\n/).forEach(function(l){ l = l.trim(); if (l && !have[l]) { have[l] = 1; add.push(l); } });
+      if (add.length) d.value = (d.value.replace(/\s+$/, '') + '\n' + add.join('\n')).replace(/^\n/, '');
+      dictUi(); $('#dictMsg').textContent = nf.format(add.length) + ' سطر جدید اضافه شد؛ «ثبت و ذخیره» را بزنید.';
+      inp.value = '';
+    };
+    r.readAsText(f, 'utf-8');
+  };
   $('#dictScope').onchange = function(){
     if ($('#dict').value !== dictSaved) { this.value = dictScopeNow(); dictUi(); $('#dictMsg').textContent = 'ابتدا تغییرهای این واژه‌نامه را ذخیره کنید.'; return; }
     sset('dictScope', this.value); dictShow();
