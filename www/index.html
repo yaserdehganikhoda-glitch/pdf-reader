@@ -426,6 +426,14 @@ input[type=range].rng{height:22px}
 .is-playing #reader span.cur{animation:none}
 @media (hover:none){#reader span:hover:not(.cur){background:none}}
 .pgc{contain:layout style}
+.pdfp{position:relative;width:100%;background:#fff;border-radius:6px;box-shadow:0 1px 6px rgba(0,0,0,.25);overflow:hidden;direction:ltr}
+.pdfp>canvas{display:block;width:100%;height:100%}
+.pdfo{position:absolute;inset:0}
+#reader .pdfo span.sh{display:contents}
+.sh>i{position:absolute;border-radius:3px;cursor:pointer}
+.sh.cur>i{background:rgba(255,196,0,.36);outline:2px solid var(--hl)}
+.sh.risk>i{border-bottom:2px dashed var(--warn-ink)}
+@media (hover:hover){.sh:not(.cur)>i:hover{background:rgba(255,196,0,.16)}}
 .menu{box-shadow:none;will-change:transform;contain:layout style}
 .panel.on{animation:fadein2 .12s ease both}
 @keyframes fadein2{from{opacity:0}}
@@ -1063,6 +1071,7 @@ body.has-doc:not(.home-on) .home{display:none}
         <div class="in">
           <div class="slist">
             <label class="chk"><input type="checkbox" id="oDots" checked><span class="st"><b>حذف نقطه‌چین، خط‌چین و خطوط جداکننده</b><small>نقطه‌چین فهرست‌ها، خط‌های افقی (-----، ═════) و نمادهای تزئینی تکراری (★ ★ ★).</small></span></label>
+            <label class="chk"><input type="checkbox" id="oPdfv" checked><span class="st"><b>نمایش مستقیم صفحات PDF (هایلایت گفتار روی خود صفحه)</b></span></label>
             <label class="chk"><input type="checkbox" id="oHdr" checked><span class="st"><b>حذف سرصفحه، پاصفحه و شمارهٔ صفحه</b></span></label>
             <label class="chk"><input type="checkbox" id="oNorm" checked><span class="st"><b>یکدست‌سازی حروف</b><small>«ي ك ى» عربی به فارسی، و حذف اعراب و کشیده.</small></span></label>
             <label class="chk"><input type="checkbox" id="oFix" checked><span class="st"><b>اصلاح فاصله‌گذاری</b><small>نیم‌فاصله و فاصله اطراف نشانه‌ها.</small></span></label>
@@ -3653,11 +3662,12 @@ var ocrSpell = (function(){
       var doc = await loadTask.promise;
       if (lt !== loadTok) { try { doc.destroy(); } catch (e) {} return; }
       pdfDoc = doc; hideHome();
-      var pdf = pdfDoc; rawItems = []; rawImg = [];
+      var pdf = pdfDoc; rawItems = []; rawImg = []; pgVp = {}; pgMapC = {}; if (PV) { prevTok = lt; previewPage(pdf, lt); }
       var W0 = txwGet(); if (W0) W0.post('doc');
       for (var p = 1; p <= pdf.numPages; p++) {
-        status('استخراج متن: صفحهٔ ' + nf.format(p) + ' از ' + nf.format(pdf.numPages));
+        status('آماده‌سازی گفتار: صفحهٔ ' + nf.format(p) + ' از ' + nf.format(pdf.numPages));
         var page = await pdf.getPage(p);
+        var vp0 = page.getViewport({ scale: 1 }); pgVp[p] = { w: vp0.width, h: vp0.height, t: vp0.transform };
         if (lt !== loadTok) { try { page.cleanup(); } catch (e) {} return; }
         var its = (await page.getTextContent()).items;
         if (lt !== loadTok) { try { page.cleanup(); } catch (e) {} return; }
@@ -3684,13 +3694,106 @@ var ocrSpell = (function(){
       status('خواندن فایل ناموفق بود: ' + (e && e.message ? e.message : e));
     }
   }
+  var PV = sget('pdfv', '1') !== '0', pgVp = {}, pgMapC = {}, pgTask = {}, prevTok = 0;
+  function pdfBox(w, h){ var b = document.createElement('div'); b.className = 'pdfp'; b.style.aspectRatio = w + '/' + h; return b; }
+  function pdfDraw(box, page, q){
+    var v1 = page.getViewport({ scale: 1 }), cw = box.clientWidth || $('#stage').clientWidth || 360;
+    var sc = Math.max(0.5, Math.min((window.devicePixelRatio || 1) * cw / v1.width, 1500 / v1.width, Math.sqrt(2.4e6 / (v1.width * v1.height))));
+    var vp = page.getViewport({ scale: sc }), cv = document.createElement('canvas');
+    cv.width = Math.ceil(vp.width); cv.height = Math.ceil(vp.height);
+    box.insertBefore(cv, box.firstChild);
+    var tk = page.render({ canvasContext: cv.getContext('2d'), viewport: vp });
+    pgTask[q] = { t: tk, cv: cv };
+    tk.promise.then(function(){ try { page.cleanup(); } catch (e) {} }, function(){});
+  }
+  async function previewPage(pdf, lt){
+    try {
+      var pg = await pdf.getPage(1);
+      if (lt !== loadTok || prevTok !== lt) return;
+      var v = pg.getViewport({ scale: 1 }), box = $('#reader'), d = document.createElement('div'), b = pdfBox(v.width, v.height);
+      box.textContent = ''; d.className = 'pgc'; d.appendChild(b); box.appendChild(d);
+      pdfDraw(b, pg, 0);
+    } catch (e) {}
+  }
+  function nz(s){
+    return s.normalize('NFKC').replace(/[۰-۹]/g, function(c){ return c.charCodeAt(0) - 1776; }).replace(/[٠-٩]/g, function(c){ return c.charCodeAt(0) - 1632; })
+      .replace(/[\u064B-\u065F\u0670\u0640\u200B-\u200F\u202A-\u202E\uFEFF]/g, '').replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/[^\p{L}\p{N}]/gu, '').toLowerCase();
+  }
+  function itRect(it, vp){
+    var m = it.transform; if (!m || !(it.width > 0)) return null;
+    var fs = Math.hypot(m[2], m[3]) || it.height || 10, ln = Math.hypot(m[0], m[1]) || 1, ux = m[0] / ln, uy = m[1] / ln, nx = m[2] / fs, ny = m[3] / fs, T = vp.t,
+        x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, i, s, u, X, Y, px, py;
+    for (i = 0; i < 4; i++) {
+      s = i & 1 ? it.width : 0; u = i & 2 ? 0.95 * fs : -0.25 * fs;
+      X = m[4] + ux * s + nx * u; Y = m[5] + uy * s + ny * u;
+      px = T[0] * X + T[2] * Y + T[4]; py = T[1] * X + T[3] * Y + T[5];
+      if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py;
+    }
+    return [x0, y0, x1, y1];
+  }
+  function mergeR(rs){
+    var o = [];
+    rs.forEach(function(r){
+      var p = o[o.length - 1];
+      if (p) {
+        var h = Math.min(p[3] - p[1], r[3] - r[1]), ov = Math.min(p[3], r[3]) - Math.max(p[1], r[1]);
+        if (ov > h * 0.5 && r[0] <= p[2] + h * 0.8 && r[2] >= p[0] - h * 0.8) { p[0] = Math.min(p[0], r[0]); p[1] = Math.min(p[1], r[1]); p[2] = Math.max(p[2], r[2]); p[3] = Math.max(p[3], r[3]); return; }
+      }
+      o.push(r.slice());
+    });
+    return o;
+  }
+  function pgMap(q, vp){
+    var ids = [], ts = [], tot = 0, a, b, k, r, rs, P = '', st = [], en = [], out = [], cur = 0, acc = 0;
+    pageParas[q].forEach(function(pp){ pp.forEach(function(i){ var t = nz(sents[i].text); ids.push(i); ts.push(t); tot += t.length || 1; }); });
+    var its = ocrPages[q] != null ? null : rawItems[q - 1];
+    if (its && its.length) {
+      if (O && O.pos) its = lineSort(its);
+      for (k = 0; k < its.length; k++) { st.push(P.length); P += nz(its[k].str || ''); en.push(P.length); }
+    }
+    ids.forEach(function(i, n){
+      var t = ts[n], w = t.length || 1; rs = [];
+      if (P.length < 3) {                      /* صفحهٔ تصویری/OCR: نوار تقریبی بر پایهٔ سهم هر جمله از متن صفحه */
+        out.push([[vp.w * 0.06, vp.h * (0.04 + acc / tot * 0.92), vp.w * 0.94, vp.h * (0.04 + (acc + w) / tot * 0.92)]]); acc += w; return;
+      }
+      a = -1;
+      if (t) {
+        a = P.indexOf(t, cur); if (a < 0) a = P.indexOf(t);
+        if (a < 0 && t.length > 14) { a = P.indexOf(t.slice(0, 14), cur); if (a < 0) a = P.indexOf(t.slice(0, 14)); }
+      }
+      if (a >= 0) b = a + t.length;
+      else { a = Math.min(P.length - 1, Math.round(cur)); b = a + Math.max(1, Math.round(w * P.length / tot)); }   /* تطبیق نشد؛ جایگاه تقریبی */
+      b = Math.min(P.length, b); cur = b;
+      var lo = 0, hi = its.length - 1, mid;
+      while (lo < hi) { mid = (lo + hi) >> 1; if (en[mid] > a) hi = mid; else lo = mid + 1; }
+      for (k = lo; k < its.length && st[k] < b; k++) if (en[k] > st[k] && (r = itRect(its[k], vp))) rs.push(r);
+      out.push(mergeR(rs));
+    });
+    return { ids: ids, r: out };
+  }
+  function pgOverlay(q, box, vp){
+    var m = pgMapC[q]; if (m === undefined) m = pgMapC[q] = pgMap(q, vp);
+    if (!m) return false;
+    var ov = document.createElement('div'), last = box; ov.className = 'pdfo';
+    m.ids.forEach(function(i, k){
+      var sp = document.createElement('span'); sp.dataset.i = i; sp.className = 'sh' + (sents[i].risk ? ' risk' : '');
+      m.r[k].forEach(function(r){
+        var e = document.createElement('i');
+        e.style.cssText = 'left:' + (r[0] / vp.w * 100).toFixed(2) + '%;top:' + (r[1] / vp.h * 100).toFixed(2) + '%;width:' + ((r[2] - r[0]) / vp.w * 100).toFixed(2) + '%;height:' + ((r[3] - r[1]) / vp.h * 100).toFixed(2) + '%';
+        sp.appendChild(e);
+      });
+      if (sp.firstElementChild) last = sp.firstElementChild;
+      sp.f = last; sents[i].el = sp; ov.appendChild(sp);
+    });
+    box.appendChild(ov); return true;
+  }
   var pageParas = {}, pgEls = {}, pgObs = null, pgObsU = null, unrT = 0, unrList = {}, curKey = '';
   function unrQ(q){
     unrList[q] = 1; clearTimeout(unrT);
     unrT = setTimeout(function(){ var l = unrList; unrList = {}; Object.keys(l).forEach(function(k){ unrenderPage(+k); }); }, 500);
   }
   function build(pages, pre, drp){
-    dropped = drp || 0; sents = []; idx = 0; curEl = null; pageParas = {}; pgEls = {}; plan = {};
+    dropped = drp || 0; sents = []; idx = 0; curEl = null; pageParas = {}; pgEls = {}; plan = {}; pgMapC = {}; prevTok = 0;
     if (pgObs) pgObs.disconnect();
     if (pgObsU) pgObsU.disconnect();
     unrList = {}; clearTimeout(unrT);
@@ -3709,7 +3812,7 @@ var ocrSpell = (function(){
         ss.forEach(function(o, k){ ids.push(sents.length); sents.push({ text: o.t, cont: o.c, page: pi + 1, el: null, pe: k === ss.length - 1 }); });
         if (ids.length) paras.push(ids);
       });
-      if (!paras.length) return;
+      if (!paras.length && !(PV && pdfDoc && pgVp[pi + 1])) return;
       pageParas[pi + 1] = paras;
       var d = document.createElement('div');
       d.className = 'pgc'; d.dataset.p = pi + 1; d.style.minHeight = '320px';
@@ -3728,7 +3831,13 @@ var ocrSpell = (function(){
   function renderPage(q){
     var d = pgEls[q]; if (!d || d.firstChild) return;
     var h = document.createElement('div'); h.className = 'pg'; h.textContent = 'صفحهٔ ' + nf.format(q); d.appendChild(h);
-    pageParas[q].forEach(function(ids){
+    var ok = false, vp = pgVp[q];
+    if (PV && pdfDoc && vp) {
+      var bx = pdfBox(vp.w, vp.h); d.appendChild(bx);
+      pdfDoc.getPage(q).then(function(pg){ if (bx.isConnected) pdfDraw(bx, pg, q); }).catch(function(){});
+      ok = pgOverlay(q, bx, vp);
+    }
+    if (!ok) pageParas[q].forEach(function(ids){
       var el = document.createElement('p'); el.dir = pdir(ids.map(function(i){ return sents[i].text; }).join(' '));
       ids.forEach(function(i){ var sp = document.createElement('span'); sp.textContent = sents[i].text + ' '; sp.dataset.i = i; if (sents[i].risk) sp.className = 'risk'; sents[i].el = sp; el.appendChild(sp); });
       d.appendChild(el);
@@ -3737,7 +3846,9 @@ var ocrSpell = (function(){
   }
   function unrenderPage(q){
     var d = pgEls[q]; if (!d || !d.firstChild || (sents[idx] && sents[idx].page === q)) return;
-    d.style.minHeight = d.offsetHeight + 'px'; d.textContent = '';
+    d.style.minHeight = d.offsetHeight + 'px';
+    var tk = pgTask[q]; if (tk) { try { tk.t.cancel(); } catch (e) {} tk.cv.width = tk.cv.height = 0; delete pgTask[q]; }
+    d.textContent = '';
     pageParas[q].forEach(function(ids){ ids.forEach(function(i){ sents[i].el = null; }); });
   }
 
@@ -5582,8 +5693,8 @@ var ocrSpell = (function(){
     }
   }
   function follow(el){
-    var r = el.getBoundingClientRect(), s = $('#stage').getBoundingClientRect(), dk = (document.body.classList.contains('dock-hide') ? $('#dockPeek') : $('#dock')).getBoundingClientRect();
-    if (r.top < s.top + 56 || r.bottom > dk.top - 12) el.scrollIntoView({ block: 'center', behavior: fxCalm() ? 'auto' : 'smooth' });
+    var t = el.f || el, r = t.getBoundingClientRect(), s = $('#stage').getBoundingClientRect(), dk = (document.body.classList.contains('dock-hide') ? $('#dockPeek') : $('#dock')).getBoundingClientRect();
+    if (r.top < s.top + 56 || r.bottom > dk.top - 12) t.scrollIntoView({ block: 'center', behavior: fxCalm() ? 'auto' : 'smooth' });
   }
   var kaOn = null, kaBad = false;
   function kaSync(){
@@ -6112,6 +6223,8 @@ var ocrSpell = (function(){
     renderVoices(); ui(); warmPiper();
     if (was) start();
   };
+  $('#oPdfv').checked = PV;
+  $('#oPdfv').onchange = function(){ PV = this.checked; sset('pdfv', PV ? '1' : '0'); if (pdfDoc && rawItems.length) process(true); };
   $('#enh').checked = sget('enh', '1') !== '0';
   if (sget('vstyleV', '') !== '4') { sset('vstyle', 'serene'); sset('vstyleV', '4'); }   /* سبک «بسیار آرام» پیش‌فرض تازه (یک‌بار) */
   $('#vstyle').value = sget('vstyle', 'serene'); if (!STYLES[$('#vstyle').value]) $('#vstyle').value = 'serene';
