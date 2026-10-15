@@ -783,6 +783,7 @@ class PiperNativePlugin : Plugin() {
         val fxPk = (call.getFloat("fxPk") ?: 2f).coerceIn(-6f, 8f)
         val fxHs = (call.getFloat("fxHs") ?: 0.8f).coerceIn(-6f, 8f)
         val fxLp = (call.getFloat("fxLp") ?: 10500f).coerceIn(4000f, 20000f)
+        val strong = id.contains("mana", ignoreCase = true)   // مانا: خروجی خام نویزی‌تر؛ پاک‌سازی قوی‌تر (SpeechClean/MasterFx)
         val ep = epoch.get()   // لحظهٔ رسیدن درخواست؛ اگر بعدش cancel بیاید این کار رها می‌شود
         cpu.execute {
             try {
@@ -812,7 +813,7 @@ class PiperNativePlugin : Plugin() {
                         cachePut(key, sr, g)
                         g
                     }
-                    pieces.add(SpeechClean.process(s, sr, lvlClean, lvlClarity))   // روی نسخهٔ خام کش؛ خودِ کش دست‌نخورده می‌ماند
+                    pieces.add(SpeechClean.process(s, sr, lvlClean, lvlClarity, strong))   // روی نسخهٔ خام کش؛ خودِ کش دست‌نخورده می‌ماند
                 }
                 if (pieces.isEmpty()) throw IllegalStateException("متن قابل‌خواندن ندارد")
                 val gapN = (gap * sr).toInt()
@@ -826,7 +827,7 @@ class PiperNativePlugin : Plugin() {
                     if (k < pieces.size - 1) pos += gapN   // سکوت (صفر)
                 }
                 val pol = polish(all, sr)
-                val fin = if (fxOn) MasterFx.process(pol, sr, fxPk, fxHs, fxLp) else pol
+                val fin = if (fxOn) MasterFx.process(pol, sr, fxPk, fxHs, fxLp, strong) else pol
                 if (keep) {
                     val h = pcmPut(fin, sr)
                     call.resolve(JSObject().put("handle", h).put("sampleRate", sr).put("durationMs", fin.size * 1000L / sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size))
@@ -1258,7 +1259,7 @@ private object SpeechClean {
     }
 
     @Synchronized
-    fun process(src: FloatArray, sr: Int, clean: Int, clarity: Int): FloatArray {
+    fun process(src: FloatArray, sr: Int, clean: Int, clarity: Int, strong: Boolean = false): FloatArray {
         if ((clean <= 0 && clarity <= 0) || src.size < sr / 20) return src
         var x = src.copyOf()
         try {
@@ -1268,7 +1269,7 @@ private object SpeechClean {
                 val beta = when (clean) { 1 -> 1.0; 3 -> 1.5; else -> 1.2 }
                 val silDb = when (clean) { 1 -> 3.0; 2 -> 6.0; 3 -> 10.0; else -> 0.0 }
                 val cl = when (clarity) { 1 -> 0.6; 2 -> 1.0; 3 -> 1.4; else -> 0.0 }
-                x = enhance(x, sr, cleanDb, beta, silDb, cl)
+                x = enhance(x, sr, cleanDb, beta, silDb, cl, strong)
             }
         } catch (e: Throwable) {
             return src   // هر خطای پیش‌بینی‌نشده: صدای اصلی بدون پردازش
@@ -1319,7 +1320,9 @@ private object SpeechClean {
         for (m in v.size - 2 downTo 0) v[m] = v[m + 1] + coef * (v[m] - v[m + 1])
     }
 
-    private fun enhance(x: FloatArray, sr: Int, cleanDb: Double, beta: Double, silDb: Double, cl: Double): FloatArray {
+    private fun enhance(x: FloatArray, sr: Int, cleanDb0: Double, beta: Double, silDb0: Double, cl: Double, strong: Boolean): FloatArray {
+        var cleanDb = cleanDb0
+        var silDb = silDb0
         val n = x.size
         var nn = 256
         while (nn < sr * 0.0232) nn *= 2
@@ -1353,28 +1356,35 @@ private object SpeechClean {
         }
 
         // برآورد نویز: فریم‌هایی که انرژی‌شان تا ۶dB بالاتر از ساکت‌ترین فریم‌هاست
-        val order = (0 until frames).sortedBy { e[it] }
-        val nb = minOf(frames, maxOf(3, (frames * 0.03).toInt()))
+        // فریم‌هایی که فقط صفرِ حاشیه‌اند (pad) در آمار نویز/گفتار حساب نمی‌شوند؛ وگرنه در جمله‌های کوتاه نویز کمتر از واقع برآورد می‌شد
+        val order = (0 until frames).filter { it * hop + nn > pad && it * hop < pad + n }.sortedBy { e[it] }
+        val nv = order.size
+        if (nv < 6) return x
+        val nb = minOf(nv, maxOf(3, (nv * 0.03).toInt()))
         var base = 0.0
         for (i in 0 until nb) base += e[order[i]]
         base /= nb
-        val kMax = maxOf(3, (frames * 0.25).toInt())
+        val kMax = maxOf(3, (nv * 0.25).toInt())
         val sel = ArrayList<Int>()
-        for (i in 0 until minOf(kMax, frames)) { val m = order[i]; if (e[m] <= base * 4.0) sel.add(m) }
+        for (i in 0 until minOf(kMax, nv)) { val m = order[i]; if (e[m] <= base * 4.0) sel.add(m) }
         if (sel.size < 3) { sel.clear(); for (i in 0 until 3) sel.add(order[i]) }
         val raw = DoubleArray(bins)
         for (m in sel) for (k in 0 until bins) raw[k] += pw[m * bins + k]
         for (k in 0 until bins) raw[k] /= sel.size.toDouble()
-        val kHi = minOf(frames, maxOf(3, (frames * 0.4).toInt()))
+        val kHi = minOf(nv, maxOf(3, (nv * 0.4).toInt()))
         var speech = 0.0
-        for (i in 0 until kHi) speech += e[order[frames - 1 - i]]
+        for (i in 0 until kHi) speech += e[order[nv - 1 - i]]
         speech /= kHi
         var en = 0.0
         for (k in 1 until half) en += raw[k]
         if (speech < 1e-9) return x     // بی‌صدا
-        // مرجع نویز قابل‌اعتماد نیست (سکوتی در جمله نیست): حذف نویز و دروازه اعمال نمی‌شود
-        val reliable = en <= speech * Math.pow(10.0, -2.5)
-        if (!reliable && cl <= 0.0) return x
+        // مرجع نویز قابل‌اعتماد نیست (سکوتی در جمله نیست): حذف نویز و دروازه اعمال نمی‌شود (جز مانا: اعتماد تدریجی)
+        val snrDb = 10.0 * Math.log10(speech / maxOf(en, 1e-20))
+        // مانا: خروجی خام خش بیشتری دارد و شرط سخت‌گیرانهٔ ۲۵dB باعث می‌شد حذف نویز اصلاً اجرا نشود؛ برای آن اعتماد تدریجی (۱۲ تا ۲۵dB) و شدت متناسب
+        val relW = if (strong) ((snrDb - 12.0) / 13.0).coerceIn(0.0, 1.0) else if (snrDb >= 25.0) 1.0 else 0.0
+        val reliable = relW > 0.0
+        if (reliable && relW < 1.0) { cleanDb *= relW; silDb *= relW }
+        if (!reliable && cl <= 0.0 && !(strong && cleanDb > 0.0)) return x
         val noiseRaw = DoubleArray(bins)
         for (k in 0 until bins) {
             val a = maxOf(0, k - 2)
@@ -1440,10 +1450,30 @@ private object SpeechClean {
         val kB = Math.round(2500.0 / df).toInt()
         val taper = DoubleArray(bins) { ((it - kA).toDouble() / maxOf(1, kB - kA)).coerceIn(0.0, 1.0) }
 
+        // مانا: در فریم‌های واکه‌دار (غیرسایشی) بالای ~۴kHz عملاً فقط خش مدل است، نه گفتار؛ همان‌جا کمی کم می‌شود. فریم‌های سایشی (س، ش، ف) دست‌نخورده می‌مانند.
+        val vcut = DoubleArray(frames)
+        val vramp = DoubleArray(bins)
+        val fz = DoubleArray(frames)      // صامت‌وار (سایشی) بودن هر فریم: ۰ واکه … ۱ سایشی
+        val hfDb = if (strong && cleanDb0 > 0.0) minOf(7.0, cleanDb0 * 0.4) else 0.0     // سطح ۲: ۴٫۸dB، سطح ۳: ۷dB
+        if (hfDb > 0.0 && k1 < k3 && k3 + 2 < k4) {
+            val kv1 = Math.round(4000.0 / df).toInt()
+            val kv2 = Math.round(7000.0 / df).toInt()
+            for (k in 0 until bins) vramp[k] = ((k - kv1).toDouble() / maxOf(1, kv2 - kv1)).coerceIn(0.0, 1.0)
+            for (m in 0 until frames) {
+                var elo = 0.0; var ehi = 0.0
+                val o = m * bins
+                for (k in k1 until k4) { val p = pw[o + k]; if (k < k3) elo += p else ehi += p }
+                fz[m] = (((ehi / (elo + 1e-20)) - 0.25) / 0.5).coerceIn(0.0, 1.0)
+                vcut[m] = hfDb * (1.0 - fz[m]) * spS[m]
+            }
+            smoothZp(vcut, 0.25)
+        }
+
         // گذر ۲: Wiener تصمیم‌محور + دروازهٔ مکث + ارتقا، هموارسازی در فرکانس و زمان، بازسازی با هم‌پوشانی
         val doWiener = cleanDb > 0.0 && reliable
         val gmin = if (cleanDb > 0.0) Math.pow(10.0, -cleanDb / 20.0) else 1.0
         val gsp = if (cleanDb > 0.0) Math.pow(10.0, -(0.5 * cleanDb) / 20.0) else 1.0   // کفِ بالاتر در فریم‌های گفتار: صامت‌های ضعیف خورده نشوند
+        val gspFr = if (strong && cleanDb > 0.0) Math.pow(10.0, -(0.4 * cleanDb) / 20.0) else gsp   // مانا: در فریم‌های سایشی کف بالاتر؛ «س، ش، ف» ضعیف نخورند
         val sil = if (reliable && silDb > 0.0) Math.pow(10.0, -silDb / 20.0) else 1.0
         val alpha = 0.92
         val prevP = DoubleArray(bins)
@@ -1463,10 +1493,11 @@ private object SpeechClean {
                     g[k] = xi / (1.0 + xi)
                 }
             }
-            val gfl = gmin + (gsp - gmin) * spS[m]
+            val gfl = gmin + ((gsp + (gspFr - gsp) * fz[m]) - gmin) * spS[m]
             val silF = 1.0 - (1.0 - sil) * (1.0 - spS[m])
             val riderLin = Math.pow(10.0, rD[m] / 20.0)
             val bcDb = bC[m]
+            val vcutDb = vcut[m]
             for (k in 0 until bins) {
                 var v = 1.0
                 if (doWiener) {
@@ -1480,6 +1511,7 @@ private object SpeechClean {
                 }
                 var tot = v * silF * riderLin
                 if (bcDb > 0.01 || bcDb < -0.01) { if (taper[k] > 0.0) tot *= Math.pow(10.0, bcDb * taper[k] / 20.0) }
+                if (vcutDb > 0.01 && vramp[k] > 0.0) tot *= Math.pow(10.0, -vcutDb * vramp[k] / 20.0)
                 re[k] *= tot; im[k] *= tot
             }
             for (k in 1 until half) { re[nn - k] = re[k]; im[nn - k] = -im[k] }
@@ -1585,6 +1617,48 @@ private object MasterFx {
         for (i in 0 until n) x[i] *= g[Math.min(n - 1, i + la)] * mk
     }
 
+    /**
+     * گیت/اکسپندر ملایم پس از کمپرسور: کمپرسور با جبران بلندی (~+۸٫۸dB) خش مکث‌های میان کلمه‌ها را نسبت به واکه‌ها بالا می‌برد.
+     * آستانه نسبت به بلندی خود جمله (میانگین ۳۰٪ بلندترین بلوک‌های ۴ms) سنجیده می‌شود؛ کاهش بهره تا floorDb، با پیش‌نگری ۱۲ms و نگه‌داری ۸ms تا آغاز/پایان واژه‌ها بریده نشود.
+     */
+    private fun gate(x: DoubleArray, sr: Int, relDb: Double, floorDb: Double) {
+        val n = x.size
+        val blk = maxOf(8, (sr * 0.004).toInt())
+        val nb = (n + blk - 1) / blk
+        if (nb < 12) return
+        val env = DoubleArray(nb)
+        for (b in 0 until nb) {
+            val a = b * blk; val e = minOf(n, a + blk)
+            var s = 0.0
+            for (i in a until e) s += x[i] * x[i]
+            env[b] = Math.sqrt(s / (e - a))
+        }
+        val sorted = env.copyOf(); java.util.Arrays.sort(sorted)
+        val top = maxOf(3, (nb * 0.3).toInt())
+        var ref = 0.0
+        for (i in 0 until top) ref += sorted[nb - 1 - i]
+        ref /= top
+        if (ref < 1e-4) return
+        val th = ref * Math.pow(10.0, relDb / 20.0)
+        val gmin = Math.pow(10.0, floorDb / 20.0)
+        val tg = DoubleArray(nb) { if (env[it] >= th) 1.0 else maxOf(gmin, env[it] / th) }
+        val g = DoubleArray(nb)
+        for (b in 0 until nb) {
+            var mx = 0.0
+            for (j in (b - 2)..(b + 3)) if (j in 0 until nb && tg[j] > mx) mx = tg[j]   // نگه‌داری ۸ms + پیش‌نگری ۱۲ms
+            g[b] = mx
+        }
+        for (b in 1 until nb) g[b] = g[b - 1] + 0.4 * (g[b] - g[b - 1])
+        for (b in nb - 2 downTo 0) g[b] = g[b + 1] + 0.4 * (g[b] - g[b + 1])
+        for (i in 0 until n) {
+            val pos = (i - blk / 2.0) / blk
+            val b0 = Math.floor(pos).toInt().coerceIn(0, nb - 1)
+            val b1 = minOf(nb - 1, b0 + 1)
+            val f = (pos - b0).coerceIn(0.0, 1.0)
+            x[i] *= g[b0] + (g[b1] - g[b0]) * f
+        }
+    }
+
     private fun softClip(v: Double): Float {
         val a = Math.abs(v)
         if (a <= 0.98) return v.toFloat()
@@ -1592,7 +1666,7 @@ private object MasterFx {
         return (if (v < 0) -y else y).toFloat()
     }
 
-    fun process(src: FloatArray, sr: Int, pk: Float, hs: Float, lp: Float): FloatArray {
+    fun process(src: FloatArray, sr: Int, pk: Float, hs: Float, lp: Float, strong: Boolean = false): FloatArray {
         if (src.isEmpty()) return src
         val x = DoubleArray(src.size) { src[it].toDouble() }
         highpass(75.0, 1.122, sr).run(x)
@@ -1603,6 +1677,7 @@ private object MasterFx {
         lowpass(lp.toDouble(), 1.085, sr).run(x)
         comp(x, sr, -22.0, 24.0, 3.0, 0.005, 0.15, 0.006)
         for (i in x.indices) x[i] *= 1.1
+        gate(x, sr, if (strong) -28.0 else -34.0, if (strong) -10.0 else -6.0)
         comp(x, sr, -2.0, 0.0, 20.0, 0.001, 0.08, 0.003)
         return FloatArray(x.size) { softClip(x[it]) }
     }
