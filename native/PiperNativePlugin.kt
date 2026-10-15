@@ -4,6 +4,10 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import android.provider.Settings
 import android.util.Base64
 import android.media.AudioFormat
 import android.media.AudioManager
@@ -39,6 +43,7 @@ import java.util.concurrent.Executors
 /**
  * Piper (VITS) فارسی به‌صورت بومی با sherpa-onnx.
  * متدها: ping, stored, bundled, download({id}) = نصب صدا از فایل همراه برنامه (بدون اینترنت), synthesize({id, text, noiseScale?, noiseScaleW?, speed?}), remove({id})
+ * فهرست PDFهای دستگاه (صفحهٔ اصلی): listPdfs, pdfRequest
  * پوشهٔ دلخواه کاربر: pickFolder, folder, exportVoices({ids?}), importVoices({ids?, overwrite?})
  * رویداد: "progress" {loaded, total}
  * کیفیت صدا: synthesize({..., clean?: 0..3, clarity?: 0..3}) → حذف نویز و ارتقای شفافیت/رسایی؛ ۰ خاموش، ۲ متعادل (پیش‌فرض)؛ جزئیات در SpeechClean (انتهای فایل)
@@ -121,6 +126,57 @@ class PiperNativePlugin : Plugin() {
     private fun okMark(id: String) = File(voiceDir(id), ".ok")
 
     /** خروج کامل از برنامه (دکمهٔ خروج) */
+    /** فهرست PDFهای دستگاه برای صفحهٔ اصلی: listPdfs() ← {access, files:[{path, name, size, mtime(ثانیه)}]}؛ pdfRequest() صفحهٔ دسترسی را باز می‌کند.
+     *  دسترسی کامل: اندروید ۱۱+ ← MANAGE_EXTERNAL_STORAGE، پایین‌تر ← READ_EXTERNAL_STORAGE (در AndroidManifest.xml با native/add-pdf-permissions.sh اعلام می‌شود).
+     *  بدون دسترسی کامل فقط فایل‌هایی که سیستم نشان می‌دهد برمی‌گردد (access=false). */
+    private fun hasPdfAccess(): Boolean =
+        if (Build.VERSION.SDK_INT >= 30) Environment.isExternalStorageManager()
+        else context.checkSelfPermission("android.permission.READ_EXTERNAL_STORAGE") == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+    @PluginMethod
+    fun pdfRequest(call: PluginCall) {
+        try {
+            if (Build.VERSION.SDK_INT >= 30) {
+                try {
+                    context.startActivity(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                } catch (e: Throwable) {
+                    context.startActivity(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                }
+            } else {
+                activity?.requestPermissions(arrayOf("android.permission.READ_EXTERNAL_STORAGE"), 9318)
+            }
+            val r = JSObject(); r.put("access", hasPdfAccess()); call.resolve(r)
+        } catch (e: Throwable) { call.reject(e.message ?: "request failed") }
+    }
+
+    @PluginMethod
+    fun listPdfs(call: PluginCall) {
+        Thread {
+            try {
+                val arr = org.json.JSONArray()
+                val cols = arrayOf(MediaStore.Files.FileColumns.DATA, MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.SIZE, MediaStore.Files.FileColumns.DATE_MODIFIED)
+                val sel = "(" + MediaStore.Files.FileColumns.MIME_TYPE + " = ? OR " + MediaStore.Files.FileColumns.DISPLAY_NAME + " LIKE ?) AND " + MediaStore.Files.FileColumns.SIZE + " > 0"
+                val seen = HashSet<String>()
+                context.contentResolver.query(MediaStore.Files.getContentUri("external"), cols, sel, arrayOf("application/pdf", "%.pdf"), MediaStore.Files.FileColumns.DATE_MODIFIED + " DESC")?.use { c ->
+                    val iD = c.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA)
+                    val iN = c.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DISPLAY_NAME)
+                    val iS = c.getColumnIndexOrThrow(MediaStore.Files.FileColumns.SIZE)
+                    val iM = c.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATE_MODIFIED)
+                    while (c.moveToNext() && arr.length() < 5000) {
+                        val path = c.getString(iD) ?: continue
+                        val name = c.getString(iN) ?: File(path).name
+                        if (!name.endsWith(".pdf", ignoreCase = true) || path.contains("/Android/data/") || path.contains("/.Trash") || path.contains("/.trash")) continue
+                        if (!seen.add(path) || !File(path).canRead()) continue
+                        val o = JSObject()
+                        o.put("path", path); o.put("name", name); o.put("size", c.getLong(iS)); o.put("mtime", c.getLong(iM))
+                        arr.put(o)
+                    }
+                }
+                val r = JSObject(); r.put("access", hasPdfAccess()); r.put("files", arr); call.resolve(r)
+            } catch (e: Throwable) { call.reject(e.message ?: "scan failed") }
+        }.start()
+    }
+
     @PluginMethod
     fun exitApp(call: PluginCall) {
         call.resolve()
