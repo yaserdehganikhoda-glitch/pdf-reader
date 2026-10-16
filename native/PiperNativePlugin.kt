@@ -133,9 +133,17 @@ class PiperNativePlugin : Plugin() {
         if (Build.VERSION.SDK_INT >= 30) Environment.isExternalStorageManager()
         else context.checkSelfPermission("android.permission.READ_EXTERNAL_STORAGE") == android.content.pm.PackageManager.PERMISSION_GRANTED
 
+    /** آیا مجوز لازم در AndroidManifest.xml همین نسخه اعلام شده است؟ بدون آن سیستم دکمهٔ دسترسی را غیرفعال می‌کند. */
+    private fun pdfDeclared(): Boolean = try {
+        val need = if (Build.VERSION.SDK_INT >= 30) "android.permission.MANAGE_EXTERNAL_STORAGE" else "android.permission.READ_EXTERNAL_STORAGE"
+        val perms = context.packageManager.getPackageInfo(context.packageName, android.content.pm.PackageManager.GET_PERMISSIONS).requestedPermissions
+        perms != null && perms.any { it == need }
+    } catch (e: Throwable) { true }
+
     @PluginMethod
     fun pdfRequest(call: PluginCall) {
         try {
+            if (!pdfDeclared()) { val r0 = JSObject(); r0.put("access", false); r0.put("declared", false); call.resolve(r0); return }
             if (Build.VERSION.SDK_INT >= 30) {
                 try {
                     context.startActivity(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
@@ -145,7 +153,7 @@ class PiperNativePlugin : Plugin() {
             } else {
                 activity?.requestPermissions(arrayOf("android.permission.READ_EXTERNAL_STORAGE"), 9318)
             }
-            val r = JSObject(); r.put("access", hasPdfAccess()); call.resolve(r)
+            val r = JSObject(); r.put("access", hasPdfAccess()); r.put("declared", true); call.resolve(r)
         } catch (e: Throwable) { call.reject(e.message ?: "request failed") }
     }
 
@@ -172,7 +180,7 @@ class PiperNativePlugin : Plugin() {
                         arr.put(o)
                     }
                 }
-                val r = JSObject(); r.put("access", hasPdfAccess()); r.put("files", arr); call.resolve(r)
+                val r = JSObject(); r.put("access", hasPdfAccess()); r.put("declared", pdfDeclared()); r.put("files", arr); call.resolve(r)
             } catch (e: Throwable) { call.reject(e.message ?: "scan failed") }
         }.start()
     }

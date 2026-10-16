@@ -83,17 +83,17 @@ else
   echo "voices: داخل APK گذاشته نشد (دانلود بعد از نصب)"
 fi
 
-# 3c) مانیفست: سرویس پخش پیش‌زمینه و مجوزهای لازم (بدون آن پخش با صفحهٔ خاموش بی‌صدا کار نمی‌کند)
+# 3c) مانیفست: سرویس پخش پیش‌زمینه و مجوزهای لازم (بدون آن پخش با صفحهٔ خاموش بی‌صدا کار نمی‌کند؛ دو مجوز آخر برای فهرست خودکار PDFها)
 python3 - <<'PY'
 m='android/app/src/main/AndroidManifest.xml'; s=open(m,encoding='utf-8').read()
 perms=''.join('    <uses-permission android:name="android.permission.%s"/>\n' % p
-              for p in ['WAKE_LOCK','FOREGROUND_SERVICE','FOREGROUND_SERVICE_MEDIA_PLAYBACK','POST_NOTIFICATIONS']
+              for p in ['WAKE_LOCK','FOREGROUND_SERVICE','FOREGROUND_SERVICE_MEDIA_PLAYBACK','POST_NOTIFICATIONS','MANAGE_EXTERNAL_STORAGE','READ_EXTERNAL_STORAGE']
               if 'android.permission.%s"' % p not in s)
 if perms: s=s.replace('<application', perms+'    <application', 1)
 if 'PlayerService' not in s:
     s=s.replace('</application>','        <service android:name=".PlayerService" android:exported="false" android:foregroundServiceType="mediaPlayback" />\n    </application>',1)
 open(m,'w',encoding='utf-8').write(s)
-assert 'PlayerService' in s and 'WAKE_LOCK' in s
+assert 'PlayerService' in s and 'WAKE_LOCK' in s and 'MANAGE_EXTERNAL_STORAGE' in s
 PY
 
 # 4) امضای ثابت (تا هر نسخه روی قبلی نصب شود)
