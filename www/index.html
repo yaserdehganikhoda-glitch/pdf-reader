@@ -741,6 +741,7 @@ body:not(.has-doc) .top,body.home-on .top{padding:0}
 .pv{max-width:100%;margin:0 auto;overflow-x:auto}
 .pvp{position:relative;margin:0 auto;width:max-content;background:#fff;border:1px solid var(--line);border-radius:4px;box-shadow:0 6px 18px -10px var(--dsh)}
 .pvp canvas{display:block}
+.pvn{position:relative;margin:14px auto 0;width:max-content;background:#fff;border:1px solid var(--line);border-radius:4px;box-shadow:0 6px 18px -10px var(--dsh)}.pvn canvas{display:block}#pvU .pvn{margin:0 auto 14px}
 .pvh{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply}
 .pvh i{position:absolute;border-radius:8px;background:linear-gradient(110deg,rgba(245,185,50,.5),rgba(255,224,150,.3));box-shadow:0 0 0 4px rgba(245,185,50,.36),0 0 28px 6px rgba(229,161,31,.38)}
 .pvh i.ap{background:linear-gradient(110deg,rgba(245,185,50,.3),rgba(255,224,150,.18));box-shadow:0 0 0 2px rgba(245,185,50,.4);outline:2px dashed rgba(200,130,10,.6);outline-offset:1px}
@@ -751,8 +752,8 @@ body:not(.has-doc) .top,body.home-on .top{padding:0}
 :root[data-fx="perf"] .pvh,:root[data-fx="flat"] .pvh{mix-blend-mode:normal}
 :root[data-fx="perf"] .pvh i,:root[data-fx="flat"] .pvh i{outline:3px solid rgba(245,185,50,.55);background:rgba(245,185,50,.28)}
 #pvn{text-align:center;margin-top:8px}
-body:not(.view-page) .pv,body.view-page.no-sents .pv{display:none}
-body.view-page:not(.no-sents) #reader{display:none}
+body:not(.view-page) .pv,body.view-page.no-sents:not(.has-doc) .pv{display:none}
+body.view-page:not(.no-sents) #reader,body.view-page.no-sents.has-doc #reader{display:none}
 .rdb.on{color:var(--accent)}
 
 /* ---- برگهٔ گوینده و سبک گفتار ---- */
@@ -895,7 +896,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
   <main class="frame">
     <div class="stage" id="stage" tabindex="-1">
       <div id="reader"></div>
-      <div class="pv" id="pv"><div class="pvp" id="pvp"><canvas id="pvc" width="1" height="1"></canvas><div class="pvh" id="pvh"></div></div><p class="hint" id="pvn" hidden></p></div>
+      <div class="pv" id="pv"><div id="pvU"></div><div class="pvp" id="pvp"><canvas id="pvc" width="1" height="1"></canvas><div class="pvh" id="pvh"></div></div><div id="pvD"></div><p class="hint" id="pvn" hidden></p></div>
     </div>
 
     <div class="home" id="homeView">
@@ -1232,7 +1233,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             </select>
           </div>
           <div class="field"><label for="ocrQ"><span>کیفیت</span></label>
-            <select id="ocrQ" data-seg><option value="1" data-short="سریع">سریع</option><option value="2" data-short="متعادل" selected>متعادل</option><option value="3" data-short="دقیق" data-desc="دقیق‌تر ولی کندتر.">دقیق (کندتر)</option></select></div>
+            <select id="ocrQ" data-seg><option value="1" data-short="سریع" selected>سریع</option><option value="2" data-short="متعادل">متعادل</option><option value="3" data-short="دقیق" data-desc="دقیق‌تر ولی کندتر.">دقیق (کندتر)</option></select></div>
           <div class="slist">
             <label class="chk"><input type="checkbox" id="ocrGpu" checked><span class="st"><b>شتاب‌دهندهٔ گرافیکی</b><small>زنجیرهٔ WebGPU ← WebGL ← WASM SIMD (چندنخی در صورت crossOriginIsolated)؛ هر مرحله با خروجی آزمایشی اعتبارسنجی می‌شود و در صورت خطا خودکار به مرحلهٔ بعد می‌رود. WebGPU به فایل‌های اختیاری ocr/ort/ort.webgpu.min.js و ort-wasm-simd.jsep.wasm نیاز دارد.</small></span></label>
             <label class="chk"><input type="checkbox" id="ocrDsk" checked><span class="st"><b>صاف‌کردن کجی صفحه</b><small>اسکن کج (تا ±۵ درجه) پیش از OCR مستقیم می‌شود و کنتراست هم اصلاح می‌شود.</small></span></label>
@@ -1289,7 +1290,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             </select>
           </div>
           <p class="hint" id="dictWho"></p>
-          <p class="hint">واژه‌نامهٔ «این فایل» با نام همین PDF ذخیره می‌شود و هر بار که همان فایل را باز کنید خودکار برمی‌گردد. در متن هم می‌توانید کلمه را انتخاب (هایلایت) کنید و «افزودن به واژه‌نامه» را بزنید.</p>
+          <p class="hint">واژه‌نامهٔ «این فایل» با نام همین PDF ذخیره می‌شود و هر بار که همان فایل را باز کنید خودکار برمی‌گردد. در متن هم می‌توانید کلمه را انتخاب (هایلایت) کنید و «افزودن به واژه‌نامه» را بزنید. برای اصلاح غلط‌های OCR در خود متن بنویسید «غلط => درست» (چند شکل: «الف | ب => درست»).</p>
           <textarea id="dict" dir="rtl" placeholder="مثلاً:&#10;خویش = خویش&#10;ChatGPT = چت جی پی تی"></textarea>
           <button class="btn primary wide" id="dictSave" type="button" disabled>ثبت و ذخیرهٔ واژه‌ها</button>
           <div class="two"><button class="btn" id="dictExp" type="button">برون‌بری (.txt)</button><button class="btn" id="dictImp" type="button">درون‌ریزی</button></div>
@@ -1971,7 +1972,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
   function ocrHint(){ var k = ocrTodo().length; return k ? ' — ' + nf.format(k) + ' صفحه متن خراب یا بدون متن دارد و نیاز به OCR دارد (منو ‹ متن)' : ''; }
   function ocrInfo(){
     var k = ocrTodo().length, b = $('#ocrBtn');
-    paddleLocal().then(function(l){ $('#ocrSrc').textContent = (l ? 'موتور و مدل OCR: داخل برنامه (آفلاین)' : 'موتور و مدل OCR: داخل برنامه نیست') + ' — نمایش PDF: ' + (window.pdfLocal ? 'داخل برنامه (آفلاین)' : 'داخل برنامه نیست') + (ocrEp ? ' — شتاب‌دهنده: ' + epLabel(ocrEp) : ''); });
+    paddleLocal().then(function(l){ $('#ocrSrc').textContent = (l ? 'موتور و مدل OCR: داخل برنامه (آفلاین)' : 'موتور و مدل OCR: داخل برنامه نیست') + ' — نمایش PDF: ' + (window.pdfLocal ? 'داخل برنامه (آفلاین)' : 'داخل برنامه نیست') + (ocrEp ? ' — شتاب‌دهنده: ' + epLabel(ocrEp) : '') + ' — واژه‌نامهٔ املا: ' + nf.format(ocrSpell.size()) + ' واژه'; });
     $('#manBtn').disabled = !pdfDoc || !rawItems.length;
     b.disabled = !ocrBusy && !k; b.textContent = ocrBusy ? 'توقف OCR و استفاده از نتیجه' : 'اجرای OCR (از صفحهٔ فعلی)';
     uiOcrNote(k);
@@ -2096,12 +2097,15 @@ var ocrSpell = (function(){
   var D = null, memo = new Map(), CONF = {};
   'بپتثنی|جچحخ|دذ|رزژ|سش|صض|طظ|عغ|فق|کگ|اآ'.split('|').forEach(function(g){ g.split('').forEach(function(c){ CONF[c] = g.replace(c, ''); }); });
 
-  var FA_WORDS = String(window.FA_WORDS || '');   /* از fa_words.js (کنار index.html) بارگذاری می‌شود؛ نبودنش خطایی ایجاد نمی‌کند */
+  var GW = (typeof window !== 'undefined') ? window : self, UW = new Set(), PLW = /^[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC]+$/;
+  function faText(){ var w = GW.FA_WORDS || GW.FA_DICT || GW.fa_words || ''; if (Array.isArray(w)) return w.join(' '); if (w && typeof w === 'object') return Object.keys(w).join(' '); return String(w); }   /* fa_words.js: رشته (فاصله/خط‌جدید/ویرگول)، آرایه یا شیء؛ نبودنش خطا نیست */
+  function addFw(x){ x = normCh(x).replace(/[\u064B-\u0652\u0670]/g, ''); if (!x) return; if (x.indexOf('\u200c') >= 0) { x.split('\u200c').forEach(function(p){ if (p.length >= 3) D.add(p); }); if (x.replace(/\u200c/g, '').length >= 4) D.add(x.replace(/\u200c/g, '')); } else if (x.length >= 2) D.add(x); }
   function build(){
     D = new Set();
     var add = function(w){ if (w) D.add(normCh(w)); };
     BASE.split(' ').forEach(add);
-    if (FA_WORDS) FA_WORDS.split(' ').forEach(function(w){ D.add(w); });
+    var fw = faText(); if (fw) fw.split(/[\s,;|،؛]+/).forEach(function(w){ var c = w.replace(/\u200c/g, ''); if (c && PLW.test(c)) addFw(w); });
+    UW.forEach(function(w){ D.add(w); });
     [CW, EZ_STOP, EZ_STOP2, EZ_V, EZ_VBX, NUMW, NOCOMMA_PREV, P_SPLIT].forEach(function(o){ (o instanceof Set ? Array.from(o) : Object.keys(o)).forEach(add); });
     ON.concat(TN, HN, SC, MON_FA).forEach(add);
     LEX_SRC.split(/\s+/).forEach(function(v){ add(v.replace(/[aeo]/g, '')); });
@@ -2156,7 +2160,7 @@ var ocrSpell = (function(){
   function cand(w){
     if (w.length < 4 || KEEP.has(w) || known(w, 0)) return w;
     if (!SI) idx();
-    var L = w.length, cs = [], seen = {}, i, j, pr, sf, st, ws, k, d, b = null, b1 = 9, b2 = 9, lim = L < 5 ? 0.4 : L < 8 ? 0.8 : 1.3;
+    var L = w.length, cs = [], seen = {}, i, j, pr, sf, st, ws, k, d, b = null, b1 = 9, b2 = 9, lim = L < 5 ? 0.4 : L < 8 ? 1 : 1.3;
     for (i = 0; i < SP.length; i++) {
       pr = SP[i]; if (pr && !(w.startsWith(pr) && L - pr.length >= 3)) continue;
       for (j = 0; j < SS.length; j++) {
@@ -2165,7 +2169,7 @@ var ocrSpell = (function(){
         if (ws) for (k = 0; k < ws.length; k++) { st = pr + ws[k] + sf; if (st !== w && !seen[st]) { seen[st] = 1; cs.push(st); } }
       }
     }
-    if (L >= 8 && !cs.length) {                           /* یک درج/حذف اضافه + هر تعداد خطای نقطه‌ای */
+    if (L >= 6 && !cs.length) {                           /* یک درج/حذف اضافه + هر تعداد خطای نقطه‌ای */
       if (!DI) idx2();
       var q = skel(w), ks = [q], ds;
       for (i = 0; i < q.length; i++) ks.push(q.slice(0, i) + q.slice(i + 1));
@@ -2212,7 +2216,15 @@ var ocrSpell = (function(){
   fix.keep = function(ws){ (ws || []).forEach(function(x){ KEEP.add(x); }); memo.clear(); };   /* واژه‌های محافظت‌شده (اصطلاح/نام خاص) هرگز اصلاح نمی‌شوند */
   fix.has = function(w){ if (!D) build(); return D.has(w); };
   fix.words = function(){ if (!D) build(); return Array.from(D); };   /* برای رمزگشایی راهنمایی‌شده در Worker OCR */
-  fix.known = function(w){ if (!D) build(); return known(w, 0); };   /* دیکشنری + پسوند/پیشوند */
+  fix.known = function(w){ if (!D) build(); return known(w, 0); };
+  fix.size = function(){ if (!D) build(); return D.size; };
+  fix.fwText = function(){ return faText(); };
+  fix.setFW = function(t){ GW.FA_WORDS = String(t || ''); fix.reset(); };
+  fix.user = function(ws){                                       /* واژه‌های واژه‌نامهٔ کاربر ← دانسته و محافظت‌شده */
+    var ch = false;
+    (ws || []).forEach(function(w){ w = normCh(String(w)).replace(/[\u064B-\u0652\u0670]/g, ''); if (w.length >= 2 && PLW.test(w) && !UW.has(w)) { UW.add(w); KEEP.add(w); ch = true; } });
+    if (ch) { D = null; SI = null; DI = null; memo.clear(); }
+  };   /* دیکشنری + پسوند/پیشوند */
   return fix;
 })();
   /* ===== فهرست مطالب: جداکردن عنوان از شمارهٔ صفحه/کد درهم‌رفته (۱۵۲-۴ ← «صفحه‌های ۱۵۲ تا ۱۵۴») و یک مدخل در هر سطر ===== */
@@ -2777,9 +2789,11 @@ var ocrSpell = (function(){
     var azId = 0;
     rawItems = []; rawImg = [];
     H.doc = function(){ rawItems = []; rawImg = []; };
+    H.fw = function(t){ ocrSpell.setFW(t); };
     H.items = function(d){ rawItems[d.p - 1] = d.its; if (d.img) rawImg[d.p] = true; };
     H.process = function(d){
       var i, emp = [], badp = [], n = d.n;
+      if (d.dictP != null) { dictP = d.dictP; dictG = d.dictG || ''; parseDict(); }
       for (i = 0; i < n; i++) if (!rawItems[i]) rawItems[i] = [];
       O = d.O; ocrPages = d.ocr || {};
       var inR = function(p){ return (!O.from || p >= O.from) && (!O.to || p <= O.to); };
@@ -2797,6 +2811,7 @@ var ocrSpell = (function(){
         var s = normL(clean(prep(ocrPages[i + 1] != null ? ocrPurge(tocFx(t)) : tocFx(t)), O.ln));
         if (O.glue) s = glueFix(s);
         if (O.spell && ocrPages[i + 1] != null) s = ocrSpell(s, fq);
+        if (ocrPages[i + 1] != null && ocrFx.length) s = ocrFxApply(s);
         return tidy(s);
       });
       dropped = 0;
@@ -2835,6 +2850,7 @@ var ocrSpell = (function(){
       try {
         var src = (window.Worker && window.MessageChannel) ? txwSrc() : '';
         if (src) txw = wkRpc('var H = {};' + src + '\n' + TXW_OVR + ';(' + txwGlue.toString() + ')();(' + wkBoot.toString() + ')();') || false;
+        if (txw) { try { txw.post('fw', ocrSpell.fwText()); } catch (e) {} }
       } catch (e) { txw = false; }
     }
     return txw && txw.alive() ? txw : null;
@@ -2850,7 +2866,7 @@ var ocrSpell = (function(){
     if (!W) { processSync(keep); return Promise.resolve(); }
     var my = ++procRun, kp = keep && sents[idx] ? sents[idx].page : 0;
     O = optsFix(opts()); if (!live) stopAll(); clearCache(); ocrDirty = false;
-    return W.call('process', { O: O, ocr: ocrPages, n: rawItems.length }).then(function(r){
+    return W.call('process', { O: O, ocr: ocrPages, n: rawItems.length, dictP: dictP, dictG: dictG }).then(function(r){
       if (my !== procRun) return;
       if (playing && !live) stopAll();
       need = r.need;
@@ -2877,6 +2893,7 @@ var ocrSpell = (function(){
       var s = normL(clean(prep(ocrPages[i + 1] != null ? ocrPurge(tocFx(t)) : tocFx(t)), O.ln));
       if (O.glue) s = glueFix(s);
       if (O.spell && ocrPages[i + 1] != null) s = ocrSpell(s, fq);
+        if (ocrPages[i + 1] != null && ocrFx.length) s = ocrFxApply(s);
       return tidy(s);
     });
     build(pg); warmPiper(); analyze(); ocrInfo();
@@ -3096,11 +3113,6 @@ var ocrSpell = (function(){
       };
       var l1 = { i: 0, ow: null, killed: false, rs: 0, pre: null };
       await spawn(l1, false); lanes.push(l1);
-      /* دو مسیر موازی روی گوشی‌های چندهسته‌ای (بدون wasm چندنخی): تقریباً دو برابر سریع‌تر؛ اگر حافظه نرسید فقط یک مسیر می‌ماند */
-      if (!opt.thr && L.length > 3 && (navigator.hardwareConcurrency || 4) >= 6 && (navigator.deviceMemory || 4) >= 4) {
-        var l2 = { i: 1, ow: null, killed: false, rs: 0, pre: null };
-        try { await spawn(l2, false); lanes.push(l2); } catch (e) { try { if (l2.ow) l2.ow.kill(); } catch (x) {} }
-      }
       cv = document.createElement('canvas'); cx = cv.getContext('2d', { willReadFrequently: !useBmp });
       var renderRaw = async function(pn){                          /* بوم واحد و مشترک؛ بیت‌مپ بدون کپی به Worker منتقل می‌شود و getImageData از ترد اصلی خارج است */
         var page = await doc.getPage(pn), v1 = page.getViewport({ scale: 1 }), sc = Math.max(0.75, Math.min(4, tw / v1.width, 4800 / Math.max(v1.width, v1.height))), vp = page.getViewport({ scale: sc }), m, tr;
@@ -3155,7 +3167,16 @@ var ocrSpell = (function(){
           if (!playing && !ocrStop && doc === pdfDoc && (done === 1 || done % 6 === 0)) { process(true); ocrInfo(); }
         }
       };
-      await Promise.all(lanes.map(function(ln){ return runLane(ln).catch(function(e){ if (!ln.killed && !err) err = em(e); ocrStop = true; }); }));
+      /* مسیر اول بی‌درنگ شروع می‌شود؛ مسیرهای بعدی (تا ۴، بسته به هسته/حافظه) هم‌زمان بالا می‌آیند و وارد کار می‌شوند */
+      var hc = navigator.hardwareConcurrency || 4, dm = navigator.deviceMemory || 4, want = (opt.thr || playing) ? 1 : (hc >= 12 && dm >= 6 ? 4 : hc >= 8 && dm >= 4 ? 3 : hc >= 4 && dm >= 3 ? 2 : 1), lp = [], xs = [], li;
+      want = Math.max(1, Math.min(want, Math.ceil(L.length / 2)));
+      var go = function(ln){ if (lanes.indexOf(ln) < 0) lanes.push(ln); lp.push(runLane(ln).catch(function(e){ if (!ln.killed && !err) err = em(e); ocrStop = true; })); };
+      go(l1);
+      for (li = 1; li < want; li++) xs.push((async function(i){
+        var ln = { i: i, ow: null, killed: false, rs: 0, pre: null };
+        try { await spawn(ln, false); if (ocrStop) { try { ln.ow.kill(); } catch (x) {} return; } go(ln); } catch (e) { try { if (ln.ow) ln.ow.kill(); } catch (x) {} }
+      })(li));
+      await Promise.all(xs); await Promise.all(lp);
     } catch (e) { ocrStop = true; err = killed ? '' : em(e); }
     lanes.forEach(dropPre); if (cv) { cv.width = 0; cv = cx = null; }
     await Promise.all(lanes.map(async function(ln){ if (!ln.ow) return; try { await Promise.race([ln.ow.call('term'), new Promise(function(r){ setTimeout(r, 1500); })]); } catch (e) {} try { ln.ow.kill(); } catch (e) {} }));
@@ -4024,17 +4045,38 @@ var ocrSpell = (function(){
   /* قالب هر خط: «کلمه = تلفظ». «الف | ب = تلفظ» چند شکل را یکی می‌کند؛ «/regex/i = جایگزین» (با $1…) برای الگو؛ خط‌های شروع‌شده با # توضیح‌اند.
      کلمهٔ ساده با پسوندهای نیم‌فاصله‌ای (‌ها، ‌های، ‌ی، ‌ام…) هم یافت می‌شود و پسوند حفظ می‌شود. */
   var DICT_SUF = '(?:\\u200c(?:ها|های|هایی|ی|ای|ام|ات|اش|مان|تان|شان))?';
+  var ocrFx = [];
+  function ocrFxAdd(a, b){
+    var rm = /^\/(.+)\/([iu]*)$/.exec(a), to;
+    if (rm) { try { ocrFx.push({ re: new RegExp(rm[1], 'g' + (rm[2].indexOf('i') >= 0 ? 'i' : '') + 'u'), to: b, rx: 1 }); } catch (e) {} return; }
+    to = b.replace(/\$/g, '$$$$');
+    a.split(/\s*\|\s*/).forEach(function(x){
+      x = normCh(x.trim()); if (!x) return;
+      try { ocrFx.push({ re: new RegExp('(?<![\\p{L}\\p{N}\\u200c])' + x.replace(/[\\^$.*+?()[\]{}|\/]/g, '\\$&').replace(/ +/g, '[ \\u200c]') + '(?=' + DICT_SUF + '(?![\\p{L}\\p{N}\\u200c]))', 'gu'), to: to }); } catch (e) {}
+    });
+  }
+  function ocrFxApply(t){ for (var k = 0; k < ocrFx.length; k++) t = t.replace(ocrFx[k].re, ocrFx[k].to); return t; }
   function parseDict(){
-    userDict = [];
+    parseDict0();
+    try {
+      var ws = [], PW = /[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC\u064B-\u0652]{2,}/g, ad = function(t){ (String(t).match(PW) || []).forEach(function(w){ ws.push(w); }); };
+      userDict.forEach(function(d){ if (d.src) ad(d.src); if (!d.rx) ad(d.to); });
+      ocrFx.forEach(function(d){ ad(d.to); });
+      ocrSpell.user(ws);
+    } catch (e) {}
+  }
+  function parseDict0(){
+    userDict = []; ocrFx = [];
     /* واژه‌نامهٔ همین فایل اول می‌آید تا بر واژه‌نامهٔ همهٔ فایل‌ها اولویت داشته باشد */
     (dictP + '\n' + dictG).split('\n').forEach(function(l){
       l = l.replace(/^\s+/, ''); if (!l || l.charAt(0) === '#') return;
+      var ar = l.indexOf('=>'); if (ar > 0) { ocrFxAdd(l.slice(0, ar).trim(), l.slice(ar + 2).trim()); return; }
       var p = l.indexOf('='); if (p < 1) return;
       var lhs = l.slice(0, p).trim(), b = l.slice(p + 1).trim(), rm = /^\/(.+)\/([iu]*)$/.exec(lhs);
       if (rm) { try { userDict.push({ re: new RegExp(rm[1], 'g' + (rm[2].indexOf('i') >= 0 ? 'i' : '') + 'u'), to: b, rx: 1 }); } catch (e) {} return; }
       lhs.split(/\s*\|\s*/).forEach(function(a){
         a = normCh(a.trim()); if (!a) return;
-        try { userDict.push({ re: new RegExp('(?<![\\p{L}\\p{N}\\u200c])' + a.replace(/[\\^$.*+?()[\]{}|\/]/g, '\\$&') + '(?=' + DICT_SUF + '(?![\\p{L}\\p{N}\\u200c]))', /^[\x20-\x7e]+$/.test(a) ? 'giu' : 'gu'), to: b }); } catch (e) {}
+        try { userDict.push({ re: new RegExp('(?<![\\p{L}\\p{N}\\u200c])' + a.replace(/[\\^$.*+?()[\]{}|\/]/g, '\\$&') + '(?=' + DICT_SUF + '(?![\\p{L}\\p{N}\\u200c]))', /^[\x20-\x7e]+$/.test(a) ? 'giu' : 'gu'), to: b, src: a }); } catch (e) {}
       });
     });
   }
@@ -5805,6 +5847,7 @@ var ocrSpell = (function(){
       $('#pos').textContent = '—';
       $('#pageInfo').textContent = '';
       $('#seek').max = 0; $('#seek').value = 0; fillRng($('#seek'));
+      if (pvOn() && pdfDoc && !sents.length && !pvPage) pvShow(1, false);
     }
   }
   function follow(el){
@@ -5822,7 +5865,7 @@ var ocrSpell = (function(){
     document.body.classList.toggle('no-sents', !sents.length);
     if (b) { b.classList.toggle('on', pvOn()); b.setAttribute('aria-pressed', pvOn() ? 'true' : 'false'); b.setAttribute('aria-label', pvOn() ? 'نمایش متن' : 'نمایش صفحهٔ PDF'); }
   }
-  function pvReset(){ pvPage = 0; pvTok++; pvStr = {}; pvHit = {}; pvDone = {}; pvRC = {}; pvVp = null; var h = $('#pvh'); if (h) h.textContent = ''; }
+  function pvReset(){ pvClear(); pvPage = 0; pvTok++; pvStr = {}; pvHit = {}; pvDone = {}; pvRC = {}; pvVp = null; var h = $('#pvh'); if (h) h.textContent = ''; }
   function pvNorm(s){
     s = String(s || '');
     try { s = s.normalize('NFKC'); } catch (e) {}
@@ -5962,32 +6005,79 @@ var ocrSpell = (function(){
     }
     if (scroll && first) follow(first);
   }
-  async function pvShow(p, scroll){
-    var tok = ++pvTok, doc = pdfDoc, wrap = $('#pv'), page, v1, cw, sc, dpr, vp, nc, old;
+  var pvCv = {}, pvUserT = 0, pvSw = 0, pvScQ = 0;
+  function pvKey(){ return Math.round(Math.max(200, $('#pv').clientWidth) * PVZ[pvZi]); }
+  function pvDrop(q){ var e = pvCv[q]; if (!e) return; delete pvCv[q]; try { if (e.rt) e.rt.cancel(); } catch (x) {} if (e.res) { try { e.res.c.width = 0; } catch (x) {} } }
+  function pvClear(){ if (!pvCv) return; Object.keys(pvCv).forEach(pvDrop); var U = $('#pvU'), D = $('#pvD'); if (U) U.textContent = ''; if (D) D.textContent = ''; }
+  function pvRender(p){                                            /* رندر صفحه در بومِ کش‌شده؛ همسایه‌ها هم با همین کش آماده می‌شوند */
+    var k = pvKey(), e = pvCv[p], doc = pdfDoc, ent;
+    if (e && e.k === k && e.doc === doc) return e.pr;
+    pvDrop(p);
+    ent = pvCv[p] = { k: k, doc: doc, rt: null, res: null, pr: null };
+    ent.pr = (async function(){
+      var page = await doc.getPage(p), v1 = page.getViewport({ scale: 1 }), sc = k / v1.width, dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2, 4096 / k)), vp = page.getViewport({ scale: sc * dpr }), c = document.createElement('canvas');
+      c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+      c.style.width = Math.round(vp.width / dpr) + 'px'; c.style.height = Math.round(vp.height / dpr) + 'px';
+      ent.rt = page.render({ canvasContext: c.getContext('2d'), viewport: vp, background: '#fff' });
+      await ent.rt.promise;
+      ent.res = { c: c, vp: page.getViewport({ scale: sc }) };
+      return ent.res;
+    })();
+    ent.pr.catch(function(){ if (pvCv[p] === ent) delete pvCv[p]; });
+    return ent.pr;
+  }
+  function pvKeep(fn){ var m = $('#pvp'), st = $('#stage'), b = m.getBoundingClientRect().top, d; fn(); d = m.getBoundingClientRect().top - b; if (d) st.scrollTop += d; }
+  function pvPut(w, c){ c.id = ''; w.style.width = ''; w.style.height = ''; w.appendChild(c); }
+  function pvFill(p){                                              /* صفحهٔ قبل (۱) و بعدها (۱ تا ۲) زیر/بالای صفحهٔ اصلی چیده می‌شوند */
+    var doc = pdfDoc, n = doc ? doc.numPages : 0, U = $('#pvU'), D = $('#pvD'), mc = $('#pvc'), mw = mc.style.width || '60%', mh = mc.style.height || '300px', tok = pvTok, ah = PVZ[pvZi] >= 2 ? 1 : 2, key = pvKey(), pend = [], order = [], j;
+    Object.keys(pvCv).forEach(function(k){ if (+k < p - 1 || +k > p + ah) pvDrop(k); });
+    U.textContent = ''; D.textContent = '';
+    order.push(p + 1); order.push(p - 1); if (ah > 1) order.push(p + 2);
+    order.forEach(function(q){
+      if (q < 1 || q > n) return;
+      var w = document.createElement('div'), e = pvCv[q]; w.className = 'pvn'; w.dataset.q = q; w.style.width = mw; w.style.height = mh;
+      (q < p ? U : D).appendChild(w);
+      if (e && e.res && e.k === key && e.doc === doc) pvPut(w, e.res.c); else pend.push([q, w]);
+    });
+    (async function(){
+      for (j = 0; j < pend.length; j++) {
+        if (tok !== pvTok || doc !== pdfDoc) return;
+        try { var r = await pvRender(pend[j][0]); if (tok !== pvTok || doc !== pdfDoc) return; (function(w, c){ pvKeep(function(){ pvPut(w, c); }); })(pend[j][1], r.c); } catch (e) {}
+      }
+    })();
+  }
+  async function pvShow(p, scroll, keep){
+    var tok = ++pvTok, doc = pdfDoc, wrap = $('#pv'), st = $('#stage'), r, old, nc, at = null, bf = 0;
     pvPage = p; pvVp = null; pvRC = {}; $('#pvh').textContent = ''; $('#pvn').hidden = true;
     Object.keys(pvStr).forEach(function(k){ if (Math.abs(+k - p) > 2) delete pvStr[k]; });
     try {
-      page = await doc.getPage(p);
+      r = await pvRender(p);
       if (tok !== pvTok || doc !== pdfDoc) return;
-      cw = Math.max(200, wrap.clientWidth) * PVZ[pvZi]; v1 = page.getViewport({ scale: 1 });
-      sc = cw / v1.width; dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2, 4096 / cw));
-      vp = page.getViewport({ scale: sc * dpr });
-      nc = document.createElement('canvas'); nc.width = Math.floor(vp.width); nc.height = Math.floor(vp.height);
-      nc.style.width = Math.round(vp.width / dpr) + 'px'; nc.style.height = Math.round(vp.height / dpr) + 'px';
-      if (pvRT) { try { pvRT.cancel(); } catch (e) {} }
-      pvRT = page.render({ canvasContext: nc.getContext('2d'), viewport: vp, background: '#fff' });
-      await pvRT.promise;
-      if (tok !== pvTok) { nc.width = 0; return; }
-      old = $('#pvc'); nc.id = 'pvc'; old.parentNode.replaceChild(nc, old); old.width = 0;
-      pvVp = page.getViewport({ scale: sc }); pvW = wrap.clientWidth;
-      $('#stage').scrollTop = 0; $('#pv').scrollLeft = 0;
-      pvHL(true);
+      nc = r.c; old = $('#pvc');
+      if (keep && nc.isConnected) { at = nc; bf = nc.getBoundingClientRect().top; }
+      if (old !== nc) { old.id = ''; nc.id = 'pvc'; old.parentNode.replaceChild(nc, old); }
+      pvVp = r.vp; pvW = wrap.clientWidth;
+      pvFill(p);
+      if (at) st.scrollTop += at.getBoundingClientRect().top - bf;
+      else { st.scrollTop += $('#pvp').getBoundingClientRect().top - st.getBoundingClientRect().top - 28; wrap.scrollLeft = 0; }
+      if (keep) $('#pageInfo').textContent = nf.format(p) + ' / ' + nf.format(doc.numPages);
+      pvHL(!keep);
     } catch (e) { if (tok === pvTok) status('نمایش صفحه ممکن نشد؛ نمای متن را باز کنید.'); }
+  }
+  function pvScan(){                                               /* اسکرول پیوسته: وقتی میانهٔ صفحه به صفحهٔ دیگری رسید، همان صفحه «صفحهٔ جاری» می‌شود (بی‌پرش) */
+    if (!pvOn() || !pvPage || pvSw || !pdfDoc) return;
+    var sr = $('#stage').getBoundingClientRect(), mid = sr.top + sr.height * 0.4, els = $('#pv').querySelectorAll('.pvn, #pvp'), i, r, q = 0, e;
+    for (i = 0; i < els.length; i++) { r = els[i].getBoundingClientRect(); if (mid >= r.top - 7 && mid <= r.bottom + 7) { q = els[i].id === 'pvp' ? pvPage : +els[i].dataset.q; break; } }
+    if (!q || q === pvPage) return;
+    e = pvCv[q]; if (!e || !e.res) return;
+    pvSw = 1; pvShow(q, false, true).then(function(){ pvSw = 0; }, function(){ pvSw = 0; });
   }
   function pvMark(scroll){
     if (!pvOn() || !pdfDoc || !sents[idx]) return;
     var p = sents[idx].page;
-    if (p === pvPage && pvVp) pvHL(scroll); else pvShow(p, scroll);
+    if (p === pvPage && pvVp) pvHL(scroll);
+    else if (pvPage && playing && Date.now() - pvUserT < 6000) return;      /* کاربر دارد اسکرول می‌کند؛ نمای او را به صفحهٔ خوانش برنمی‌گردانیم */
+    else pvShow(p, scroll);
   }
   function pvRedo(){ if (!pvOn() || !pdfDoc || !sents.length) return; pvPage = 0; pvVp = null; pvMark(true); }
   function pvZoom(d){
@@ -6009,6 +6099,8 @@ var ocrSpell = (function(){
       for (j = 0; j < rs.length; j++) if (pvIn(rs[j], x, y)) { seekTo(ids[k]); return; }
     }
   };
+  $('#stage').addEventListener('scroll', function(){ if (pvScQ || !pvOn()) return; pvScQ = requestAnimationFrame(function(){ pvScQ = 0; pvScan(); }); }, { passive: true });
+  ['touchstart', 'wheel', 'pointerdown'].forEach(function(t){ $('#stage').addEventListener(t, function(){ pvUserT = Date.now(); }, { passive: true }); });
   window.addEventListener('resize', function(){ clearTimeout(pvRz); pvRz = setTimeout(function(){ if (pvOn() && pvPage && Math.abs($('#pv').clientWidth - pvW) > 8) pvRedo(); }, 280); });
   pvApply();
   var kaOn = null, kaBad = false;
@@ -6390,7 +6482,7 @@ var ocrSpell = (function(){
   /* ---------- events ---------- */
   $('#play').onclick = function(){ playing ? pause() : start(); };
   function seekTo(i){
-    var was = playing; idx = Math.max(0, Math.min(sents.length - 1, i)); mark(true);
+    pvUserT = 0; var was = playing; idx = Math.max(0, Math.min(sents.length - 1, i)); mark(true);
     if (was) { clearTimeout(seekT); token++; cancelAll(); seekT = setTimeout(function(){ if (playing) start(); }, 300); }
   }
   var fs = Math.max(0.9, Math.min(2.2, +sget('fs', '1.15') || 1.15));
@@ -6517,7 +6609,7 @@ var ocrSpell = (function(){
     c.onclick = function(){ slSet(m); }; $('#slChips').appendChild(c);
   });
   slLabel();
-  $('#locBtn').onclick = function(){ if (curEl) curEl.scrollIntoView({ block: 'center', behavior: fxCalm() ? 'auto' : 'smooth' }); };
+  $('#locBtn').onclick = function(){ if (pvOn()) { pvUserT = 0; pvPage = 0; pvVp = null; pvMark(true); return; } if (curEl) curEl.scrollIntoView({ block: 'center', behavior: fxCalm() ? 'auto' : 'smooth' }); };
   $('#prev').onclick = function(){ seekTo(idx - 1); };
   $('#next').onclick = function(){ seekTo(idx + 1); };
   $('#stop').onclick = stopAll;
@@ -6733,7 +6825,7 @@ var ocrSpell = (function(){
   $('#oPos').addEventListener('change', syncCols); syncCols();
   $('#maxL').oninput = function(){ $('#maxV').textContent = nf.format(+this.value); fillRng(this); };
   $('#maxL').oninput(); O = opts();
-  if (sget('ocrQV', '') !== '3') { sset('o_ocrQ', '2'); $('#ocrQ').value = '2'; sset('ocrQV', '3'); }   /* OCR خودکار با کیفیت «متعادل» (یک‌بار) */
+  if (sget('ocrQV', '') !== '4') { sset('o_ocrQ', '1'); $('#ocrQ').value = '1'; sset('ocrQV', '4'); }   /* OCR خودکار با کیفیت «متعادل» (یک‌بار) */
   $('#ocrBtn').onclick = runOcr;
   ['ocrGpu', 'ocrDsk', 'ocrDn', 'ocrLex'].forEach(function(id){ var e = $('#' + id), v = sget('o_' + id, null); if (v !== null) e.checked = v === '1'; e.onchange = function(){ sset('o_' + id, e.checked ? '1' : '0'); }; });
 
