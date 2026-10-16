@@ -1242,6 +1242,29 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           <button class="btn primary wide" id="ocrBtn" type="button" disabled>اجرای OCR (از صفحهٔ فعلی)</button>
           <p class="hint" id="ocrStat" aria-live="polite"></p>
           <p class="hint" id="ocrSrc"></p>
+          <details class="sub hintbox" id="ocrEvalBox">
+            <summary>سنجش دقت OCR و اندازه‌گیری خطا</summary>
+            <div class="in">
+              <p class="hint">متن OCR را با متن صحیح همان صفحه مقایسه کن. محاسبه روی متن نرمال‌شده انجام می‌شود؛ ی/ي و ک/ك یکسان می‌شوند، اعراب حذف و فاصله‌ها یکدست می‌شوند. متن‌ها فقط در همین صفحه استفاده می‌شوند و جایی ارسال نمی‌شوند.</p>
+              <button class="btn wide" id="ocrEvalFill" type="button" disabled>گرفتن متن OCR از صفحهٔ فعلی</button>
+              <div class="field"><label for="ocrEvalActual">متن OCR (خروجی برنامه)</label><textarea id="ocrEvalActual" dir="rtl" rows="5" spellcheck="false" placeholder="متن استخراج‌شده از PDF یا نتیجهٔ OCR را اینجا قرار بده"></textarea></div>
+              <div class="field"><label for="ocrEvalRef">متن مرجع (متن صحیح و بازبینی‌شده)</label><textarea id="ocrEvalRef" dir="rtl" rows="5" spellcheck="false" placeholder="متن صحیح همان بخش را اینجا قرار بده"></textarea></div>
+              <div class="two"><button class="btn primary" id="ocrEvalRun" type="button">محاسبهٔ خطا</button><button class="btn" id="ocrEvalClear" type="button">پاک‌کردن</button></div>
+              <div id="ocrEvalResult" class="hint" aria-live="polite"></div>
+              <hr style="border:0;border-top:1px solid var(--line, #d8deea);margin:14px 0">
+              <h3 style="margin:8px 0">یافتن بخش‌های مشکوک</h3>
+              <p class="hint">این بررسی، خطا را قطعی تشخیص نمی‌دهد؛ نشانه‌های متنی را با امتیاز مدل OCR برای هر سطر ترکیب می‌کند. امتیاز مدل احتمال قطعی درست‌بودن نیست و فقط برای اولویت‌بندی بازبینی به کار می‌رود.</p>
+              <div class="two"><div class="field"><label for="ocrRiskLevel">حساسیت تشخیص</label><select id="ocrRiskLevel"><option value="low">کم، موارد واضح</option><option value="mid" selected>متوسط</option><option value="high">زیاد، موارد بیشتری</option></select></div><div class="field"><label for="ocrEvalPage">شماره صفحه (اختیاری)</label><input id="ocrEvalPage" type="number" min="1" inputmode="numeric" placeholder="صفحهٔ فعلی"></div></div>
+              <div class="two"><button class="btn" id="ocrSuspectRun" type="button">تحلیل متن OCR</button><button class="btn" id="ocrEvalSave" type="button">ذخیره در سابقهٔ آزمون</button></div>
+              <div id="ocrSuspectResult" class="hint" aria-live="polite"></div>
+              <div id="ocrSuspectList" style="display:grid;gap:6px;margin-top:8px"></div>
+              <div class="field"><label for="ocrEvalSecond">خروجی بازخوانی دوم (اختیاری)</label><textarea id="ocrEvalSecond" dir="rtl" rows="4" spellcheck="false" placeholder="پس از اسکن مجدد صفحه یا ناحیه، نتیجهٔ دوم را اینجا قرار بده"></textarea></div>
+              <div class="two"><button class="btn" id="ocrEvalCompare" type="button">مقایسهٔ دو خروجی OCR</button><button class="btn" id="ocrEvalRescan" type="button">بازخوانی هدفمند صفحه/ناحیه</button></div>
+              <div id="ocrEvalCompareResult" class="hint" aria-live="polite"></div>
+              <div class="two"><button class="btn" id="ocrEvalExport" type="button">خروجی سابقهٔ آزمون (JSON)</button><button class="btn" id="ocrEvalHistoryClear" type="button">پاک‌کردن سابقه</button></div>
+              <div id="ocrEvalHistory" class="hint" aria-live="polite"></div>
+            </div>
+          </details>
           <button class="btn wide" id="manBtn" type="button" disabled>اسکن و اصلاح دستی صفحه…</button>
           <p class="hint">اسکن دوبارهٔ یک صفحه یا فقط یک ناحیه، با تنظیمات دلخواه، و اصلاح دستی متن؛ نتیجه برای همین فایل ذخیره می‌شود.</p>
           <details class="sub hintbox"><summary>راهنما</summary><div class="in"><p class="hint">با وجود پوشه‌های ocr و lib کنار برنامه (ساختهٔ fetch-offline.sh)، OCR و نمایش PDF کاملاً آفلاین کار می‌کنند. نتیجهٔ OCR روی دستگاه ذخیره می‌شود. فایل‌های لازم OCR: ocr/ort/ort.min.js و ocr/ort/ort-wasm-simd.wasm (onnxruntime-web 1.17.3) و ocr/paddle/PP-OCRv5_mobile_det.onnx و arabic_PP-OCRv5_mobile_rec.onnx و arabic_PP-OCRv5_mobile_rec_dict.txt. برای شتاب WebGPU (اختیاری) این دو فایل را هم در ocr/ort بگذارید: ort.webgpu.min.js و ort-wasm-simd.jsep.wasm (همان نسخهٔ ۱٫۱۷٫۳).</p></div></details>
@@ -1970,6 +1993,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
   function ocrTodo(){ return need.filter(function(p){ return ocrPages[p] == null; }); }
   function ocrHint(){ var k = ocrTodo().length; return k ? ' — ' + nf.format(k) + ' صفحه متن خراب یا بدون متن دارد و نیاز به OCR دارد (منو ‹ متن)' : ''; }
   function ocrInfo(){
+    if (window.__ocrEvalSync) window.__ocrEvalSync();
     var k = ocrTodo().length, b = $('#ocrBtn');
     paddleLocal().then(function(l){ $('#ocrSrc').textContent = (l ? 'موتور و مدل OCR: داخل برنامه (آفلاین)' : 'موتور و مدل OCR: داخل برنامه نیست') + ' — نمایش PDF: ' + (window.pdfLocal ? 'داخل برنامه (آفلاین)' : 'داخل برنامه نیست') + (ocrEp ? ' — شتاب‌دهنده: ' + epLabel(ocrEp) : '') + ' — واژه‌نامهٔ املا: ' + nf.format(ocrSpell.size()) + ' واژه'; });
     $('#manBtn').disabled = !pdfDoc || !rawItems.length;
@@ -2758,7 +2782,7 @@ var ocrSpell = (function(){
         var ar = 0, la = 0;                                          /* خوشه‌بندی، ترتیب خوانش RTL و پاک‌سازی نویسه‌ها هم داخل Worker؛ فقط متن نهایی به ترد اصلی برمی‌گردد */
         r.lines.forEach(function(l){ ar += (l.text.match(/[\u0600-\u06FF]/g) || []).length; la += (l.text.match(/[A-Za-z]/g) || []).length; });
         var G = [], pt = ocrText(r, ar >= la ? 'rtl' : 'ltr', G) || '';
-        return { page: pt, n: r.lines.length, ep: epId(), ang: pg.ang, geo: { w: pg.w, h: pg.h, a: +(pg.ang * Math.PI / 180).toFixed(5), L: G.map(function(q){ return [q[0], Math.round(q[1]), Math.round(q[2]), Math.round(q[3]), Math.round(q[4])]; }) } };
+        return { page: pt, n: r.lines.length, ep: epId(), ang: pg.ang, geo: { w: pg.w, h: pg.h, a: +(pg.ang * Math.PI / 180).toFixed(5), L: G.map(function(q){ return [q[0], Math.round(q[1]), Math.round(q[2]), Math.round(q[3]), Math.round(q[4]), Math.round(q[5] || 0)]; }) } };
       })();
     };
     var t0 = H.term;
@@ -3087,7 +3111,7 @@ var ocrSpell = (function(){
       if (l.bbox) py = l.bbox.y1;
       if (!/[\p{L}\p{N}]/u.test(t) || c < 25 || (c < 50 && nl < 4) || mg) return;
       if (pend && out.length) out.push('');
-      pend = false; out.push(t); if (G && bb) G.push([t, bb.x0, bb.y0, bb.x1, bb.y1]);
+      pend = false; out.push(t); if (G && bb) G.push([t, bb.x0, bb.y0, bb.x1, bb.y1, c]);
     });
     return out.length ? out.join('\n') : (d.text || '');
   }
@@ -7457,6 +7481,138 @@ var ocrSpell = (function(){
   })();
   VS.sync(); setTimeout(VS.sync, 900); setTimeout(VS.sync, 3000);
   hRender(); hScanRun();
+
+  /* ---------- OCR quality lab: local metrics, suspicious-token heuristics, and benchmark history ---------- */
+  (function initOcrEval(){
+    var actual = $('#ocrEvalActual'), reference = $('#ocrEvalRef'), result = $('#ocrEvalResult'), fill = $('#ocrEvalFill');
+    if (!actual || !reference || !result || !fill) return;
+    var HISTORY_KEY = 'ocr_eval_history_v2', lastMetrics = null, lastSuspects = [];
+    function normalizeEval(t){
+      return String(t || '').normalize('NFKC').replace(/[يى]/g, 'ی').replace(/ك/g, 'ک')
+        .replace(/[٠-٩]/g, function(d){ return String(d.charCodeAt(0)-0x0660); })
+        .replace(/[۰-۹]/g, function(d){ return String(d.charCodeAt(0)-0x06F0); })
+        .replace(/[ً-ٰٟـ]/g, '').replace(/[‎‏‪-‮⁦-⁩]/g, '').replace(/\u00a0/g, ' ')
+        .replace(/[\u200c\u200d]/g, '‌').replace(/[ \t\r\n]+/g, ' ').trim();
+    }
+    function distance(a, b){
+      var start = 0, ae = a.length, be = b.length, prev, cur, i, j, cost, tmp;
+      while (start < ae && start < be && a[start] === b[start]) start++;
+      while (ae > start && be > start && a[ae-1] === b[be-1]) { ae--; be--; }
+      a = a.slice(start, ae); b = b.slice(start, be);
+      if (!a.length) return b.length; if (!b.length) return a.length;
+      if (a.length < b.length) { tmp = a; a = b; b = tmp; }
+      if (a.length * b.length > 20000000) throw new Error('بخش مقایسه بیش از حد بزرگ است');
+      prev = new Uint32Array(b.length + 1); cur = new Uint32Array(b.length + 1);
+      for (j = 0; j <= b.length; j++) prev[j] = j;
+      for (i = 1; i <= a.length; i++) { cur[0] = i; for (j = 1; j <= b.length; j++) { cost = a[i - 1] === b[j - 1] ? 0 : 1; cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost); } tmp = prev; prev = cur; cur = tmp; }
+      return prev[b.length];
+    }
+    function pct(n, d){ return d ? (100 * n / d).toLocaleString('fa-IR', { maximumFractionDigits: 2, minimumFractionDigits: 2 }) + '٪' : (n ? 'نامحدود' : '۰٪'); }
+    function histRead(){ try { var h = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); return Array.isArray(h) ? h : []; } catch(e){ return []; } }
+    function histWrite(h){ try { localStorage.setItem(HISTORY_KEY, JSON.stringify(h.slice(-100))); return true; } catch(e){ return false; } }
+    function pageNo(){ var n = parseInt($('#ocrEvalPage').value,10); if (n > 0) return n; return sents[idx] ? sents[idx].page : null; }
+    function renderHistory(){
+      var h = histRead(), el = $('#ocrEvalHistory'); if (!el) return;
+      if (!h.length) { el.textContent = 'هنوز آزمونی ذخیره نشده است.'; return; }
+      var ce = h.reduce(function(a,x){return a+(Number(x.charErrors)||0);},0), rc = h.reduce(function(a,x){return a+(Number(x.refChars)||0);},0), we = h.reduce(function(a,x){return a+(Number(x.wordErrors)||0);},0), rw = h.reduce(function(a,x){return a+(Number(x.refWords)||0);},0);
+      el.textContent = 'سابقهٔ محلی: ' + h.length.toLocaleString('fa-IR') + ' آزمون؛ CER تجمیعیِ وزن‌دار: ' + pct(rc?ce/rc:0,1) + '؛ WER تجمیعیِ وزن‌دار: ' + pct(rw?we/rw:0,1) + '. حداکثر ۱۰۰ آزمون نگه داشته می‌شود.';
+    }
+    function metrics(){
+      var a = normalizeEval(actual.value), r = normalizeEval(reference.value);
+      if (!a || !r) { result.textContent = 'برای محاسبه، هر دو متن OCR و متن مرجع را وارد کن.'; lastMetrics = null; return null; }
+      if (a.length > 12000 || r.length > 12000) { result.textContent = 'برای جلوگیری از کندشدن مرورگر، هر بار حداکثر ۱۲٬۰۰۰ نویسه را مقایسه کن.'; lastMetrics = null; return null; }
+      var ca = Array.from(a), cr = Array.from(r), wa = a.split(/\s+/).filter(Boolean), wr = r.split(/\s+/).filter(Boolean);
+      var cd, wd;
+      try { cd = distance(ca, cr); wd = distance(wa, wr); } catch (e) { result.textContent = 'مقایسه برای این حجم متن سنگین است؛ هر دو متن را به بخش‌های کوچک‌تر (حدود ۳ تا ۴ هزار نویسه) تقسیم کن.'; lastMetrics = null; return null; }
+      var cer = cr.length ? cd/cr.length : (cd ? 1 : 0), wer = wr.length ? wd/wr.length : (wd ? 1 : 0);
+      lastMetrics = {cer:cer,wer:wer,charErrors:cd,wordErrors:wd,refChars:cr.length,refWords:wr.length,actualChars:ca.length,actualWords:wa.length};
+      result.textContent = ((cd === 0 && wd === 0) ? 'متن‌ها پس از نرمال‌سازی یکسان‌اند. ' : 'اختلاف پیدا شد. ') +
+        'CER: ' + pct(cer,1) + '؛ WER: ' + pct(wer,1) + '؛ فاصلهٔ ویرایشی: ' + cd.toLocaleString('fa-IR') + ' نویسه و ' + wd.toLocaleString('fa-IR') + ' کلمه. ' +
+        'این نتیجه فقط برای متن مرجع واردشده معتبر است؛ نرمال‌سازی ی/ي، ک/ك، اعراب و فاصله‌ها را یکسان می‌کند.';
+      return lastMetrics;
+    }
+    function run(){ metrics(); }
+    function analyze(){
+      var t = normalizeEval(actual.value), out = $('#ocrSuspectList'), note = $('#ocrSuspectResult'), level = ($('#ocrRiskLevel')||{}).value || 'mid';
+      out.innerHTML = ''; lastSuspects = [];
+      if (!t) { note.textContent = 'ابتدا متن OCR را وارد کن.'; return; }
+      var tokens = t.split(/\s+/), persian = /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/, latin = /[A-Za-z]/, digit = /[0-9۰-۹٠-٩]/;
+      var commonOne = new Set(['و','به','از','در','با','تا','که','را','می','بر','نه','هم','یا','آ','ا','ی','ک']);
+      var seen = Object.create(null), i, w, clean, reasons, score, min = level === 'high' ? 1 : level === 'low' ? 3 : 2;
+      for (i=0;i<tokens.length;i++){
+        w=tokens[i]; clean=w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,''); if(!clean) continue;
+        reasons=[]; score=0;
+        if (persian.test(clean) && latin.test(clean)) { reasons.push('ترکیب فارسی و لاتین در یک واژه'); score+=3; }
+        if (/([\p{L}\p{N}])\1{2,}/u.test(clean)) { reasons.push('تکرار غیرعادی نویسه'); score+=3; }
+        if (clean.length >= (level==='high'?16:level==='low'?24:20)) { reasons.push('واژهٔ بسیار بلند'); score+=2; }
+        if (/[^\p{L}\p{N}‌'’.-]/u.test(clean)) { reasons.push('نویسهٔ نامعمول داخل واژه'); score+=2; }
+        if (Array.from(clean).length===1 && persian.test(clean) && !commonOne.has(clean)) { reasons.push('حرف تک‌افتاده؛ احتمال شکستگی واژه'); score+=2; }
+        if (/^[A-Za-z]{1,2}$/.test(clean) && i>0 && i<tokens.length-1 && persian.test(tokens[i-1]+tokens[i+1])) { reasons.push('تکهٔ لاتین کوتاه میان متن فارسی'); score+=2; }
+        if (score>=min) {
+          var key=clean+'|'+reasons.join('،'); if(!seen[key]) { seen[key]=1; lastSuspects.push({word:w,clean:clean,reasons:reasons,score:score,index:t.indexOf(w)}); }
+        }
+      }
+      /* امتیاز مدل از اجرای OCR جدید در مختصات ذخیره می‌شود؛ داده‌های قدیمی ممکن است آن را نداشته باشند. */
+      var pnConf = pageNo(), geoConf = pnConf && ocrGeo[pnConf], linesConf = geoConf && Array.isArray(geoConf.L) ? geoConf.L : [], lowCount = 0, medCount = 0;
+      if (pnConf && ocrPages[pnConf] != null && normalizeEval(actual.value) === normalizeEval(ocrPages[pnConf])) {
+        linesConf.forEach(function(line){
+          if (!Array.isArray(line) || line.length < 6 || !line[0]) return;
+          var conf = Number(line[5]), txt = String(line[0]).trim();
+          if (!isFinite(conf) || conf <= 0 || !txt) return;
+          if (conf < 55) { lowCount++; lastSuspects.push({word:txt,clean:txt,reasons:['امتیاز مدل پایین: '+Math.round(conf)+'٪'],score:5,index:actual.value.indexOf(txt),confidence:conf}); }
+          else if (conf < 72 && level !== 'low') { medCount++; lastSuspects.push({word:txt,clean:txt,reasons:['امتیاز مدل متوسط: '+Math.round(conf)+'٪'],score:3,index:actual.value.indexOf(txt),confidence:conf}); }
+        });
+      }
+      if (level !== 'low') {
+        for (i=0;i<tokens.length-1;i++) {
+          var a=tokens[i], b=tokens[i+1];
+          if (/^[\u0600-\u06FF]$/.test(a) && /^[\u0600-\u06FF]{2,}$/.test(b) && !commonOne.has(a)) lastSuspects.push({word:a+' '+b,clean:a+' '+b,reasons:['احتمال جداافتادن حرف از واژه'],score:2,index:t.indexOf(a+' '+b)});
+        }
+      }
+      lastSuspects.sort(function(a,b){return b.score-a.score;}); lastSuspects=lastSuspects.slice(0,80);
+      note.textContent = lastSuspects.length ? 'برای بازبینی ' + lastSuspects.length.toLocaleString('fa-IR') + ' مورد مشکوک پیدا شد. این‌ها هشدارند، نه حکم قطعی؛ روی هر مورد بزن تا در متن انتخاب شود.' : 'با قواعد فعلی مورد مشکوکی پیدا نشد. این به معنی بی‌خطا بودن متن نیست.';
+      lastSuspects.forEach(function(x){ var b=document.createElement('button'); b.type='button'; b.className='btn'; b.style.textAlign='right'; b.style.whiteSpace='normal'; b.textContent=x.word+'  |  '+x.reasons.join('،'); b.onclick=function(){ var raw=actual.value, pos=raw.indexOf(x.word); if(pos<0 && Number.isFinite(x.index) && x.index>=0) pos=x.index; if(pos>=0){actual.focus();actual.setSelectionRange(pos,Math.min(raw.length,pos+x.word.length));} }; out.appendChild(b); });
+      if (pnConf && ocrPages[pnConf] != null && linesConf.length && !lowCount && !medCount) note.textContent += ' امتیاز پایین/متوسطی در مختصات ذخیره‌شده پیدا نشد یا دادهٔ امتیاز برای این صفحه در دسترس نیست.';
+      else if (lowCount || medCount) note.textContent += ' سطرهای کم‌امتیاز مدل: '+lowCount.toLocaleString('fa-IR')+'؛ امتیاز متوسط: '+medCount.toLocaleString('fa-IR')+'. این امتیازها احتمال کالیبره‌شده نیستند.';
+    }
+    function saveSample(){
+      var m=lastMetrics || metrics(); if(!m) return;
+      var h=histRead(), sample={date:new Date().toISOString(),page:pageNo(),cer:m.cer,wer:m.wer,charErrors:m.charErrors,wordErrors:m.wordErrors,refChars:m.refChars,refWords:m.refWords,suspects:lastSuspects.length,actual:actual.value.slice(0,12000),reference:reference.value.slice(0,12000)};
+      h.push(sample); if(!histWrite(h)){ $('#ocrEvalHistory').textContent='ذخیره‌سازی انجام نشد؛ فضای ذخیره‌سازی مرورگر ممکن است پر باشد.'; return; }
+      renderHistory(); result.textContent += ' این آزمون در سابقهٔ محلی ذخیره شد.';
+    }
+    function download(name, text, type){ var blob=new Blob([text],{type:type||'application/json;charset=utf-8'}), url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(url);},1000); }
+    fill.onclick = function(){
+      var pn = sents[idx] ? sents[idx].page : 1, items = rawItems[pn - 1]; $('#ocrEvalPage').value=pn;
+      if (ocrPages[pn] != null) actual.value = ocrPages[pn];
+      else if (items && items.length) actual.value = joinItems(O.pos ? lineSort(items) : items);
+      else { result.textContent = 'برای صفحهٔ فعلی متنی در دسترس نیست؛ ابتدا یک PDF باز کن.'; return; }
+      result.textContent = 'متن صفحهٔ ' + nf.format(pn) + ' در کادر OCR قرار گرفت. متن مرجع را وارد و محاسبه را اجرا کن.'; analyze();
+    };
+    $('#ocrEvalRun').onclick = run;
+    $('#ocrSuspectRun').onclick = analyze;
+    $('#ocrEvalCompare').onclick = function(){
+      var a=normalizeEval(actual.value), b=normalizeEval($('#ocrEvalSecond').value), el=$('#ocrEvalCompareResult');
+      if(!a || !b){el.textContent='خروجی اول و دوم را وارد کن. برای تولید خروجی دوم، از بازخوانی صفحه یا ناحیه با تنظیمات متفاوت استفاده کن.';return;}
+      if(a.length>12000 || b.length>12000){el.textContent='برای جلوگیری از کندشدن مرورگر، هر خروجی حداکثر ۱۲٬۰۰۰ نویسه باشد.';return;}
+      var ca=Array.from(a), cb=Array.from(b), wa=a.split(/\s+/).filter(Boolean), wb=b.split(/\s+/).filter(Boolean), cd, wd;
+      try { cd=distance(ca,cb); wd=distance(wa,wb); } catch(e) { el.textContent='مقایسه برای این حجم متن سنگین است؛ متن‌ها را به بخش‌های کوچک‌تر تقسیم کن.'; return; }
+      el.textContent='اختلاف دو اجرا: CER نسبی خروجی دوم نسبت به اول ' + pct(cd,ca.length) + '؛ اختلاف کلمه‌ای ' + pct(wd,wa.length) + '؛ ' + cd.toLocaleString('fa-IR') + ' نویسه و ' + wd.toLocaleString('fa-IR') + ' کلمه. این فقط میزان اختلاف دو اجرا را نشان می‌دهد، نه اینکه کدام خروجی درست‌تر است.';
+    };
+    $('#ocrEvalRescan').onclick = function(){
+      var b=$('#manBtn'); if(!pdfDoc){$('#ocrEvalCompareResult').textContent='ابتدا یک PDF باز کن.';return;}
+      $('#ocrEvalCompareResult').textContent='پنجرهٔ اسکن دستی باز می‌شود. برای بازخوانی دوم، وضوح یا گزینهٔ کاهش نویز را تغییر بده و در صورت نیاز فقط ناحیهٔ مشکوک را انتخاب کن.';
+      if(b && !b.disabled) b.click(); else $('#ocrEvalCompareResult').textContent='ابزار اسکن دستی هنوز آماده نیست؛ ابتدا PDF را کامل بارگذاری کن.';
+    };
+    $('#ocrEvalSave').onclick = saveSample;
+    $('#ocrEvalClear').onclick = function(){ actual.value=''; reference.value=''; result.textContent=''; $('#ocrSuspectResult').textContent=''; $('#ocrSuspectList').innerHTML=''; lastMetrics=null; lastSuspects=[]; };
+    $('#ocrEvalExport').onclick = function(){ var h=histRead(); if(!h.length){$('#ocrEvalHistory').textContent='سابقه‌ای برای خروجی وجود ندارد.';return;} download('ocr-evaluation-history.json',JSON.stringify({version:3,exportedAt:new Date().toISOString(),samples:h},null,2)); };
+    $('#ocrEvalHistoryClear').onclick = function(){ if(!confirm('تمام سابقهٔ آزمون OCR از این مرورگر پاک شود؟')) return; try{localStorage.removeItem(HISTORY_KEY);}catch(e){} renderHistory(); };
+    actual.addEventListener('input', function(){ lastMetrics=null; });
+    var sync = function(){ fill.disabled = !pdfDoc || !rawItems.length; };
+    sync(); renderHistory();
+    var oldInfo = window.__ocrEvalSync; window.__ocrEvalSync = sync;
+  })();
 
   window.addEventListener('pagehide', function(){ posFlush(); cancelAll(); });
   document.addEventListener('visibilitychange', function(){ if (document.hidden) posFlush(); });
