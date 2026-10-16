@@ -111,19 +111,7 @@ linear-gradient(180deg,var(--bg1),var(--bg0));animation:drift 50s ease-in-out in
 
 /* ===== صفحهٔ آغاز (بدون فایل) ===== */
 .hero{position:absolute;inset:0;z-index:4;display:grid;place-content:center;justify-items:center;gap:14px;padding:24px 24px calc(var(--dock-h) + 8px);text-align:center}
-.home{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;gap:10px;padding:12px clamp(12px,4vw,32px) calc(var(--dock-h) + 8px)}
-.has-doc:not(.home-on) .home{display:none}
-.home-on .home{background:var(--paper)}
-.home [hidden]{display:none!important}
-.htabs{flex:none;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;max-width:42rem;width:100%;margin:0 auto;border-radius:16px;background:var(--card);border:1px solid var(--line)}
-.htabs button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;font-size:.86rem;min-height:40px;border-radius:12px;cursor:pointer;transition:background .2s,color .2s}
-.htabs button[aria-selected="true"]{background:var(--accent);color:#fff}
-.hbody{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;display:flex;flex-direction:column;align-content:start;gap:8px;max-width:42rem;width:100%;margin:0 auto}
-#homeList{display:grid;gap:6px}
-.hfav{flex:none;width:44px;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:14px;font-size:1.3rem;line-height:1;cursor:pointer;padding:0}
-.hfav.on{color:var(--gold);border-color:var(--gold)}
-.hperm{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:16px;background:var(--card);font-size:.84rem;line-height:1.8}
-.hperm span{flex:1;min-width:0}
+.has-doc .hero{display:none}
 .hero-main{display:grid;justify-items:center;gap:8px;max-width:24rem;padding:22px 22px;border-radius:32px;cursor:pointer;background:radial-gradient(closest-side at 50% 45%,color-mix(in srgb,var(--accent-2) 13%,transparent),color-mix(in srgb,var(--accent) 6%,transparent) 60%,transparent 100%);transition:transform .3s,background .3s}
 .hero-main:hover,.hero-main.over{background:color-mix(in srgb,var(--accent) 7%,transparent);transform:translateY(-2px)}
 .star{width:min(34vw,140px);height:auto;overflow:visible;filter:drop-shadow(0 0 16px color-mix(in srgb,var(--accent) 40%,transparent));transition:transform .6s}
@@ -455,352 +443,10 @@ details.acc[open]>summary{border-bottom:1px solid var(--line);margin-bottom:10px
 .segcap{min-height:1.6em}
 .segsel{display:none!important}
 #txtReset{margin-top:2px}
-.bgcfg{display:none!important}
-.tpanel .tile:last-child:nth-child(odd){grid-column:1/-1}
 details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid transparent;border-right:2px solid var(--muted)}
-
-/* ============================================================
-   چیدمان جدید به سبک «کارو»: هدر برندی، نوار تب پایین با دکمهٔ مرکزی، صفحه‌های تب‌دار،
-   منوی ابزار تب‌دار و کارت‌های نرم. رنگ‌ها فقط از توکن‌های همین پروژه (لاجورد، فیروزه، طلا) خوانده می‌شوند.
-   ============================================================ */
-:root{
---brand-grad:linear-gradient(135deg,var(--accent-2) 0%,color-mix(in srgb,var(--accent-2) 50%,var(--accent)) 52%,var(--accent) 100%);
---brand-flat:var(--accent-2);--brand-ink:#fff;--brand-ink2:rgba(255,255,255,.82);--brand-glint:rgba(255,255,255,.22);
---surface-sh:0 1px 2px rgba(18,27,58,.05),0 12px 28px -16px rgba(24,40,110,.34);
---surface-sh-hover:0 4px 10px rgba(18,27,58,.07),0 18px 36px -16px color-mix(in srgb,var(--accent-2) 42%,transparent);
-}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
---brand-grad:linear-gradient(135deg,color-mix(in srgb,var(--accent-2) 30%,var(--bg1)),color-mix(in srgb,var(--accent) 24%,var(--bg1)));
---brand-flat:color-mix(in srgb,var(--accent-2) 30%,var(--bg1));--brand-ink:var(--ink);--brand-ink2:color-mix(in srgb,var(--ink) 74%,transparent);--brand-glint:rgba(148,170,240,.16);
---surface-sh:0 1px 2px rgba(0,0,0,.35),0 12px 28px -16px rgba(0,0,0,.6);
---surface-sh-hover:0 4px 10px rgba(0,0,0,.4),0 18px 36px -16px color-mix(in srgb,var(--accent-2) 36%,transparent)}}
-:root[data-theme="dark"]{
---brand-grad:linear-gradient(135deg,color-mix(in srgb,var(--accent-2) 30%,var(--bg1)),color-mix(in srgb,var(--accent) 24%,var(--bg1)));
---brand-flat:color-mix(in srgb,var(--accent-2) 30%,var(--bg1));--brand-ink:var(--ink);--brand-ink2:color-mix(in srgb,var(--ink) 74%,transparent);--brand-glint:rgba(148,170,240,.16);
---surface-sh:0 1px 2px rgba(0,0,0,.35),0 12px 28px -16px rgba(0,0,0,.6);
---surface-sh-hover:0 4px 10px rgba(0,0,0,.4),0 18px 36px -16px color-mix(in srgb,var(--accent-2) 36%,transparent)}
-
-/* ----- هدر برندی ----- */
-.top{display:block;gap:0;width:100%;max-width:920px;margin:0 auto;padding:8px 8px 6px;position:relative;z-index:30}
-.hbar{position:relative;isolation:isolate;min-height:62px;display:flex;align-items:center;justify-content:center;padding:8px 66px;border-radius:20px;background:var(--brand-grad);color:var(--brand-ink);box-shadow:var(--surface-sh)}
-.hbar::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;background:radial-gradient(circle at 88% -20%,var(--brand-glint),transparent 46%),radial-gradient(circle at 6% 125%,color-mix(in srgb,var(--gold) 28%,transparent),transparent 44%)}
-@media (min-width:481px){.hbar{padding-inline:118px}}
-.hcorner{position:absolute;top:50%;transform:translateY(-50%);z-index:5}
-.hc-r{right:9px}.hc-l{left:9px}
-.xbtn{position:relative;display:inline-flex;align-items:center;gap:7px;min-height:42px;padding:6px 12px 6px 9px;border-radius:14px;color:var(--brand-ink);font:inherit;font-size:.78rem;font-weight:700;cursor:pointer;overflow:hidden;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.34);box-shadow:0 6px 16px -8px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.3);transition:transform .2s,box-shadow .3s,border-color .3s,color .3s}
-.xbtn::before{content:"";position:absolute;inset:0;opacity:0;transition:opacity .3s;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 62%,#001a18))}
-.xbtn.exitB::before{background:linear-gradient(135deg,var(--gold),color-mix(in srgb,var(--gold) 64%,#7a4b00))}
-.xbtn>*{position:relative}
-.xbtn i{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.22);transition:transform .45s cubic-bezier(.3,1.4,.5,1)}
-.xbtn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.xbtn:active{transform:scale(.95)}
-.xbtn:focus-visible,.xbtn[aria-expanded="true"]{border-color:rgba(255,255,255,.7);color:var(--accent-ink)}
-.xbtn:focus-visible::before,.xbtn[aria-expanded="true"]::before{opacity:1}
-.xbtn[aria-expanded="true"] i{transform:rotate(180deg) scale(1.08);background:rgba(255,255,255,.28)}
-.xbtn.exitB:focus-visible{color:#2b1b00}
-@media (hover:hover) and (pointer:fine){
-.xbtn:hover{border-color:rgba(255,255,255,.7);color:var(--accent-ink);transform:translateY(-1px)}
-.xbtn:hover::before{opacity:1}
-.xbtn.exitB:hover{color:#2b1b00}
-.xbtn:hover i{transform:rotate(180deg) scale(1.08);background:rgba(255,255,255,.28)}}
-@media (max-width:480px){.xbtn span{display:none}.xbtn{padding:6px;gap:0}}
-.hmid{display:flex;align-items:center;justify-content:center;gap:10px;min-width:0;max-width:100%}
-.hlogo{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
-.hlogo svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.htxt{min-width:0;display:grid;gap:0;line-height:1.4}
-#docTitle,.htxt b{display:block;flex:none;font-weight:800;font-size:.95rem;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--brand-ink)}
-#docTitle:empty::before{color:var(--brand-ink)}
-.hsub,.htxt small{display:block;font-size:.68rem;color:var(--brand-ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#pageInfo{color:var(--brand-ink);background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.32)}
-
-/* ----- چیدمان: هدر، صحنه (کادر متن + صفحه‌ها)، نوار تب ----- */
-.stagewrap{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;}
-body[data-apptab]:not([data-apptab="read"]) .frame{visibility:hidden;pointer-events:none}
-.pages{position:absolute;inset:0;z-index:8;display:none;flex-direction:column;min-height:0}
-body[data-apptab]:not([data-apptab="read"]) .pages{display:flex}
-.mbody{padding:0 0 0}
-.mbody>.panel{max-width:720px}
-.panel.on>.grp,.panel.on>details.acc{animation:fadein2 .22s ease both}
-body.mini-on .panel{padding-bottom:88px}
-
-/* ----- کارت‌های نرم ----- */
-.panel>.grp,details.acc{border-radius:18px;box-shadow:var(--surface-sh);transition:box-shadow .25s}
-@media (hover:hover){.panel>.grp:hover,details.acc:hover{box-shadow:var(--surface-sh-hover)}}
-
-/* ----- پخش‌کنندهٔ کوچک روی صفحه‌های دیگر ----- */
-.mini{position:absolute;z-index:9;inset-inline:0;bottom:6px;margin:0 auto;width:calc(100% - 20px);max-width:520px;display:flex;align-items:center;gap:10px;padding:6px 8px 6px 14px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-line);box-shadow:var(--shadow)}
-.mplay{flex:none;width:42px;height:42px;border-radius:50%;border:0;padding:0;display:grid;place-items:center;cursor:pointer;color:var(--accent-ink);background:linear-gradient(145deg,var(--accent-2),var(--accent));box-shadow:0 8px 16px -8px var(--accent)}
-.mplay svg{width:20px;height:20px}
-.mplay .i-play{fill:currentColor;stroke:currentColor;stroke-width:2.2;stroke-linejoin:round}
-.mplay .i-pause{display:none;fill:currentColor}
-.is-playing .mplay .i-play{display:none}.is-playing .mplay .i-pause{display:block}
-.mtxt{flex:1;min-width:0;display:grid;gap:0;text-align:start;border:0;background:transparent;color:var(--ink);cursor:pointer;line-height:1.4;padding:0}
-.mtxt b{font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mtxt small{font-size:.7rem;color:var(--muted)}
-
-/* ----- منوی ابزار تب‌دار ----- */
-.tmenu{position:absolute;top:calc(100% + 10px);left:0;width:min(21rem,calc(100vw - 24px));max-height:min(78vh,560px);overflow:auto;display:flex;flex-direction:column;border-radius:20px;background:var(--paper);color:var(--ink);border:1px solid var(--glass-line);box-shadow:var(--shadow);text-align:start;animation:fadein2 .15s ease both}
-.ttabs{position:sticky;top:0;z-index:2;display:flex;gap:2px;padding:8px 8px 0;background:var(--paper);border-bottom:1px solid var(--line)}
-.ttab{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;font:inherit;font-size:.7rem;font-weight:800;color:var(--muted);background:transparent;border:0;border-bottom:2px solid transparent;border-radius:12px 12px 0 0;cursor:pointer;transition:color .2s,background .2s}
-.ttab svg{flex:none;width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.ttab.on{color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);border-bottom-color:var(--accent)}
-.tbody{padding:10px}
-.tpanel{display:none;grid-template-columns:1fr 1fr;gap:6px}
-.tpanel.on{display:grid}
-.tile{display:flex;align-items:center;gap:8px;min-height:54px;padding:8px 6px;border-radius:14px;border:0;background:transparent;color:var(--ink);font:inherit;text-align:start;cursor:pointer;transition:background .2s,transform .12s}
-.tile:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
-.tile:active{transform:scale(.97)}
-.tic{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%}
-.tic svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.t-a .tic{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
-.t-b .tic{background:color-mix(in srgb,var(--accent-2) 14%,transparent);color:var(--accent-2)}
-.t-g .tic{background:color-mix(in srgb,var(--gold) 22%,transparent);color:color-mix(in srgb,var(--gold) 72%,#6b4200)}
-.tx{min-width:0;display:grid;gap:0;line-height:1.45}
-.tx b{font-size:.74rem;font-weight:800;line-height:1.35}
-.tx small{font-size:.62rem;color:var(--muted);line-height:1.4}
-.tbanner{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:8px 8px 8px 12px;margin-bottom:2px;border:1px solid rgba(255,255,255,.28);border-radius:14px;color:#2b1b00;font:inherit;text-align:start;cursor:pointer;background:linear-gradient(135deg,var(--gold),color-mix(in srgb,var(--gold) 62%,#b45309));box-shadow:0 6px 14px -8px color-mix(in srgb,var(--gold) 80%,#000),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .15s}
-.tbanner:active{transform:scale(.98)}
-.tbanner .tx b{font-size:.8rem}
-.tbanner .tx small{color:rgba(43,27,0,.78);font-size:.66rem}
-.tbanner>svg{flex:none;width:30px;height:30px;padding:6px;border-radius:50%;background:rgba(255,255,255,.3);stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-
-/* ----- افکت ریپل روی دکمه‌ها (در حالت‌های «بهینه» و «فوق‌ساده» خاموش است) ----- */
-.btn,.chip,.tile,.xbtn,.ttab,.sw button,.pill,.tbanner{position:relative;overflow:hidden}
-.ripple{position:absolute;border-radius:50%;background:currentColor;opacity:.2;transform:scale(0);animation:ripple .55s ease-out;pointer-events:none}
-@keyframes ripple{to{transform:scale(3);opacity:0}}
-
-/* ----- هماهنگی با سطح جلوه‌های بصری ----- */
-:root[data-fx="flat"] .hbar{background:var(--brand-flat)!important;background-image:none!important}
-:root[data-fx="flat"] .hbar::before{display:none}
-:root[data-fx="flat"] .tbanner{background-image:none!important;background:var(--gold)!important}
-:root[data-fx="flat"] .mplay{background-image:none!important;background:var(--accent)!important}
-:root[data-fx="flat"] .tmenu{animation:none}
-:root[data-fx="flat"] .ripple{display:none}
-@media (prefers-reduced-motion:reduce){.ripple{display:none}}
-
-/* ----- حالت صفحهٔ تکی: فقط همان بخش، با ضربدر بستن؛ بدون راه به صفحه‌های دیگر ----- */
-.panel>.solo-off{display:none!important}
-#pageClose{display:none}
-body[data-apptab]:not([data-apptab="read"]) #pageClose{display:inline-flex}
-body[data-apptab]:not([data-apptab="read"]) .hc-l,
-body[data-apptab]:not([data-apptab="read"]) .hc-r .exitB{display:none}
-#pageClose::before{background:linear-gradient(135deg,var(--gold),color-mix(in srgb,var(--gold) 64%,#7a4b00))}
-#pageClose:focus-visible{color:#2b1b00}
-@media (hover:hover) and (pointer:fine){#pageClose:hover{color:#2b1b00}}
-
-/* ===== لغزنده‌ها چپ‌به‌راست (کمینه سمت چپ، بیشینه سمت راست) ===== */
-input[type=range]{direction:ltr}
-.rwrap{direction:ltr}
-.rng::-webkit-slider-runnable-track{height:8px;background:linear-gradient(to right,var(--accent-2),var(--accent) var(--p,0%),var(--line) var(--p,0%))}
-.rng::-webkit-slider-thumb{width:24px;height:24px;margin-top:-8px;border-width:3px;background:radial-gradient(circle,var(--accent) 0 28%,var(--paper) 32%)}
-.rng::-moz-range-track{height:8px}
-.rng::-moz-range-progress{height:8px;background:linear-gradient(to right,var(--accent-2),var(--accent))}
-.rng::-moz-range-thumb{width:18px;height:18px}
-input[type=range].rng#seek{height:28px}
-
-/* ===== نوار پخش ارتقایافته ===== */
-.dock{transition:transform .3s cubic-bezier(.3,1.15,.5,1),opacity .2s,visibility 0s}
-.dock::before{content:"";position:absolute;inset-inline:22px;top:0;height:2px;border-radius:2px;background:linear-gradient(to right,transparent,color-mix(in srgb,var(--accent) 60%,transparent),color-mix(in srgb,var(--gold) 55%,transparent),transparent);pointer-events:none;opacity:.9}
-.dhide{position:absolute;top:0;inset-inline-start:8px;width:38px;height:24px;display:grid;place-items:center;padding:0;border:0;border-radius:10px;background:transparent;color:var(--muted);cursor:pointer;transition:background .2s,color .2s}
-.dhide svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.dhide:hover,.dhide:focus-visible{background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink)}
-#posPct{margin-inline-start:6px;color:var(--accent);font-weight:800}
-#posPct:empty{display:none}
-.ctl .ibtn{border-radius:14px;background:color-mix(in srgb,var(--ink) 5%,transparent)}
-.ctl .ibtn:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
-.play{width:52px;height:52px}
-.play svg{width:24px;height:24px}
-.pills{grid-template-columns:repeat(3,minmax(0,1fr))}
-#spdBtn{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line));font-weight:800;font-variant-numeric:tabular-nums;direction:ltr}
-body.dock-hide .dock{transform:translateY(calc(100% + 24px));opacity:0;visibility:hidden;pointer-events:none;transition:transform .3s cubic-bezier(.3,1.15,.5,1),opacity .2s,visibility 0s .3s}
-.dpeek{position:absolute;z-index:6;inset-inline:0;bottom:8px;margin:0 auto;width:max-content;max-width:calc(100% - 20px);display:flex;align-items:center;gap:6px;padding:4px 6px 4px 10px;border-radius:999px;background:var(--dock-bg);border:1px solid var(--glass-line);box-shadow:var(--dock-in),0 10px 22px -12px var(--dsh);animation:fadein2 .22s ease both}
-.dpeek .mplay{width:38px;height:38px}
-.dpeek .mplay:disabled{opacity:.4;box-shadow:none;cursor:not-allowed}
-.peektxt{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 6px 0 4px;border:0;background:transparent;color:var(--muted);font:inherit;font-size:.76rem;font-weight:700;cursor:pointer;font-variant-numeric:tabular-nums}
-.peektxt svg{flex:none;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.peektxt:hover{color:var(--ink)}
-:root[data-fx="flat"] .dock::before{display:none}
-:root[data-fx="flat"] .dock,:root[data-fx="perf"] .dock,:root[data-fx="flat"] .dpeek{transition:none}
-.meta{top:4px;line-height:16px}
-.dhide{top:2px}
-.grab{padding-top:6px}
-
-
-/* ===== صفحهٔ پخش: هدر و نوار پخش مطابق طرح جدید ===== */
-.rdbar{display:none;align-items:center;gap:2px;min-height:56px;padding:4px 6px;border-radius:20px;background:var(--paper);border:1px solid var(--line);color:var(--ink)}
-body.has-doc:not(.home-on)[data-apptab="read"] .rdbar{display:flex}
-body.has-doc:not(.home-on)[data-apptab="read"] .top .hbar{display:none}
-.rdb{flex:none;width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:50%;background:transparent;color:var(--ink);cursor:pointer;padding:0;transition:background .2s,transform .12s}
-.rdb:hover{background:color-mix(in srgb,var(--ink) 8%,transparent)}
-.rdb:active{transform:scale(.92)}
-.rdb svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.rdb svg circle{fill:currentColor;stroke:none}
-.rdb.on{color:var(--accent)}
-.rdb.on svg{fill:currentColor}
-.rdt{flex:1;min-width:0;padding:0 6px;font-weight:700;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.top>.tmenu{top:calc(100% - 4px);left:8px}
-.dock,.dpeek{display:none!important}
-body.has-doc:not(.home-on) .dock{display:grid!important}
-body.has-doc:not(.home-on) .dpeek:not([hidden]){display:flex!important}
-.dock{inset-inline:0;bottom:0;width:100%;max-width:none;padding:6px 14px calc(12px + env(safe-area-inset-bottom,0px));border-radius:24px 24px 26px 26px;border-width:1px 0 0;gap:10px}
-.dock .grab,.dock .meta,.dock #seek{display:none}
-.drA{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px}
-.drA .dhide{position:absolute;top:50%;inset-inline-start:auto;inset-inline-end:0;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;color:var(--ink);padding:0}
-.drA .dhide svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-.dpg{min-width:40px;min-height:40px;width:40px;height:40px;padding:0;border-radius:50%}
-.dpg svg{width:20px;height:20px}
-#pageInfo{display:inline-block;min-width:96px;text-align:center;font-size:1rem;font-weight:700;padding:8px 18px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--ink);font-variant-numeric:tabular-nums;direction:rtl}
-#pageInfo:empty{display:inline-block;min-width:96px;min-height:38px}
-.drB{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.dpill{display:flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:.84rem;font-weight:600;white-space:nowrap;cursor:pointer;transition:transform .12s,filter .2s}
-.dpill:active{transform:scale(.96)}
-.dpill svg{flex:none;width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.dpill span{min-width:0;overflow:hidden;text-overflow:ellipsis}
-.dpill.primary{background:linear-gradient(135deg,var(--accent-2),var(--accent));color:var(--accent-ink);border-color:transparent;font-weight:700}
-.dpill .l-b{display:none}
-.is-playing .dpill .l-a{display:none}
-.is-playing .dpill .l-b{display:inline}
-.dpill:disabled{opacity:.45;pointer-events:none}
-.drC{display:flex;align-items:center;justify-content:space-between;gap:4px}
-.drC .pill{flex:none;min-height:42px;padding:2px 12px;font-size:.78rem;background:var(--card)}
-.drC .dsk{min-width:40px;min-height:44px;padding:0 2px}
-.drC .dsk svg{width:26px;height:26px;fill:currentColor;stroke-width:2.2}
-.drC .play{flex:none;width:60px;height:60px}
-.dvoice{flex:none;width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:var(--card);color:var(--accent);cursor:pointer;padding:0}
-.dvoice>svg{width:24px;height:24px;stroke:currentColor;fill:currentColor;fill-opacity:.25;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.home{padding-bottom:16px}
-body.has-doc:not(.home-on) .home{display:none}
-
-/* ===== حذف کادر بالایی (منو/خروج)، چرخ‌دنده و فشرده‌سازی صفحهٔ اصلی ===== */
-body[data-apptab="read"] .top .hbar{display:none}
-body:not(.has-doc) .top,body.home-on .top{padding:0}
-.top>.tmenu{top:64px}
-.hbar .exitB,.hbar .hc-l{display:none}
-:root[data-fx] body:not([data-apptab="read"]) .hbar,body:not([data-apptab="read"]) .hbar{background:var(--paper)!important;background-image:none!important;color:var(--ink);box-shadow:none;border:1px solid var(--line);min-height:52px;padding:4px 56px}
-.hbar::before{display:none!important}
-.hbar .xbtn{background:transparent;border-color:var(--line);color:var(--ink);box-shadow:none}
-.hbar #docTitle,.hbar .htxt b{color:var(--ink)}
-.hbar .htxt small{color:var(--muted)}
-.hbar .hlogo{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);box-shadow:none}
-.htop{flex:none;display:flex;align-items:center;gap:4px;max-width:42rem;width:100%;margin:0 auto}
-.htop .htabs{flex:1;min-width:0;max-width:none;margin:0}
-.htop .rdb{width:36px;height:36px}
-.htop .rdb svg{width:21px;height:21px}
-.home{gap:6px;padding-top:6px;padding-bottom:12px}
-.htabs{padding:3px;gap:3px;border-radius:13px}
-.htabs button{min-height:30px;font-size:.72rem;border-radius:10px}
-.hbody{gap:5px}
-#homeList{gap:4px}
-#homeList .lib-open{min-height:0;padding:5px 10px 7px;border-radius:11px;line-height:1.5}
-#homeList .lib-open b{font-size:.78rem;font-weight:600}
-#homeList .lib-open span{font-size:.64rem}
-#homeList .hfav{width:34px;border-radius:11px;font-size:1rem}
-.hperm{padding:6px 10px;font-size:.7rem;line-height:1.6;border-radius:12px;gap:8px}
-.home .hint{font-size:.68rem}
-.home .btn{min-height:32px;font-size:.74rem;padding:3px 12px}
-.home .empty{font-size:.76rem;padding:12px 0}
-
-/* ===== نوار ابزار صفحهٔ اصلی: جستجو، پوشه، چیدمان، مرتب‌سازی ===== */
-.htool{flex:none;display:flex;align-items:center;gap:0;max-width:42rem;width:100%;margin:0 auto}
-.htit{flex:1;min-width:0;font-size:.84rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hti{flex:none;width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:50%;background:transparent;color:var(--ink);cursor:pointer;padding:0}
-.hti svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.hti.on{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
-.hsearch{flex:none;display:flex;align-items:center;gap:4px;max-width:42rem;width:100%;margin:0 auto}
-.hsearch input{flex:1;min-width:0;font:inherit;font-size:.78rem;min-height:34px;padding:2px 12px;border-radius:11px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
-.hsortp{flex:none;max-width:42rem;width:100%;margin:0 auto;display:grid;gap:6px;padding:7px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
-.hseg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px}
-.hseg button{font:inherit;font-size:.72rem;min-height:30px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--ink);cursor:pointer}
-.hseg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:700}
-.hacts{flex:none;display:flex;gap:4px;align-items:stretch}
-#homeList .hfav,#homeList .hmore{width:32px;font-size:inherit}
-.hfav svg,.hmore svg{width:18px;height:18px;margin:auto;display:block;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.hfav.on svg{fill:currentColor}
-.hmore{flex:none;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:11px;cursor:pointer;padding:0}
-.hmore svg circle{fill:currentColor;stroke:none}
-.hfold .lib-open{border-color:color-mix(in srgb,var(--gold) 55%,var(--line))}
-.hback{min-height:32px!important;justify-content:flex-start}
-#homeList.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-#homeList.grid .lib-i{flex-direction:column;gap:3px}
-#homeList.grid .lib-open b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-#homeList.grid .hacts{justify-content:flex-end}
-#homeList.grid .hacts .hfav,#homeList.grid .hacts .hmore{height:30px}
-#homeList .hback,#homeList .btn.wide{grid-column:1/-1}
-.hdlg{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.45)}
-.hdlg[hidden]{display:none}
-.hdlgc{width:min(22rem,100%);display:grid;gap:10px;padding:14px;border-radius:18px;background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow);color:var(--ink)}
-.hdlgc h4{margin:0;font-size:.95rem}
-.hdbox{display:grid;gap:6px}
-.hdbox input{font:inherit;min-height:40px;padding:4px 12px;border-radius:11px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
-.hdlist{display:grid;gap:5px;max-height:50vh;overflow:auto}
-.hdlist .btn{text-align:start;min-height:38px;font-size:.8rem}
-.hdlga{display:flex;gap:8px;justify-content:flex-end}
-.hdlga .btn{min-height:36px;padding:3px 18px;font-size:.8rem}
-
-/* ===== نمای صفحهٔ PDF ===== */
-.pv{max-width:100%;margin:0 auto;overflow-x:auto}
-.pvp{position:relative;margin:0 auto;width:max-content;background:#fff;border:1px solid var(--line);border-radius:4px;box-shadow:0 6px 18px -10px var(--dsh)}
-.pvp canvas{display:block}
-.pvn{position:relative;margin:14px auto 0;width:max-content;background:#fff;border:1px solid var(--line);border-radius:4px;box-shadow:0 6px 18px -10px var(--dsh)}.pvn canvas{display:block}#pvU .pvn{margin:0 auto 14px}
-.pvh{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply}
-.pvh i{position:absolute;border-radius:8px;background:linear-gradient(110deg,rgba(245,185,50,.5),rgba(255,224,150,.3));box-shadow:0 0 0 4px rgba(245,185,50,.36),0 0 28px 6px rgba(229,161,31,.38)}
-.pvh i.ap{background:linear-gradient(110deg,rgba(245,185,50,.3),rgba(255,224,150,.18));box-shadow:0 0 0 2px rgba(245,185,50,.4);outline:2px dashed rgba(200,130,10,.6);outline-offset:1px}
-.is-playing .pvh i:not(.ap){animation:pvglow 2.6s ease-in-out infinite}
-@keyframes pvglow{50%{box-shadow:0 0 0 4px rgba(245,185,50,.36),0 0 38px 10px rgba(229,161,31,.52)}}
-:root[data-fx="lite"] .pvh i{box-shadow:0 0 0 3px rgba(245,185,50,.36)}
-:root[data-fx="lite"] .is-playing .pvh i,:root[data-fx="perf"] .is-playing .pvh i,:root[data-fx="flat"] .is-playing .pvh i{animation:none!important}
-:root[data-fx="perf"] .pvh,:root[data-fx="flat"] .pvh{mix-blend-mode:normal}
-:root[data-fx="perf"] .pvh i,:root[data-fx="flat"] .pvh i{outline:3px solid rgba(245,185,50,.55);background:rgba(245,185,50,.28)}
-#pvn{text-align:center;margin-top:8px}
-body:not(.view-page) .pv,body.view-page.no-sents:not(.has-doc) .pv{display:none}
-body.view-page:not(.no-sents) #reader,body.view-page.no-sents.has-doc #reader{display:none}
-.rdb.on{color:var(--accent)}
-
-/* ---- برگهٔ گوینده و سبک گفتار ---- */
-.dvoice{position:relative;overflow:hidden;border:2px solid var(--accent)}
-.vav{display:block;flex:none;width:100%;height:100%;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,var(--a1,#6a8cff),var(--a2,#2b3fa8))}
-.vav svg{display:block;width:100%;height:100%}
-.vs-scrim{position:fixed;inset:0;z-index:80;background:var(--scrim);opacity:0;transition:opacity .25s}
-.vs-scrim.on{opacity:1}
-.vs{position:fixed;z-index:81;inset-inline:0;bottom:0;margin:0 auto;max-width:560px;max-height:88vh;overflow:auto;overscroll-behavior:contain;padding:8px 14px calc(16px + env(safe-area-inset-bottom,0px));background:var(--card);color:var(--ink);border:1px solid var(--line);border-bottom:0;border-radius:26px 26px 0 0;box-shadow:0 -18px 44px -18px rgba(0,0,0,.45);transform:translateY(105%);transition:transform .3s cubic-bezier(.2,.9,.3,1)}
-.vs.on{transform:none}
-.vs-grab{width:42px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 8px}
-.vs-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.vs-h b{font-size:1rem}
-.vs-x{flex:none;width:36px;height:36px;display:grid;place-items:center;padding:0;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
-.vs-x svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
-.vs-sec{font-size:.78rem;font-weight:700;color:var(--muted);margin:12px 2px 6px}
-.vs-voices{display:grid;gap:8px}
-.vs-v{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border-radius:18px;border:1.5px solid var(--line);background:transparent;color:inherit;font:inherit;text-align:start;cursor:pointer;transition:border-color .2s,background .2s}
-.vs-v .vav{width:54px;height:54px;box-shadow:0 6px 14px -6px var(--a2,#2b3fa8)}
-.vs-v[aria-checked="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,transparent)}
-.vs-v[aria-checked="true"] .vav{outline:2.5px solid var(--accent);outline-offset:2px}
-.vs-t{flex:1;min-width:0;display:grid;gap:1px}
-.vs-t b{font-size:.98rem}
-.vs-t em{font-style:normal;font-size:.76rem;font-weight:600;color:var(--accent)}
-.vs-t small{color:var(--muted);font-size:.72rem;line-height:1.6}
-.vs-tag{flex:none;font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:99px;background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--muted)}
-.vs-tag.ok{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
-.vs-styles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.vs-s{display:grid;justify-items:center;gap:6px;padding:10px 4px 9px;border-radius:16px;border:1.5px solid var(--line);background:transparent;color:inherit;font:inherit;font-size:.78rem;font-weight:600;cursor:pointer;transition:border-color .2s,background .2s}
-.vs-s i{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c);transition:background .2s,color .2s}
-.vs-s svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.vs-s[aria-checked="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 12%,transparent)}
-.vs-s[aria-checked="true"] i{background:var(--c);color:#fff}
-.vs-desc{margin:10px 2px 0;font-size:.78rem;line-height:1.9;color:var(--muted);min-height:3.6em}
-
-/* ---- رفع نشت صفحهٔ PDF زیر فهرست + صفحهٔ خواندن تمام‌صفحه ---- */
-.home{background:var(--paper)}
-body.home-on .stage{visibility:hidden}
-body.has-doc:not(.home-on)[data-apptab="read"] .app{padding-bottom:0}
-body.has-doc:not(.home-on)[data-apptab="read"] .top{max-width:none;padding:0}
-body.has-doc:not(.home-on)[data-apptab="read"] .rdbar{border-radius:0;border-width:0 0 1px;min-height:52px}
-body.has-doc:not(.home-on)[data-apptab="read"] .frame{width:100%;max-width:none;margin:0;border-radius:0;border-width:0;box-shadow:none;animation:none}
-body.has-doc:not(.home-on)[data-apptab="read"] .stage{padding-inline:clamp(10px,3vw,40px)}
-body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 </style>
 </head>
-<body data-apptab="read">
+<body>
 <div class="aura" aria-hidden="true"></div>
 
 <div id="selBar" class="selbar" hidden role="toolbar" aria-label="عملیات روی متن انتخاب‌شده">
@@ -821,109 +467,33 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 </div>
 
 <div class="app">
-  <header class="top" id="appHeader">
-    <div class="rdbar" id="rdBar">
-      <button class="rdb" id="rdBack" type="button" aria-label="بازگشت به فهرست فایل‌ها" title="بازگشت"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></button>
-      <b class="rdt" id="rdTitle" dir="auto"></b>
-      <button class="rdb" id="rdSearch" type="button" aria-label="جستجو در متن" title="جستجو"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"/></svg></button>
-      <button class="rdb" id="rdMode" type="button" aria-label="نمایش متن" aria-pressed="true" title="نمای صفحه / متن"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h7"/></svg></button>
-      <button class="rdb" id="rdFav" type="button" aria-label="افزودن به مورد علاقه" aria-pressed="false" title="مورد علاقه"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"/></svg></button>
-      <button class="rdb" id="rdMore" type="button" aria-label="تنظیمات و ابزارها" title="تنظیمات"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
-    </div>
-    <div class="hbar" id="hBar">
-      <div class="hcorner hc-r">
-        <button class="xbtn exitB" type="button" aria-label="خروج از برنامه" title="خروج از برنامه">
-          <i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></i><span>خروج</span>
-        </button>
-        <button class="xbtn" id="pageClose" type="button" aria-label="بستن و بازگشت به صفحهٔ اصلی" title="بستن">
-          <i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></i><span>بستن</span>
-        </button>
-      </div>
-      <div class="hcorner hc-l">
-        <button class="xbtn" id="menuBtn" type="button" aria-label="منوی ابزار" title="منوی ابزار" aria-haspopup="true" aria-expanded="false" aria-controls="toolsMenu">
-          <i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 12h10M4 17h16"/></svg></i><span>ابزار</span>
-        </button>
-        <div class="tmenu" id="toolsMenu" hidden role="menu" aria-label="منوی ابزار">
-          <div class="ttabs" role="tablist" aria-label="بخش‌های منوی ابزار">
-            <button type="button" class="ttab on" role="tab" aria-selected="true" data-tt="main"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg><span>اصلی</span></button>
-            <button type="button" class="ttab" role="tab" aria-selected="false" data-tt="tools"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.3-.6-.6-2.3z"/></svg><span>ابزارها</span></button>
-            <button type="button" class="ttab" role="tab" aria-selected="false" data-tt="data"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg><span>داده‌ها</span></button>
-            <button type="button" class="ttab" role="tab" aria-selected="false" data-tt="device"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM11 18h2"/></svg><span>دستگاه</span></button>
-          </div>
-          <div class="tbody">
-            <div class="tpanel on" data-tp="main">
-<button type="button" class="tbanner" data-act="resume"><span class="tx"><b id="tbT">انتخاب فایل PDF</b><small id="tbS">متن آن با صدای فارسی خوانده می‌شود</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5C5.5 4.2 9 4.4 12 6.5c3-2.1 6.5-2.3 9-1v13c-2.5-1.3-6-1.1-9 1-3-2.1-6.5-2.3-9-1zM12 6.5v13"/></svg></button>
-<button type="button" class="tile t-a" role="menuitem" data-act="file"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M12 11v6M9 14h6"/></svg></span><span class="tx"><b>انتخاب PDF</b><small>از حافظهٔ دستگاه</small></span></button>
-<button type="button" class="tile t-b" role="menuitem" data-act="home"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span><span class="tx"><b>فهرست فایل‌ها</b><small>همه، علاقه‌مندی، اخیر</small></span></button>
-<button type="button" class="tile t-g" role="menuitem" data-go="voice" data-only="#styleBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h2M8 8v8M12 5v14M16 8v8M20 12h-2"/></svg></span><span class="tx"><b>سبک گفتار</b><small>لحن و آرامش صدا</small></span></button>
-<button type="button" class="tile t-b" role="menuitem" data-go="view" data-only="#navGrp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"/></svg></span><span class="tx"><b>جستجو در متن</b><small>و رفتن به صفحه</small></span></button>
-            </div>
-            <div class="tpanel" data-tp="tools">
-<button type="button" class="tile t-a" role="menuitem" data-go="text" data-only="#ocrBox" data-click="#ocrBtn"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/></svg></span><span class="tx"><b>اجرای OCR</b><small>از صفحهٔ فعلی</small></span></button>
-<button type="button" class="tile t-b" role="menuitem" data-click="#manBtn"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg></span><span class="tx"><b>اسکن دستی</b><small>ناحیه یا کل صفحه</small></span></button>
-<button type="button" class="tile t-a" role="menuitem" data-go="text" data-only="#dictBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h10"/></svg></span><span class="tx"><b>واژه‌نامهٔ تلفظ</b><small>افزودن و ویرایش</small></span></button>
-<button type="button" class="tile t-b" role="menuitem" data-go="text" data-only="#offbox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></span><span class="tx"><b>وضعیت آفلاین</b><small>بررسی فایل‌ها</small></span></button>
-<button type="button" class="tile t-g" role="menuitem" data-go="voice" data-only="#bgmBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 16a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/></svg></span><span class="tx"><b>موسیقی پس‌زمینه</b><small>همراه با خواندن</small></span></button>
-            </div>
-            <div class="tpanel" data-tp="data">
-<button type="button" class="tile t-a" role="menuitem" data-go="lib" data-only="#stBox" data-click="#stExp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></span><span class="tx"><b>صادرات ZIP</b><small>کتابخانهٔ PDFها</small></span></button>
-<button type="button" class="tile t-b" role="menuitem" data-go="lib" data-only="#stBox" data-click="#stImp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg></span><span class="tx"><b>واردات ZIP</b><small>بازیابی آرشیو</small></span></button>
-<button type="button" class="tile t-g" role="menuitem" data-go="voice" data-only="#advBox" data-click="#acExp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></span><span class="tx"><b>خروجی حافظهٔ نهان</b><small>صداهای ساخته‌شده</small></span></button>
-<button type="button" class="tile t-a" role="menuitem" data-go="voice" data-only="#advBox" data-click="#acImp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg></span><span class="tx"><b>ورودی حافظهٔ نهان</b><small>از فایل ZIP</small></span></button>
-<button type="button" class="tile t-b" role="menuitem" data-go="text" data-only="#dictBox" data-click="#dictExp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></span><span class="tx"><b>برون‌بری واژه‌نامه</b><small>فایل txt</small></span></button>
-<button type="button" class="tile t-g" role="menuitem" data-go="text" data-only="#dictBox" data-click="#dictImp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg></span><span class="tx"><b>درون‌ریزی واژه‌نامه</b><small>از فایل txt</small></span></button>
-            </div>
-            <div class="tpanel" data-tp="device">
-<button type="button" class="tile t-a" role="menuitem" data-act="theme"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></span><span class="tx"><b>پوسته</b><small id="thTileSub">خودکار</small></span></button>
-<button type="button" class="tile t-b" role="menuitem" data-go="view" data-only="#fxBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg></span><span class="tx"><b>جلوه‌های بصری</b><small>کامل تا فوق‌ساده</small></span></button>
-<button type="button" class="tile t-g" role="menuitem" data-go="voice" data-only="#advBox" data-click="#logShow"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6"/></svg></span><span class="tx"><b>گزارش خطا</b><small>برای عیب‌یابی</small></span></button>
-<button type="button" class="tile t-b exitB" role="menuitem" ><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></span><span class="tx"><b>خروج</b><small>بستن برنامه</small></span></button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="hmid" id="hReader">
-        <span class="hlogo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10v10H7z"/><path d="M12 1.6L22.4 12 12 22.4 1.6 12z"/><circle cx="12" cy="12" r="3.3"/></svg></span>
-        <div class="htxt"><div id="docTitle" dir="auto"></div><div class="hsub" id="hSub">خواندن جمله‌به‌جمله با صدای فارسی</div></div>
-      </div>
-      <div class="hmid" id="hTab" hidden>
-        <span class="hlogo"><svg viewBox="0 0 24 24" aria-hidden="true"><path id="tabIco" d="M5 6h14"/></svg></span>
-        <div class="htxt"><b id="tabTitle"></b><small id="tabSub"></small></div>
-      </div>
-    </div>
+  <header class="top">
+    <button class="ibtn round" id="menuBtn" type="button" aria-label="منو و تنظیمات" aria-expanded="false" aria-controls="menu">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 12h10M4 17h16"/></svg>
+    </button>
+    <div id="docTitle" dir="auto"></div>
+    <span id="pageInfo"></span>
+    <button class="ibtn round exitB" type="button" aria-label="خروج از برنامه" title="خروج از برنامه"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></button>
   </header>
-  <div class="stagewrap">
+
   <main class="frame">
     <div class="stage" id="stage" tabindex="-1">
       <div id="reader"></div>
-      <div class="pv" id="pv"><div id="pvU"></div><div class="pvp" id="pvp"><canvas id="pvc" width="1" height="1"></canvas><div class="pvh" id="pvh"></div></div><div id="pvD"></div><p class="hint" id="pvn" hidden></p></div>
     </div>
 
-    <div class="home" id="homeView">
-      <div class="htop"><div class="htabs" role="tablist" aria-label="فهرست فایل‌ها">
-        <button type="button" role="tab" aria-selected="true" data-ht="all">همه فایل‌ها</button>
-        <button type="button" role="tab" aria-selected="false" data-ht="fav">مورد علاقه</button>
-        <button type="button" role="tab" aria-selected="false" data-ht="rec">موارد اخیر</button>
+    <div class="hero" id="heroWrap">
+      <div class="hero-main" id="drop" tabindex="0" role="button" aria-label="انتخاب فایل PDF">
+        <svg class="star" viewBox="0 0 120 120" aria-hidden="true">
+          <path pathLength="1" d="M22 22H98V98H22Z"/>
+          <path class="b" pathLength="1" d="M60 3.4L116.6 60L60 116.6L3.4 60Z"/>
+          <circle pathLength="1" cx="60" cy="60" r="27"/>
+          <circle class="dot" cx="60" cy="60" r="4"/>
+        </svg>
+        <h1>یک PDF انتخاب کنید</h1>
+        <p>متن آن با صدای فارسی خوانده می‌شود و جملهٔ در حال خواندن روی صفحه دنبال می‌شود.<span class="only-hover"> فایل را می‌توانید اینجا رها هم کنید.</span></p>
+        <span class="cta">انتخاب فایل</span>
       </div>
-      <button class="rdb" id="hGear" type="button" aria-label="تنظیمات و ابزارها" title="تنظیمات"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
-      <div class="htool">
-        <b class="htit" id="hTitle">همه فایل‌ها</b>
-        <button class="hti" id="hSearchB" type="button" aria-label="جستجو" title="جستجو"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"/></svg></button>
-        <button class="hti" id="hNewF" type="button" aria-label="ایجاد پوشه" title="ایجاد پوشه"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM12 10v6M9 13h6"/></svg></button>
-        <button class="hti" id="hLay" type="button" aria-label="نمایش شبکه‌ای" title="چیدمان"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg></button>
-        <button class="hti" id="hSortB" type="button" aria-label="مرتب‌سازی" title="مرتب‌سازی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h6"/></svg></button>
-      </div>
-      <div class="hsearch" id="hSearchRow" hidden><input id="hQ" type="search" dir="auto" autocomplete="off" placeholder="جستجوی نام فایل…" aria-label="جستجوی نام فایل"><button class="hti" id="hQx" type="button" aria-label="بستن جستجو"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-      <div class="hsortp" id="hSortP" hidden role="group" aria-label="مرتب‌سازی">
-        <div class="hseg" id="hSortK"><button type="button" data-k="name" aria-pressed="false">نام</button><button type="button" data-k="date" aria-pressed="false">تاریخ</button><button type="button" data-k="time" aria-pressed="false">زمان</button></div>
-        <div class="hseg" id="hSortD"><button type="button" data-d="asc" aria-pressed="false">صعودی ↑</button><button type="button" data-d="desc" aria-pressed="false">نزولی ↓</button></div>
-      </div>
-      <div class="hbody">
-        <div class="hperm" id="homePerm" hidden><span id="homePermT">برای نمایش خودکار همهٔ PDFهای دستگاه، دسترسی به فایل‌ها را فعال کنید.</span><button class="btn primary sm" id="homePermB" type="button">فعال‌سازی</button></div>
-        <div id="homeList"></div>
-        <p class="hint" id="homeMsg" aria-live="polite"></p>
-        <button class="btn wide" id="homeAdd" type="button" hidden>افزودن فایل PDF…</button>
-      </div>
+      <button class="ghost" id="heroLib" type="button">کتابخانهٔ من</button>
     </div>
 
     <div class="note" id="ocrNote" hidden>
@@ -936,43 +506,86 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
     <section class="dock" id="dock" aria-label="پخش گفتار">
       <button class="grab" id="dockTgl" type="button" aria-label="کوچک یا بزرگ کردن نوار پخش" aria-expanded="true"><i></i></button>
       <div id="status" aria-live="polite"></div>
-      <div class="drA">
-        <button class="ibtn dpg" id="pgNext" type="button" disabled aria-label="صفحهٔ بعد" title="صفحهٔ بعد"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 6l6 6-6 6M5 6l6 6-6 6"/></svg><span class="cap">صفحه</span></button>
-        <span id="pageInfo"></span>
-        <button class="ibtn dpg" id="pgPrev" type="button" disabled aria-label="صفحهٔ قبل" title="صفحهٔ قبل"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 6l-6 6 6 6M19 6l-6 6 6 6"/></svg><span class="cap">صفحه</span></button>
-        <button class="dhide" id="dockHide" type="button" aria-label="پنهان کردن نوار پخش" title="پنهان کردن نوار پخش"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
-      </div>
-      <div class="meta"><span id="pos">—</span><b id="posPct"></b></div>
+      <div class="meta"><span id="pos">—</span></div>
       <input type="range" class="rng" id="seek" min="0" max="0" value="0" step="1" disabled aria-label="موقعیت در متن">
-      <div class="drB">
-        <button class="dpill primary" id="dListen" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v5H5a1 1 0 0 1-1-1zM20 14h-3v5h2a1 1 0 0 0 1-1z"/></svg><span class="l-a">گوش کن</span><span class="l-b">توقف موقت</span></button>
-        <button class="dpill" id="dText" type="button" aria-label="رفتن به متن استخراج‌شده" title="متن استخراج‌شده / صفحهٔ PDF"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"/></svg><span>متن استخراجی</span></button>
-        <button class="dpill" id="dTools" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.3-.6-.6-2.3z"/></svg><span>ابزارها</span></button>
-      </div>
-      <div class="drC">
-        <button class="pill" id="locBtn" type="button" disabled aria-label="رفتن به محل خواندن" title="رفتن به محل خواندن">محل</button>
-        <button class="ibtn dsk" id="next" type="button" disabled aria-label="جملهٔ بعد" title="جملهٔ بعد"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M5 5l10 7-10 7z"/></svg><span class="cap">جمله</span></button>
+      <div class="ctl">
+        <button class="ibtn" id="pgNext" type="button" disabled aria-label="صفحهٔ بعد" title="صفحهٔ بعد">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 6l6 6-6 6M5 6l6 6-6 6"/></svg><span class="cap">صفحه</span></button>
+        <button class="ibtn" id="prev" type="button" disabled aria-label="جملهٔ قبل" title="جملهٔ قبل">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg><span class="cap">جمله</span></button>
         <button class="play" id="play" type="button" disabled aria-label="پخش" title="پخش (فاصله)">
           <i class="ring"></i><i class="ring r2"></i>
           <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4L18.2 12z"/></svg>
           <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.2" y="5" width="4.1" height="14" rx="1.5"/><rect x="13.7" y="5" width="4.1" height="14" rx="1.5"/></svg>
         </button>
-        <button class="ibtn dsk" id="prev" type="button" disabled aria-label="جملهٔ قبل" title="جملهٔ قبل"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14M19 5L9 12l10 7z"/></svg><span class="cap">جمله</span></button>
-        <button class="pill" id="spdBtn" type="button" aria-label="تغییر سرعت خواندن" title="تغییر سریع سرعت">سرعت ۱×</button>
-        <button class="dvoice" id="dVoice" type="button" aria-label="سبک گفتار" title="سبک گفتار"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20a8 8 0 0 1 16 0"/></svg></button>
+        <button class="ibtn" id="next" type="button" disabled aria-label="جملهٔ بعد" title="جملهٔ بعد">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"/></svg><span class="cap">جمله</span></button>
+        <button class="ibtn" id="pgPrev" type="button" disabled aria-label="صفحهٔ قبل" title="صفحهٔ قبل">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 6l-6 6 6 6M19 6l-6 6 6 6"/></svg><span class="cap">صفحه</span></button>
       </div>
-      <div class="pills" hidden><button class="pill" id="stop" type="button" disabled>توقف</button></div>
+      <div class="pills">
+        <button class="pill" id="locBtn" type="button" disabled aria-label="رفتن به محل خواندن">محل خواندن</button>
+        <button class="pill" id="stop" type="button" disabled>توقف</button>
+      </div>
     </section>
-    <div class="dpeek" id="dockPeek" hidden>
-      <button class="mplay" id="peekPlay" type="button" aria-label="پخش یا توقف" disabled>
-        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4L18.2 12z"/></svg>
-        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.2" y="5" width="4.1" height="14" rx="1.5"/><rect x="13.7" y="5" width="4.1" height="14" rx="1.5"/></svg>
-      </button>
-      <button class="peektxt" id="peekShow" type="button" aria-label="نمایش نوار پخش"><span id="peekPos">نوار پخش</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
-    </div>
   </main>
-    <!-- ===================== صفحه‌های تب‌ها (کتابخانه، صدا، متن، نمایش) ===================== -->
-    <section class="pages" id="menu" aria-label="صفحه‌ها">
+</div>
+
+<div id="fixTip" hidden></div>
+<div id="seekTip" hidden></div>
+<input type="file" id="file" accept="application/pdf,.pdf" hidden>
+<div class="manov" id="manOv" hidden role="dialog" aria-modal="true" aria-label="اسکن و اصلاح دستی">
+  <div class="manin">
+    <div class="manhd"><b>اسکن و اصلاح دستی</b><button class="btn sm" id="manX" type="button">بستن</button></div>
+    <div class="manbd">
+      <div class="manpg">
+        <button class="btn sm" id="manPrev" type="button">صفحهٔ قبل</button>
+        <div class="manno"><input type="number" id="manNo" min="1" value="1" inputmode="numeric" aria-label="شمارهٔ صفحه"><span id="manOf"></span></div>
+        <button class="btn sm" id="manNext" type="button">صفحهٔ بعد</button>
+      </div>
+      <div class="manpv" id="manPv"><canvas id="manCv" width="2" height="2"></canvas><div id="manSel" hidden></div></div>
+      <div class="two">
+        <div class="field"><label for="manMode"><span>محدودهٔ اسکن</span></label>
+          <select id="manMode"><option value="page" selected>کل صفحه</option><option value="region">ناحیهٔ انتخابی (روی تصویر بکشید)</option></select></div>
+        <div class="field"><label for="manQ"><span>کیفیت</span></label>
+          <select id="manQ"><option value="1">سریع</option><option value="2">متعادل</option><option value="3">دقیق (کندتر)</option></select></div>
+      </div>
+      <div class="slist">
+        <label class="chk"><input type="checkbox" id="manDsk"><span class="st"><b>صاف‌کردن کجی صفحه</b></span></label>
+        <label class="chk"><input type="checkbox" id="manLex"><span class="st"><b>رمزگشایی با واژه‌نامه</b></span></label>
+        <label class="chk"><input type="checkbox" id="manDn"><span class="st"><b>کاهش نویز اسکن</b></span></label>
+      </div>
+      <button class="btn primary wide" id="manScan" type="button">اسکن مجدد صفحه</button>
+      <p class="hint" id="manSrc"></p>
+      <textarea id="manTx" dir="rtl" spellcheck="false" aria-label="متن صفحه"></textarea>
+      <div class="btnrow">
+        <button class="btn primary" id="manSave" type="button">ذخیره اصلاح</button>
+        <button class="btn" id="manUndo" type="button">واگرد</button>
+        <button class="btn" id="manDel" type="button">حذف نتیجهٔ OCR</button>
+      </div>
+      <p class="hint" id="manSt" aria-live="polite"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== منو ===================== -->
+<div class="scrim" id="scrim" aria-hidden="true"></div>
+<aside class="menu" id="menu" role="dialog" aria-modal="true" aria-labelledby="menuTitle" aria-hidden="true" inert>
+  <div class="mh">
+    <h2 id="menuTitle">منو</h2>
+    <div class="mhb">
+      <button class="ibtn round" id="menuClose" type="button" aria-label="بستن منو">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="tabs" id="tabs" role="tablist" aria-label="بخش‌های منو">
+    <button class="tab" role="tab" data-tab="lib" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4v16H5zM11 4h4v16h-4zM17.5 5l3 .8-3.6 14-3-.8z"/></svg><span>کتابخانه</span></button>
+    <button class="tab" role="tab" data-tab="voice" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg><span>صدا</span></button>
+    <button class="tab" role="tab" data-tab="text" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/></svg><span>متن</span></button>
+    <button class="tab" role="tab" data-tab="view" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></svg><span>نمایش</span></button>
+  </div>
+
   <div class="mbody" id="mbody">
 
     <!-- کتابخانه -->
@@ -1024,7 +637,6 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
       <div id="novoice" class="warn" hidden>هیچ صدای فارسی روی این دستگاه پیدا نشد. صداهای سایر زبان‌ها نمایش داده شده‌اند، ولی فارسی را درست نمی‌خوانند. در تنظیمات سیستم‌عامل (Text-to-speech) می‌توانید صدای فارسی نصب کنید.</div>
       <input type="hidden" id="engine" value="piper">
 
-<div class="bgcfg" hidden>
       <section class="grp">
         <h3>گوینده</h3>
         <div class="field">
@@ -1041,9 +653,9 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         </div>
         <p class="hint">کاملاً رایگان و بدون سقف است؛ صدا یک‌بار بعد از نصب برنامه دانلود می‌شود و از آن به بعد بدون اینترنت کار می‌کند. ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
       </section>
-</div>
 
-<section class="grp" id="styleBox">
+      <section class="grp">
+        <h3>گویش و طبیعی‌بودن</h3>
         <div class="field">
           <span class="flab">سبک گفتار</span>
           <select id="vstyle" data-seg aria-label="سبک گفتار">
@@ -1055,8 +667,6 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             <option value="lively" data-short="پرحالت" data-desc="پرحال‌تر و پرتنوع‌تر؛ مناسب داستان و گفت‌وگو.">گویا (پرحالت‌تر)</option>
           </select>
         </div>
-</section>
-<div class="bgcfg" hidden>
         <div class="field">
           <span class="flab">حذف نویز و صداهای اضافه</span>
           <select id="vclean" data-seg aria-label="حذف نویز و صداهای اضافه">
@@ -1078,12 +688,12 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         <div class="slist">
           <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است؛ مثل نفس‌گیری گوینده. سرعت خود صدا تغییر نمی‌کند.</small></span></label>
           <label class="chk"><input type="checkbox" id="smartPace"><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
+          <label class="chk"><input type="checkbox" id="ezAuto" checked><span class="st"><b>کسرهٔ اضافهٔ خودکار</b><small>مثل «صدای کتاب». اگر جایی اشتباه خواند، این گزینه را خاموش کنید.</small></span></label>
           <label class="chk"><input type="checkbox" id="phLex" checked><span class="st"><b>واژه‌نامهٔ آوایی داخلی</b><small>برای صدها واژهٔ پرکاربرد، کوتاه‌مصوت‌ها (َ ِ ُ) را مشخص می‌کند تا تلفظ دقیق‌تر شود. اگر جایی عجیب خوانده شد خاموشش کنید.</small></span></label>
           <label class="chk"><input type="checkbox" id="enh" checked><span class="st"><b>بهبود کیفیت صدا</b><small>گرمی و وضوح بیشتر، نرم‌کردن «س» و «ش» تند و یکنواختی بلندی؛ تنظیم خودکار برای هر گوینده.</small></span></label>
         </div>
-</div>
+      </section>
 
-<div class="bgcfg" hidden>
       <section class="grp">
         <h3>سرعت گفتار</h3>
         <div class="field">
@@ -1097,10 +707,8 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           <p class="hint">سرعت کمتر از ۱× بدون تغییر زیر و بمی ساخته می‌شود.</p>
         </div>
       </section>
-</div>
 
-<div class="bgcfg" hidden>
-      <section class="grp" id="sleepBox">
+      <section class="grp">
         <h3>تایمر خواب</h3>
         <div class="field">
           <label><span>توقف خودکار پخش</span><span id="slV">خاموش</span></label>
@@ -1108,7 +716,6 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           <p class="hint">پس از زمان انتخاب‌شده، پخش خودکار متوقف می‌شود.</p>
         </div>
       </section>
-</div>
 
       <details class="acc" id="bgmBox">
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 16a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/></svg></i><span class="stt"><b>موسیقی پس‌زمینه</b><small>همراه با خواندن، کم‌صدا و پیوسته</small></span></summary>
@@ -1161,7 +768,6 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 
     <!-- متن -->
     <div class="panel" data-panel="text" role="tabpanel">
-<div class="bgcfg" hidden>
       <details class="acc" id="txtbox" open>
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"/></svg></i><span class="stt"><b>ساختار متن و صفحه‌ها</b><small>سطربندی، بازهٔ صفحه‌ها و طول جمله‌ها</small></span></summary>
         <div class="in">
@@ -1197,9 +803,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           </div>
         </div>
       </details>
-</div>
 
-<div class="bgcfg" hidden>
       <details class="acc" id="cleanBox">
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19l7-7M14 4l1.5 3.5L19 9l-3.5 1.5L14 14l-1.5-3.5L9 9l3.5-1.5z"/></svg></i><span class="stt"><b>پاک‌سازی و اصلاح متن</b><small>سرصفحه، نقطه‌چین، حروف عربی و فاصله‌گذاری</small></span></summary>
         <div class="in">
@@ -1217,12 +821,10 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           </div>
         </div>
       </details>
-</div>
 
       <details class="acc" id="ocrBox">
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></svg></i><span class="stt"><b>OCR</b><small>خواندن متن از روی تصویر صفحه</small></span></summary>
         <div class="in">
-<div class="bgcfg" hidden>
           <div class="field">
             <label for="ocrMode"><span>حالت OCR</span></label>
             <select id="ocrMode" data-seg>
@@ -1232,14 +834,13 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             </select>
           </div>
           <div class="field"><label for="ocrQ"><span>کیفیت</span></label>
-            <select id="ocrQ" data-seg><option value="1" data-short="سریع" selected>سریع</option><option value="2" data-short="متعادل">متعادل</option><option value="3" data-short="دقیق" data-desc="دقیق‌تر ولی کندتر.">دقیق (کندتر)</option></select></div>
+            <select id="ocrQ" data-seg><option value="1" data-short="سریع">سریع</option><option value="2" data-short="متعادل" selected>متعادل</option><option value="3" data-short="دقیق" data-desc="دقیق‌تر ولی کندتر.">دقیق (کندتر)</option></select></div>
           <div class="slist">
             <label class="chk"><input type="checkbox" id="ocrGpu" checked><span class="st"><b>شتاب‌دهندهٔ گرافیکی</b><small>زنجیرهٔ WebGPU ← WebGL ← WASM SIMD (چندنخی در صورت crossOriginIsolated)؛ هر مرحله با خروجی آزمایشی اعتبارسنجی می‌شود و در صورت خطا خودکار به مرحلهٔ بعد می‌رود. WebGPU به فایل‌های اختیاری ocr/ort/ort.webgpu.min.js و ort-wasm-simd.jsep.wasm نیاز دارد.</small></span></label>
             <label class="chk"><input type="checkbox" id="ocrDsk" checked><span class="st"><b>صاف‌کردن کجی صفحه</b><small>اسکن کج (تا ±۵ درجه) پیش از OCR مستقیم می‌شود و کنتراست هم اصلاح می‌شود.</small></span></label>
             <label class="chk"><input type="checkbox" id="ocrLex" checked><span class="st"><b>رمزگشایی راهنمایی‌شده با واژه‌نامه</b><small>واژهٔ ناشناخته با نامزد دوم مدل اصلاح می‌شود و تکه‌های جداافتادهٔ واژه («کتا ب») به هم می‌چسبند.</small></span></label>
             <label class="chk"><input type="checkbox" id="ocrDn"><span class="st"><b>کاهش نویز اسکن</b><small>برای اسکن‌های خالی‌دار و کثیف؛ کمی کندتر.</small></span></label>
           </div>
-</div>
           <button class="btn primary wide" id="ocrBtn" type="button" disabled>اجرای OCR (از صفحهٔ فعلی)</button>
           <p class="hint" id="ocrStat" aria-live="polite"></p>
           <p class="hint" id="ocrSrc"></p>
@@ -1257,7 +858,6 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         </div>
       </details>
 
-<div class="bgcfg" hidden>
       <details class="acc" id="fixbox">
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></i><span class="stt"><b>تصحیح‌گر هوشمند گفتار</b><small>عدد، تاریخ، اختصار، لاتین و مکث‌گذاری</small></span></summary>
         <div class="in">
@@ -1267,7 +867,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             <label class="chk"><input type="checkbox" id="fixPro" checked><span class="st"><b>مکث‌گذاری هوشمند</b><small>پیش از پیوندها و شکستن جملهٔ بلند.</small></span></label>
             <label class="chk"><input type="checkbox" id="fixCite" checked><span class="st"><b>نخواندن ارجاع درون‌متنی</b><small>مثل «(احمدی، ۱۳۹۸: ۲۴)» و «(Smith, 2020)»؛ در متن نمایش‌داده‌شده می‌ماند.</small></span></label>
           </div>
-          <details class="sub hintbox"><summary>این بخش چه می‌کند؟</summary><div class="in"><p class="hint">پیش از خواندن هر جمله، متن را بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع (از جمله ارجاع درون‌متنی)، تنوین قیدها (مثلاً، حتماً)، کلمه‌های لاتین و سرواژه‌ها و مکث‌گذاری هوشمند. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p></div></details>
+          <details class="sub hintbox"><summary>این بخش چه می‌کند؟</summary><div class="in"><p class="hint">پیش از خواندن هر جمله، متن را بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، کسرهٔ اضافه (ۀ)، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع (از جمله ارجاع درون‌متنی)، تنوین قیدها (مثلاً، حتماً)، کلمه‌های لاتین و سرواژه‌ها و مکث‌گذاری هوشمند. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p></div></details>
           <p class="hint" id="fixStats" aria-live="polite"></p>
           <p class="hint" id="fixBreak"></p>
           <p class="hint" id="fixUnsHead" hidden>کلمه‌هایی که تلفظشان قطعی نبود و تقریبی ساخته شد. روی هر کلمه بزنید تا با تلفظ پیشنهادی به واژه‌نامه اضافه شود؛ بعد می‌توانید تلفظ را در واژه‌نامه ویرایش کنید.</p>
@@ -1275,7 +875,6 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           <p class="hint" id="fixMsg" aria-live="polite"></p>
         </div>
       </details>
-</div>
 
       <details class="acc" id="dictBox">
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h10"/></svg></i><span class="stt"><b>واژه‌نامهٔ تلفظ</b><small>تلفظ دلخواه برای کلمه‌های خاص</small></span></summary>
@@ -1289,7 +888,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             </select>
           </div>
           <p class="hint" id="dictWho"></p>
-          <p class="hint">واژه‌نامهٔ «این فایل» با نام همین PDF ذخیره می‌شود و هر بار که همان فایل را باز کنید خودکار برمی‌گردد. در متن هم می‌توانید کلمه را انتخاب (هایلایت) کنید و «افزودن به واژه‌نامه» را بزنید. برای اصلاح غلط‌های OCR در خود متن بنویسید «غلط => درست» (چند شکل: «الف | ب => درست»).</p>
+          <p class="hint">واژه‌نامهٔ «این فایل» با نام همین PDF ذخیره می‌شود و هر بار که همان فایل را باز کنید خودکار برمی‌گردد. در متن هم می‌توانید کلمه را انتخاب (هایلایت) کنید و «افزودن به واژه‌نامه» را بزنید.</p>
           <textarea id="dict" dir="rtl" placeholder="مثلاً:&#10;خویش = خویش&#10;ChatGPT = چت جی پی تی"></textarea>
           <button class="btn primary wide" id="dictSave" type="button" disabled>ثبت و ذخیرهٔ واژه‌ها</button>
           <div class="two"><button class="btn" id="dictExp" type="button">برون‌بری (.txt)</button><button class="btn" id="dictImp" type="button">درون‌ریزی</button></div>
@@ -1299,9 +898,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         </div>
       </details>
 
-<div class="bgcfg" hidden>
       <button class="btn wide" id="txtReset" type="button">بازنشانی تنظیمات متن</button>
-</div>
     </div>
 
     <!-- نمایش -->
@@ -1315,7 +912,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         </div>
       </section>
 
-      <section class="grp" id="fxBox">
+      <section class="grp">
         <h3>جلوه‌های بصری</h3>
         <div class="sw" id="fxSw" style="grid-template-columns:repeat(4,1fr)">
           <button type="button" data-fx="full" aria-pressed="false"><i style="background:linear-gradient(135deg,#8ea2ee,#4cbdb0 52%,#f0c466)"></i>کامل</button>
@@ -1361,69 +958,9 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
     </div>
 
   </div>
-    </section>
-    <div class="mini" id="mini" hidden>
-      <button class="mplay" id="miniPlay" type="button" aria-label="پخش یا توقف">
-        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4L18.2 12z"/></svg>
-        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.2" y="5" width="4.1" height="14" rx="1.5"/><rect x="13.7" y="5" width="4.1" height="14" rx="1.5"/></svg>
-      </button>
-      <button class="mtxt" id="miniGo" type="button" aria-label="بازگشت به متن"><b id="miniT"></b><small id="miniP"></small></button>
-    </div>
-  </div>
-</div>
-
-<div class="hdlg" id="hDlg" hidden><div class="hdlgc" role="dialog" aria-modal="true" aria-labelledby="hDlgT"><h4 id="hDlgT"></h4><div id="hDlgB"></div><div class="hdlga"><button class="btn" id="hDlgNo" type="button">لغو</button><button class="btn primary" id="hDlgOk" type="button">ایجاد</button></div></div></div>
-<div id="fixTip" hidden></div>
-<div id="seekTip" hidden></div>
-<input type="file" id="file" accept="application/pdf,.pdf" hidden>
-<div class="manov" id="manOv" hidden role="dialog" aria-modal="true" aria-label="اسکن و اصلاح دستی">
-  <div class="manin">
-    <div class="manhd"><b>اسکن و اصلاح دستی</b><button class="btn sm" id="manX" type="button">بستن</button></div>
-    <div class="manbd">
-      <div class="manpg">
-        <button class="btn sm" id="manPrev" type="button">صفحهٔ قبل</button>
-        <div class="manno"><input type="number" id="manNo" min="1" value="1" inputmode="numeric" aria-label="شمارهٔ صفحه"><span id="manOf"></span></div>
-        <button class="btn sm" id="manNext" type="button">صفحهٔ بعد</button>
-      </div>
-      <div class="manpv" id="manPv"><canvas id="manCv" width="2" height="2"></canvas><div id="manSel" hidden></div></div>
-      <div class="two">
-        <div class="field"><label for="manMode"><span>محدودهٔ اسکن</span></label>
-          <select id="manMode"><option value="page" selected>کل صفحه</option><option value="region">ناحیهٔ انتخابی (روی تصویر بکشید)</option></select></div>
-        <div class="field"><label for="manQ"><span>کیفیت</span></label>
-          <select id="manQ"><option value="1">سریع</option><option value="2">متعادل</option><option value="3">دقیق (کندتر)</option></select></div>
-      </div>
-      <div class="slist">
-        <label class="chk"><input type="checkbox" id="manDsk"><span class="st"><b>صاف‌کردن کجی صفحه</b></span></label>
-        <label class="chk"><input type="checkbox" id="manLex"><span class="st"><b>رمزگشایی با واژه‌نامه</b></span></label>
-        <label class="chk"><input type="checkbox" id="manDn"><span class="st"><b>کاهش نویز اسکن</b></span></label>
-      </div>
-      <button class="btn primary wide" id="manScan" type="button">اسکن مجدد صفحه</button>
-      <p class="hint" id="manSrc"></p>
-      <textarea id="manTx" dir="rtl" spellcheck="false" aria-label="متن صفحه"></textarea>
-      <div class="btnrow">
-        <button class="btn primary" id="manSave" type="button">ذخیره اصلاح</button>
-        <button class="btn" id="manUndo" type="button">واگرد</button>
-        <button class="btn" id="manDel" type="button">حذف نتیجهٔ OCR</button>
-      </div>
-      <p class="hint" id="manSt" aria-live="polite"></p>
-    </div>
-  </div>
-</div>
-
-
-<div class="vs-scrim" id="vsScrim" hidden></div>
-<section class="vs" id="vsSheet" role="dialog" aria-modal="true" aria-labelledby="vsTitle" hidden>
-  <div class="vs-grab"></div>
-  <div class="vs-h"><b id="vsTitle">گوینده و سبک گفتار</b><button class="vs-x" id="vsX" type="button" aria-label="بستن"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-  <div class="vs-sec">گوینده</div>
-  <div class="vs-voices" id="vsVoices" role="radiogroup" aria-label="گوینده"></div>
-  <div class="vs-sec">سبک گفتار</div>
-  <div class="vs-styles" id="vsStyles" role="radiogroup" aria-label="سبک گفتار"></div>
-  <p class="vs-desc" id="vsDesc" aria-live="polite"></p>
-</section>
+</aside>
 
 <script src="lib/pdf.min.js"></script>
-<script src="fa_words.js"></script>
 <script>window.pdfLocal = !!window.pdfjsLib;</script>
 <script>
 (function(){
@@ -1443,7 +980,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
   $('#rate').value = sget('rate', '1');
   if (sget('rateBase', '') !== '1') { sset('rateBase', '1'); sset('rate', '1'); $('#rate').value = '1'; }   /* یک‌بار: بازگشت سرعت به ۱× (حالت اولیه) */
   function fillRng(el){ var mn = +el.min, mx = +el.max, p = mx > mn ? (el.value - mn) / (mx - mn) * 100 : 0; el.style.setProperty('--p', Math.max(0, Math.min(100, p)) + '%'); }
-  function showVals(){ try { syncSpd(); } catch (e) {}
+  function showVals(){
     var r = +$('#rate').value, ch = document.querySelectorAll('#rateChips .chip'), i;
     $('#rateV').textContent = nf.format(r) + '×';
     fillRng($('#rate'));
@@ -1492,7 +1029,6 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
     });
     if (prev && list.some(function(v){ return v.id === prev; })) sel.value = prev;
     if (pp) updatePiperStatus();
-    if (VS) VS.sync();
   }
   function labelVoices(){
     var o = $('#voice').options, k, v;
@@ -1754,7 +1290,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 
   /* ---------- text settings / OCR ---------- */
 /*@@TXW:A*/
-  var O = { ln: 'auto', maxl: 100, script: true, ocr: 'auto' }, pdfDoc = null, rawItems = [], ocrPages = {}, ocrGeo = {}, ocrKey = '', need = [], dropped = 0, ocrBusy = false, ocrStop = false, ocrDirty = false, rawImg = [];
+  var O = { ln: 'auto', maxl: 100, script: true, ocr: 'auto' }, pdfDoc = null, rawItems = [], ocrPages = {}, ocrKey = '', need = [], dropped = 0, ocrBusy = false, ocrStop = false, rawImg = [];
   function opts(){ var g = function(i){ return $('#' + i); }; return { ln: g('lnMode').value, dots: g('oDots').checked, hdr: g('oHdr').checked, norm: g('oNorm').checked, script: g('oScript').checked, latin: g('oLatin').checked, pos: g('oPos').checked, cols: g('oCols').checked && g('oPos').checked, fix: g('oFix').checked, glue: g('oGlue').checked, spell: g('oSpell').checked, pause: g('oPause').checked, toc: g('oToc').checked, from: Math.max(0, +g('pgFrom').value || 0), to: Math.max(0, +g('pgTo').value || 0), maxl: +g('maxL').value, ocr: g('ocrMode').value, enc: g('encMode').value }; }
   function optsFix(o){ if (o.from && o.to && o.from > o.to) { var x = o.from; o.from = o.to; o.to = x; } return o; }
   var CW = new Set('و در به از که این را با است برای آن یک تا هم بر یا هر شد می'.split(' '));
@@ -1971,7 +1507,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
   function ocrHint(){ var k = ocrTodo().length; return k ? ' — ' + nf.format(k) + ' صفحه متن خراب یا بدون متن دارد و نیاز به OCR دارد (منو ‹ متن)' : ''; }
   function ocrInfo(){
     var k = ocrTodo().length, b = $('#ocrBtn');
-    paddleLocal().then(function(l){ $('#ocrSrc').textContent = (l ? 'موتور و مدل OCR: داخل برنامه (آفلاین)' : 'موتور و مدل OCR: داخل برنامه نیست') + ' — نمایش PDF: ' + (window.pdfLocal ? 'داخل برنامه (آفلاین)' : 'داخل برنامه نیست') + (ocrEp ? ' — شتاب‌دهنده: ' + epLabel(ocrEp) : '') + ' — واژه‌نامهٔ املا: ' + nf.format(ocrSpell.size()) + ' واژه'; });
+    paddleLocal().then(function(l){ $('#ocrSrc').textContent = (l ? 'موتور و مدل OCR: داخل برنامه (آفلاین)' : 'موتور و مدل OCR: داخل برنامه نیست') + ' — نمایش PDF: ' + (window.pdfLocal ? 'داخل برنامه (آفلاین)' : 'داخل برنامه نیست') + (ocrEp ? ' — شتاب‌دهنده: ' + epLabel(ocrEp) : ''); });
     $('#manBtn').disabled = !pdfDoc || !rawItems.length;
     b.disabled = !ocrBusy && !k; b.textContent = ocrBusy ? 'توقف OCR و استفاده از نتیجه' : 'اجرای OCR (از صفحهٔ فعلی)';
     uiOcrNote(k);
@@ -2096,15 +1632,10 @@ var ocrSpell = (function(){
   var D = null, memo = new Map(), CONF = {};
   'بپتثنی|جچحخ|دذ|رزژ|سش|صض|طظ|عغ|فق|کگ|اآ'.split('|').forEach(function(g){ g.split('').forEach(function(c){ CONF[c] = g.replace(c, ''); }); });
 
-  var GW = (typeof window !== 'undefined') ? window : self, UW = new Set(), PLW = /^[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC]+$/;
-  function faText(){ var w = GW.FA_WORDS || GW.FA_DICT || GW.fa_words || ''; if (Array.isArray(w)) return w.join(' '); if (w && typeof w === 'object') return Object.keys(w).join(' '); return String(w); }   /* fa_words.js: رشته (فاصله/خط‌جدید/ویرگول)، آرایه یا شیء؛ نبودنش خطا نیست */
-  function addFw(x){ x = normCh(x).replace(/[\u064B-\u0652\u0670]/g, ''); if (!x) return; if (x.indexOf('\u200c') >= 0) { x.split('\u200c').forEach(function(p){ if (p.length >= 3) D.add(p); }); if (x.replace(/\u200c/g, '').length >= 4) D.add(x.replace(/\u200c/g, '')); } else if (x.length >= 2) D.add(x); }
   function build(){
     D = new Set();
     var add = function(w){ if (w) D.add(normCh(w)); };
     BASE.split(' ').forEach(add);
-    var fw = faText(); if (fw) fw.split(/[\s,;|،؛]+/).forEach(function(w){ var c = w.replace(/\u200c/g, ''); if (c && PLW.test(c)) addFw(w); });
-    UW.forEach(function(w){ D.add(w); });
     [CW, EZ_STOP, EZ_STOP2, EZ_V, EZ_VBX, NUMW, NOCOMMA_PREV, P_SPLIT].forEach(function(o){ (o instanceof Set ? Array.from(o) : Object.keys(o)).forEach(add); });
     ON.concat(TN, HN, SC, MON_FA).forEach(add);
     LEX_SRC.split(/\s+/).forEach(function(v){ add(v.replace(/[aeo]/g, '')); });
@@ -2159,7 +1690,7 @@ var ocrSpell = (function(){
   function cand(w){
     if (w.length < 4 || KEEP.has(w) || known(w, 0)) return w;
     if (!SI) idx();
-    var L = w.length, cs = [], seen = {}, i, j, pr, sf, st, ws, k, d, b = null, b1 = 9, b2 = 9, lim = L < 5 ? 0.4 : L < 8 ? 1 : 1.3;
+    var L = w.length, cs = [], seen = {}, i, j, pr, sf, st, ws, k, d, b = null, b1 = 9, b2 = 9, lim = L < 5 ? 0.4 : L < 8 ? 0.8 : 1.3;
     for (i = 0; i < SP.length; i++) {
       pr = SP[i]; if (pr && !(w.startsWith(pr) && L - pr.length >= 3)) continue;
       for (j = 0; j < SS.length; j++) {
@@ -2168,7 +1699,7 @@ var ocrSpell = (function(){
         if (ws) for (k = 0; k < ws.length; k++) { st = pr + ws[k] + sf; if (st !== w && !seen[st]) { seen[st] = 1; cs.push(st); } }
       }
     }
-    if (L >= 6 && !cs.length) {                           /* یک درج/حذف اضافه + هر تعداد خطای نقطه‌ای */
+    if (L >= 8 && !cs.length) {                           /* یک درج/حذف اضافه + هر تعداد خطای نقطه‌ای */
       if (!DI) idx2();
       var q = skel(w), ks = [q], ds;
       for (i = 0; i < q.length; i++) ks.push(q.slice(0, i) + q.slice(i + 1));
@@ -2180,29 +1711,11 @@ var ocrSpell = (function(){
     }
     return b && b1 <= lim && b2 - b1 >= 0.15 ? b : w;    /* برندهٔ روشن؛ دوپهلو یا دور ← بدون تغییر (اصطلاح خاص آسیب نمی‌بیند) */
   }
-  /* ۳) واژهٔ چسبیده (فاصله جا افتاده: «هستندکه»، «هستندبین»، «وریشه») ← دو واژهٔ معتبر.
-     محافظه‌کارانه: واژه باید ناشناخته و در سند کم‌تکرار (<۲) باشد، دست‌کم یک سمت از واژه‌های بسته/فعل‌های پرچسب، و سمت دیگر در دیکشنری یا ≥۳ بار در همین سند دیده شده باشد */
-  var CLOSED = new Set('و در به از که را با هم می نیز اما این آن بین برای است بود بودند شد شدند باشد باشند هستند هستم هستی هستیم هستید'.split(' '));
-  function evid(x, fq){ return CLOSED.has(x) ? 4 : D.has(x) ? 3 : known(x, 0) ? 2 : fq && fq.get(x) >= 3 ? 2 : 0; }
-  function glue(w, fq){
-    var L = w.length, i, A, B, ea, eb, sc, best = null, bs = 0;
-    if (L < 5 || D.has(w) || KEEP.has(w) || (fq && fq.get(w) >= 2) || known(w, 0)) return null;
-    for (i = 1; i <= L - 2; i++) {
-      A = w.slice(0, i); B = w.slice(i);
-      if ((A.length < 3 && !CLOSED.has(A)) || (B.length < 3 && !CLOSED.has(B))) continue;
-      if (!CLOSED.has(A) && !CLOSED.has(B)) continue;
-      ea = evid(A, fq); eb = evid(B, fq); if (!ea || !eb) continue;
-      sc = ea + eb + Math.min(A.length, B.length) * 0.1;
-      if (sc > bs) { bs = sc; best = A + ' ' + B; }
-    }
-    return best;
-  }
   function fix(t, fq){
     if (!D) build();
     var i; for (i = 0; i < CH.length; i++) t = t.replace(CH[i][0], CH[i][1]);
     if (memo.size > 60000) memo.clear();
     return t.replace(TOK, function(w){
-      var g = glue(w, fq); if (g) return g;
       var c = memo.get(w);
       if (c === undefined) { c = cand(w); memo.set(w, c); }
       /* واژهٔ پرتکرار در همین سند (نام، اصطلاح) که از جایگزینش پرتکرارتر است، درست فرض می‌شود */
@@ -2215,15 +1728,7 @@ var ocrSpell = (function(){
   fix.keep = function(ws){ (ws || []).forEach(function(x){ KEEP.add(x); }); memo.clear(); };   /* واژه‌های محافظت‌شده (اصطلاح/نام خاص) هرگز اصلاح نمی‌شوند */
   fix.has = function(w){ if (!D) build(); return D.has(w); };
   fix.words = function(){ if (!D) build(); return Array.from(D); };   /* برای رمزگشایی راهنمایی‌شده در Worker OCR */
-  fix.known = function(w){ if (!D) build(); return known(w, 0); };
-  fix.size = function(){ if (!D) build(); return D.size; };
-  fix.fwText = function(){ return faText(); };
-  fix.setFW = function(t){ GW.FA_WORDS = String(t || ''); fix.reset(); };
-  fix.user = function(ws){                                       /* واژه‌های واژه‌نامهٔ کاربر ← دانسته و محافظت‌شده */
-    var ch = false;
-    (ws || []).forEach(function(w){ w = normCh(String(w)).replace(/[\u064B-\u0652\u0670]/g, ''); if (w.length >= 2 && PLW.test(w) && !UW.has(w)) { UW.add(w); KEEP.add(w); ch = true; } });
-    if (ch) { D = null; SI = null; DI = null; memo.clear(); }
-  };   /* دیکشنری + پسوند/پیشوند */
+  fix.known = function(w){ if (!D) build(); return known(w, 0); };   /* دیکشنری + پسوند/پیشوند */
   return fix;
 })();
   /* ===== فهرست مطالب: جداکردن عنوان از شمارهٔ صفحه/کد درهم‌رفته (۱۵۲-۴ ← «صفحه‌های ۱۵۲ تا ۱۵۴») و یک مدخل در هر سطر ===== */
@@ -2757,8 +2262,7 @@ var ocrSpell = (function(){
         pg.g = null;
         var ar = 0, la = 0;                                          /* خوشه‌بندی، ترتیب خوانش RTL و پاک‌سازی نویسه‌ها هم داخل Worker؛ فقط متن نهایی به ترد اصلی برمی‌گردد */
         r.lines.forEach(function(l){ ar += (l.text.match(/[\u0600-\u06FF]/g) || []).length; la += (l.text.match(/[A-Za-z]/g) || []).length; });
-        var G = [], pt = ocrText(r, ar >= la ? 'rtl' : 'ltr', G) || '';
-        return { page: pt, n: r.lines.length, ep: epId(), ang: pg.ang, geo: { w: pg.w, h: pg.h, a: +(pg.ang * Math.PI / 180).toFixed(5), L: G.map(function(q){ return [q[0], Math.round(q[1]), Math.round(q[2]), Math.round(q[3]), Math.round(q[4])]; }) } };
+        return { page: ocrText(r, ar >= la ? 'rtl' : 'ltr') || '', n: r.lines.length, ep: epId(), ang: pg.ang };
       })();
     };
     var t0 = H.term;
@@ -2776,7 +2280,7 @@ var ocrSpell = (function(){
   }
   /* --- Worker پردازش متن: ادغام سطرها، پاک‌سازی، تفکیک جمله‌ها، تحلیل ریسک گفتار --- */
   var TXW_MK = ['/*@@' + 'TXW:A*/', '/*@@' + 'TXW:/A*/', '/*@@' + 'TXW:B*/', '/*@@' + 'TXW:/B*/'];
-  var TXW_OVR = 'var $=function(){throw new Error("DOM")},__S={};function fixOn(){return !!__S.fixOn}function fixHi(){return !!__S.fixOn&&!!__S.fixHi}function ezOn(){return false}function humOn(){return __S.humOn!==false}function phLexOn(){return __S.phLexOn!==false}function citeOn(){return __S.citeOn!==false}function sOn(){return !!__S.fixOn&&!!__S.fixPro}function engine(){return "piper"}';
+  var TXW_OVR = 'var $=function(){throw new Error("DOM")},__S={};function fixOn(){return !!__S.fixOn}function fixHi(){return !!__S.fixOn&&!!__S.fixHi}function ezOn(){return __S.ezOn!==false}function humOn(){return __S.humOn!==false}function phLexOn(){return __S.phLexOn!==false}function citeOn(){return __S.citeOn!==false}function sOn(){return !!__S.fixOn&&!!__S.fixPro}function engine(){return "piper"}';
   function txwSrc(){
     var s = '', i, t;
     for (i = 0; i < document.scripts.length; i++) { t = document.scripts[i].textContent; if (t && t.indexOf(TXW_MK[0]) >= 0) { s = t; break; } }
@@ -2788,11 +2292,9 @@ var ocrSpell = (function(){
     var azId = 0;
     rawItems = []; rawImg = [];
     H.doc = function(){ rawItems = []; rawImg = []; };
-    H.fw = function(t){ ocrSpell.setFW(t); };
     H.items = function(d){ rawItems[d.p - 1] = d.its; if (d.img) rawImg[d.p] = true; };
     H.process = function(d){
       var i, emp = [], badp = [], n = d.n;
-      if (d.dictP != null) { dictP = d.dictP; dictG = d.dictG || ''; parseDict(); }
       for (i = 0; i < n; i++) if (!rawItems[i]) rawItems[i] = [];
       O = d.O; ocrPages = d.ocr || {};
       var inR = function(p){ return (!O.from || p >= O.from) && (!O.to || p <= O.to); };
@@ -2810,7 +2312,6 @@ var ocrSpell = (function(){
         var s = normL(clean(prep(ocrPages[i + 1] != null ? ocrPurge(tocFx(t)) : tocFx(t)), O.ln));
         if (O.glue) s = glueFix(s);
         if (O.spell && ocrPages[i + 1] != null) s = ocrSpell(s, fq);
-        if (ocrPages[i + 1] != null && ocrFx.length) s = ocrFxApply(s);
         return tidy(s);
       });
       dropped = 0;
@@ -2849,7 +2350,6 @@ var ocrSpell = (function(){
       try {
         var src = (window.Worker && window.MessageChannel) ? txwSrc() : '';
         if (src) txw = wkRpc('var H = {};' + src + '\n' + TXW_OVR + ';(' + txwGlue.toString() + ')();(' + wkBoot.toString() + ')();') || false;
-        if (txw) { try { txw.post('fw', ocrSpell.fwText()); } catch (e) {} }
       } catch (e) { txw = false; }
     }
     return txw && txw.alive() ? txw : null;
@@ -2860,17 +2360,16 @@ var ocrSpell = (function(){
     return o;
   }
   var procRun = 0;
-  function process(keep, live){
+  function process(keep){
     var W = txwGet();
     if (!W) { processSync(keep); return Promise.resolve(); }
     var my = ++procRun, kp = keep && sents[idx] ? sents[idx].page : 0;
-    O = optsFix(opts()); if (!live) stopAll(); clearCache(); ocrDirty = false;
-    return W.call('process', { O: O, ocr: ocrPages, n: rawItems.length, dictP: dictP, dictG: dictG }).then(function(r){
+    O = optsFix(opts()); stopAll(); clearCache();
+    return W.call('process', { O: O, ocr: ocrPages, n: rawItems.length }).then(function(r){
       if (my !== procRun) return;
-      if (playing && !live) stopAll();
+      if (playing) stopAll();
       need = r.need;
-      build(null, r.pre, r.dropped); if (!live) warmPiper(); analyze(); ocrInfo();
-      if (live) { live(); return; }
+      build(null, r.pre, r.dropped); warmPiper(); analyze(); ocrInfo();
       if (kp) { for (var i = 0; i < sents.length; i++) if (sents[i].page >= kp) { idx = i; break; } mark(true); }
     }, function(){ if (my === procRun) processSync(keep); });
   }
@@ -2892,7 +2391,6 @@ var ocrSpell = (function(){
       var s = normL(clean(prep(ocrPages[i + 1] != null ? ocrPurge(tocFx(t)) : tocFx(t)), O.ln));
       if (O.glue) s = glueFix(s);
       if (O.spell && ocrPages[i + 1] != null) s = ocrSpell(s, fq);
-        if (ocrPages[i + 1] != null && ocrFx.length) s = ocrFxApply(s);
       return tidy(s);
     });
     build(pg); warmPiper(); analyze(); ocrInfo();
@@ -3073,7 +2571,7 @@ var ocrSpell = (function(){
     cut(A, false);
     return out;
   }
-  function ocrText(d, dir, G){
+  function ocrText(d, dir){
     var ls = ocrOrder(ocrCluster(ocrLines(d), dir), dir), out = [], py = null, pend = false;
     if (!ls.length) return (d && d.text) || '';
     var hs = ls.map(function(l){ return l.bbox ? l.bbox.y1 - l.bbox.y0 : 0; }).filter(Boolean).sort(function(p, q){ return p - q; }), mh = hs.length ? hs[hs.length >> 1] : 0;
@@ -3087,33 +2585,32 @@ var ocrSpell = (function(){
       if (l.bbox) py = l.bbox.y1;
       if (!/[\p{L}\p{N}]/u.test(t) || c < 25 || (c < 50 && nl < 4) || mg) return;
       if (pend && out.length) out.push('');
-      pend = false; out.push(t); if (G && bb) G.push([t, bb.x0, bb.y0, bb.x1, bb.y1]);
+      pend = false; out.push(t);
     });
     return out.length ? out.join('\n') : (d.text || '');
   }
   async function runOcr(){
     if (ocrBusy) { ocrStop = true; return; }
     if (man.busy) { status('اسکن دستی در حال اجراست؛ ابتدا آن را تمام یا متوقف کنید.'); return; }
-    var doc = pdfDoc, key = ocrKey, pages = ocrPages, geo = ocrGeo, gkey = ocrKey.replace(/^ocr:/, 'ocrg:'), cur = sents[idx] ? sents[idx].page : 1, n = rawItems.length, L = [], done = 0, err = '', qi = 0, killed = false, lastP = 0, lanes = [], redo = [], inflight = {}, rch = Promise.resolve(), cv = null, cx = null, opt = null, qv = $('#ocrQ').value;
+    var doc = pdfDoc, key = ocrKey, pages = ocrPages, cur = sents[idx] ? sents[idx].page : 1, n = rawItems.length, L = [], done = 0, err = '', qi = 0, ow = null, killed = false, lastP = 0, pre = null, rs = 0, cv = null, cx = null, opt = null, qv = $('#ocrQ').value;
     for (var k = 0; k < n; k++) { var p0 = ((cur - 1 + k) % n) + 1; if (need.indexOf(p0) >= 0 && pages[p0] == null) L.push(p0); }
     if (!L.length || !doc) return;
     stopAll(); ocrBusy = true; ocrStop = false; ocrInfo();
-    var dropPre = function(ln){ if (ln.pre) { var q = ln.pre.p; redo.push(ln.pre.pn); delete inflight[ln.pre.pn]; ln.pre = null; q.then(function(r){ try { if (r.m.bmp) r.m.bmp.close(); } catch (e) {} }, function(){}); } };
+    var dropPre = function(){ if (pre) { var q = pre.p; pre = null; q.then(function(r){ try { if (r.m.bmp) r.m.bmp.close(); } catch (e) {} }, function(){}); } };
     try {
       status('بارگذاری موتور OCR…');
       if (!(await paddleLocal())) throw new Error('فایل‌های OCR داخل برنامه کامل نیست. این‌ها پیدا نشد: ' + probeBad.join(' ، ') + ' — پوشه‌های ocr/ort و ocr/paddle را کنار برنامه بگذارید.');
       opt = await optLocal();
       var tw = OCRQ[qv] || 2000, useBmp = !!(window.createImageBitmap && window.OffscreenCanvas);
-      var spawn = async function(ln, noGpu, noThr){
-        var ow = ln.ow = ocrwSpawn();
+      var spawn = async function(noGpu, noThr){
+        ow = ocrwSpawn();
         if (!ow) throw new Error('OCR به Worker نیاز دارد و روی این دستگاه پشتیبانی نمی‌شود.');
         try { ocrEp = await ow.call('pinit', { ort: absUrl(PADF[0]), ortGpu: absUrl(OPTF[0]), ortBase: absUrl('ocr/ort/'), det: absUrl(PADF[2]), rec: absUrl(PADF[3]), dict: absUrl(PADF[4]), side: PDET[qv] || 1472, sums: PSUM, lex: lexList(), gpu: !!(!noGpu && $('#ocrGpu').checked), gpuFiles: !!opt.gpu, thr: noThr ? null : opt.thr, dsk: $('#ocrDsk').checked, dn: $('#ocrDn').checked }, null, function(){ status('بارگذاری موتور OCR…'); }); }
-        catch (e) { if (!noThr && opt.thr && /THR:/.test(em(e))) { try { ow.kill(); } catch (x) {} return spawn(ln, noGpu, true); } throw e; }
+        catch (e) { if (!noThr && opt.thr && /THR:/.test(em(e))) { try { ow.kill(); } catch (x) {} return spawn(noGpu, true); } throw e; }
       };
-      var l1 = { i: 0, ow: null, killed: false, rs: 0, pre: null };
-      await spawn(l1, false); lanes.push(l1);
+      await spawn(false);
       cv = document.createElement('canvas'); cx = cv.getContext('2d', { willReadFrequently: !useBmp });
-      var renderRaw = async function(pn){                          /* بوم واحد و مشترک؛ بیت‌مپ بدون کپی به Worker منتقل می‌شود و getImageData از ترد اصلی خارج است */
+      var renderPage = async function(pn){                         /* بوم واحد و مشترک؛ بیت‌مپ بدون کپی به Worker منتقل می‌شود و getImageData از ترد اصلی خارج است */
         var page = await doc.getPage(pn), v1 = page.getViewport({ scale: 1 }), sc = Math.max(0.75, Math.min(4, tw / v1.width, 4800 / Math.max(v1.width, v1.height))), vp = page.getViewport({ scale: sc }), m, tr;
         cv.width = Math.ceil(vp.width); cv.height = Math.ceil(vp.height);
         cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
@@ -3123,63 +2620,37 @@ var ocrSpell = (function(){
         page.cleanup();
         return { m: m, tr: tr };
       };
-      var renderPage = function(pn){ var r = rch.then(function(){ return renderRaw(pn); }); rch = r.catch(function(){}); return r; };   /* رندرها پشت‌سرهم (بوم مشترک) */
-      var mkPr = function(ln, pn, kk){                             /* گزارش پیشرفت Worker ← ترد اصلی (با کاهش نرخ به‌روزرسانی) */
+      var prefetch = function(){                                   /* رندر صفحهٔ بعد هم‌زمان با OCR صفحهٔ فعلی (خط لوله) */
+        if (qi < L.length && !ocrStop) { var pn = L[qi++]; pre = { pn: pn, p: renderPage(pn) }; pre.p.catch(function(){}); } else pre = null;
+      };
+      var mkPr = function(pn, kk){                                 /* گزارش پیشرفت Worker ← ترد اصلی (با کاهش نرخ به‌روزرسانی) */
         return function(v){
-          if (ocrStop && ln.ow && !ln.killed) { ln.killed = killed = true; ln.ow.kill(); return; }
+          if (ocrStop && ow && !killed) { killed = true; ow.kill(); return; }
           var t = Date.now(); if (t - lastP < 150 && !(v.p >= 1)) return; lastP = t;
           status('OCR صفحهٔ ' + nf.format(pn) + ' (' + nf.format(kk) + ' از ' + nf.format(L.length) + ') — ' + (v.st === 'prep' ? 'آماده‌سازی تصویر' : 'تشخیص متن ' + nf.format(Math.round((v.p || 0) * 100)) + '٪') + '…' + epTag());
         };
       };
-      var sleep = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
-      /* انتخاب صفحهٔ بعدی: نزدیک‌ترین صفحهٔ نیازمند OCR به محل خواندن؛ هنگام پخش فقط ۴ صفحهٔ پیش‌رو و فقط با یک مسیر (تا صداسازی کند نشود) */
-      var pick = function(ln){
-        if (redo.length) return redo.shift();
-        var cp = sents[idx] ? sents[idx].page : cur, wait = false, k, p0;
-        for (k = 0; k < n; k++) {
-          p0 = ((cp - 1 + k) % n) + 1;
-          if (need.indexOf(p0) < 0 || pages[p0] != null || inflight[p0]) continue;
-          if (playing && (k >= 4 || ln.i > 0)) { wait = true; continue; }
-          return p0;
+      prefetch();
+      while (pre && !ocrStop) {
+        var cr = pre, pn = cr.pn, kk = done + 1, img = await cr.p, rr;
+        status('OCR صفحهٔ ' + nf.format(pn) + ' (' + nf.format(kk) + ' از ' + nf.format(L.length) + ')…' + epTag());
+        prefetch();
+        try { rr = await ow.call('prec', img.m, img.tr, mkPr(pn, kk)); }
+        catch (e) {
+          if (killed || ocrStop || rs >= 1 || !/worker/.test(em(e))) throw e;
+          rs++; dropPre(); try { ow.kill(); } catch (x) {}          /* مرگ Worker (کمبود حافظه/GPU): یک‌بار راه‌اندازی دوباره روی WASM و تکرار همین صفحه */
+          qi = L.indexOf(pn); await spawn(true); prefetch(); continue;
         }
-        return wait ? -1 : 0;
-      };
-      var take = function(ln){ var pn = pick(ln); if (pn > 0) { inflight[pn] = 1; return { pn: pn, p: renderPage(pn) }; } return pn; };
-      var runLane = async function(ln){
-        while (!ocrStop) {
-          var cr = ln.pre, tk, pn, kk, img, rr;
-          ln.pre = null;
-          if (!cr) { tk = take(ln); if (tk === 0) break; if (tk === -1) { await sleep(500); continue; } cr = tk; }
-          pn = cr.pn; kk = done + 1; img = await cr.p;
-          status('OCR صفحهٔ ' + nf.format(pn) + ' (' + nf.format(kk) + ' از ' + nf.format(L.length) + ')…' + epTag());
-          tk = take(ln); if (tk && tk !== -1) { ln.pre = tk; tk.p.catch(function(){}); }
-          try { rr = await ln.ow.call('prec', img.m, img.tr, mkPr(ln, pn, kk)); }
-          catch (e) {
-            if (ln.killed || ocrStop || ln.rs >= 1 || !/worker/.test(em(e))) throw e;
-            ln.rs++; redo.push(pn); delete inflight[pn]; dropPre(ln); try { ln.ow.kill(); } catch (x) {}   /* مرگ Worker (کمبود حافظه/GPU): یک‌بار راه‌اندازی دوباره روی WASM و تکرار همین صفحه */
-            await spawn(ln, true); continue;
-          }
-          img = null;
-          if (rr.ep) ocrEp = rr.ep;
-          pages[pn] = rr.page || ''; if (rr.geo && rr.geo.L && rr.geo.L.length) geo[pn] = rr.geo; else delete geo[pn]; delete inflight[pn]; done++; ocrDirty = true;
-          if (done % 3 === 0) { ocrSave(key, pages); ocrSave(gkey, geo); }
-          if (!playing && !ocrStop && doc === pdfDoc && (done === 1 || done % 6 === 0)) { process(true); ocrInfo(); }
-        }
-      };
-      /* مسیر اول بی‌درنگ شروع می‌شود؛ مسیرهای بعدی (تا ۴، بسته به هسته/حافظه) هم‌زمان بالا می‌آیند و وارد کار می‌شوند */
-      var hc = navigator.hardwareConcurrency || 4, dm = navigator.deviceMemory || 4, want = (opt.thr || playing) ? 1 : (hc >= 12 && dm >= 6 ? 4 : hc >= 8 && dm >= 4 ? 3 : hc >= 4 && dm >= 3 ? 2 : 1), lp = [], xs = [], li;
-      want = Math.max(1, Math.min(want, Math.ceil(L.length / 2)));
-      var go = function(ln){ if (lanes.indexOf(ln) < 0) lanes.push(ln); lp.push(runLane(ln).catch(function(e){ if (!ln.killed && !err) err = em(e); ocrStop = true; })); };
-      go(l1);
-      for (li = 1; li < want; li++) xs.push((async function(i){
-        var ln = { i: i, ow: null, killed: false, rs: 0, pre: null };
-        try { await spawn(ln, false); if (ocrStop) { try { ln.ow.kill(); } catch (x) {} return; } go(ln); } catch (e) { try { if (ln.ow) ln.ow.kill(); } catch (x) {} }
-      })(li));
-      await Promise.all(xs); await Promise.all(lp);
+        img = null;
+        if (rr.ep) ocrEp = rr.ep;
+        pages[pn] = rr.page || ''; done++;
+        if (done % 3 === 0) ocrSave(key, pages);
+        if (!playing && !ocrStop && doc === pdfDoc && (done === 2 || done % 8 === 0)) { process(true); ocrInfo(); }
+      }
     } catch (e) { ocrStop = true; err = killed ? '' : em(e); }
-    lanes.forEach(dropPre); if (cv) { cv.width = 0; cv = cx = null; }
-    await Promise.all(lanes.map(async function(ln){ if (!ln.ow) return; try { await Promise.race([ln.ow.call('term'), new Promise(function(r){ setTimeout(r, 1500); })]); } catch (e) {} try { ln.ow.kill(); } catch (e) {} }));
-    await ocrSave(key, pages); await ocrSave(gkey, geo); ocrBusy = false;
+    dropPre(); if (cv) { cv.width = 0; cv = cx = null; }
+    if (ow) { try { await Promise.race([ow.call('term'), new Promise(function(r){ setTimeout(r, 1500); })]); } catch (e) {} try { ow.kill(); } catch (e) {} }
+    await ocrSave(key, pages); ocrBusy = false;
     if (doc !== pdfDoc) return;
     var msg = err ? 'OCR ناموفق بود: ' + err : '';
     if (done) { process(true); status('OCR برای ' + nf.format(done) + ' صفحه انجام شد.' + (msg ? ' ' + msg : '') + ocrHint()); } else { ocrInfo(); if (msg) status(msg); }
@@ -3291,7 +2762,6 @@ var ocrSpell = (function(){
       rr = await ow.call('prec', m, tr, function(v){ manSt((v.st === 'prep' ? 'آماده‌سازی تصویر' : 'تشخیص متن ' + nf.format(Math.round((v.p || 0) * 100)) + '٪') + '…' + epTag()); });
       if (rr.ep) ocrEp = rr.ep;
       txt = rr.page || '';
-      man.geoNew = (!reg && rr.geo && rr.geo.L && rr.geo.L.length) ? { pn: pn, g: rr.geo } : null;
     } catch (e) { if (!man.stop) err = em(e); }
     if (cv) { cv.width = 0; cv = null; }
     if (ow) { try { await Promise.race([ow.call('term'), new Promise(function(x){ setTimeout(x, 1500); })]); } catch (e) {} try { ow.kill(); } catch (e) {} }
@@ -3311,7 +2781,6 @@ var ocrSpell = (function(){
     if (!manAlive()) return;
     var pn = man.pn, t = $('#manTx').value.replace(/\r\n?/g, '\n').replace(/[ \t]+$/gm, '').trim();
     ocrPages[pn] = t; await ocrSave(ocrKey, ocrPages);
-    if (man.geoNew && man.geoNew.pn === pn) { ocrGeo[pn] = man.geoNew.g; man.geoNew = null; await ocrSave(ocrKey.replace(/^ocr:/, 'ocrg:'), ocrGeo); }
     man.base = t; $('#manTx').value = t; man.warn = false; $('#manSrc').textContent = manText(pn).s;
     manSt('ذخیره شد' + (t ? '' : ' (صفحهٔ خالی)') + '؛ متن خوانش به‌روز می‌شود.');
     process(true);
@@ -3322,7 +2791,7 @@ var ocrSpell = (function(){
     if (ocrPages[pn] == null) { manSt('برای این صفحه نتیجهٔ OCR ذخیره نشده است.'); return; }
     if (!man.del) { man.del = setTimeout(function(){ man.del = 0; b.textContent = 'حذف نتیجهٔ OCR'; }, 3000); b.textContent = 'تأیید حذف؟'; return; }
     clearTimeout(man.del); man.del = 0; b.textContent = 'حذف نتیجهٔ OCR';
-    delete ocrPages[pn]; await ocrSave(ocrKey, ocrPages); delete ocrGeo[pn]; await ocrSave(ocrKey.replace(/^ocr:/, 'ocrg:'), ocrGeo);
+    delete ocrPages[pn]; await ocrSave(ocrKey, ocrPages);
     manGo(pn); manSt('نتیجهٔ OCR حذف شد و متن لایهٔ PDF برگشت.'); process(true);
   }
   $('#manBtn').onclick = manOpen;
@@ -3875,7 +3344,7 @@ var ocrSpell = (function(){
       loadTask = pdfjsLib.getDocument({ data: buf, cMapUrl: new URL('lib/cmaps/', location.href).href, cMapPacked: true, standardFontDataUrl: new URL('lib/standard_fonts/', location.href).href });
       var doc = await loadTask.promise;
       if (lt !== loadTok) { try { doc.destroy(); } catch (e) {} return; }
-      pdfDoc = doc; document.body.classList.add('has-doc'); hideHome();
+      pdfDoc = doc;
       var pdf = pdfDoc; rawItems = []; rawImg = [];
       var W0 = txwGet(); if (W0) W0.post('doc');
       for (var p = 1; p <= pdf.numPages; p++) {
@@ -3891,14 +3360,14 @@ var ocrSpell = (function(){
         if (p % 8 === 0) await new Promise(function(r){ setTimeout(r, 0); });
       }
       ocrKey = 'ocr:' + file.name + ':' + file.size;
-      ocrPages = await ocrLoad(ocrKey); ocrGeo = await ocrLoad(ocrKey.replace(/^ocr:/, 'ocrg:'));
+      ocrPages = await ocrLoad(ocrKey);
       if (lt !== loadTok) return;
       await process();
       if (lt !== loadTok) return;
       curKey = 'pos:' + file.name + ':' + file.size;
       var sv = parseInt(sget(curKey, '0'), 10);
       if (sv > 0 && sv < sents.length) { idx = sv; mark(true); }
-      libSave(file, pdf.numPages, sents.length); recAdd(file);
+      libSave(file, pdf.numPages, sents.length);
       try { if (navigator.mediaSession) navigator.mediaSession.metadata = new MediaMetadata({ title: file.name }); } catch (e) {}
       if (!sents.length) status(ocrHint().replace(/^ — /, '')); else status(file.name + ' — ' + nf.format(pdf.numPages) + ' صفحه، ' + nf.format(sents.length) + ' جمله' + (idx ? ' — ادامه از جملهٔ ' + nf.format(idx + 1) : '') + ocrHint());
       if (O.ocr !== 'off' && ocrTodo().length) runOcr();
@@ -3913,7 +3382,7 @@ var ocrSpell = (function(){
     unrT = setTimeout(function(){ var l = unrList; unrList = {}; Object.keys(l).forEach(function(k){ unrenderPage(+k); }); }, 500);
   }
   function build(pages, pre, drp){
-    dropped = drp || 0; sents = []; idx = 0; curEl = null; pageParas = {}; pgEls = {}; plan = {}; pvReset();
+    dropped = drp || 0; sents = []; idx = 0; curEl = null; pageParas = {}; pgEls = {}; plan = {};
     if (pgObs) pgObs.disconnect();
     if (pgObsU) pgObsU.disconnect();
     unrList = {}; clearTimeout(unrT);
@@ -4044,38 +3513,17 @@ var ocrSpell = (function(){
   /* قالب هر خط: «کلمه = تلفظ». «الف | ب = تلفظ» چند شکل را یکی می‌کند؛ «/regex/i = جایگزین» (با $1…) برای الگو؛ خط‌های شروع‌شده با # توضیح‌اند.
      کلمهٔ ساده با پسوندهای نیم‌فاصله‌ای (‌ها، ‌های، ‌ی، ‌ام…) هم یافت می‌شود و پسوند حفظ می‌شود. */
   var DICT_SUF = '(?:\\u200c(?:ها|های|هایی|ی|ای|ام|ات|اش|مان|تان|شان))?';
-  var ocrFx = [];
-  function ocrFxAdd(a, b){
-    var rm = /^\/(.+)\/([iu]*)$/.exec(a), to;
-    if (rm) { try { ocrFx.push({ re: new RegExp(rm[1], 'g' + (rm[2].indexOf('i') >= 0 ? 'i' : '') + 'u'), to: b, rx: 1 }); } catch (e) {} return; }
-    to = b.replace(/\$/g, '$$$$');
-    a.split(/\s*\|\s*/).forEach(function(x){
-      x = normCh(x.trim()); if (!x) return;
-      try { ocrFx.push({ re: new RegExp('(?<![\\p{L}\\p{N}\\u200c])' + x.replace(/[\\^$.*+?()[\]{}|\/]/g, '\\$&').replace(/ +/g, '[ \\u200c]') + '(?=' + DICT_SUF + '(?![\\p{L}\\p{N}\\u200c]))', 'gu'), to: to }); } catch (e) {}
-    });
-  }
-  function ocrFxApply(t){ for (var k = 0; k < ocrFx.length; k++) t = t.replace(ocrFx[k].re, ocrFx[k].to); return t; }
   function parseDict(){
-    parseDict0();
-    try {
-      var ws = [], PW = /[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC\u064B-\u0652]{2,}/g, ad = function(t){ (String(t).match(PW) || []).forEach(function(w){ ws.push(w); }); };
-      userDict.forEach(function(d){ if (d.src) ad(d.src); if (!d.rx) ad(d.to); });
-      ocrFx.forEach(function(d){ ad(d.to); });
-      ocrSpell.user(ws);
-    } catch (e) {}
-  }
-  function parseDict0(){
-    userDict = []; ocrFx = [];
+    userDict = [];
     /* واژه‌نامهٔ همین فایل اول می‌آید تا بر واژه‌نامهٔ همهٔ فایل‌ها اولویت داشته باشد */
     (dictP + '\n' + dictG).split('\n').forEach(function(l){
       l = l.replace(/^\s+/, ''); if (!l || l.charAt(0) === '#') return;
-      var ar = l.indexOf('=>'); if (ar > 0) { ocrFxAdd(l.slice(0, ar).trim(), l.slice(ar + 2).trim()); return; }
       var p = l.indexOf('='); if (p < 1) return;
       var lhs = l.slice(0, p).trim(), b = l.slice(p + 1).trim(), rm = /^\/(.+)\/([iu]*)$/.exec(lhs);
       if (rm) { try { userDict.push({ re: new RegExp(rm[1], 'g' + (rm[2].indexOf('i') >= 0 ? 'i' : '') + 'u'), to: b, rx: 1 }); } catch (e) {} return; }
       lhs.split(/\s*\|\s*/).forEach(function(a){
         a = normCh(a.trim()); if (!a) return;
-        try { userDict.push({ re: new RegExp('(?<![\\p{L}\\p{N}\\u200c])' + a.replace(/[\\^$.*+?()[\]{}|\/]/g, '\\$&') + '(?=' + DICT_SUF + '(?![\\p{L}\\p{N}\\u200c]))', /^[\x20-\x7e]+$/.test(a) ? 'giu' : 'gu'), to: b, src: a }); } catch (e) {}
+        try { userDict.push({ re: new RegExp('(?<![\\p{L}\\p{N}\\u200c])' + a.replace(/[\\^$.*+?()[\]{}|\/]/g, '\\$&') + '(?=' + DICT_SUF + '(?![\\p{L}\\p{N}\\u200c]))', /^[\x20-\x7e]+$/.test(a) ? 'giu' : 'gu'), to: b }); } catch (e) {}
       });
     });
   }
@@ -4100,10 +3548,11 @@ var ocrSpell = (function(){
      موتور آوایی بدون نشانهٔ اضافه، «صدای کتاب» را بی‌کسره و رباتی می‌خواند. این‌جا بین دو کلمهٔ پشت‌سرهم (اسم/صفت) که
      هیچ نشانه‌گذاری میانشان نیست، کسره می‌گذاریم. کلمه‌های ربطی، فعل، ضمیر، عدد و حرف اضافه را رد می‌کنیم؛ تحلیل دستوری نیست و تقریبی است. */
   function isMana(){ var v = document.getElementById('voice'); return !!v && v.value === 'fa_IR-mana-medium'; }   /* مدل Mana با آوانگاریِ آگاه از کسره و هم‌نگاشت‌ها آموزش دیده؛ برایش همیشه روشن */
-  function ezOn(){ return false; }   /* کسرهٔ اضافهٔ خودکار حذف شد: تلفظ را به‌هم می‌ریخت */
+  function ezOn(){ if (isMana()) return true; var e = document.getElementById('ezAuto'); return !e || e.checked; }
   function humOn(){ var e = document.getElementById('humPace'); return !e || e.checked; }
   function lexOn(){ return true; }
   function hStr(s){ var h = 0, i; for (i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
+  var EZ_K = '\u0650';
   var EZ_STOP = {};
   ('به که از در را با تا یا و این آن او ما تو من شما آنها اینها آنان ایشان اما ولی اگر چون زیرا بلکه پس هم نیز هر همه هیچ چه چرا کجا کی کدام چند چندین نه بله خیلی بسیار کم بیش بیشتر کمتر خود همان همین چنین چنان اکنون امروز دیروز فردا حالا هنوز همیشه هرگز دیگر فقط تنها حتی مثلاً یعنی البته شاید باید نباید است نیست هست نبود بود شد شود شده باشد باشند دارد دارند داشت کرد کند کنند کرده کردند گفت گفته رفت آمد آمده دید داد داده گرفت خورد خواهد خواست توانست بر برای بی بدون مگر جز طی نزد سوی مانند مثل طبق بعد قبل ' +
    'برد مرد زد آورد ماند خواند نشست ایستاد افتاد گذشت ساخت یافت دانست نوشت گشت بست شکست ریخت سوخت خرید فهمید پرسید شنید دوید خوابید رسید ترسید پرید چسبید کشید بخشید ' +
@@ -4117,6 +3566,10 @@ var ocrSpell = (function(){
     ['', 'ن'].forEach(function(pf){ ['م', 'یم', 'ی', 'ید'].forEach(function(sf){ EZ_VBX[pf + st + sf] = 1; }); });
   });
   'هستم هستیم هستی هستید نیستم نیستیم نیستی نیستید باشم باشیم باشی کنم کنیم کنی شوم شویم شوی دارم داریم داری دانم دانیم'.split(' ').forEach(function(w){ EZ_VBX[w] = 1; });
+  var EZ_NAME = {}; 'محمد علی حسن حسین رضا مهدی احمد امیر محمود مصطفی ابراهیم اسماعیل یوسف جعفر کاظم باقر تقی نقی هادی صادق مجتبی سعید حمید مجید فرهاد بهرام کامران پرویز شهرام فاطمه زهرا مریم سمیه زینب'.split(' ').forEach(function(w){ EZ_NAME[w] = 1; });
+  var EZ_VB = /(?:کنید|شوید|باشید|بروید|ببینید|بدهید|بگویید|بیایید|دارید|خواهید|بگیرید|بدانید|بخوانید|بنویسید|بخورید|ببرید|بیاورید|ندارید|نکنید|نشوید|نباشید|نروید|نگویید|گفتید|دیدید|شنیدید|کردید|بودید|رفتید|آمدید|داشتید|خوردید|دادید|گرفتید)$/;
+  var EZ_NDOK = /(?:مند|بلند|پسند|کمند|چند|فرزند|پیوند|سوگند|خرسند|دربند|بند)$/;
+  var EZ_A = /^[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC\u0622\u200c]+$/;
   /* ---------- شناسایی فعل برای کسرهٔ اضافه (برچسب‌گذار سبک مبتنی بر قاعده) ----------
      فعل هیچ‌وقت کسرهٔ اضافه نمی‌گیرد و پیش از فعل هم کسره نمی‌آید («او کتاب بخواند»، «علی نرفت»). این‌جا صرف فعل‌های رایج
      (التزامی، امری، گذشتهٔ منفی و شکل‌های ادبی) ساخته می‌شود تا ezAuto کلمهٔ فعلی را تشخیص دهد. شکل‌های دوم‌شخص مفرد (ـی)
@@ -4144,9 +3597,65 @@ var ocrSpell = (function(){
     });
     delete EZ_V['نبرد']; delete EZ_V['نزد']; delete EZ_V['نشان']; delete EZ_V['نماند'];
   })();
+  function ezBad(w, cur){
+    var c = w.replace(/\u200c/g, '');
+    if (c.length < (cur ? (/[او]$/.test(c) ? 2 : 3) : 2) || EZ_STOP[w] || EZ_VB.test(w) || (lexOn() && (EZ_STOP2[w] || EZ_VBX[w]))) return true;
+    if (/^(?:می|نمی)\u200c/.test(w)) return true;
+    if (/ند$/.test(w) && !EZ_NDOK.test(w)) return true;
+    if (cur && (/[\u200cةءآ]$/.test(w) || /\u200c(?:ام|ای|ایم|اید|اند)$/.test(w))) return true;
+    return false;
+  }
   /* ---------- نوع کسرهٔ اضافه بر پایهٔ پایان واژه ----------
      'k' = کسره روی همخوان پایانی («کتابِ»، «کتاب‌هایِ»، «پایِ» با ی)، 'e' = «ه» ناملفوظ → «ۀ» («خانهٔ»، «دربارهٔ»)،
      'y' = پایان با مصوت بلند ا/و → افزودن «یِ» («پایِ»، «دانشجویِ»، «دنیایِ»)؛ null = کسره نمی‌گیرد (قید/جمع بدون ی/…). */
+  var EZ_HC = {}; 'وجه فقه شبه سفه نزه کنه اله جاه نگاه'.split(' ').forEach(function(w){ EZ_HC[w] = 1; });
+  var EZ_VADV = {}; 'بالا آیا ابدا عمدا اساسا اتفاقا نهایتا عموما کاملا مجددا صرفا نسبتا رسما عملا فعلا جدا کلا خصوصا مخصوصا اولا ثانیا ثالثا مولا حاشا الا لیکن چونکه آری نخیر'.split(' ').forEach(function(w){ EZ_VADV[w] = 1; });
+  var EZ_PREP = {}; 'روی زیر پیش کنار بالای جلوی پشت مقابل نزدیک داخل خارج درون بیرون طرف سمت اطراف وسط پایین روبروی درباره علیه مانند شبیه نظیر همانند غیر بجای عوض'.split(' ').forEach(function(w){ EZ_PREP[w] = 1; });
+  var EZ_PRON = {}; 'من تو او ما شما ایشان آنها آنان وی خود'.split(' ').forEach(function(w){ EZ_PRON[w] = 1; });
+  var EZ_NOPR = {}; 'کس هرکس دیشب امشب پارسال امسال پریشب بعد قبل دوباره'.split(' ').forEach(function(w){ EZ_NOPR[w] = 1; });
+  var EZ_PNAT = {}; 'زمان مهمان آسمان سامان ایمان رمان پیمان درمان فرمان کمان نشان کاشان عثمان سلمان'.split(' ').forEach(function(w){ EZ_PNAT[w] = 1; });
+  var EZ_PNAT2 = {}; 'اسم علم حکم قلم جسم رسم نظم وقت دوست دست حالت نقش'.split(' ').forEach(function(w){ EZ_PNAT2[w] = 1; });
+  function ezKind(w){
+    var c = w.replace(/\u200c/g, ''), L = c.charAt(c.length - 1);
+    if (L === 'ه') {
+      if (EZ_HC[c]) return 'k';
+      if (/ایه$/.test(c) || /[یل]وه$/.test(c)) return 'e';
+      if (/[اوی]ه$/.test(c)) return 'k';
+      return 'e';
+    }
+    if (L === 'ا') return (/ها$/.test(c) || EZ_VADV[c]) ? null : 'y';
+    if (L === 'و') return (c.length >= 3 && !EZ_VADV[c]) ? 'y' : null;
+    if (L === 'ی') {
+      if (/های$/.test(c)) return 'k';
+      if (/[او]ی$/.test(c) && c.length >= 3) return 'k';
+      return null;
+    }
+    return 'k';
+  }
+  function prevW(ws, i){ while (--i >= 0) if (ws[i]) return ws[i]; return ''; }
+  var EZ_MON = {}; MON_FA.concat(MON_EN).forEach(function(w){ if (w) EZ_MON[w] = 1; });
+  function ezAuto(t){
+    var ws = t.split(' '), i, n = 0, a, b, bp, ty, c2;
+    for (i = 0; i < ws.length - 1; i++) {
+      a = ws[i];
+      if (a === 'ماه' && EZ_MON[ws[i + 1].replace(/[,.;:!?،؛؟]+$/, '')]) { ws[i] = a + EZ_K; n++; continue; }   /* «ماهِ مرداد» */
+      if (a === 'همه' && /^(?:ما|شما|آنها|ایشان)$/.test(ws[i + 1].replace(/[,.;:!?،؛؟]+$/, ''))) { ws[i] = 'همه\u06C0'; n++; continue; }   /* «همهٔ ما» */
+      if (!EZ_A.test(a)) continue;
+      if (!EZ_PREP[a] && ezBad(a, true)) continue;   /* حرف‌اضافه‌های مرکب (روی/زیر/پیش/کنار/…) کسره می‌گیرند */
+      b = ws[i + 1].replace(/[,.;:!?،؛؟]+$/, ''); bp = !!EZ_PRON[b] && EZ_A.test(b);
+      if (!bp && (!EZ_A.test(b) || ezBad(b, false))) continue;
+      if (lexOn() && (EZ_V[a] || (!bp && EZ_V[b]))) continue;   /* فعل کسره نمی‌گیرد و پیش از فعل هم کسره نمی‌آید */
+      if (EZ_NAME[a] && (EZ_NAME[b] || bp)) continue;
+      if (EZ_MON[b] && /(?:م|ام)$/.test(a)) continue;
+      if ((a === 'نفر' || a === 'تن') && EZ_STOP[prevW(ws, i)]) continue;   /* «هزار نفر شرکت کردند»: واحد شمارش بعد از عدد کسره نمی‌گیرد */
+      if (/(?:مان|تان|شان)$/.test(a) && !/ستان$/.test(a) && !EZ_PNAT[a]) continue;   /* ضمیر متصل: «دوستمان علی» */
+      if (bp && (EZ_NOPR[a] || (/[مشت]$/.test(a) && a.length > 3 && !EZ_PNAT2[a]))) continue;   /* «پدرم او را دید»، «هر کس تو را» */
+      ty = ezKind(a); if (!ty) continue;
+      ws[i] = ty === 'e' ? a.slice(0, -1) + '\u06C0' : ty === 'y' ? a + 'ی' + EZ_K : a + EZ_K; n++;
+    }
+    while (n-- > 0) bump('ez');
+    return ws.join(' ');
+  }
   /* ---------- واژه‌نامهٔ آوایی داخلی (اعرابِ کوتاه‌مصوت‌ها) ----------
      فارسی بدون اعراب نوشته می‌شود و موتور آوایی کوتاه‌مصوت‌ها را برای واژه‌های پرکاربرد گاهی اشتباه حدس می‌زند.
      این‌جا برای همین واژه‌ها شکل اعرابدار می‌گذاریم. نشانه‌ها (بعد از حرف): a = فتحه ، e = کسره ، o = ضمه.
@@ -4310,6 +3819,7 @@ var ocrSpell = (function(){
       .replace(/(\d)\s*[\/\-–]\s*(?=\d)/g, '$1 ');
     t = faNums(t).replace(/(?<![A-Za-z])[A-Z]{2,5}(?![A-Za-z])/g, function(w){ return /^[IVX]+$/.test(w) ? w : ' ' + w.split('').map(function(c){ return LET[c]; }).join(' ') + ' '; });
     }
+    if (ezOn()) t = ezAuto(t);
     if (phLexOn()) t = lexApply(t);
     t = dictOut(t, fixOn());
     if (phFa()) {
@@ -4913,8 +4423,14 @@ var ocrSpell = (function(){
     return { start: i, end: e, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000)) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه: گوشهٔ بالای صفحه همیشه دیده می‌شود. اگر «html-r2» را می‌بینید فایل HTML جدید اعمال شده؛ اگر کنارش «plugin: kt-r2-mana-fix» بود پلاگین Kotlin هم جدید است (HTML داخل APK است؛ پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود) */
-  var APP_BUILD = 'html-r5 · 2026-10-16 · no-ezafe', npBuild = '';
-  function buildBadge(){ try { var b = document.getElementById('buildBadge'); if (b && b.parentNode) b.parentNode.removeChild(b); } catch (e) {} }
+  var APP_BUILD = 'html-r3 · 2026-10-15 · calm+gap', npBuild = '';
+  function buildBadge(){
+    try {
+      var b = document.getElementById('buildBadge');
+      if (!b) { b = document.createElement('div'); b.id = 'buildBadge'; b.setAttribute('aria-hidden', 'true'); b.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 1px);left:6px;z-index:99999;font:600 10px/1.3 monospace;direction:ltr;color:#fff;background:rgba(0,0,0,.55);padding:1px 6px;border-radius:6px;pointer-events:none;opacity:.8'; document.body.appendChild(b); }
+      b.textContent = APP_BUILD + (typeof NP !== 'undefined' && NP ? ' | plugin: ' + (npBuild || (typeof npOK !== 'undefined' && npOK ? 'old-APK' : '...')) : '');
+    } catch (e) {}
+  }
   if (document.body) buildBadge(); else document.addEventListener('DOMContentLoaded', buildBadge);
   function perf(){
     var el = $('#pperf'); if (!el) return;
@@ -5546,32 +5062,9 @@ var ocrSpell = (function(){
   function advance(my){
     if (my !== token || !playing) return;
     idx++;
-    if (idx >= sents.length) { if (ocrWait(my)) return; endReading(); return; }
+    if (idx >= sents.length) { idx = 0; playing = false; ui(); mark(false); status('خواندن تمام شد.'); return; }
     mark(true);
     speakNow();
-  }
-  function endReading(){ idx = 0; playing = false; ui(); mark(false); status('خواندن تمام شد.'); }
-  /* به انتهای متنِ آمادهٔ پخش رسیدیم ولی OCR هنوز صفحه‌های بعد را می‌سازد: صبر کن، صفحه‌های تازه را بی‌وقفه به متن اضافه و ادامه بده */
-  function ocrWait(my){
-    if (!(ocrBusy || ocrDirty) || !txwGet() || !sents.length) return false;
-    var lastP = sents[sents.length - 1].page;
-    idx = sents.length - 1; wdSet('idle'); status('در انتظار OCR صفحه‌های بعد…');
-    var iv = setInterval(function(){
-      if (my !== token || !playing) { clearInterval(iv); return; }
-      if (ocrDirty) { clearInterval(iv); liveRefresh(my, lastP); }
-      else if (!ocrBusy) { clearInterval(iv); endReading(); }
-    }, 300);
-    return true;
-  }
-  function liveRefresh(my, lastP){
-    var fired = false, tm = setTimeout(function(){ if (!fired && my === token && playing) { fired = true; endReading(); } }, 15000);
-    process(true, function(){
-      if (fired) return; fired = true; clearTimeout(tm);
-      if (my !== token || !playing) return;
-      for (var i = 0; i < sents.length; i++) if (sents[i].page > lastP) { start(i); return; }
-      idx = Math.max(0, sents.length - 1);
-      if (!ocrWait(my)) endReading();
-    });
   }
   function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مکث‌های داخل صدای ساخته‌شده که خود با سرعت پخش کشیده می‌شوند) */
     var q = sents[i]; if (!q) return 0;
@@ -5775,271 +5268,21 @@ var ocrSpell = (function(){
     if (sents.length && sents[idx]) {
       renderPage(sents[idx].page); curEl = sents[idx].el;
       curEl.classList.add('cur');
-      if (pvOn()) pvMark(scroll); else if (scroll) follow(curEl);
+      if (scroll) follow(curEl);
       $('#pos').textContent = 'جملهٔ ' + nf.format(idx + 1) + ' از ' + nf.format(sents.length);
-      $('#pageInfo').textContent = nf.format(sents[idx].page) + ' / ' + nf.format(pdfDoc ? pdfDoc.numPages : sents[idx].page);
+      $('#pageInfo').textContent = 'صفحهٔ ' + nf.format(sents[idx].page);
       $('#seek').max = sents.length - 1; $('#seek').value = idx; fillRng($('#seek'));
       if (curKey) posSave();
     } else {
       $('#pos').textContent = '—';
       $('#pageInfo').textContent = '';
       $('#seek').max = 0; $('#seek').value = 0; fillRng($('#seek'));
-      if (pvOn() && pdfDoc && !sents.length && !pvPage) pvShow(1, false);
     }
   }
   function follow(el){
-    var r = el.getBoundingClientRect(), s = $('#stage').getBoundingClientRect(), dk = (document.body.classList.contains('dock-hide') ? $('#dockPeek') : $('#dock')).getBoundingClientRect();
+    var r = el.getBoundingClientRect(), s = $('#stage').getBoundingClientRect(), dk = $('#dock').getBoundingClientRect();
     if (r.top < s.top + 56 || r.bottom > dk.top - 12) el.scrollIntoView({ block: 'center', behavior: fxCalm() ? 'auto' : 'smooth' });
   }
-  /* ---------- نمای صفحهٔ PDF: خود صفحه رسم می‌شود و جملهٔ در حال خواندن روی آن علامت می‌خورد ---------- */
-  var pvMode = sget('rdMode', 'page') === 'text' ? 'text' : 'page', pvPage = 0, pvTok = 0, pvRT = null, pvVp = null, pvStr = {}, pvHit = {}, pvDone = {}, pvRC = {};
-  var PVZ = [1, 1.25, 1.5, 2, 2.5, 3], pvZi = Math.max(0, Math.min(PVZ.length - 1, parseInt(sget('pvz', '0'), 10) || 0)), pvW = 0, pvRz = 0;
-  function pvOn(){ return pvMode === 'page'; }
-  function pvApply(){
-    var b = $('#rdMode'), dt = $('#dText');
-    if (dt) { dt.querySelector('span').textContent = pvOn() ? 'متن استخراجی' : 'صفحهٔ PDF'; dt.querySelector('path').setAttribute('d', pvOn() ? 'M4 6h16M4 12h10M4 18h13' : 'M6 3h9l4 4v14H6zM15 3v4h4'); dt.setAttribute('aria-label', pvOn() ? 'رفتن به متن استخراج‌شده' : 'بازگشت به صفحهٔ PDF'); }
-    document.body.classList.toggle('view-page', pvOn());
-    document.body.classList.toggle('no-sents', !sents.length);
-    if (b) { b.classList.toggle('on', pvOn()); b.setAttribute('aria-pressed', pvOn() ? 'true' : 'false'); b.setAttribute('aria-label', pvOn() ? 'نمایش متن' : 'نمایش صفحهٔ PDF'); }
-  }
-  function pvReset(){ pvClear(); pvPage = 0; pvTok++; pvStr = {}; pvHit = {}; pvDone = {}; pvRC = {}; pvVp = null; var h = $('#pvh'); if (h) h.textContent = ''; }
-  function pvNorm(s){
-    s = String(s || '');
-    try { s = s.normalize('NFKC'); } catch (e) {}
-    return s.replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/[٠-٩]/g, function(d){ return String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48); }).replace(/[۰-۹]/g, function(d){ return String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48); }).replace(/[^\p{L}\p{N}]|[\u0640\u064B-\u065F\u0670]/gu, '').toLowerCase();
-  }
-  var pvCh = Object.create(null), pvCx = null;
-  function pvNC(c){ var v = pvCh[c]; if (v === undefined) v = pvCh[c] = pvNorm(c); return v; }
-  function pvRtl(s){ var r = (s.match(/[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/g) || []).length, l = (s.match(/[A-Za-z\u00C0-\u024F]/g) || []).length; return r > 0 && r >= l; }
-  /* پهنای نسبی پیشوند رشته با اندازه‌گیری واقعی حروف (نه شمارش نویسه)؛ برای بریدن دقیق یک آیتم/خط میان دو جمله */
-  function pvFr(str, j){
-    var n = str.length, w;
-    if (j <= 0) return 0; if (j >= n) return 1;
-    try {
-      if (!pvCx) { pvCx = document.createElement('canvas').getContext('2d'); pvCx.font = '24px Vazirmatn,Tahoma,"Segoe UI",sans-serif'; }
-      w = pvCx.measureText(str).width;
-      if (w > 0) return Math.max(0, Math.min(1, pvCx.measureText(str.slice(0, j)).width / w));
-    } catch (e) {}
-    return j / n;
-  }
-  /* واحدهای صفحه به ترتیب خوانش: آیتم‌های لایهٔ متنی (با همان مرتبه‌سازی خط لولهٔ متن) یا خطوط OCR با مختصات ذخیره‌شده */
-  function pvUnits(p){
-    var out = [], g = ocrGeo[p], its, i, it;
-    if (ocrPages[p] != null) {
-      if (g && g.L && g.w > 0 && g.h > 0) for (i = 0; i < g.L.length; i++) if (g.L[i][0]) out.push({ str: g.L[i][0], g: g.L[i], ge: g });
-      return out;
-    }
-    its = rawItems[p - 1] || [];
-    if (O.pos) { try { its = lineSort(its); } catch (e) {} }
-    for (i = 0; i < its.length; i++) { it = its[i]; if (it && it.str && it.transform) out.push({ str: it.str, it: it }); }
-    return out;
-  }
-  function pvStream(p){
-    if (pvStr[p]) return pvStr[p];
-    var un = pvUnits(p), s = '', mu = [], mj = [], st = [], ln = [], i, k, c, n, m, z, t;
-    for (i = 0; i < un.length; i++) {
-      t = un[i].str; st[i] = s.length; z = 0;
-      for (k = 0; k < t.length; k++) { n = pvNC(t.charAt(k)); for (m = 0; m < n.length; m++) { s += n.charAt(m); mu.push(i); mj.push(k); z++; } }
-      ln[i] = z;
-    }
-    return (pvStr[p] = { s: s, un: un, st: st, ln: ln, mu: mu, mj: mj });
-  }
-  /* جایگاه جمله در رشتهٔ حروف صفحه: برابری کامل، وگرنه لنگر سر/ته با طول‌های کاهشی (soft = تقریبی) */
-  function pvFind(S, t, cur, g0){
-    var T = t.length, a = S.indexOf(t, cur), K = [12, 8, 5], z, L, e, b;
-    if (a >= 0) return { a: a, b: a + T - 1, soft: 0 };
-    for (z = 0; z < K.length; z++) {
-      L = Math.min(K[z], T); if (L < 4) break;
-      a = S.indexOf(t.slice(0, L), cur);
-      if (a >= 0) {
-        e = S.indexOf(t.slice(-L), a);
-        if (e >= 0 && e + L - a <= T * 2 + 40) return { a: a, b: e + L - 1, soft: e + L - a === T ? 0 : 1 };
-        return { a: a, b: Math.min(S.length - 1, a + T - 1), soft: 1 };
-      }
-      e = S.indexOf(t.slice(-L), cur);
-      if (e >= 0) { b = e + L - 1; return { a: Math.max(cur, b - T + 1), b: b, soft: 1 }; }
-    }
-    if (!g0 && cur > 0) return pvFind(S, t, 0, 1);
-    return null;
-  }
-  function pvPrep(p){
-    if (pvDone[p]) return; pvDone[p] = 1;
-    var st = pvStream(p), S = st.s, n = S.length, ids = [], T = [], cur = 0, x, y, k, h, tot, pb, na, pos, span, sh, a, b;
-    (pageParas[p] || []).forEach(function(g){ g.forEach(function(i){ ids.push(i); }); });
-    if (!n || !ids.length) return;
-    ids.forEach(function(i){ var t = pvNorm(sents[i].text); if (t) T.push({ i: i, t: t, h: null }); });
-    for (x = 0; x < T.length; x++) { h = pvFind(S, T[x].t, cur); if (h) { T[x].h = h; cur = h.b + 1; } }
-    /* جمله‌های بی‌لنگر (متن خوانش با متن صفحه فرق دارد: اصلاح OCR، رمزگذاری فونت…) بین دو همسایهٔ جاافتاده به نسبت طول پخش می‌شوند */
-    x = 0;
-    while (x < T.length) {
-      if (T[x].h) { x++; continue; }
-      y = x; tot = 0; while (y < T.length && !T[y].h) { tot += T[y].t.length; y++; }
-      pb = x > 0 ? T[x - 1].h.b : -1; na = y < T.length ? T[y].h.a : n;
-      pos = pb + 1; span = Math.max(0, na - pos);
-      for (k = x; k < y; k++) {
-        sh = tot ? span * T[k].t.length / tot : 0;
-        a = Math.min(n - 1, Math.round(pos)); b = Math.max(a, Math.min(n - 1, Math.round(pos + sh) - 1));
-        T[k].h = { a: a, b: b, soft: 1 }; pos += sh;
-      }
-      x = y;
-    }
-    T.forEach(function(q){ pvHit[q.i] = q.h; });
-  }
-  /* جعبهٔ بخشی [f0,f1] از یک واحد (کسر از آغاز منطقی متن)؛ برای OCR با جبران زاویهٔ deskew */
-  function pvBox(u, f0, f1){
-    var V = pvVp, U = window.pdfjsLib && pdfjsLib.Util, rtl = pvRtl(u.str), it, tr, hh, w, g, ge, W, a0, a1, sx, sy, th, c, s, cx, cy, mx, my, bw, bh;
-    if (u.it) {
-      if (!U) return null;
-      it = u.it; tr = U.transform(V.transform, it.transform);
-      if (Math.abs(tr[1]) > Math.abs(tr[0]) * 0.05) return null;
-      hh = Math.hypot(tr[2], tr[3]) || 10; w = it.width * V.scale; if (!(w > 0)) return null;
-      return { x: tr[4] + (rtl ? w * (1 - f1) : w * f0), y: tr[5] - hh * 0.95, w: Math.max(2, w * (f1 - f0)), h: hh * 1.3, r: 0 };
-    }
-    g = u.g; ge = u.ge; W = g[3] - g[1];
-    a0 = rtl ? g[3] - f1 * W : g[1] + f0 * W; a1 = rtl ? g[3] - f0 * W : g[1] + f1 * W;
-    sx = V.width / ge.w; sy = V.height / ge.h; th = ge.a || 0; c = Math.cos(th); s = Math.sin(th);
-    cx = (ge.w - 1) / 2; cy = (ge.h - 1) / 2; mx = (a0 + a1) / 2 - cx; my = (g[2] + g[4]) / 2 - cy;
-    bw = Math.max(2, (a1 - a0) * sx); bh = (g[4] - g[2]) * sy * 1.08;
-    return { x: (mx * c + my * s + cx) * sx - bw / 2, y: (my * c - mx * s + cy) * sy - bh / 2, w: bw, h: bh, r: -th };
-  }
-  function pvRectsOf(i){
-    if (pvRC[i]) return pvRC[i];
-    var h = pvHit[i], q = sents[i], out = [], st, a, b, u, u1, s0, s1, na, nb, f0, f1, r, last, un, x1, y1, hm;
-    pvRC[i] = out;
-    if (!h || !pvVp) return out;
-    st = pvStream(q.page); if (!st.s) return out;
-    a = Math.max(0, Math.min(st.s.length - 1, h.a)); b = Math.max(a, Math.min(st.s.length - 1, h.b));
-    for (u = st.mu[a], u1 = st.mu[b]; u <= u1; u++) {
-      un = st.un[u]; s0 = st.st[u]; s1 = s0 + st.ln[u] - 1;
-      if (s1 < s0) continue;
-      na = Math.max(a, s0); nb = Math.min(b, s1); if (nb < na) continue;
-      f0 = na === s0 ? 0 : pvFr(un.str, st.mj[na]);
-      f1 = nb === s1 ? 1 : pvFr(un.str, st.mj[nb] + 1);
-      if (!(f1 > f0)) f1 = Math.min(1, f0 + 0.02);
-      r = pvBox(un, f0, f1); if (!r) continue;
-      last = out[out.length - 1]; hm = last ? Math.max(last.h, r.h) : 0;
-      /* تکه‌های هم‌خط (کلمه‌ها) یک نوار پیوسته می‌شوند، مثل هایلایت متن؛ فاصلهٔ ستون‌ها جدا می‌ماند */
-      if (last && Math.abs((last.y + last.h / 2) - (r.y + r.h / 2)) < hm * 0.45 && Math.max(last.x, r.x) - Math.min(last.x + last.w, r.x + r.w) < hm * 1.4) {
-        x1 = Math.max(last.x + last.w, r.x + r.w); y1 = Math.max(last.y + last.h, r.y + r.h);
-        last.x = Math.min(last.x, r.x); last.y = Math.min(last.y, r.y); last.w = x1 - last.x; last.h = y1 - last.y;
-      } else out.push(r);
-    }
-    return out;
-  }
-  function pvHL(scroll){
-    var box = $('#pvh'), q = sents[idx], note = $('#pvn'), rs, k, d, r, first = null, h, msg = '';
-    box.textContent = '';
-    if (!q || q.page !== pvPage || !pvVp) return;
-    pvPrep(pvPage); rs = pvRectsOf(idx); h = pvHit[idx];
-    if (!rs.length) msg = (ocrPages[pvPage] != null && !(ocrGeo[pvPage] && ocrGeo[pvPage].L)) ? 'این صفحه قبلاً بدون ذخیرهٔ مختصات OCR شده؛ برای هایلایت دقیق، از منو ‹ متن ‹ اسکن دستی همین صفحه را یک‌بار اسکن و ذخیره کنید.' : 'جایگاه این جمله روی تصویر صفحه مشخص نشد؛ خوانش ادامه دارد.';
-    else if (h && h.soft) msg = 'جایگاه این جمله تقریبی است (متن خوانش با متن صفحه کمی فرق دارد).';
-    note.textContent = msg; note.hidden = !msg;
-    for (k = 0; k < rs.length; k++) {
-      r = rs[k]; d = document.createElement('i');
-      d.style.cssText = 'left:' + r.x.toFixed(1) + 'px;top:' + r.y.toFixed(1) + 'px;width:' + r.w.toFixed(1) + 'px;height:' + r.h.toFixed(1) + 'px' + (Math.abs(r.r) > 1e-4 ? ';transform:rotate(' + r.r.toFixed(4) + 'rad)' : '');
-      if (h && h.soft) d.className = 'ap';
-      box.appendChild(d); if (!first) first = d;
-    }
-    if (scroll && first) follow(first);
-  }
-  var pvCv = {}, pvUserT = 0, pvSw = 0, pvScQ = 0;
-  function pvKey(){ return Math.round(Math.max(200, $('#pv').clientWidth) * PVZ[pvZi]); }
-  function pvDrop(q){ var e = pvCv[q]; if (!e) return; delete pvCv[q]; try { if (e.rt) e.rt.cancel(); } catch (x) {} if (e.res) { try { e.res.c.width = 0; } catch (x) {} } }
-  function pvClear(){ if (!pvCv) return; Object.keys(pvCv).forEach(pvDrop); var U = $('#pvU'), D = $('#pvD'); if (U) U.textContent = ''; if (D) D.textContent = ''; }
-  function pvRender(p){                                            /* رندر صفحه در بومِ کش‌شده؛ همسایه‌ها هم با همین کش آماده می‌شوند */
-    var k = pvKey(), e = pvCv[p], doc = pdfDoc, ent;
-    if (e && e.k === k && e.doc === doc) return e.pr;
-    pvDrop(p);
-    ent = pvCv[p] = { k: k, doc: doc, rt: null, res: null, pr: null };
-    ent.pr = (async function(){
-      var page = await doc.getPage(p), v1 = page.getViewport({ scale: 1 }), sc = k / v1.width, dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2, 4096 / k)), vp = page.getViewport({ scale: sc * dpr }), c = document.createElement('canvas');
-      c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
-      c.style.width = Math.round(vp.width / dpr) + 'px'; c.style.height = Math.round(vp.height / dpr) + 'px';
-      ent.rt = page.render({ canvasContext: c.getContext('2d'), viewport: vp, background: '#fff' });
-      await ent.rt.promise;
-      ent.res = { c: c, vp: page.getViewport({ scale: sc }) };
-      return ent.res;
-    })();
-    ent.pr.catch(function(){ if (pvCv[p] === ent) delete pvCv[p]; });
-    return ent.pr;
-  }
-  function pvKeep(fn){ var m = $('#pvp'), st = $('#stage'), b = m.getBoundingClientRect().top, d; fn(); d = m.getBoundingClientRect().top - b; if (d) st.scrollTop += d; }
-  function pvPut(w, c){ c.id = ''; w.style.width = ''; w.style.height = ''; w.appendChild(c); }
-  function pvFill(p){                                              /* صفحهٔ قبل (۱) و بعدها (۱ تا ۲) زیر/بالای صفحهٔ اصلی چیده می‌شوند */
-    var doc = pdfDoc, n = doc ? doc.numPages : 0, U = $('#pvU'), D = $('#pvD'), mc = $('#pvc'), mw = mc.style.width || '60%', mh = mc.style.height || '300px', tok = pvTok, ah = PVZ[pvZi] >= 2 ? 1 : 2, key = pvKey(), pend = [], order = [], j;
-    Object.keys(pvCv).forEach(function(k){ if (+k < p - 1 || +k > p + ah) pvDrop(k); });
-    U.textContent = ''; D.textContent = '';
-    order.push(p + 1); order.push(p - 1); if (ah > 1) order.push(p + 2);
-    order.forEach(function(q){
-      if (q < 1 || q > n) return;
-      var w = document.createElement('div'), e = pvCv[q]; w.className = 'pvn'; w.dataset.q = q; w.style.width = mw; w.style.height = mh;
-      (q < p ? U : D).appendChild(w);
-      if (e && e.res && e.k === key && e.doc === doc) pvPut(w, e.res.c); else pend.push([q, w]);
-    });
-    (async function(){
-      for (j = 0; j < pend.length; j++) {
-        if (tok !== pvTok || doc !== pdfDoc) return;
-        try { var r = await pvRender(pend[j][0]); if (tok !== pvTok || doc !== pdfDoc) return; (function(w, c){ pvKeep(function(){ pvPut(w, c); }); })(pend[j][1], r.c); } catch (e) {}
-      }
-    })();
-  }
-  async function pvShow(p, scroll, keep){
-    var tok = ++pvTok, doc = pdfDoc, wrap = $('#pv'), st = $('#stage'), r, old, nc, at = null, bf = 0;
-    pvPage = p; pvVp = null; pvRC = {}; $('#pvh').textContent = ''; $('#pvn').hidden = true;
-    Object.keys(pvStr).forEach(function(k){ if (Math.abs(+k - p) > 2) delete pvStr[k]; });
-    try {
-      r = await pvRender(p);
-      if (tok !== pvTok || doc !== pdfDoc) return;
-      nc = r.c; old = $('#pvc');
-      if (keep && nc.isConnected) { at = nc; bf = nc.getBoundingClientRect().top; }
-      if (old !== nc) { old.id = ''; nc.id = 'pvc'; old.parentNode.replaceChild(nc, old); }
-      pvVp = r.vp; pvW = wrap.clientWidth;
-      pvFill(p);
-      if (at) st.scrollTop += at.getBoundingClientRect().top - bf;
-      else { st.scrollTop += $('#pvp').getBoundingClientRect().top - st.getBoundingClientRect().top - 28; wrap.scrollLeft = 0; }
-      if (keep) $('#pageInfo').textContent = nf.format(p) + ' / ' + nf.format(doc.numPages);
-      pvHL(!keep);
-    } catch (e) { if (tok === pvTok) status('نمایش صفحه ممکن نشد؛ نمای متن را باز کنید.'); }
-  }
-  function pvScan(){                                               /* اسکرول پیوسته: وقتی میانهٔ صفحه به صفحهٔ دیگری رسید، همان صفحه «صفحهٔ جاری» می‌شود (بی‌پرش) */
-    if (!pvOn() || !pvPage || pvSw || !pdfDoc) return;
-    var sr = $('#stage').getBoundingClientRect(), mid = sr.top + sr.height * 0.4, els = $('#pv').querySelectorAll('.pvn, #pvp'), i, r, q = 0, e;
-    for (i = 0; i < els.length; i++) { r = els[i].getBoundingClientRect(); if (mid >= r.top - 7 && mid <= r.bottom + 7) { q = els[i].id === 'pvp' ? pvPage : +els[i].dataset.q; break; } }
-    if (!q || q === pvPage) return;
-    e = pvCv[q]; if (!e || !e.res) return;
-    pvSw = 1; pvShow(q, false, true).then(function(){ pvSw = 0; }, function(){ pvSw = 0; });
-  }
-  function pvMark(scroll){
-    if (!pvOn() || !pdfDoc || !sents[idx]) return;
-    var p = sents[idx].page;
-    if (p === pvPage && pvVp) pvHL(scroll);
-    else if (pvPage && playing && Date.now() - pvUserT < 6000) return;      /* کاربر دارد اسکرول می‌کند؛ نمای او را به صفحهٔ خوانش برنمی‌گردانیم */
-    else pvShow(p, scroll);
-  }
-  function pvRedo(){ if (!pvOn() || !pdfDoc || !sents.length) return; pvPage = 0; pvVp = null; pvMark(true); }
-  function pvZoom(d){
-    var n = Math.max(0, Math.min(PVZ.length - 1, pvZi + d));
-    if (n === pvZi) return;
-    pvZi = n; sset('pvz', pvZi); $('#fsV').textContent = nf.format(Math.round(PVZ[pvZi] * 100)) + '٪'; pvRedo();
-  }
-  function pvIn(r, x, y){
-    if (r.r) { var cx = r.x + r.w / 2, cy = r.y + r.h / 2, c = Math.cos(-r.r), sn = Math.sin(-r.r), dx = x - cx, dy = y - cy; x = cx + dx * c - dy * sn; y = cy + dx * sn + dy * c; }
-    return x >= r.x - 3 && x <= r.x + r.w + 3 && y >= r.y - 2 && y <= r.y + r.h + 2;
-  }
-  $('#pvp').onclick = function(ev){
-    if (!pvVp) return;
-    var r = this.getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top, ids = [], k, j, rs;
-    pvPrep(pvPage);
-    (pageParas[pvPage] || []).forEach(function(g){ g.forEach(function(i){ ids.push(i); }); });
-    for (k = 0; k < ids.length; k++) {
-      rs = pvRectsOf(ids[k]);
-      for (j = 0; j < rs.length; j++) if (pvIn(rs[j], x, y)) { seekTo(ids[k]); return; }
-    }
-  };
-  $('#stage').addEventListener('scroll', function(){ if (pvScQ || !pvOn()) return; pvScQ = requestAnimationFrame(function(){ pvScQ = 0; pvScan(); }); }, { passive: true });
-  ['touchstart', 'wheel', 'pointerdown'].forEach(function(t){ $('#stage').addEventListener(t, function(){ pvUserT = Date.now(); }, { passive: true }); });
-  window.addEventListener('resize', function(){ clearTimeout(pvRz); pvRz = setTimeout(function(){ if (pvOn() && pvPage && Math.abs($('#pv').clientWidth - pvW) > 8) pvRedo(); }, 280); });
-  pvApply();
   var kaOn = null, kaBad = false;
   function kaSync(){
     if (kaBad || !npOK || !NP || (kaOn === null && !playing) || kaOn === !!playing) return;
@@ -6060,7 +5303,6 @@ var ocrSpell = (function(){
     $('#navGrp').hidden = !sents.length;
     document.body.classList.toggle('is-playing', !!playing);
     document.body.classList.toggle('has-doc', !!pdfDoc);
-    document.body.classList.toggle('no-sents', !sents.length);
     $('#play').setAttribute('aria-label', playing ? 'توقف موقت' : 'پخش');
     $('#play').title = playing ? 'توقف موقت (فاصله)' : 'پخش (فاصله)';
     musicSync();
@@ -6419,14 +5661,14 @@ var ocrSpell = (function(){
   /* ---------- events ---------- */
   $('#play').onclick = function(){ playing ? pause() : start(); };
   function seekTo(i){
-    pvUserT = 0; var was = playing; idx = Math.max(0, Math.min(sents.length - 1, i)); mark(true);
+    var was = playing; idx = Math.max(0, Math.min(sents.length - 1, i)); mark(true);
     if (was) { clearTimeout(seekT); token++; cancelAll(); seekT = setTimeout(function(){ if (playing) start(); }, 300); }
   }
   var fs = Math.max(0.9, Math.min(2.2, +sget('fs', '1.15') || 1.15));
   function applyFs(){ $('#reader').style.fontSize = fs + 'rem'; $('#fsSample').style.fontSize = fs + 'rem'; $('#fsV').textContent = nf.format(Math.round(fs * 100)) + '٪'; }
   applyFs();
-  $('#fsUp').onclick = function(){ if (pvOn()) { pvZoom(1); return; } fs = Math.min(2.2, Math.round((fs + 0.1) * 100) / 100); sset('fs', fs); applyFs(); if (curEl) follow(curEl); };
-  $('#fsDn').onclick = function(){ if (pvOn()) { pvZoom(-1); return; } fs = Math.max(0.9, Math.round((fs - 0.1) * 100) / 100); sset('fs', fs); applyFs(); if (curEl) follow(curEl); };
+  $('#fsUp').onclick = function(){ fs = Math.min(2.2, Math.round((fs + 0.1) * 100) / 100); sset('fs', fs); applyFs(); if (curEl) follow(curEl); };
+  $('#fsDn').onclick = function(){ fs = Math.max(0.9, Math.round((fs - 0.1) * 100) / 100); sset('fs', fs); applyFs(); if (curEl) follow(curEl); };
   function gotoPage(){
     var n = parseInt(digitsAscii($('#pgGo').value), 10);
     if (!n || !sents.length) return;
@@ -6546,7 +5788,7 @@ var ocrSpell = (function(){
     c.onclick = function(){ slSet(m); }; $('#slChips').appendChild(c);
   });
   slLabel();
-  $('#locBtn').onclick = function(){ if (pvOn()) { pvUserT = 0; pvPage = 0; pvVp = null; pvMark(true); return; } if (curEl) curEl.scrollIntoView({ block: 'center', behavior: fxCalm() ? 'auto' : 'smooth' }); };
+  $('#locBtn').onclick = function(){ if (curEl) curEl.scrollIntoView({ block: 'center', behavior: fxCalm() ? 'auto' : 'smooth' }); };
   $('#prev').onclick = function(){ seekTo(idx - 1); };
   $('#next').onclick = function(){ seekTo(idx + 1); };
   $('#stop').onclick = stopAll;
@@ -6578,6 +5820,8 @@ var ocrSpell = (function(){
   });
   if (sget('smartV', '') !== '1') { sset('smartV', '1'); sset('smartPace', '0'); }   /* سرعت صدا دقیقاً مثل حالت اولیه؛ فقط با تیک‌زدن دستی فعال می‌شود */
   $('#smartPace').checked = sget('smartPace', '0') === '1';
+  $('#ezAuto').checked = sget('ezAuto', '1') !== '0';
+  $('#ezAuto').onchange = function(){ sset('ezAuto', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   $('#humPace').checked = sget('humPace', '1') !== '0';
   $('#humPace').onchange = function(){ sset('humPace', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   $('#phLex').checked = sget('phLex', '1') !== '0';
@@ -6760,7 +6004,6 @@ var ocrSpell = (function(){
   $('#oPos').addEventListener('change', syncCols); syncCols();
   $('#maxL').oninput = function(){ $('#maxV').textContent = nf.format(+this.value); fillRng(this); };
   $('#maxL').oninput(); O = opts();
-  if (sget('ocrQV', '') !== '4') { sset('o_ocrQ', '1'); $('#ocrQ').value = '1'; sset('ocrQV', '4'); }   /* OCR خودکار با کیفیت «متعادل» (یک‌بار) */
   $('#ocrBtn').onclick = runOcr;
   ['ocrGpu', 'ocrDsk', 'ocrDn', 'ocrLex'].forEach(function(id){ var e = $('#' + id), v = sget('o_' + id, null); if (v !== null) e.checked = v === '1'; e.onchange = function(){ sset('o_' + id, e.checked ? '1' : '0'); }; });
 
@@ -6787,8 +6030,16 @@ var ocrSpell = (function(){
   });
   function segRefresh(){ (SEGS || []).forEach(function(f){ f(); }); }
 
-  var fin = $('#file');
+  var drop = $('#drop'), fin = $('#file');
+  drop.onclick = function(){ fin.click(); };
+  drop.onkeydown = function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fin.click(); } };
   fin.onchange = function(){ if (fin.files[0]) loadFile(fin.files[0]); fin.value = ''; };
+  ['dragenter','dragover'].forEach(function(n){ drop.addEventListener(n, function(e){ e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave','drop'].forEach(function(n){ drop.addEventListener(n, function(e){ e.preventDefault(); drop.classList.remove('over'); }); });
+  drop.addEventListener('drop', function(e){
+    var f = e.dataTransfer && e.dataTransfer.files[0];
+    if (f) loadFile(f);
+  });
 
   document.addEventListener('keydown', function(e){
     var tag = (e.target.tagName || '').toLowerCase();
@@ -6798,133 +6049,43 @@ var ocrSpell = (function(){
     }
   });
 
-  /* ---------- صفحه‌های تکی، منوی ابزار و پخش‌کنندهٔ کوچک ---------- */
-  var pagesEl = $('#menu'), curTab = 'read', tabHist = false, tabSkip = 0, TAB_ORDER = ['lib', 'voice', 'text', 'view'];
-  var TAB_META = {
-    lib: ['کتابخانه', 'فایل‌های ذخیره‌شده', 'M5 4h4v16H5zM11 4h4v16h-4zM17.5 5l3 .8-3.6 14-3-.8z'],
-    voice: ['صدا', 'گوینده، سرعت و گفتار', 'M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4'],
-    text: ['متن', 'ساختار و پاک‌سازی', 'M5 6h14M5 12h14M5 18h9'],
-    view: ['نمایش', 'پوسته و جلوه‌ها', 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z']
-  };
-
-  function updateHeader(t, o){
-    var rd = t === 'read', m = TAB_META[t] || ['', '', ''];
-    $('#hReader').hidden = !rd; $('#hTab').hidden = rd;
-    if (!rd) {
-      $('#tabTitle').textContent = o.title || m[0]; $('#tabSub').textContent = o.sub || m[1];
-      $('#tabIco').setAttribute('d', o.icon || m[2]);
-    }
+  /* ---------- رابط جدید: منو، نوار پخش، صفحهٔ آغاز ---------- */
+  var menuEl = $('#menu'), menuIsOpen = false, curTabNow = 'lib', menuFocus = null, menuHist = false, menuSkip = 0, TAB_ORDER = ['lib', 'voice', 'text', 'view'];
+  function showTab(t){
+    var tabs = document.querySelectorAll('#menu .tab'), ps = document.querySelectorAll('#menu .panel'), i;
+    if (TAB_ORDER.indexOf(t) < 0) t = 'lib';
+    for (i = 0; i < tabs.length; i++) { var on = tabs[i].dataset.tab === t; tabs[i].setAttribute('aria-selected', on ? 'true' : 'false'); tabs[i].tabIndex = on ? 0 : -1; }
+    for (i = 0; i < ps.length; i++) ps[i].classList.toggle('on', ps[i].dataset.panel === t);
+    curTabNow = t; setTimeout(function(){ sset('tab', t); }, 0); $('#mbody').scrollTop = 0; segRefresh();
+    var TT = { lib: 'کتابخانه', voice: 'صدا', text: 'متن', view: 'نمایش' }; $('#menuTitle').textContent = TT[t] || 'منو';
+    if (t === 'lib') setTimeout(function(){ libRender(); stRender(); }, 80);
   }
-  /* هر صفحه فقط بخش مربوط به خودش را نشان می‌دهد (o.only = انتخابگر همان بخش) و با ضربدر بسته می‌شود */
-  function setAppTab(t, o, fromPop){
-    o = o || {};
-    if (t !== 'read' && TAB_ORDER.indexOf(t) < 0) t = 'read';
-    var was = curTab; curTab = t;
-    document.body.dataset.apptab = t;
-    if (t !== 'read') {
-      var panel = pagesEl.querySelector('.panel[data-panel="' + t + '"]'), tg;
-      Array.prototype.forEach.call(pagesEl.querySelectorAll('.panel'), function(p){ p.classList.toggle('on', p === panel); });
-      Array.prototype.forEach.call(panel.children, function(k){ k.classList.toggle('solo-off', !!o.only && !k.matches(o.only)); });
-      if (o.only) { tg = panel.querySelector(o.only); if (tg && tg.tagName === 'DETAILS') tg.open = true; }
-      $('#mbody').scrollTop = 0;
-      if (t === 'lib') setTimeout(function(){ libRender(); stRender(); }, 80);
-      if (was === 'read' && !tabHist) { try { history.pushState({ pdfTab: 1 }, ''); tabHist = true; } catch (e) {} }
-    } else if (tabHist) {
-      tabHist = false;
-      if (fromPop !== true) { tabSkip++; try { history.back(); } catch (e) { tabSkip--; } }
-    }
-    updateHeader(t, o); syncMini(); closeTools(); segRefresh();
-  }
-  /* سازگاری با فراخوانی‌های قدیمی (باز کردن فایل ← بازگشت به متن؛ دوبار لمس واژه ← واژه‌نامه) */
   function openMenu(t){
-    if (t === 'text') setAppTab('text', { only: '#dictBox', title: 'واژه‌نامهٔ تلفظ', sub: 'افزودن و ویرایش' });
-    else setAppTab(t || 'lib');
+    showTab(t || sget('tab', 'lib'));
+    if (menuIsOpen) return;
+    menuIsOpen = true; menuFocus = document.activeElement;
+    menuEl.removeAttribute('inert'); menuEl.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('menu-open');
+    $('#menuBtn').setAttribute('aria-expanded', 'true');
+    if (!menuHist) { try { history.pushState({ pdfMenu: 1 }, ''); menuHist = true; } catch (e) {} }
+    setTimeout(function(){ try { $('#menuClose').focus(); } catch (e) {} }, 80);
   }
-  function closeMenu(){ if (curTab !== 'read') setAppTab('read'); }
+  function closeMenu(fromPop){
+    if (!menuIsOpen) return;
+    menuIsOpen = false;
+    document.body.classList.remove('menu-open');
+    menuEl.setAttribute('aria-hidden', 'true'); menuEl.setAttribute('inert', '');
+    $('#menuBtn').setAttribute('aria-expanded', 'false');
+    if (menuHist) { menuHist = false; if (fromPop !== true) { menuSkip++; try { history.back(); } catch (e) { menuSkip--; } } }
+    try { if (menuFocus && menuFocus.focus) menuFocus.focus(); } catch (e) {}
+  }
   window.addEventListener('popstate', function(){
-    if (tabSkip > 0) { tabSkip--; return; }
-    if (curTab !== 'read') { tabHist = false; setAppTab('read', null, true); }
+    if (menuSkip > 0) { menuSkip--; return; }
+    if (menuIsOpen) { menuHist = false; closeMenu(true); }
   });
-  $('#pageClose').onclick = function(){ setAppTab('read'); };
-
-  /* ---- منوی ابزار ---- */
-  var toolsEl = $('#toolsMenu'), menuBtn = $('#menuBtn'), toolsOn = false, toolsHold = false;
-  function toolsSync(){
-    var ok = !$('#play').disabled, t = $('#docTitle').textContent.trim(), th = document.querySelector('#thSw button[aria-pressed="true"]');
-    $('#tbT').textContent = ok ? 'ادامهٔ خواندن' : 'فهرست فایل‌ها';
-    $('#tbS').textContent = ok ? (t || 'بازگشت به متن') : 'همه فایل‌ها، مورد علاقه و موارد اخیر';
-    $('#thTileSub').textContent = th ? th.textContent.trim() : 'خودکار';
-  }
-  function openTools(){ toolsSync(); toolsOn = true; toolsEl.hidden = false; menuBtn.setAttribute('aria-expanded', 'true'); }
-  function closeTools(){ if (!toolsOn) return; toolsOn = false; toolsEl.hidden = true; menuBtn.setAttribute('aria-expanded', 'false'); }
-  menuBtn.onclick = function(e){ e.stopPropagation(); if (toolsOn) closeTools(); else openTools(); };
-  toolsEl.addEventListener('click', function(e){ e.stopPropagation(); });
-  document.addEventListener('click', function(){ if (!toolsHold) closeTools(); });
-  Array.prototype.forEach.call(toolsEl.querySelectorAll('.ttab'), function(b){
-    b.onclick = function(){
-      Array.prototype.forEach.call(toolsEl.querySelectorAll('.ttab'), function(x){ var on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-selected', on ? 'true' : 'false'); });
-      Array.prototype.forEach.call(toolsEl.querySelectorAll('.tpanel'), function(p){ p.classList.toggle('on', p.dataset.tp === b.dataset.tt); });
-    };
-  });
-  function cycleBtns(sel){
-    var bs = Array.prototype.slice.call(document.querySelectorAll(sel)), i = -1, n;
-    bs.forEach(function(b, k){ if (b.getAttribute('aria-pressed') === 'true') i = k; });
-    n = bs[(i + 1) % bs.length]; if (n) n.click();
-  }
-  function toolRun(b){
-    var act = b.dataset.act, go = b.dataset.go, only = b.dataset.only, sel = b.dataset.click, el, tg, bt, sm, pt;
-    if (act === 'theme') { toolsHold = true; try { cycleBtns('#thSw button'); } finally { toolsHold = false; } toolsSync(); return; }
-    closeTools();
-    if (act === 'file') { fin.click(); return; }
-    if (act === 'home') { showHome(); return; }
-    if (act === 'resume') { if ($('#play').disabled) showHome(); else { hideHome(); setAppTab('read'); } return; }
-    if (go) {
-      if (only) { tg = pagesEl.querySelector(only); if (tg && tg.hidden) { setAppTab('read'); status('ابتدا یک PDF باز کنید.'); return; } }
-      bt = b.querySelector('b'); sm = b.querySelector('small'); pt = b.querySelector('svg path');
-      setAppTab(go, { only: only, title: bt && bt.textContent, sub: sm && sm.textContent, icon: pt && pt.getAttribute('d') });
-    }
-    if (sel) {
-      el = document.querySelector(sel);
-      if (!el) return;
-      if (el.disabled) { setAppTab('read'); status('ابتدا یک PDF باز کنید.'); return; }
-      el.click();
-    }
-  }
-  Array.prototype.forEach.call(toolsEl.querySelectorAll('.tile,.tbanner'), function(b){ b.addEventListener('click', function(){ toolRun(b); }); });
-
-  /* ---- پخش‌کنندهٔ کوچک روی صفحه‌های تکی ---- */
-  var miniEl = $('#mini');
-  function syncMini(){
-    var show = curTab !== 'read' && !$('#play').disabled;
-    miniEl.hidden = !show; document.body.classList.toggle('mini-on', show);
-    if (!show) return;
-    $('#miniT').textContent = $('#docTitle').textContent.trim() || 'خوانندهٔ صوتی PDF';
-    $('#miniP').textContent = ($('#pos').textContent || '').replace(/^—$/, '');
-  }
-  $('#miniPlay').onclick = function(){ $('#play').click(); };
-  $('#miniGo').onclick = function(){ setAppTab('read'); };
-  if (window.MutationObserver) {
-    var moMini = new MutationObserver(function(){ syncMini(); syncPeek(); syncPct(); });
-    moMini.observe($('#play'), { attributes: true, attributeFilter: ['disabled'] });
-    moMini.observe($('#pos'), { childList: true, characterData: true, subtree: true });
-    moMini.observe($('#docTitle'), { childList: true, characterData: true, subtree: true });
-  }
-
-  /* ---- افکت ریپل ---- */
-  document.addEventListener('click', function(e){
-    var fx = document.documentElement.getAttribute('data-fx'), b, r, s, sp;
-    if (fx === 'perf' || fx === 'flat') return;
-    try { if (window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches) return; } catch (x) {}
-    b = e.target.closest && e.target.closest('.btn,.chip,.tile,.xbtn,.ttab,.sw button,.pill,.tbanner');
-    if (!b || b.disabled) return;
-    r = b.getBoundingClientRect(); s = Math.max(r.width, r.height);
-    sp = document.createElement('span'); sp.className = 'ripple';
-    sp.style.width = sp.style.height = s + 'px';
-    sp.style.left = ((e.clientX || r.left + r.width / 2) - r.left - s / 2) + 'px';
-    sp.style.top = ((e.clientY || r.top + r.height / 2) - r.top - s / 2) + 'px';
-    b.appendChild(sp); setTimeout(function(){ if (sp.parentNode) sp.parentNode.removeChild(sp); }, 600);
-  });
-
+  $('#menuBtn').onclick = function(){ if (menuIsOpen) closeMenu(); else openMenu(); };
+  $('#menuClose').onclick = function(){ closeMenu(); };
+  $('#scrim').onclick = function(){ closeMenu(); };
   /* خروج از برنامه */
   function exitFallback(){
     try { var A = CAP && CAP.Plugins && CAP.Plugins.App; if (A && A.exitApp) { A.exitApp(); return; } } catch (e) {}
@@ -6939,14 +6100,27 @@ var ocrSpell = (function(){
   }
   document.querySelectorAll('.exitB').forEach(function(b){ b.onclick = exitApp; });
   $('#menuOpen').onclick = function(){ fin.click(); };
-  document.addEventListener('keydown', function(e){
-    if (e.key !== 'Escape') return;
-    if (toolsOn) { e.preventDefault(); closeTools(); menuBtn.focus(); return; }
-    if (curTab !== 'read') { e.preventDefault(); setAppTab('read'); }
+  $('#heroLib').onclick = function(){ openMenu('lib'); };
+  Array.prototype.forEach.call(document.querySelectorAll('#menu .tab'), function(b){ b.onclick = function(){ showTab(b.dataset.tab); }; });
+  $('#tabs').addEventListener('keydown', function(e){
+    var d = e.key === 'ArrowLeft' ? 1 : e.key === 'ArrowRight' ? -1 : 0; if (!d) return;
+    var cur = document.querySelector('#menu .tab[aria-selected="true"]'), n = (TAB_ORDER.indexOf(cur.dataset.tab) + d + TAB_ORDER.length) % TAB_ORDER.length;
+    e.preventDefault(); showTab(TAB_ORDER[n]); document.querySelector('#menu .tab[data-tab="' + TAB_ORDER[n] + '"]').focus();
   });
-  setAppTab('read');
+  document.addEventListener('keydown', function(e){
+    if (!menuIsOpen) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeMenu(); return; }
+    if (e.key !== 'Tab') return;
+    var f = Array.prototype.filter.call(menuEl.querySelectorAll('button,input,select,textarea,summary,[tabindex]'), function(x){ return !x.disabled && x.tabIndex >= 0 && x.type !== 'hidden' && x.offsetParent !== null; });
+    if (!f.length) return;
+    var a = f[0], z = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); }
+    else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
+  });
+  menuEl.setAttribute('inert', '');
+  showTab(sget('tab', 'lib'));
 
-  /* بازگشت به متن پس از جستجو یا رفتن به صفحه تا نتیجه دیده شود */
+  /* بستن منو بعد از جستجو یا رفتن به صفحه تا نتیجه دیده شود */
   function afterNav(){ setTimeout(closeMenu, 150); }
   $('#pgBtn').addEventListener('click', function(){ if ($('#pgGo').value.trim()) afterNav(); });
   $('#qNext').addEventListener('click', function(){ if ($('#qBox').value.trim()) afterNav(); });
@@ -6954,42 +6128,12 @@ var ocrSpell = (function(){
   $('#pgGo').addEventListener('keydown', function(e){ if (e.key === 'Enter' && this.value.trim()) afterNav(); });
   $('#qBox').addEventListener('keydown', function(e){ if (e.key === 'Enter' && this.value.trim()) afterNav(); });
 
-  /* ---- نوار پخش: پنهان/نمایش، درصد پیشرفت و سرعت سریع ---- */
-  var dockHidden = sget('dockHide', '0') === '1', SPD = [0.75, 1, 1.25, 1.5, 2];
-  function syncPeek(){
-    var pk = $('#peekPos'), t = ($('#pos').textContent || '').replace(/^—$/, '');
-    if (pk) pk.textContent = t || 'نوار پخش';
-    $('#peekPlay').disabled = $('#play').disabled;
-  }
-  function syncPct(){
-    var s = $('#seek'), mx = +s.max, el = $('#posPct');
-    el.textContent = mx > 0 && !s.disabled ? nf.format(Math.round((+s.value) / mx * 100)) + '٪' : '';
-  }
-  function syncSpd(){ var b = $('#spdBtn'); if (b) b.textContent = 'سرعت ' + nf.format(+$('#rate').value || 1) + '×'; }
-  function applyHide(){
-    document.body.classList.toggle('dock-hide', dockHidden);
-    $('#dockPeek').hidden = !dockHidden;
-    $('#dock').setAttribute('aria-hidden', dockHidden ? 'true' : 'false');
-    try { $('#dock').inert = dockHidden; } catch (e) {}
-    syncPeek(); syncPct(); syncDock();
-  }
-  $('#dockHide').onclick = function(){ dockHidden = true; sset('dockHide', '1'); applyHide(); setTimeout(function(){ $('#peekShow').focus(); }, 40); };
-  $('#peekShow').onclick = function(){ dockHidden = false; sset('dockHide', '0'); applyHide(); setTimeout(function(){ $('#dockHide').focus(); }, 40); };
-  $('#peekPlay').onclick = function(){ $('#play').click(); };
-  $('#spdBtn').onclick = function(){
-    var r = +$('#rate').value || 1, n = SPD[0], i;
-    for (i = 0; i < SPD.length; i++) if (SPD[i] > r + 0.001) { n = SPD[i]; break; }
-    setRate(n);
-  };
-  $('#seek').addEventListener('input', syncPct);
-  applyHide();
-
   /* نوار پخش: کوچک و بزرگ شدن، و هماهنگی ارتفاع با کادر متن */
-  var dockMini = false;
+  var dockMini = sget('dockMini', '0') === '1';
   function applyMini(){ document.body.classList.toggle('dock-mini', dockMini); $('#dockTgl').setAttribute('aria-expanded', dockMini ? 'false' : 'true'); }
   applyMini();
   $('#dockTgl').onclick = function(){ dockMini = !dockMini; sset('dockMini', dockMini ? '1' : '0'); applyMini(); };
-  function syncDock(){ var h = document.body.classList.contains('dock-hide') ? 40 : $('#dock').offsetHeight; if (h) document.documentElement.style.setProperty('--dock-h', (h + 10) + 'px'); }
+  function syncDock(){ var h = $('#dock').offsetHeight; if (h) document.documentElement.style.setProperty('--dock-h', (h + 10) + 'px'); }
   if (window.ResizeObserver) new ResizeObserver(syncDock).observe($('#dock'));
   window.addEventListener('resize', syncDock); syncDock();
 
@@ -7006,13 +6150,13 @@ var ocrSpell = (function(){
   fillRng($('#maxL'));
 
   /* عنوان فایل */
-  function setDocTitle(n){ var t = $('#docTitle'), r = (n || '').replace(/\.pdf$/i, ''); t.textContent = r; t.title = n || ''; $('#rdTitle').textContent = r; }
+  function setDocTitle(n){ var t = $('#docTitle'); t.textContent = (n || '').replace(/\.pdf$/i, ''); t.title = n || ''; }
 
   /* یادداشت OCR روی کادر متن */
   function uiOcrNote(k){
     var n = $('#ocrNote'), t = $('#ocrNoteT'), b = $('#ocrNoteB');
     if (ocrBusy) { t.textContent = 'OCR در حال اجراست…'; b.textContent = 'توقف'; n.hidden = false; return; }
-    if (k) { t.textContent = nf.format(k) + ' صفحه در صف OCR خودکار'; b.textContent = 'اجرا'; n.hidden = false; return; }
+    if (k) { t.textContent = nf.format(k) + ' صفحه نیاز به OCR دارد'; b.textContent = 'اجرای OCR'; n.hidden = false; return; }
     n.hidden = true;
   }
   $('#ocrNoteB').onclick = function(){ $('#ocrBtn').click(); };
@@ -7027,436 +6171,9 @@ var ocrSpell = (function(){
     dragN = 0; document.body.classList.remove('dragging');
     if (!hasFiles(e)) return;
     e.preventDefault();
+    if (e.target.closest && e.target.closest('#drop')) return;
     var f = e.dataTransfer.files[0]; if (f) loadFile(f);
   });
-
-
-  /* ---------- صفحهٔ اصلی: همه فایل‌ها / مورد علاقه / موارد اخیر ---------- */
-  var hTab = sget('hTab', 'all'), hScan = [], hAccess = false, hDecl = true, hScanOK = false, hBusy = false, hLimit = 150, pathOf = {};
-  var hFolder = '', hQ = '', hPendFold = '', hLay = sget('hLay', 'list') === 'grid' ? 'grid' : 'list';
-  var HSORT0 = { all: { k: 'date', d: 'desc' }, fav: { k: 'date', d: 'desc' }, rec: { k: 'time', d: 'desc' } };
-  var HTITLE = { all: 'همه فایل‌ها', fav: 'مورد علاقه', rec: 'موارد اخیر' };
-  var SVG_HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.6-9-9.2C1.6 7.4 3.7 4 7 4c2 0 3.4 1.1 5 3 1.6-1.9 3-3 5-3 3.3 0 5.4 3.4 4 6.8C19 15.4 12 20 12 20z"/></svg>';
-  var SVG_MORE = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>';
-  function hJ(k){ try { var a = JSON.parse(sget(k, '[]')); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
-  function hMsg(t){ $('#homeMsg').textContent = t || ''; }
-  function norm(s){ return String(s || '').replace(/ي/g, 'ی').replace(/ك/g, 'ک').toLowerCase(); }
-  function hSortGet(){
-    var o = {}; try { o = JSON.parse(sget('hSortS', '{}')) || {}; } catch (e) {}
-    var s = o[hTab] || HSORT0[hTab];
-    return { k: ['name', 'date', 'time'].indexOf(s.k) >= 0 ? s.k : 'date', d: s.d === 'asc' ? 'asc' : 'desc' };
-  }
-  function hSortSet(s){
-    var o = {}; try { o = JSON.parse(sget('hSortS', '{}')) || {}; } catch (e) {}
-    o[hTab] = s; sset('hSortS', JSON.stringify(o));
-  }
-  function hCmp(s){
-    var m = s.d === 'asc' ? 1 : -1;
-    return function(a, b){
-      var r;
-      if (s.k === 'name') r = String(a.name).localeCompare(String(b.name), 'fa', { numeric: true, sensitivity: 'base' });
-      else if (s.k === 'time') r = (a.ts || 0) - (b.ts || 0);
-      else r = (a.mtime || 0) - (b.mtime || 0);
-      return (r * m) || String(a.name).localeCompare(String(b.name), 'fa');
-    };
-  }
-  function hFmt(ms){
-    if (!ms) return '';
-    try { var d = new Date(ms); return d.toLocaleDateString('fa-IR') + ' ' + d.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; }
-  }
-  /* پوشه‌ها: گروه‌بندی داخل برنامه (بدون جابه‌جا کردن فایل‌های دستگاه) */
-  function fdAll(){ return hJ('hFolders'); }
-  function fdSave(a){ sset('hFolders', JSON.stringify(a)); }
-  function fdOf(id){ var a = fdAll(), i; for (i = 0; i < a.length; i++) if (a[i].files.indexOf(id) >= 0) return a[i]; return null; }
-  function fdMove(id, fid){
-    var a = fdAll();
-    a.forEach(function(f){ var i = f.files.indexOf(id); if (i >= 0) f.files.splice(i, 1); if (f.id === fid) f.files.push(id); });
-    fdSave(a);
-  }
-  function recAdd(file){
-    var id = file.name + ':' + file.size, a = hJ('recents').filter(function(x){ return x.id !== id; });
-    a.unshift({ id: id, name: file.name, size: file.size, path: pathOf[id] || '', ts: Date.now() });
-    sset('recents', JSON.stringify(a.slice(0, 100)));
-    if (hPendFold) { fdMove(id, hPendFold); hPendFold = ''; }
-    hRender(); rdSync();
-  }
-  function favToggle(e){
-    var a = hJ('favs'), i = -1;
-    a.forEach(function(x, k){ if (x.id === e.id) i = k; });
-    if (i >= 0) a.splice(i, 1); else a.unshift({ id: e.id, name: e.name, size: e.size, path: e.path || '' });
-    sset('favs', JSON.stringify(a));
-    hRender(); rdSync();
-  }
-  function hFetch(path){
-    var u = CAP && CAP.convertFileSrc ? CAP.convertFileSrc('file://' + path) : '';
-    if (!u) return Promise.reject(new Error('no'));
-    return fetch(u).then(function(r){ if (!r.ok) throw new Error('http'); return r.blob(); });
-  }
-  function hFromLib(e){
-    return libIdx().then(function(a){
-      var x = a.filter(function(y){ return y.id === e.id; })[0];
-      if (!x) throw new Error('none');
-      return kvGet('lib:f:' + e.id).then(function(b){
-        if (!b) throw new Error('none');
-        return loadFile(new File([b], x.name, { type: 'application/pdf', lastModified: x.added || Date.now() }));
-      });
-    });
-  }
-  function hOpen(e){
-    hPendFold = ''; hMsg('در حال باز کردن…');
-    var fail = function(){ hMsg('این فایل پیدا نشد؛ ممکن است جابه‌جا یا حذف شده باشد.'); };
-    if (!e.path) return hFromLib(e).catch(fail);
-    return hFetch(e.path).then(function(b){ return loadFile(new File([b], e.name, { type: 'application/pdf' })); }).catch(function(){ return hFromLib(e); }).catch(fail);
-  }
-  /* گردآوری: فهرست اسکن‌شدهٔ دستگاه + فایل‌های ذخیره‌شده در برنامه (یکتا بر اساس «نام:حجم») */
-  function hEntries(){
-    return libIdx().then(function(lib){
-      var map = {}, all = [], rc = {};
-      hJ('recents').forEach(function(r){ rc[r.id] = r.ts; });
-      function put(id, name, size, path, mtime){
-        var o = map[id];
-        if (!o) { o = map[id] = { id: id, name: name, size: size || 0, path: '', mtime: 0, total: 0, ts: rc[id] || 0 }; all.push(o); }
-        if (path) { o.path = path; pathOf[id] = path; }
-        if (mtime && !o.mtime) o.mtime = mtime;
-        return o;
-      }
-      hScan.forEach(function(f){ put(f.name + ':' + f.size, f.name, f.size, f.path, f.mtime * 1000); });
-      lib.forEach(function(e){ var o = put(e.id, e.name, e.size, '', e.added); o.total = e.total || 0; });
-      return { all: all, map: map, rc: rc };
-    });
-  }
-  /* پنجرهٔ گفت‌وگوی ساده (ایجاد پوشه، انتقال، حذف) */
-  function hDlg(o){
-    var d = $('#hDlg'), ok = $('#hDlgOk'), no = $('#hDlgNo'), b = $('#hDlgB');
-    $('#hDlgT').textContent = o.title; b.textContent = '';
-    if (o.body) b.appendChild(o.body);
-    ok.hidden = !o.ok; ok.textContent = o.ok || ''; no.textContent = o.cancel || 'لغو';
-    function close(){ d.hidden = true; d.onkeydown = null; }
-    hDlg.close = close;
-    no.onclick = close;
-    d.onclick = function(e){ if (e.target === d) close(); };
-    ok.onclick = function(){ if (o.onOk && o.onOk() === false) return; close(); };
-    d.onkeydown = function(e){ if (e.key === 'Escape') close(); };
-    d.hidden = false;
-    setTimeout(function(){ (o.focus || no).focus(); }, 30);
-  }
-  function hNewFolder(){
-    var inp = document.createElement('input'), msg = document.createElement('p'), box = document.createElement('div');
-    inp.type = 'text'; inp.maxLength = 40; inp.placeholder = 'نام پوشه'; inp.dir = 'auto'; inp.setAttribute('aria-label', 'نام پوشه');
-    msg.className = 'hint'; box.className = 'hdbox'; box.appendChild(inp); box.appendChild(msg);
-    inp.onkeydown = function(e){ if (e.key === 'Enter') { e.preventDefault(); $('#hDlgOk').click(); } };
-    hDlg({ title: 'ایجاد پوشهٔ جدید', body: box, ok: 'ایجاد', cancel: 'لغو', focus: inp, onOk: function(){
-      var n = inp.value.trim().replace(/\s+/g, ' '), a = fdAll();
-      if (!n) { msg.textContent = 'نام پوشه را بنویسید.'; return false; }
-      if (a.some(function(f){ return norm(f.name) === norm(n); })) { msg.textContent = 'پوشه‌ای با این نام وجود دارد.'; return false; }
-      a.unshift({ id: 'f' + Date.now().toString(36), name: n, ts: Date.now(), files: [] });
-      fdSave(a); hRender();
-    } });
-  }
-  function hMoveDlg(e){
-    var a = fdAll(), cur = fdOf(e.id), box = document.createElement('div');
-    box.className = 'hdlist';
-    function item(label, fid){
-      var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = label;
-      b.onclick = function(){ fdMove(e.id, fid); hDlg.close(); hRender(); };
-      box.appendChild(b);
-    }
-    if (cur) item('بیرون آوردن از «' + cur.name + '»', '');
-    a.forEach(function(f){ if (!cur || cur.id !== f.id) item('📁 ' + f.name, f.id); });
-    if (!box.children.length) { var p = document.createElement('p'); p.className = 'hint'; p.textContent = 'هنوز پوشه‌ای نساخته‌اید؛ از دکمهٔ ایجاد پوشه استفاده کنید.'; box.appendChild(p); }
-    hDlg({ title: 'انتقال به پوشه', body: box, cancel: 'بستن' });
-  }
-  function hDelFolder(f){
-    var p = document.createElement('p'); p.className = 'hint'; p.textContent = 'پوشهٔ «' + f.name + '» حذف می‌شود؛ فایل‌های داخل آن پاک نمی‌شوند و به فهرست اصلی برمی‌گردند.';
-    hDlg({ title: 'حذف پوشه', body: p, ok: 'حذف', cancel: 'لغو', onOk: function(){
-      fdSave(fdAll().filter(function(x){ return x.id !== f.id; }));
-      if (hFolder === f.id) hFolder = '';
-      hRender();
-    } });
-  }
-  function hBtn(cls, html, label, fn){
-    var b = document.createElement('button'); b.type = 'button'; b.className = cls; b.innerHTML = html;
-    b.setAttribute('aria-label', label); b.onclick = fn; return b;
-  }
-  function hRow(e){
-    var row = document.createElement('div'), ob = document.createElement('button'), nm = document.createElement('b'), inf = document.createElement('span'), acts = document.createElement('div');
-    var pos = parseInt(sget('pos:' + e.id, '0'), 10) || 0, pr = e.total > 1 && pos > 0 ? Math.min(99, Math.round(pos / e.total * 100)) : 0;
-    var when = hTab === 'rec' ? e.ts : (e.mtime || e.ts);
-    var fav = hJ('favs').some(function(x){ return x.id === e.id; });
-    row.className = 'lib-i';
-    ob.type = 'button'; ob.className = 'lib-open' + (curKey === 'pos:' + e.id ? ' cur' : '');
-    nm.dir = 'auto'; nm.textContent = e.name;
-    inf.textContent = [libSize(e.size || 0), pr ? nf.format(pr) + '٪ خوانده شده' : '', hFmt(when)].filter(Boolean).join('، ');
-    ob.appendChild(nm); ob.appendChild(inf);
-    if (pr) { var bar = document.createElement('i'); bar.className = 'lib-pr'; bar.style.setProperty('--w', pr + '%'); ob.appendChild(bar); }
-    ob.onclick = function(){ hOpen(e); };
-    acts.className = 'hacts';
-    var fv = hBtn('hfav' + (fav ? ' on' : ''), SVG_HEART, (fav ? 'حذف از مورد علاقه: ' : 'افزودن به مورد علاقه: ') + e.name, function(){ favToggle(e); });
-    fv.setAttribute('aria-pressed', fav ? 'true' : 'false');
-    acts.appendChild(fv);
-    acts.appendChild(hBtn('hmore', SVG_MORE, 'گزینه‌های ' + e.name, function(){ hMoveDlg(e); }));
-    row.appendChild(ob); row.appendChild(acts);
-    return row;
-  }
-  function hFRow(f){
-    var row = document.createElement('div'), ob = document.createElement('button'), nm = document.createElement('b'), inf = document.createElement('span'), acts = document.createElement('div');
-    row.className = 'lib-i hfold';
-    ob.type = 'button'; ob.className = 'lib-open';
-    nm.dir = 'auto'; nm.textContent = '📁 ' + f.name;
-    inf.textContent = nf.format(f.files.length) + ' فایل' + (f.ts ? '، ' + hFmt(f.ts) : '');
-    ob.appendChild(nm); ob.appendChild(inf);
-    ob.onclick = function(){ hFolder = f.id; hLimit = 150; hRender(); };
-    acts.className = 'hacts';
-    acts.appendChild(hBtn('hmore', SVG_MORE, 'حذف پوشهٔ ' + f.name, function(){ hDelFolder(f); }));
-    row.appendChild(ob); row.appendChild(acts);
-    return row;
-  }
-  function hSortSync(){
-    var s = hSortGet();
-    Array.prototype.forEach.call(document.querySelectorAll('#hSortK button'), function(b){ b.setAttribute('aria-pressed', b.dataset.k === s.k ? 'true' : 'false'); });
-    Array.prototype.forEach.call(document.querySelectorAll('#hSortD button'), function(b){ b.setAttribute('aria-pressed', b.dataset.d === s.d ? 'true' : 'false'); });
-  }
-  function hRender(){
-    if (!$('#homeView')) return Promise.resolve();
-    var tabs = document.querySelectorAll('#homeView .htabs button'), s = hSortGet();
-    Array.prototype.forEach.call(tabs, function(b){ b.setAttribute('aria-selected', b.dataset.ht === hTab ? 'true' : 'false'); });
-    hSortSync();
-    $('#hLay').firstChild.firstChild.setAttribute('d', hLay === 'grid' ? 'M4 6h16M4 12h16M4 18h16' : 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z');
-    $('#hLay').setAttribute('aria-label', hLay === 'grid' ? 'نمایش فهرستی' : 'نمایش شبکه‌ای');
-    return hEntries().then(function(r){
-      var q = norm(hQ.trim()), folders = [], list, fo = null, total, box = $('#homeList'), more;
-      function ref(x){ var o = r.map[x.id] || { id: x.id, name: x.name, size: x.size, path: x.path || '', mtime: 0, total: 0 }; if (!o.path && x.path) o.path = x.path; o.ts = x.ts || r.rc[x.id] || 0; return o; }
-      if (hTab === 'fav') list = hJ('favs').map(ref);
-      else if (hTab === 'rec') list = hJ('recents').map(ref);
-      else {
-        list = r.all.slice();
-        if (hFolder) { fo = fdAll().filter(function(f){ return f.id === hFolder; })[0] || null; if (!fo) hFolder = ''; }
-      }
-      total = list.length;
-      if (hTab === 'all' && !q) {
-        if (fo) list = list.filter(function(e){ return fo.files.indexOf(e.id) >= 0; });
-        else {
-          var inF = {};
-          fdAll().forEach(function(f){ f.files.forEach(function(id){ inF[id] = 1; }); });
-          list = list.filter(function(e){ return !inF[e.id]; });
-          folders = fdAll().map(function(f){ return { id: f.id, name: f.name, mtime: f.ts || 0, ts: f.ts || 0, files: f.files, o: f }; });
-        }
-      }
-      if (q) list = list.filter(function(e){ return norm(e.name).indexOf(q) >= 0; });
-      list.sort(hCmp(s)); folders.sort(hCmp(s));
-      var cnt = fo ? list.length : (hTab === 'all' && !q ? total : list.length);
-      $('#hTitle').textContent = (fo ? fo.name : HTITLE[hTab]) + ' (' + nf.format(cnt) + ')';
-      $('#hNewF').hidden = !(hTab === 'all' && !fo);
-      $('#homeAdd').hidden = hTab !== 'all';
-      $('#homePerm').hidden = !(onNative && NP && NP.listPdfs && hTab === 'all' && hScanOK && !hAccess);
-      $('#homePermT').textContent = hDecl ? 'برای نمایش خودکار همهٔ PDFهای دستگاه، دسترسی به فایل‌ها را فعال کنید.' : 'این نسخهٔ برنامه مجوز دسترسی به فایل‌های دستگاه را ندارد، برای همین فهرست خودکار کار نمی‌کند. با «افزودن فایل PDF» می‌توانید فایل‌ها را دستی اضافه کنید.';
-      $('#homePermB').hidden = !hDecl;
-      box.classList.toggle('grid', hLay === 'grid');
-      box.textContent = '';
-      if (fo) box.appendChild(hBtn('btn hback', '→ بازگشت به همه فایل‌ها', 'بازگشت به همه فایل‌ها', function(){ hFolder = ''; hLimit = 150; hRender(); }));
-      if (!list.length && !folders.length) {
-        var p = document.createElement('p'); p.className = 'empty';
-        p.textContent = q ? 'نتیجه‌ای پیدا نشد.' : hTab === 'fav' ? 'هنوز فایلی را مورد علاقه نکرده‌اید؛ روی قلب کنار هر فایل بزنید.' : hTab === 'rec' ? 'هنوز فایلی اجرا نشده است.' : fo ? 'این پوشه خالی است؛ از ⋮ کنار فایل‌ها آن‌ها را به این پوشه ببرید.' : (hBusy ? 'در حال جست‌وجوی PDFهای دستگاه…' : 'PDF پیدا نشد.');
-        box.appendChild(p); return;
-      }
-      var frag = document.createDocumentFragment();
-      folders.forEach(function(f){ frag.appendChild(hFRow(f.o)); });
-      list.slice(0, hLimit).forEach(function(e){ frag.appendChild(hRow(e)); });
-      box.appendChild(frag);
-      if (list.length > hLimit) {
-        more = document.createElement('button'); more.type = 'button'; more.className = 'btn wide'; more.textContent = 'نمایش بیشتر (' + nf.format(list.length - hLimit) + ' فایل دیگر)';
-        more.onclick = function(){ hLimit += 150; hRender(); };
-        box.appendChild(more);
-      }
-    }).catch(function(){});
-  }
-  /* اسکن خودکار حافظهٔ دستگاه از طریق پلاگین بومی؛ در مرورگر یا بدون دسترسی فقط فایل‌های ذخیره‌شده در برنامه نمایش داده می‌شوند */
-  function hScanRun(){
-    if (!onNative || !NP || hBusy) return Promise.resolve();
-    hBusy = true;
-    return ensurePiper().then(function(ok){
-      if (!ok || !NP.listPdfs) throw new Error('old');
-      return NP.listPdfs();
-    }).then(function(r){
-      hScan = (r && r.files) || []; hAccess = !!(r && r.access); hDecl = !(r && r.declared === false); hScanOK = true;
-    }).catch(function(){ hScanOK = false; hAccess = false; }).then(function(){ hBusy = false; return hRender(); });
-  }
-  function showHome(){
-    closeTools(); setAppTab('read');
-    document.body.classList.add('home-on');
-    hRender(); hScanRun();
-  }
-  function hideHome(){ document.body.classList.remove('home-on'); rdSync(); }
-  var hQt = 0;
-  function hSearchOpen(on){
-    $('#hSearchRow').hidden = !on; $('#hSearchB').classList.toggle('on', on);
-    if (on) setTimeout(function(){ $('#hQ').focus(); }, 30);
-    else if (hQ) { hQ = ''; $('#hQ').value = ''; hRender(); }
-  }
-  Array.prototype.forEach.call(document.querySelectorAll('#homeView .htabs button'), function(b){
-    b.onclick = function(){ hTab = b.dataset.ht; sset('hTab', hTab); hFolder = ''; hLimit = 150; hMsg(''); $('#hSortP').hidden = true; $('#hSortB').classList.remove('on'); hRender(); };
-  });
-  $('#hSearchB').onclick = function(){ hSearchOpen($('#hSearchRow').hidden); };
-  $('#hQx').onclick = function(){ hSearchOpen(false); };
-  $('#hQ').oninput = function(){ var v = this.value; clearTimeout(hQt); hQt = setTimeout(function(){ hQ = v; hLimit = 150; hRender(); }, 140); };
-  $('#hNewF').onclick = hNewFolder;
-  $('#hLay').onclick = function(){ hLay = hLay === 'grid' ? 'list' : 'grid'; sset('hLay', hLay); hRender(); };
-  $('#hSortB').onclick = function(){ var p = $('#hSortP'); p.hidden = !p.hidden; this.classList.toggle('on', !p.hidden); };
-  Array.prototype.forEach.call(document.querySelectorAll('#hSortK button'), function(b){ b.onclick = function(){ var s = hSortGet(); s.k = b.dataset.k; hSortSet(s); hRender(); }; });
-  Array.prototype.forEach.call(document.querySelectorAll('#hSortD button'), function(b){ b.onclick = function(){ var s = hSortGet(); s.d = b.dataset.d; hSortSet(s); hRender(); }; });
-  $('#homeAdd').onclick = function(){ hPendFold = hFolder; fin.click(); };
-  $('#homePermB').onclick = function(){ if (NP && NP.pdfRequest) NP.pdfRequest().then(function(r){ if (r && r.declared === false) { hDecl = false; hRender(); } }).catch(function(){}); };
-  document.addEventListener('visibilitychange', function(){ if (!document.hidden && (!document.body.classList.contains('has-doc') || document.body.classList.contains('home-on'))) hScanRun(); });
-  if (['all', 'fav', 'rec'].indexOf(hTab) < 0) hTab = 'all';
-
-  /* ---- هدر و نوار پخش صفحهٔ خواندن ---- */
-  function curEnt(){
-    if (!curKey) return null;
-    var id = curKey.slice(4), i = id.lastIndexOf(':');
-    return { id: id, name: id.slice(0, i), size: +id.slice(i + 1) || 0, path: pathOf[id] || '' };
-  }
-  function rdSync(){
-    var e = curEnt(), on = !!e && hJ('favs').some(function(x){ return x.id === e.id; }), b = $('#rdFav');
-    b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    b.setAttribute('aria-label', on ? 'حذف از مورد علاقه' : 'افزودن به مورد علاقه');
-  }
-  function tileClick(sel){ var b = document.querySelector('#toolsMenu .tile[' + sel + ']'); if (b) b.click(); }
-  document.getElementById('appHeader').appendChild(toolsEl);   /* منو به کل هدر لنگر می‌شود تا با هر دو نوار کار کند */
-  $('#rdBack').onclick = showHome;
-  $('#rdSearch').onclick = function(){ tileClick('data-only="#navGrp"'); };
-  $('#rdMode').onclick = function(){ pvMode = pvOn() ? 'text' : 'page'; sset('rdMode', pvMode); pvApply(); if (pvOn()) pvRedo(); else if (curEl) follow(curEl); };
-  $('#dText').onclick = function(){ $('#rdMode').click(); };
-  $('#rdFav').onclick = function(){ var e = curEnt(); if (e) { favToggle(e); rdSync(); } };
-  $('#rdMore').onclick = function(ev){ ev.stopPropagation(); menuBtn.click(); };
-  $('#hGear').onclick = function(ev){ ev.stopPropagation(); menuBtn.click(); };
-  $('#dTools').onclick = function(ev){ ev.stopPropagation(); menuBtn.click(); };
-  $('#dListen').onclick = function(){ $('#play').click(); };
-  /* ---------- برگهٔ گوینده و سبک گفتار (دکمهٔ کاربر): آواتار هر گوینده + انتخاب سبک ---------- */
-  var VS = (function(){
-    var sheet = $('#vsSheet'), scrim = $('#vsScrim'), vbox = $('#vsVoices'), sbox = $('#vsStyles'), desc = $('#vsDesc'), btn = $('#dVoice'),
-        icon0 = btn.innerHTML, tmr = 0, isOn = false, built = false, memo = {}, ty = 0;
-    var SK = '<path d="M6 64c1-12 11-19 26-19s25 7 26 19z" fill="';
-    var AV = {
-      gyro: { c: ['#5b6cf0', '#1c2670'], t: 'مردانه · بم و متین', d: 'لحنی رسمی و باوقار؛ مناسب کتاب و متن‌های جدی.',
-        s: SK + '#1f2a55"/><path d="M25 45l7 9 7-9z" fill="#fff"/><path d="M31 50h2l1.5 10-2.5 2-2.5-2z" fill="#c0392b"/><rect x="28" y="36" width="8" height="11" rx="3" fill="#c98f68"/><ellipse cx="32" cy="27" rx="11" ry="13" fill="#dca67d"/><path d="M21 27c-1-10 5-16 11-16s12 5 11 15c-2-5-5-8-11-8s-9 3-11 9z" fill="#2a2433"/><path d="M21 29c0 10 5 15 11 15s11-5 11-15c-2 6-5 8-11 8s-9-2-11-8z" fill="#4b4555"/><rect x="23.5" y="24.5" width="7" height="5.5" rx="2" fill="none" stroke="#1d1d28" stroke-width="1.4"/><rect x="33.5" y="24.5" width="7" height="5.5" rx="2" fill="none" stroke="#1d1d28" stroke-width="1.4"/><path d="M30.5 26.5h3" stroke="#1d1d28" stroke-width="1.4" fill="none"/><circle cx="27" cy="27.3" r="1.1" fill="#1d1d28"/><circle cx="37" cy="27.3" r="1.1" fill="#1d1d28"/><path d="M29.5 35.2q2.5 1.5 5 0" stroke="#e7b9a0" stroke-width="1.3" fill="none" stroke-linecap="round"/>' },
-      ganji: { c: ['#34d3b0', '#0f7c6c'], t: 'مردانه · گرم و صمیمی', d: 'لحنی دوستانه و روان؛ مناسب مقاله و متن‌های روزمره.',
-        s: SK + '#17a38d"/><path d="M22 47c3 6 17 6 20 0" fill="none" stroke="#0e7766" stroke-width="2.4" stroke-linecap="round"/><path d="M28 52v6M36 52v6" stroke="#e9fff9" stroke-width="1.5" stroke-linecap="round"/><rect x="28" y="36" width="8" height="11" rx="3" fill="#e0aa84"/><ellipse cx="32" cy="27" rx="11" ry="13" fill="#f2c6a0"/><path d="M20.5 26c-2-10 4-17 12-17 8 0 13 6 11 17-1-5-4-9-8-9-3 2-8 2-11 4-2 1-3 3-4 5z" fill="#5a3a25"/><path d="M30 10c1-4 5-5 7-3-3 0-4 1-5 4z" fill="#5a3a25"/><circle cx="27.5" cy="27" r="1.5" fill="#2b1d16"/><circle cx="36.5" cy="27" r="1.5" fill="#2b1d16"/><path d="M25.5 23.2q2-1.3 4 0M34.5 23.2q2-1.3 4 0" stroke="#5a3a25" stroke-width="1.2" fill="none" stroke-linecap="round"/><path d="M27.5 33q4.5 5 9 0z" fill="#fff" stroke="#9a4a38" stroke-width="1" stroke-linejoin="round"/>' },
-      adabi: { c: ['#f2b24a', '#b4651b'], t: 'مردانه · ادبی و داستان‌گو', d: 'لحنی نرم و قصه‌گو؛ مناسب رمان، شعر و متن ادبی.',
-        s: SK + '#7b5a3c"/><path d="M26 45l6 7 6-7z" fill="#f1e6cf"/><rect x="28" y="36" width="8" height="11" rx="3" fill="#c48f68"/><ellipse cx="32" cy="27" rx="11" ry="13" fill="#d8a47c"/><path d="M21 24c-2 3-2 8-1 11 1-1 2-2 2-4zM43 24c2 3 2 8 1 11-1-1-2-2-2-4z" fill="#a9a9b4"/><ellipse cx="32" cy="16" rx="15" ry="6" fill="#8a2f3a"/><circle cx="32" cy="9.5" r="1.7" fill="#8a2f3a"/><circle cx="27.5" cy="27.5" r="1.4" fill="#2b1d16"/><circle cx="36.5" cy="27.5" r="1.4" fill="#2b1d16"/><path d="M25 24.5q2.5-1.6 5 0M34 24.5q2.5-1.6 5 0" stroke="#9a9aa5" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M24.5 32c3-3 6-2 7.5 0 1.5-2 4.5-3 7.5 0-3 3.5-6 2-7.5 1-1.500 1-4.500 2.500-7.500-1z" fill="#a9a9b4"/><g transform="rotate(-8 51 54)"><rect x="43" y="47" width="15" height="12" rx="1.500" fill="#f3e2b0" stroke="#6b4a2a" stroke-width="1"/><path d="M50.500 47v12" stroke="#6b4a2a" stroke-width="1"/></g>' },
-      mana: { c: ['#ff7aa8', '#7b3fd6'], t: 'زنانه · روشن و شمرده', d: 'لحنی شفاف و آرام؛ مناسب مجله، آموزش و کتاب صوتی.',
-        s: SK + '#7a4fd1"/><path d="M17.5 30c-1-14 6-23 15-23s16 9 14.500 26c0 10 1 17 3 22H15c2-5 3-11 2.500-25z" fill="#2a1a2e"/><path d="M24 45q8 8 16 0z" fill="#f1c7a5"/><rect x="28" y="36" width="8" height="11" rx="3" fill="#e3b08c"/><ellipse cx="32" cy="27" rx="10.500" ry="12.500" fill="#f4cdad"/><path d="M21.500 26c1-9 6-13 11-13 6 0 10 5 10.500 13-2-4-5-7-9-8-3 2-8 4-12.500 8z" fill="#2a1a2e"/><ellipse cx="27.500" cy="27.500" rx="1.400" ry="1.800" fill="#2a1a1a"/><ellipse cx="36.500" cy="27.500" rx="1.400" ry="1.800" fill="#2a1a1a"/><path d="M25.500 25q2-1.600 4 0M34.500 25q2-1.600 4 0" stroke="#2a1a2e" stroke-width="1.100" fill="none" stroke-linecap="round"/><path d="M29 34q3 2.800 6 0-3 .8-6 0z" fill="#c2415a" stroke="#c2415a" stroke-width=".8" stroke-linejoin="round"/><circle cx="21.500" cy="32" r="1.200" fill="#f5d36b"/><circle cx="42.500" cy="32" r="1.200" fill="#f5d36b"/>' }
-    };
-    var GEN = '<path d="M8 64c1-11 10-17 24-17s23 6 24 17z" fill="#fff" fill-opacity=".85"/><circle cx="32" cy="27" r="11" fill="#fff" fill-opacity=".92"/>';
-    var ST = {   /* آیکون و رنگ هر سبک */
-      serene: ['M20 14.500A8 8 0 0 1 9.500 4 8 8 0 1 0 20 14.500z', '#6c7bff'],
-      calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
-      stable: ['M4 9h16M4 15h16', '#3b8fe0'],
-      balanced: ['M12 4v16M5 8h14M5 8l-2 6a3 3 0 0 0 4 0zM19 8l-2 6a3 3 0 0 0 4 0z', '#d99a12'],
-      natural: ['M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM6 11a6 6 0 0 0 12 0M12 17v4', '#ef5da8'],
-      lively: ['M13 3L5 14h6l-1 7 8-11h-6z', '#f2693a']
-    };
-    function key(id){ return /adabi/i.test(id) ? 'adabi' : /gyro/i.test(id) ? 'gyro' : /ganji/i.test(id) ? 'ganji' : /mana/i.test(id) ? 'mana' : ''; }
-    function vinfo(id){
-      var all = allVoices(), v = null, i, k = key(id), a = AV[k] || null;
-      for (i = 0; i < all.length; i++) if (all[i].id === id) { v = all[i]; break; }
-      return { a: a, mb: (v && v.mb) || 0, g: v ? v.gender : '?' };
-    }
-    function avatar(id){
-      if (memo[id]) return memo[id];
-      var f = vinfo(id), a = f.a, h, c, s;
-      if (a) { c = a.c; s = a.s; }
-      else {
-        for (h = 0, s = 0; s < id.length; s++) h = (h * 31 + id.charCodeAt(s)) % 360;
-        c = f.g === 'f' ? ['#ff8ab3', '#8a4fd8'] : f.g === 'm' ? ['#6a8cff', '#2b3fa8'] : ['hsl(' + h + ',70%,60%)', 'hsl(' + ((h + 40) % 360) + ',60%,35%)'];
-        s = GEN;
-      }
-      return (memo[id] = '<span class="vav" style="--a1:' + c[0] + ';--a2:' + c[1] + '"><svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">' + s + '</svg></span>');
-    }
-    function voices(){
-      var o = $('#voice').options, a = [], i;
-      for (i = 0; i < o.length; i++) a.push({ id: o[i].value, name: o[i].textContent.replace(/ ✓$/, '').replace(/\s*\(.*\)$/, '') });
-      return a;
-    }
-    function el(tag, cls, html){ var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
-    function buildVoices(){
-      vbox.textContent = '';
-      voices().forEach(function(v){
-        var f = vinfo(v.id), have = HAVE.indexOf(v.id) >= 0, b = el('button', 'vs-v'), t = el('span', 'vs-t'), g = el('span', 'vs-tag' + (have ? ' ok' : ''));
-        b.type = 'button'; b.setAttribute('role', 'radio'); b.dataset.id = v.id;
-        b.insertAdjacentHTML('beforeend', avatar(v.id));
-        t.appendChild(el('b', '', '')).textContent = v.name;
-        t.appendChild(el('em', '', '')).textContent = f.a ? f.a.t : (f.g === 'f' ? 'زنانه' : f.g === 'm' ? 'مردانه' : 'گوینده');
-        if (f.a) t.appendChild(el('small', '', '')).textContent = f.a.d;
-        g.textContent = have ? 'آماده' : (f.mb ? nf.format(f.mb) + ' مگابایت' : 'نیاز به نصب');
-        b.appendChild(t); b.appendChild(g);
-        b.onclick = function(){ pickVoice(v.id); };
-        vbox.appendChild(b);
-      });
-    }
-    function buildStyles(){
-      if (built) return; built = true;
-      var o = $('#vstyle').options, i, b, ic;
-      for (i = 0; i < o.length; i++) (function(op){
-        var k = ST[op.value] || ST.natural;
-        b = el('button', 'vs-s'); b.type = 'button'; b.setAttribute('role', 'radio'); b.dataset.v = op.value; b.style.setProperty('--c', k[1]);
-        b.innerHTML = '<i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + k[0] + '"/></svg></i>';
-        b.appendChild(document.createElement('span')).textContent = op.dataset.short || op.textContent;
-        b.onclick = function(){ pickStyle(op.value); };
-        sbox.appendChild(b);
-      })(o[i]);
-    }
-    function paint(){
-      var vs = $('#voice').value, ss = $('#vstyle').value, o = $('#vstyle').options[$('#vstyle').selectedIndex];
-      Array.prototype.forEach.call(vbox.children, function(b){ b.setAttribute('aria-checked', b.dataset.id === vs ? 'true' : 'false'); });
-      Array.prototype.forEach.call(sbox.children, function(b){ b.setAttribute('aria-checked', b.dataset.v === ss ? 'true' : 'false'); });
-      desc.textContent = (o && o.dataset.desc) || '';
-    }
-    function sync(){
-      var id = $('#voice').value, nm;
-      if (!id) { if (btn.dataset.vid) { btn.innerHTML = icon0; delete btn.dataset.vid; } return; }
-      nm = id.replace(/^fa_IR-/, '').replace(/-medium$/, '');
-      if (btn.dataset.vid !== id) { btn.innerHTML = avatar(id); btn.dataset.vid = id; }
-      btn.setAttribute('aria-label', 'گوینده و سبک گفتار (' + nm + ')');
-      btn.title = 'گوینده و سبک گفتار';
-    }
-    function pickVoice(id){
-      var s = $('#voice');
-      if (s.value !== id) { s.value = id; s.dispatchEvent(new Event('change', { bubbles: true })); }
-      sync(); paint();
-    }
-    function pickStyle(v){
-      var s = $('#vstyle');
-      if (s.value !== v) { s.value = v; s.dispatchEvent(new Event('change', { bubbles: true })); segRefresh(); }
-      paint();
-    }
-    function open(){
-      if (isOn) return;
-      clearTimeout(tmr); isOn = true;
-      buildVoices(); buildStyles(); paint();
-      scrim.hidden = false; sheet.hidden = false; void sheet.offsetWidth;
-      scrim.classList.add('on'); sheet.classList.add('on');
-      btn.setAttribute('aria-expanded', 'true');
-      var f = vbox.querySelector('[aria-checked="true"]') || vbox.firstChild;
-      if (f) f.focus({ preventScroll: true });
-    }
-    function close(){
-      if (!isOn) return;
-      isOn = false;
-      scrim.classList.remove('on'); sheet.classList.remove('on');
-      btn.setAttribute('aria-expanded', 'false');
-      tmr = setTimeout(function(){ sheet.hidden = true; scrim.hidden = true; vbox.textContent = ''; }, 280);
-      try { btn.focus({ preventScroll: true }); } catch(e){}
-    }
-    btn.onclick = function(){ isOn ? close() : open(); };
-    scrim.onclick = close; $('#vsX').onclick = close;
-    document.addEventListener('keydown', function(e){ if (isOn && e.key === 'Escape') close(); });
-    sheet.addEventListener('touchstart', function(e){ ty = (sheet.scrollTop <= 0 && e.touches.length === 1) ? e.touches[0].clientY : -1; }, { passive: true });
-    sheet.addEventListener('touchend', function(e){ if (ty >= 0 && e.changedTouches[0].clientY - ty > 90) close(); ty = 0; }, { passive: true });
-    $('#voice').addEventListener('change', sync);
-    return { sync: sync, open: open, close: close };
-  })();
-  VS.sync(); setTimeout(VS.sync, 900); setTimeout(VS.sync, 3000);
-  hRender(); hScanRun();
 
   window.addEventListener('pagehide', function(){ posFlush(); cancelAll(); });
   document.addEventListener('visibilitychange', function(){ if (document.hidden) posFlush(); });
