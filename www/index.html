@@ -741,8 +741,15 @@ body:not(.has-doc) .top,body.home-on .top{padding:0}
 .pv{max-width:100%;margin:0 auto;overflow-x:auto}
 .pvp{position:relative;margin:0 auto;width:max-content;background:#fff;border:1px solid var(--line);border-radius:4px;box-shadow:0 6px 18px -10px var(--dsh)}
 .pvp canvas{display:block}
-.pvh{position:absolute;inset:0;pointer-events:none}
-.pvh i{position:absolute;border-radius:3px;background:color-mix(in srgb,var(--accent) 38%,transparent);mix-blend-mode:multiply}
+.pvh{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply}
+.pvh i{position:absolute;border-radius:8px;background:linear-gradient(110deg,rgba(245,185,50,.5),rgba(255,224,150,.3));box-shadow:0 0 0 4px rgba(245,185,50,.36),0 0 28px 6px rgba(229,161,31,.38)}
+.pvh i.ap{background:linear-gradient(110deg,rgba(245,185,50,.3),rgba(255,224,150,.18));box-shadow:0 0 0 2px rgba(245,185,50,.4);outline:2px dashed rgba(200,130,10,.6);outline-offset:1px}
+.is-playing .pvh i:not(.ap){animation:pvglow 2.6s ease-in-out infinite}
+@keyframes pvglow{50%{box-shadow:0 0 0 4px rgba(245,185,50,.36),0 0 38px 10px rgba(229,161,31,.52)}}
+:root[data-fx="lite"] .pvh i{box-shadow:0 0 0 3px rgba(245,185,50,.36)}
+:root[data-fx="lite"] .is-playing .pvh i,:root[data-fx="perf"] .is-playing .pvh i,:root[data-fx="flat"] .is-playing .pvh i{animation:none!important}
+:root[data-fx="perf"] .pvh,:root[data-fx="flat"] .pvh{mix-blend-mode:normal}
+:root[data-fx="perf"] .pvh i,:root[data-fx="flat"] .pvh i{outline:3px solid rgba(245,185,50,.55);background:rgba(245,185,50,.28)}
 #pvn{text-align:center;margin-top:8px}
 body:not(.view-page) .pv,body.view-page.no-sents .pv{display:none}
 body.view-page:not(.no-sents) #reader{display:none}
@@ -1416,6 +1423,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 </section>
 
 <script src="lib/pdf.min.js"></script>
+<script src="fa_words.js"></script>
 <script>window.pdfLocal = !!window.pdfjsLib;</script>
 <script>
 (function(){
@@ -1746,7 +1754,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 
   /* ---------- text settings / OCR ---------- */
 /*@@TXW:A*/
-  var O = { ln: 'auto', maxl: 100, script: true, ocr: 'auto' }, pdfDoc = null, rawItems = [], ocrPages = {}, ocrKey = '', need = [], dropped = 0, ocrBusy = false, ocrStop = false, ocrDirty = false, rawImg = [];
+  var O = { ln: 'auto', maxl: 100, script: true, ocr: 'auto' }, pdfDoc = null, rawItems = [], ocrPages = {}, ocrGeo = {}, ocrKey = '', need = [], dropped = 0, ocrBusy = false, ocrStop = false, ocrDirty = false, rawImg = [];
   function opts(){ var g = function(i){ return $('#' + i); }; return { ln: g('lnMode').value, dots: g('oDots').checked, hdr: g('oHdr').checked, norm: g('oNorm').checked, script: g('oScript').checked, latin: g('oLatin').checked, pos: g('oPos').checked, cols: g('oCols').checked && g('oPos').checked, fix: g('oFix').checked, glue: g('oGlue').checked, spell: g('oSpell').checked, pause: g('oPause').checked, toc: g('oToc').checked, from: Math.max(0, +g('pgFrom').value || 0), to: Math.max(0, +g('pgTo').value || 0), maxl: +g('maxL').value, ocr: g('ocrMode').value, enc: g('encMode').value }; }
   function optsFix(o){ if (o.from && o.to && o.from > o.to) { var x = o.from; o.from = o.to; o.to = x; } return o; }
   var CW = new Set('و در به از که این را با است برای آن یک تا هم بر یا هر شد می'.split(' '));
@@ -2088,10 +2096,12 @@ var ocrSpell = (function(){
   var D = null, memo = new Map(), CONF = {};
   'بپتثنی|جچحخ|دذ|رزژ|سش|صض|طظ|عغ|فق|کگ|اآ'.split('|').forEach(function(g){ g.split('').forEach(function(c){ CONF[c] = g.replace(c, ''); }); });
 
+  var FA_WORDS = String(window.FA_WORDS || '');   /* از fa_words.js (کنار index.html) بارگذاری می‌شود؛ نبودنش خطایی ایجاد نمی‌کند */
   function build(){
     D = new Set();
     var add = function(w){ if (w) D.add(normCh(w)); };
     BASE.split(' ').forEach(add);
+    if (FA_WORDS) FA_WORDS.split(' ').forEach(function(w){ D.add(w); });
     [CW, EZ_STOP, EZ_STOP2, EZ_V, EZ_VBX, NUMW, NOCOMMA_PREV, P_SPLIT].forEach(function(o){ (o instanceof Set ? Array.from(o) : Object.keys(o)).forEach(add); });
     ON.concat(TN, HN, SC, MON_FA).forEach(add);
     LEX_SRC.split(/\s+/).forEach(function(v){ add(v.replace(/[aeo]/g, '')); });
@@ -2167,11 +2177,29 @@ var ocrSpell = (function(){
     }
     return b && b1 <= lim && b2 - b1 >= 0.15 ? b : w;    /* برندهٔ روشن؛ دوپهلو یا دور ← بدون تغییر (اصطلاح خاص آسیب نمی‌بیند) */
   }
+  /* ۳) واژهٔ چسبیده (فاصله جا افتاده: «هستندکه»، «هستندبین»، «وریشه») ← دو واژهٔ معتبر.
+     محافظه‌کارانه: واژه باید ناشناخته و در سند کم‌تکرار (<۲) باشد، دست‌کم یک سمت از واژه‌های بسته/فعل‌های پرچسب، و سمت دیگر در دیکشنری یا ≥۳ بار در همین سند دیده شده باشد */
+  var CLOSED = new Set('و در به از که را با هم می نیز اما این آن بین برای است بود بودند شد شدند باشد باشند هستند هستم هستی هستیم هستید'.split(' '));
+  function evid(x, fq){ return CLOSED.has(x) ? 4 : D.has(x) ? 3 : known(x, 0) ? 2 : fq && fq.get(x) >= 3 ? 2 : 0; }
+  function glue(w, fq){
+    var L = w.length, i, A, B, ea, eb, sc, best = null, bs = 0;
+    if (L < 5 || D.has(w) || KEEP.has(w) || (fq && fq.get(w) >= 2) || known(w, 0)) return null;
+    for (i = 1; i <= L - 2; i++) {
+      A = w.slice(0, i); B = w.slice(i);
+      if ((A.length < 3 && !CLOSED.has(A)) || (B.length < 3 && !CLOSED.has(B))) continue;
+      if (!CLOSED.has(A) && !CLOSED.has(B)) continue;
+      ea = evid(A, fq); eb = evid(B, fq); if (!ea || !eb) continue;
+      sc = ea + eb + Math.min(A.length, B.length) * 0.1;
+      if (sc > bs) { bs = sc; best = A + ' ' + B; }
+    }
+    return best;
+  }
   function fix(t, fq){
     if (!D) build();
     var i; for (i = 0; i < CH.length; i++) t = t.replace(CH[i][0], CH[i][1]);
     if (memo.size > 60000) memo.clear();
     return t.replace(TOK, function(w){
+      var g = glue(w, fq); if (g) return g;
       var c = memo.get(w);
       if (c === undefined) { c = cand(w); memo.set(w, c); }
       /* واژهٔ پرتکرار در همین سند (نام، اصطلاح) که از جایگزینش پرتکرارتر است، درست فرض می‌شود */
@@ -2718,7 +2746,8 @@ var ocrSpell = (function(){
         pg.g = null;
         var ar = 0, la = 0;                                          /* خوشه‌بندی، ترتیب خوانش RTL و پاک‌سازی نویسه‌ها هم داخل Worker؛ فقط متن نهایی به ترد اصلی برمی‌گردد */
         r.lines.forEach(function(l){ ar += (l.text.match(/[\u0600-\u06FF]/g) || []).length; la += (l.text.match(/[A-Za-z]/g) || []).length; });
-        return { page: ocrText(r, ar >= la ? 'rtl' : 'ltr') || '', n: r.lines.length, ep: epId(), ang: pg.ang };
+        var G = [], pt = ocrText(r, ar >= la ? 'rtl' : 'ltr', G) || '';
+        return { page: pt, n: r.lines.length, ep: epId(), ang: pg.ang, geo: { w: pg.w, h: pg.h, a: +(pg.ang * Math.PI / 180).toFixed(5), L: G.map(function(q){ return [q[0], Math.round(q[1]), Math.round(q[2]), Math.round(q[3]), Math.round(q[4])]; }) } };
       })();
     };
     var t0 = H.term;
@@ -3028,7 +3057,7 @@ var ocrSpell = (function(){
     cut(A, false);
     return out;
   }
-  function ocrText(d, dir){
+  function ocrText(d, dir, G){
     var ls = ocrOrder(ocrCluster(ocrLines(d), dir), dir), out = [], py = null, pend = false;
     if (!ls.length) return (d && d.text) || '';
     var hs = ls.map(function(l){ return l.bbox ? l.bbox.y1 - l.bbox.y0 : 0; }).filter(Boolean).sort(function(p, q){ return p - q; }), mh = hs.length ? hs[hs.length >> 1] : 0;
@@ -3042,14 +3071,14 @@ var ocrSpell = (function(){
       if (l.bbox) py = l.bbox.y1;
       if (!/[\p{L}\p{N}]/u.test(t) || c < 25 || (c < 50 && nl < 4) || mg) return;
       if (pend && out.length) out.push('');
-      pend = false; out.push(t);
+      pend = false; out.push(t); if (G && bb) G.push([t, bb.x0, bb.y0, bb.x1, bb.y1]);
     });
     return out.length ? out.join('\n') : (d.text || '');
   }
   async function runOcr(){
     if (ocrBusy) { ocrStop = true; return; }
     if (man.busy) { status('اسکن دستی در حال اجراست؛ ابتدا آن را تمام یا متوقف کنید.'); return; }
-    var doc = pdfDoc, key = ocrKey, pages = ocrPages, cur = sents[idx] ? sents[idx].page : 1, n = rawItems.length, L = [], done = 0, err = '', qi = 0, killed = false, lastP = 0, lanes = [], redo = [], inflight = {}, rch = Promise.resolve(), cv = null, cx = null, opt = null, qv = $('#ocrQ').value;
+    var doc = pdfDoc, key = ocrKey, pages = ocrPages, geo = ocrGeo, gkey = ocrKey.replace(/^ocr:/, 'ocrg:'), cur = sents[idx] ? sents[idx].page : 1, n = rawItems.length, L = [], done = 0, err = '', qi = 0, killed = false, lastP = 0, lanes = [], redo = [], inflight = {}, rch = Promise.resolve(), cv = null, cx = null, opt = null, qv = $('#ocrQ').value;
     for (var k = 0; k < n; k++) { var p0 = ((cur - 1 + k) % n) + 1; if (need.indexOf(p0) >= 0 && pages[p0] == null) L.push(p0); }
     if (!L.length || !doc) return;
     stopAll(); ocrBusy = true; ocrStop = false; ocrInfo();
@@ -3121,8 +3150,8 @@ var ocrSpell = (function(){
           }
           img = null;
           if (rr.ep) ocrEp = rr.ep;
-          pages[pn] = rr.page || ''; delete inflight[pn]; done++; ocrDirty = true;
-          if (done % 3 === 0) ocrSave(key, pages);
+          pages[pn] = rr.page || ''; if (rr.geo && rr.geo.L && rr.geo.L.length) geo[pn] = rr.geo; else delete geo[pn]; delete inflight[pn]; done++; ocrDirty = true;
+          if (done % 3 === 0) { ocrSave(key, pages); ocrSave(gkey, geo); }
           if (!playing && !ocrStop && doc === pdfDoc && (done === 1 || done % 6 === 0)) { process(true); ocrInfo(); }
         }
       };
@@ -3130,7 +3159,7 @@ var ocrSpell = (function(){
     } catch (e) { ocrStop = true; err = killed ? '' : em(e); }
     lanes.forEach(dropPre); if (cv) { cv.width = 0; cv = cx = null; }
     await Promise.all(lanes.map(async function(ln){ if (!ln.ow) return; try { await Promise.race([ln.ow.call('term'), new Promise(function(r){ setTimeout(r, 1500); })]); } catch (e) {} try { ln.ow.kill(); } catch (e) {} }));
-    await ocrSave(key, pages); ocrBusy = false;
+    await ocrSave(key, pages); await ocrSave(gkey, geo); ocrBusy = false;
     if (doc !== pdfDoc) return;
     var msg = err ? 'OCR ناموفق بود: ' + err : '';
     if (done) { process(true); status('OCR برای ' + nf.format(done) + ' صفحه انجام شد.' + (msg ? ' ' + msg : '') + ocrHint()); } else { ocrInfo(); if (msg) status(msg); }
@@ -3242,6 +3271,7 @@ var ocrSpell = (function(){
       rr = await ow.call('prec', m, tr, function(v){ manSt((v.st === 'prep' ? 'آماده‌سازی تصویر' : 'تشخیص متن ' + nf.format(Math.round((v.p || 0) * 100)) + '٪') + '…' + epTag()); });
       if (rr.ep) ocrEp = rr.ep;
       txt = rr.page || '';
+      man.geoNew = (!reg && rr.geo && rr.geo.L && rr.geo.L.length) ? { pn: pn, g: rr.geo } : null;
     } catch (e) { if (!man.stop) err = em(e); }
     if (cv) { cv.width = 0; cv = null; }
     if (ow) { try { await Promise.race([ow.call('term'), new Promise(function(x){ setTimeout(x, 1500); })]); } catch (e) {} try { ow.kill(); } catch (e) {} }
@@ -3261,6 +3291,7 @@ var ocrSpell = (function(){
     if (!manAlive()) return;
     var pn = man.pn, t = $('#manTx').value.replace(/\r\n?/g, '\n').replace(/[ \t]+$/gm, '').trim();
     ocrPages[pn] = t; await ocrSave(ocrKey, ocrPages);
+    if (man.geoNew && man.geoNew.pn === pn) { ocrGeo[pn] = man.geoNew.g; man.geoNew = null; await ocrSave(ocrKey.replace(/^ocr:/, 'ocrg:'), ocrGeo); }
     man.base = t; $('#manTx').value = t; man.warn = false; $('#manSrc').textContent = manText(pn).s;
     manSt('ذخیره شد' + (t ? '' : ' (صفحهٔ خالی)') + '؛ متن خوانش به‌روز می‌شود.');
     process(true);
@@ -3271,7 +3302,7 @@ var ocrSpell = (function(){
     if (ocrPages[pn] == null) { manSt('برای این صفحه نتیجهٔ OCR ذخیره نشده است.'); return; }
     if (!man.del) { man.del = setTimeout(function(){ man.del = 0; b.textContent = 'حذف نتیجهٔ OCR'; }, 3000); b.textContent = 'تأیید حذف؟'; return; }
     clearTimeout(man.del); man.del = 0; b.textContent = 'حذف نتیجهٔ OCR';
-    delete ocrPages[pn]; await ocrSave(ocrKey, ocrPages);
+    delete ocrPages[pn]; await ocrSave(ocrKey, ocrPages); delete ocrGeo[pn]; await ocrSave(ocrKey.replace(/^ocr:/, 'ocrg:'), ocrGeo);
     manGo(pn); manSt('نتیجهٔ OCR حذف شد و متن لایهٔ PDF برگشت.'); process(true);
   }
   $('#manBtn').onclick = manOpen;
@@ -3840,7 +3871,7 @@ var ocrSpell = (function(){
         if (p % 8 === 0) await new Promise(function(r){ setTimeout(r, 0); });
       }
       ocrKey = 'ocr:' + file.name + ':' + file.size;
-      ocrPages = await ocrLoad(ocrKey);
+      ocrPages = await ocrLoad(ocrKey); ocrGeo = await ocrLoad(ocrKey.replace(/^ocr:/, 'ocrg:'));
       if (lt !== loadTok) return;
       await process();
       if (lt !== loadTok) return;
@@ -4903,7 +4934,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000)) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه: گوشهٔ بالای صفحه همیشه دیده می‌شود. اگر «html-r2» را می‌بینید فایل HTML جدید اعمال شده؛ اگر کنارش «plugin: kt-r2-mana-fix» بود پلاگین Kotlin هم جدید است (HTML داخل APK است؛ پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود) */
-  var APP_BUILD = 'html-r3 · 2026-10-15 · calm+gap', npBuild = '';
+  var APP_BUILD = 'html-r4 · 2026-10-16 · page-hl', npBuild = '';
   function buildBadge(){ try { var b = document.getElementById('buildBadge'); if (b && b.parentNode) b.parentNode.removeChild(b); } catch (e) {} }
   if (document.body) buildBadge(); else document.addEventListener('DOMContentLoaded', buildBadge);
   function perf(){
@@ -5797,62 +5828,136 @@ var ocrSpell = (function(){
     try { s = s.normalize('NFKC'); } catch (e) {}
     return s.replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/[٠-٩]/g, function(d){ return String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48); }).replace(/[۰-۹]/g, function(d){ return String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48); }).replace(/[^\p{L}\p{N}]|[\u0640\u064B-\u065F\u0670]/gu, '').toLowerCase();
   }
+  var pvCh = Object.create(null), pvCx = null;
+  function pvNC(c){ var v = pvCh[c]; if (v === undefined) v = pvCh[c] = pvNorm(c); return v; }
+  function pvRtl(s){ var r = (s.match(/[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/g) || []).length, l = (s.match(/[A-Za-z\u00C0-\u024F]/g) || []).length; return r > 0 && r >= l; }
+  /* پهنای نسبی پیشوند رشته با اندازه‌گیری واقعی حروف (نه شمارش نویسه)؛ برای بریدن دقیق یک آیتم/خط میان دو جمله */
+  function pvFr(str, j){
+    var n = str.length, w;
+    if (j <= 0) return 0; if (j >= n) return 1;
+    try {
+      if (!pvCx) { pvCx = document.createElement('canvas').getContext('2d'); pvCx.font = '24px Vazirmatn,Tahoma,"Segoe UI",sans-serif'; }
+      w = pvCx.measureText(str).width;
+      if (w > 0) return Math.max(0, Math.min(1, pvCx.measureText(str.slice(0, j)).width / w));
+    } catch (e) {}
+    return j / n;
+  }
+  /* واحدهای صفحه به ترتیب خوانش: آیتم‌های لایهٔ متنی (با همان مرتبه‌سازی خط لولهٔ متن) یا خطوط OCR با مختصات ذخیره‌شده */
+  function pvUnits(p){
+    var out = [], g = ocrGeo[p], its, i, it;
+    if (ocrPages[p] != null) {
+      if (g && g.L && g.w > 0 && g.h > 0) for (i = 0; i < g.L.length; i++) if (g.L[i][0]) out.push({ str: g.L[i][0], g: g.L[i], ge: g });
+      return out;
+    }
+    its = rawItems[p - 1] || [];
+    if (O.pos) { try { its = lineSort(its); } catch (e) {} }
+    for (i = 0; i < its.length; i++) { it = its[i]; if (it && it.str && it.transform) out.push({ str: it.str, it: it }); }
+    return out;
+  }
   function pvStream(p){
     if (pvStr[p]) return pvStr[p];
-    var its = rawItems[p - 1] || [], s = '', map = [], start = [], len = [], i, n, k;
-    for (i = 0; i < its.length; i++) { n = pvNorm(its[i].str); start[i] = s.length; len[i] = n.length; for (k = 0; k < n.length; k++) map.push(i); s += n; }
-    return (pvStr[p] = { s: s, map: map, start: start, len: len });
+    var un = pvUnits(p), s = '', mu = [], mj = [], st = [], ln = [], i, k, c, n, m, z, t;
+    for (i = 0; i < un.length; i++) {
+      t = un[i].str; st[i] = s.length; z = 0;
+      for (k = 0; k < t.length; k++) { n = pvNC(t.charAt(k)); for (m = 0; m < n.length; m++) { s += n.charAt(m); mu.push(i); mj.push(k); z++; } }
+      ln[i] = z;
+    }
+    return (pvStr[p] = { s: s, un: un, st: st, ln: ln, mu: mu, mj: mj });
   }
-  /* جایگاه هر جمله در رشتهٔ حروف صفحه (با نادیده گرفتن فاصله، اعراب و علامت‌ها) */
+  /* جایگاه جمله در رشتهٔ حروف صفحه: برابری کامل، وگرنه لنگر سر/ته با طول‌های کاهشی (soft = تقریبی) */
+  function pvFind(S, t, cur, g0){
+    var T = t.length, a = S.indexOf(t, cur), K = [12, 8, 5], z, L, e, b;
+    if (a >= 0) return { a: a, b: a + T - 1, soft: 0 };
+    for (z = 0; z < K.length; z++) {
+      L = Math.min(K[z], T); if (L < 4) break;
+      a = S.indexOf(t.slice(0, L), cur);
+      if (a >= 0) {
+        e = S.indexOf(t.slice(-L), a);
+        if (e >= 0 && e + L - a <= T * 2 + 40) return { a: a, b: e + L - 1, soft: e + L - a === T ? 0 : 1 };
+        return { a: a, b: Math.min(S.length - 1, a + T - 1), soft: 1 };
+      }
+      e = S.indexOf(t.slice(-L), cur);
+      if (e >= 0) { b = e + L - 1; return { a: Math.max(cur, b - T + 1), b: b, soft: 1 }; }
+    }
+    if (!g0 && cur > 0) return pvFind(S, t, 0, 1);
+    return null;
+  }
   function pvPrep(p){
     if (pvDone[p]) return; pvDone[p] = 1;
-    var st = pvStream(p), cur = 0, ids = [];
+    var st = pvStream(p), S = st.s, n = S.length, ids = [], T = [], cur = 0, x, y, k, h, tot, pb, na, pos, span, sh, a, b;
     (pageParas[p] || []).forEach(function(g){ g.forEach(function(i){ ids.push(i); }); });
-    if (!st.s) return;
-    ids.forEach(function(i){
-      var t = pvNorm(sents[i].text), a, b, n, e;
-      if (!t) return;
-      a = st.s.indexOf(t, cur); if (a < 0) a = st.s.indexOf(t);
-      if (a >= 0) b = a + t.length - 1;
-      else {
-        n = Math.min(10, t.length);
-        a = st.s.indexOf(t.slice(0, n), cur); if (a < 0) a = st.s.indexOf(t.slice(0, n));
-        if (a < 0) return;
-        e = st.s.indexOf(t.slice(-n), a);
-        if (e < 0 || e - a > t.length * 2 + 40) return;
-        b = e + n - 1;
+    if (!n || !ids.length) return;
+    ids.forEach(function(i){ var t = pvNorm(sents[i].text); if (t) T.push({ i: i, t: t, h: null }); });
+    for (x = 0; x < T.length; x++) { h = pvFind(S, T[x].t, cur); if (h) { T[x].h = h; cur = h.b + 1; } }
+    /* جمله‌های بی‌لنگر (متن خوانش با متن صفحه فرق دارد: اصلاح OCR، رمزگذاری فونت…) بین دو همسایهٔ جاافتاده به نسبت طول پخش می‌شوند */
+    x = 0;
+    while (x < T.length) {
+      if (T[x].h) { x++; continue; }
+      y = x; tot = 0; while (y < T.length && !T[y].h) { tot += T[y].t.length; y++; }
+      pb = x > 0 ? T[x - 1].h.b : -1; na = y < T.length ? T[y].h.a : n;
+      pos = pb + 1; span = Math.max(0, na - pos);
+      for (k = x; k < y; k++) {
+        sh = tot ? span * T[k].t.length / tot : 0;
+        a = Math.min(n - 1, Math.round(pos)); b = Math.max(a, Math.min(n - 1, Math.round(pos + sh) - 1));
+        T[k].h = { a: a, b: b, soft: 1 }; pos += sh;
       }
-      cur = b + 1; pvHit[i] = { a: a, b: b };
-    });
+      x = y;
+    }
+    T.forEach(function(q){ pvHit[q.i] = q.h; });
+  }
+  /* جعبهٔ بخشی [f0,f1] از یک واحد (کسر از آغاز منطقی متن)؛ برای OCR با جبران زاویهٔ deskew */
+  function pvBox(u, f0, f1){
+    var V = pvVp, U = window.pdfjsLib && pdfjsLib.Util, rtl = pvRtl(u.str), it, tr, hh, w, g, ge, W, a0, a1, sx, sy, th, c, s, cx, cy, mx, my, bw, bh;
+    if (u.it) {
+      if (!U) return null;
+      it = u.it; tr = U.transform(V.transform, it.transform);
+      if (Math.abs(tr[1]) > Math.abs(tr[0]) * 0.05) return null;
+      hh = Math.hypot(tr[2], tr[3]) || 10; w = it.width * V.scale; if (!(w > 0)) return null;
+      return { x: tr[4] + (rtl ? w * (1 - f1) : w * f0), y: tr[5] - hh * 0.95, w: Math.max(2, w * (f1 - f0)), h: hh * 1.3, r: 0 };
+    }
+    g = u.g; ge = u.ge; W = g[3] - g[1];
+    a0 = rtl ? g[3] - f1 * W : g[1] + f0 * W; a1 = rtl ? g[3] - f0 * W : g[1] + f1 * W;
+    sx = V.width / ge.w; sy = V.height / ge.h; th = ge.a || 0; c = Math.cos(th); s = Math.sin(th);
+    cx = (ge.w - 1) / 2; cy = (ge.h - 1) / 2; mx = (a0 + a1) / 2 - cx; my = (g[2] + g[4]) / 2 - cy;
+    bw = Math.max(2, (a1 - a0) * sx); bh = (g[4] - g[2]) * sy * 1.08;
+    return { x: (mx * c + my * s + cx) * sx - bw / 2, y: (my * c - mx * s + cy) * sy - bh / 2, w: bw, h: bh, r: -th };
   }
   function pvRectsOf(i){
     if (pvRC[i]) return pvRC[i];
-    var h = pvHit[i], q = sents[i], out = [], seen = {}, st, its, k, ix, it, tr, hh, w, s0, len, f0, f1, x, U = window.pdfjsLib && pdfjsLib.Util;
+    var h = pvHit[i], q = sents[i], out = [], st, a, b, u, u1, s0, s1, na, nb, f0, f1, r, last, un, x1, y1, hm;
     pvRC[i] = out;
-    if (!h || !pvVp || !U) return out;
-    st = pvStream(q.page); its = rawItems[q.page - 1] || [];
-    for (k = h.a; k <= h.b; k++) {
-      ix = st.map[k]; if (ix == null || seen[ix]) continue; seen[ix] = 1;
-      it = its[ix]; tr = U.transform(pvVp.transform, it.transform);
-      if (Math.abs(tr[1]) > Math.abs(tr[0]) * 0.05) continue;
-      hh = Math.hypot(tr[2], tr[3]) || 10; w = it.width * pvVp.scale; if (!(w > 0)) continue;
-      s0 = st.start[ix]; len = st.len[ix] || 1;
-      f0 = Math.max(0, (Math.max(h.a, s0) - s0) / len); f1 = Math.min(1, (Math.min(h.b, s0 + len - 1) - s0 + 1) / len);
-      x = RTLCH.test(it.str) ? tr[4] + w * (1 - f1) : tr[4] + w * f0;
-      out.push({ x: x, y: tr[5] - hh * 0.92, w: Math.max(2, w * (f1 - f0)), h: hh * 1.2 });
+    if (!h || !pvVp) return out;
+    st = pvStream(q.page); if (!st.s) return out;
+    a = Math.max(0, Math.min(st.s.length - 1, h.a)); b = Math.max(a, Math.min(st.s.length - 1, h.b));
+    for (u = st.mu[a], u1 = st.mu[b]; u <= u1; u++) {
+      un = st.un[u]; s0 = st.st[u]; s1 = s0 + st.ln[u] - 1;
+      if (s1 < s0) continue;
+      na = Math.max(a, s0); nb = Math.min(b, s1); if (nb < na) continue;
+      f0 = na === s0 ? 0 : pvFr(un.str, st.mj[na]);
+      f1 = nb === s1 ? 1 : pvFr(un.str, st.mj[nb] + 1);
+      if (!(f1 > f0)) f1 = Math.min(1, f0 + 0.02);
+      r = pvBox(un, f0, f1); if (!r) continue;
+      last = out[out.length - 1]; hm = last ? Math.max(last.h, r.h) : 0;
+      /* تکه‌های هم‌خط (کلمه‌ها) یک نوار پیوسته می‌شوند، مثل هایلایت متن؛ فاصلهٔ ستون‌ها جدا می‌ماند */
+      if (last && Math.abs((last.y + last.h / 2) - (r.y + r.h / 2)) < hm * 0.45 && Math.max(last.x, r.x) - Math.min(last.x + last.w, r.x + r.w) < hm * 1.4) {
+        x1 = Math.max(last.x + last.w, r.x + r.w); y1 = Math.max(last.y + last.h, r.y + r.h);
+        last.x = Math.min(last.x, r.x); last.y = Math.min(last.y, r.y); last.w = x1 - last.x; last.h = y1 - last.y;
+      } else out.push(r);
     }
     return out;
   }
   function pvHL(scroll){
-    var box = $('#pvh'), q = sents[idx], note = $('#pvn'), rs, k, d, first = null;
+    var box = $('#pvh'), q = sents[idx], note = $('#pvn'), rs, k, d, r, first = null, h, msg = '';
     box.textContent = '';
     if (!q || q.page !== pvPage || !pvVp) return;
-    pvPrep(pvPage); rs = pvRectsOf(idx);
-    note.hidden = rs.length > 0;
-    if (!rs.length) { note.textContent = 'جایگاه این جمله روی تصویر صفحه مشخص نشد؛ خوانش ادامه دارد.'; return; }
+    pvPrep(pvPage); rs = pvRectsOf(idx); h = pvHit[idx];
+    if (!rs.length) msg = (ocrPages[pvPage] != null && !(ocrGeo[pvPage] && ocrGeo[pvPage].L)) ? 'این صفحه قبلاً بدون ذخیرهٔ مختصات OCR شده؛ برای هایلایت دقیق، از منو ‹ متن ‹ اسکن دستی همین صفحه را یک‌بار اسکن و ذخیره کنید.' : 'جایگاه این جمله روی تصویر صفحه مشخص نشد؛ خوانش ادامه دارد.';
+    else if (h && h.soft) msg = 'جایگاه این جمله تقریبی است (متن خوانش با متن صفحه کمی فرق دارد).';
+    note.textContent = msg; note.hidden = !msg;
     for (k = 0; k < rs.length; k++) {
-      d = document.createElement('i');
-      d.style.cssText = 'left:' + rs[k].x.toFixed(1) + 'px;top:' + rs[k].y.toFixed(1) + 'px;width:' + rs[k].w.toFixed(1) + 'px;height:' + rs[k].h.toFixed(1) + 'px';
+      r = rs[k]; d = document.createElement('i');
+      d.style.cssText = 'left:' + r.x.toFixed(1) + 'px;top:' + r.y.toFixed(1) + 'px;width:' + r.w.toFixed(1) + 'px;height:' + r.h.toFixed(1) + 'px' + (Math.abs(r.r) > 1e-4 ? ';transform:rotate(' + r.r.toFixed(4) + 'rad)' : '');
+      if (h && h.soft) d.className = 'ap';
       box.appendChild(d); if (!first) first = d;
     }
     if (scroll && first) follow(first);
@@ -5860,6 +5965,7 @@ var ocrSpell = (function(){
   async function pvShow(p, scroll){
     var tok = ++pvTok, doc = pdfDoc, wrap = $('#pv'), page, v1, cw, sc, dpr, vp, nc, old;
     pvPage = p; pvVp = null; pvRC = {}; $('#pvh').textContent = ''; $('#pvn').hidden = true;
+    Object.keys(pvStr).forEach(function(k){ if (Math.abs(+k - p) > 2) delete pvStr[k]; });
     try {
       page = await doc.getPage(p);
       if (tok !== pvTok || doc !== pdfDoc) return;
@@ -5889,6 +5995,10 @@ var ocrSpell = (function(){
     if (n === pvZi) return;
     pvZi = n; sset('pvz', pvZi); $('#fsV').textContent = nf.format(Math.round(PVZ[pvZi] * 100)) + '٪'; pvRedo();
   }
+  function pvIn(r, x, y){
+    if (r.r) { var cx = r.x + r.w / 2, cy = r.y + r.h / 2, c = Math.cos(-r.r), sn = Math.sin(-r.r), dx = x - cx, dy = y - cy; x = cx + dx * c - dy * sn; y = cy + dx * sn + dy * c; }
+    return x >= r.x - 3 && x <= r.x + r.w + 3 && y >= r.y - 2 && y <= r.y + r.h + 2;
+  }
   $('#pvp').onclick = function(ev){
     if (!pvVp) return;
     var r = this.getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top, ids = [], k, j, rs;
@@ -5896,7 +6006,7 @@ var ocrSpell = (function(){
     (pageParas[pvPage] || []).forEach(function(g){ g.forEach(function(i){ ids.push(i); }); });
     for (k = 0; k < ids.length; k++) {
       rs = pvRectsOf(ids[k]);
-      for (j = 0; j < rs.length; j++) if (x >= rs[j].x - 3 && x <= rs[j].x + rs[j].w + 3 && y >= rs[j].y - 2 && y <= rs[j].y + rs[j].h + 2) { seekTo(ids[k]); return; }
+      for (j = 0; j < rs.length; j++) if (pvIn(rs[j], x, y)) { seekTo(ids[k]); return; }
     }
   };
   window.addEventListener('resize', function(){ clearTimeout(pvRz); pvRz = setTimeout(function(){ if (pvOn() && pvPage && Math.abs($('#pv').clientWidth - pvW) > 8) pvRedo(); }, 280); });
