@@ -1078,7 +1078,6 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         <div class="slist">
           <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است؛ مثل نفس‌گیری گوینده. سرعت خود صدا تغییر نمی‌کند.</small></span></label>
           <label class="chk"><input type="checkbox" id="smartPace"><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
-          <label class="chk"><input type="checkbox" id="ezAuto" checked><span class="st"><b>کسرهٔ اضافهٔ خودکار</b><small>مثل «صدای کتاب». اگر جایی اشتباه خواند، این گزینه را خاموش کنید.</small></span></label>
           <label class="chk"><input type="checkbox" id="phLex" checked><span class="st"><b>واژه‌نامهٔ آوایی داخلی</b><small>برای صدها واژهٔ پرکاربرد، کوتاه‌مصوت‌ها (َ ِ ُ) را مشخص می‌کند تا تلفظ دقیق‌تر شود. اگر جایی عجیب خوانده شد خاموشش کنید.</small></span></label>
           <label class="chk"><input type="checkbox" id="enh" checked><span class="st"><b>بهبود کیفیت صدا</b><small>گرمی و وضوح بیشتر، نرم‌کردن «س» و «ش» تند و یکنواختی بلندی؛ تنظیم خودکار برای هر گوینده.</small></span></label>
         </div>
@@ -1268,7 +1267,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             <label class="chk"><input type="checkbox" id="fixPro" checked><span class="st"><b>مکث‌گذاری هوشمند</b><small>پیش از پیوندها و شکستن جملهٔ بلند.</small></span></label>
             <label class="chk"><input type="checkbox" id="fixCite" checked><span class="st"><b>نخواندن ارجاع درون‌متنی</b><small>مثل «(احمدی، ۱۳۹۸: ۲۴)» و «(Smith, 2020)»؛ در متن نمایش‌داده‌شده می‌ماند.</small></span></label>
           </div>
-          <details class="sub hintbox"><summary>این بخش چه می‌کند؟</summary><div class="in"><p class="hint">پیش از خواندن هر جمله، متن را بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، کسرهٔ اضافه (ۀ)، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع (از جمله ارجاع درون‌متنی)، تنوین قیدها (مثلاً، حتماً)، کلمه‌های لاتین و سرواژه‌ها و مکث‌گذاری هوشمند. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p></div></details>
+          <details class="sub hintbox"><summary>این بخش چه می‌کند؟</summary><div class="in"><p class="hint">پیش از خواندن هر جمله، متن را بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع (از جمله ارجاع درون‌متنی)، تنوین قیدها (مثلاً، حتماً)، کلمه‌های لاتین و سرواژه‌ها و مکث‌گذاری هوشمند. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p></div></details>
           <p class="hint" id="fixStats" aria-live="polite"></p>
           <p class="hint" id="fixBreak"></p>
           <p class="hint" id="fixUnsHead" hidden>کلمه‌هایی که تلفظشان قطعی نبود و تقریبی ساخته شد. روی هر کلمه بزنید تا با تلفظ پیشنهادی به واژه‌نامه اضافه شود؛ بعد می‌توانید تلفظ را در واژه‌نامه ویرایش کنید.</p>
@@ -2777,7 +2776,7 @@ var ocrSpell = (function(){
   }
   /* --- Worker پردازش متن: ادغام سطرها، پاک‌سازی، تفکیک جمله‌ها، تحلیل ریسک گفتار --- */
   var TXW_MK = ['/*@@' + 'TXW:A*/', '/*@@' + 'TXW:/A*/', '/*@@' + 'TXW:B*/', '/*@@' + 'TXW:/B*/'];
-  var TXW_OVR = 'var $=function(){throw new Error("DOM")},__S={};function fixOn(){return !!__S.fixOn}function fixHi(){return !!__S.fixOn&&!!__S.fixHi}function ezOn(){return __S.ezOn!==false}function humOn(){return __S.humOn!==false}function phLexOn(){return __S.phLexOn!==false}function citeOn(){return __S.citeOn!==false}function sOn(){return !!__S.fixOn&&!!__S.fixPro}function engine(){return "piper"}';
+  var TXW_OVR = 'var $=function(){throw new Error("DOM")},__S={};function fixOn(){return !!__S.fixOn}function fixHi(){return !!__S.fixOn&&!!__S.fixHi}function ezOn(){return false}function humOn(){return __S.humOn!==false}function phLexOn(){return __S.phLexOn!==false}function citeOn(){return __S.citeOn!==false}function sOn(){return !!__S.fixOn&&!!__S.fixPro}function engine(){return "piper"}';
   function txwSrc(){
     var s = '', i, t;
     for (i = 0; i < document.scripts.length; i++) { t = document.scripts[i].textContent; if (t && t.indexOf(TXW_MK[0]) >= 0) { s = t; break; } }
@@ -4101,11 +4100,10 @@ var ocrSpell = (function(){
      موتور آوایی بدون نشانهٔ اضافه، «صدای کتاب» را بی‌کسره و رباتی می‌خواند. این‌جا بین دو کلمهٔ پشت‌سرهم (اسم/صفت) که
      هیچ نشانه‌گذاری میانشان نیست، کسره می‌گذاریم. کلمه‌های ربطی، فعل، ضمیر، عدد و حرف اضافه را رد می‌کنیم؛ تحلیل دستوری نیست و تقریبی است. */
   function isMana(){ var v = document.getElementById('voice'); return !!v && v.value === 'fa_IR-mana-medium'; }   /* مدل Mana با آوانگاریِ آگاه از کسره و هم‌نگاشت‌ها آموزش دیده؛ برایش همیشه روشن */
-  function ezOn(){ if (isMana()) return true; var e = document.getElementById('ezAuto'); return !e || e.checked; }
+  function ezOn(){ return false; }   /* کسرهٔ اضافهٔ خودکار حذف شد: تلفظ را به‌هم می‌ریخت */
   function humOn(){ var e = document.getElementById('humPace'); return !e || e.checked; }
   function lexOn(){ return true; }
   function hStr(s){ var h = 0, i; for (i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
-  var EZ_K = '\u0650';
   var EZ_STOP = {};
   ('به که از در را با تا یا و این آن او ما تو من شما آنها اینها آنان ایشان اما ولی اگر چون زیرا بلکه پس هم نیز هر همه هیچ چه چرا کجا کی کدام چند چندین نه بله خیلی بسیار کم بیش بیشتر کمتر خود همان همین چنین چنان اکنون امروز دیروز فردا حالا هنوز همیشه هرگز دیگر فقط تنها حتی مثلاً یعنی البته شاید باید نباید است نیست هست نبود بود شد شود شده باشد باشند دارد دارند داشت کرد کند کنند کرده کردند گفت گفته رفت آمد آمده دید داد داده گرفت خورد خواهد خواست توانست بر برای بی بدون مگر جز طی نزد سوی مانند مثل طبق بعد قبل ' +
    'برد مرد زد آورد ماند خواند نشست ایستاد افتاد گذشت ساخت یافت دانست نوشت گشت بست شکست ریخت سوخت خرید فهمید پرسید شنید دوید خوابید رسید ترسید پرید چسبید کشید بخشید ' +
@@ -4119,10 +4117,6 @@ var ocrSpell = (function(){
     ['', 'ن'].forEach(function(pf){ ['م', 'یم', 'ی', 'ید'].forEach(function(sf){ EZ_VBX[pf + st + sf] = 1; }); });
   });
   'هستم هستیم هستی هستید نیستم نیستیم نیستی نیستید باشم باشیم باشی کنم کنیم کنی شوم شویم شوی دارم داریم داری دانم دانیم'.split(' ').forEach(function(w){ EZ_VBX[w] = 1; });
-  var EZ_NAME = {}; 'محمد علی حسن حسین رضا مهدی احمد امیر محمود مصطفی ابراهیم اسماعیل یوسف جعفر کاظم باقر تقی نقی هادی صادق مجتبی سعید حمید مجید فرهاد بهرام کامران پرویز شهرام فاطمه زهرا مریم سمیه زینب'.split(' ').forEach(function(w){ EZ_NAME[w] = 1; });
-  var EZ_VB = /(?:کنید|شوید|باشید|بروید|ببینید|بدهید|بگویید|بیایید|دارید|خواهید|بگیرید|بدانید|بخوانید|بنویسید|بخورید|ببرید|بیاورید|ندارید|نکنید|نشوید|نباشید|نروید|نگویید|گفتید|دیدید|شنیدید|کردید|بودید|رفتید|آمدید|داشتید|خوردید|دادید|گرفتید)$/;
-  var EZ_NDOK = /(?:مند|بلند|پسند|کمند|چند|فرزند|پیوند|سوگند|خرسند|دربند|بند)$/;
-  var EZ_A = /^[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC\u0622\u200c]+$/;
   /* ---------- شناسایی فعل برای کسرهٔ اضافه (برچسب‌گذار سبک مبتنی بر قاعده) ----------
      فعل هیچ‌وقت کسرهٔ اضافه نمی‌گیرد و پیش از فعل هم کسره نمی‌آید («او کتاب بخواند»، «علی نرفت»). این‌جا صرف فعل‌های رایج
      (التزامی، امری، گذشتهٔ منفی و شکل‌های ادبی) ساخته می‌شود تا ezAuto کلمهٔ فعلی را تشخیص دهد. شکل‌های دوم‌شخص مفرد (ـی)
@@ -4150,65 +4144,9 @@ var ocrSpell = (function(){
     });
     delete EZ_V['نبرد']; delete EZ_V['نزد']; delete EZ_V['نشان']; delete EZ_V['نماند'];
   })();
-  function ezBad(w, cur){
-    var c = w.replace(/\u200c/g, '');
-    if (c.length < (cur ? (/[او]$/.test(c) ? 2 : 3) : 2) || EZ_STOP[w] || EZ_VB.test(w) || (lexOn() && (EZ_STOP2[w] || EZ_VBX[w]))) return true;
-    if (/^(?:می|نمی)\u200c/.test(w)) return true;
-    if (/ند$/.test(w) && !EZ_NDOK.test(w)) return true;
-    if (cur && (/[\u200cةءآ]$/.test(w) || /\u200c(?:ام|ای|ایم|اید|اند)$/.test(w))) return true;
-    return false;
-  }
   /* ---------- نوع کسرهٔ اضافه بر پایهٔ پایان واژه ----------
      'k' = کسره روی همخوان پایانی («کتابِ»، «کتاب‌هایِ»، «پایِ» با ی)، 'e' = «ه» ناملفوظ → «ۀ» («خانهٔ»، «دربارهٔ»)،
      'y' = پایان با مصوت بلند ا/و → افزودن «یِ» («پایِ»، «دانشجویِ»، «دنیایِ»)؛ null = کسره نمی‌گیرد (قید/جمع بدون ی/…). */
-  var EZ_HC = {}; 'وجه فقه شبه سفه نزه کنه اله جاه نگاه'.split(' ').forEach(function(w){ EZ_HC[w] = 1; });
-  var EZ_VADV = {}; 'بالا آیا ابدا عمدا اساسا اتفاقا نهایتا عموما کاملا مجددا صرفا نسبتا رسما عملا فعلا جدا کلا خصوصا مخصوصا اولا ثانیا ثالثا مولا حاشا الا لیکن چونکه آری نخیر'.split(' ').forEach(function(w){ EZ_VADV[w] = 1; });
-  var EZ_PREP = {}; 'روی زیر پیش کنار بالای جلوی پشت مقابل نزدیک داخل خارج درون بیرون طرف سمت اطراف وسط پایین روبروی درباره علیه مانند شبیه نظیر همانند غیر بجای عوض'.split(' ').forEach(function(w){ EZ_PREP[w] = 1; });
-  var EZ_PRON = {}; 'من تو او ما شما ایشان آنها آنان وی خود'.split(' ').forEach(function(w){ EZ_PRON[w] = 1; });
-  var EZ_NOPR = {}; 'کس هرکس دیشب امشب پارسال امسال پریشب بعد قبل دوباره'.split(' ').forEach(function(w){ EZ_NOPR[w] = 1; });
-  var EZ_PNAT = {}; 'زمان مهمان آسمان سامان ایمان رمان پیمان درمان فرمان کمان نشان کاشان عثمان سلمان'.split(' ').forEach(function(w){ EZ_PNAT[w] = 1; });
-  var EZ_PNAT2 = {}; 'اسم علم حکم قلم جسم رسم نظم وقت دوست دست حالت نقش'.split(' ').forEach(function(w){ EZ_PNAT2[w] = 1; });
-  function ezKind(w){
-    var c = w.replace(/\u200c/g, ''), L = c.charAt(c.length - 1);
-    if (L === 'ه') {
-      if (EZ_HC[c]) return 'k';
-      if (/ایه$/.test(c) || /[یل]وه$/.test(c)) return 'e';
-      if (/[اوی]ه$/.test(c)) return 'k';
-      return 'e';
-    }
-    if (L === 'ا') return (/ها$/.test(c) || EZ_VADV[c]) ? null : 'y';
-    if (L === 'و') return (c.length >= 3 && !EZ_VADV[c]) ? 'y' : null;
-    if (L === 'ی') {
-      if (/های$/.test(c)) return 'k';
-      if (/[او]ی$/.test(c) && c.length >= 3) return 'k';
-      return null;
-    }
-    return 'k';
-  }
-  function prevW(ws, i){ while (--i >= 0) if (ws[i]) return ws[i]; return ''; }
-  var EZ_MON = {}; MON_FA.concat(MON_EN).forEach(function(w){ if (w) EZ_MON[w] = 1; });
-  function ezAuto(t){
-    var ws = t.split(' '), i, n = 0, a, b, bp, ty, c2;
-    for (i = 0; i < ws.length - 1; i++) {
-      a = ws[i];
-      if (a === 'ماه' && EZ_MON[ws[i + 1].replace(/[,.;:!?،؛؟]+$/, '')]) { ws[i] = a + EZ_K; n++; continue; }   /* «ماهِ مرداد» */
-      if (a === 'همه' && /^(?:ما|شما|آنها|ایشان)$/.test(ws[i + 1].replace(/[,.;:!?،؛؟]+$/, ''))) { ws[i] = 'همه\u06C0'; n++; continue; }   /* «همهٔ ما» */
-      if (!EZ_A.test(a)) continue;
-      if (!EZ_PREP[a] && ezBad(a, true)) continue;   /* حرف‌اضافه‌های مرکب (روی/زیر/پیش/کنار/…) کسره می‌گیرند */
-      b = ws[i + 1].replace(/[,.;:!?،؛؟]+$/, ''); bp = !!EZ_PRON[b] && EZ_A.test(b);
-      if (!bp && (!EZ_A.test(b) || ezBad(b, false))) continue;
-      if (lexOn() && (EZ_V[a] || (!bp && EZ_V[b]))) continue;   /* فعل کسره نمی‌گیرد و پیش از فعل هم کسره نمی‌آید */
-      if (EZ_NAME[a] && (EZ_NAME[b] || bp)) continue;
-      if (EZ_MON[b] && /(?:م|ام)$/.test(a)) continue;
-      if ((a === 'نفر' || a === 'تن') && EZ_STOP[prevW(ws, i)]) continue;   /* «هزار نفر شرکت کردند»: واحد شمارش بعد از عدد کسره نمی‌گیرد */
-      if (/(?:مان|تان|شان)$/.test(a) && !/ستان$/.test(a) && !EZ_PNAT[a]) continue;   /* ضمیر متصل: «دوستمان علی» */
-      if (bp && (EZ_NOPR[a] || (/[مشت]$/.test(a) && a.length > 3 && !EZ_PNAT2[a]))) continue;   /* «پدرم او را دید»، «هر کس تو را» */
-      ty = ezKind(a); if (!ty) continue;
-      ws[i] = ty === 'e' ? a.slice(0, -1) + '\u06C0' : ty === 'y' ? a + 'ی' + EZ_K : a + EZ_K; n++;
-    }
-    while (n-- > 0) bump('ez');
-    return ws.join(' ');
-  }
   /* ---------- واژه‌نامهٔ آوایی داخلی (اعرابِ کوتاه‌مصوت‌ها) ----------
      فارسی بدون اعراب نوشته می‌شود و موتور آوایی کوتاه‌مصوت‌ها را برای واژه‌های پرکاربرد گاهی اشتباه حدس می‌زند.
      این‌جا برای همین واژه‌ها شکل اعرابدار می‌گذاریم. نشانه‌ها (بعد از حرف): a = فتحه ، e = کسره ، o = ضمه.
@@ -4372,7 +4310,6 @@ var ocrSpell = (function(){
       .replace(/(\d)\s*[\/\-–]\s*(?=\d)/g, '$1 ');
     t = faNums(t).replace(/(?<![A-Za-z])[A-Z]{2,5}(?![A-Za-z])/g, function(w){ return /^[IVX]+$/.test(w) ? w : ' ' + w.split('').map(function(c){ return LET[c]; }).join(' ') + ' '; });
     }
-    if (ezOn()) t = ezAuto(t);
     if (phLexOn()) t = lexApply(t);
     t = dictOut(t, fixOn());
     if (phFa()) {
@@ -4976,7 +4913,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000)) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه: گوشهٔ بالای صفحه همیشه دیده می‌شود. اگر «html-r2» را می‌بینید فایل HTML جدید اعمال شده؛ اگر کنارش «plugin: kt-r2-mana-fix» بود پلاگین Kotlin هم جدید است (HTML داخل APK است؛ پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود) */
-  var APP_BUILD = 'html-r4 · 2026-10-16 · page-hl', npBuild = '';
+  var APP_BUILD = 'html-r5 · 2026-10-16 · no-ezafe', npBuild = '';
   function buildBadge(){ try { var b = document.getElementById('buildBadge'); if (b && b.parentNode) b.parentNode.removeChild(b); } catch (e) {} }
   if (document.body) buildBadge(); else document.addEventListener('DOMContentLoaded', buildBadge);
   function perf(){
@@ -6641,8 +6578,6 @@ var ocrSpell = (function(){
   });
   if (sget('smartV', '') !== '1') { sset('smartV', '1'); sset('smartPace', '0'); }   /* سرعت صدا دقیقاً مثل حالت اولیه؛ فقط با تیک‌زدن دستی فعال می‌شود */
   $('#smartPace').checked = sget('smartPace', '0') === '1';
-  $('#ezAuto').checked = sget('ezAuto', '1') !== '0';
-  $('#ezAuto').onchange = function(){ sset('ezAuto', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   $('#humPace').checked = sget('humPace', '1') !== '0';
   $('#humPace').onchange = function(){ sset('humPace', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   $('#phLex').checked = sget('phLex', '1') !== '0';
