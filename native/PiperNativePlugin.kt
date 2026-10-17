@@ -98,10 +98,27 @@ class PiperNativePlugin : Plugin() {
         call.resolve()
     }
 
+    /** تعداد گوینده‌ی هر صدای نصب‌شده: از num_speakers فایل .onnx.json، وگرنه از متادیتای انتهای .onnx (فقط برای نمایش در «گزارش خطا») */
+    private fun speakersInfo(): String = try {
+        (root().listFiles() ?: emptyArray()).filter { it.isDirectory }.mapNotNull { d ->
+            val j = d.listFiles()?.firstOrNull { it.name.endsWith(".onnx.json") }
+            val n: Int? = if (j != null) org.json.JSONObject(j.readText(Charsets.UTF_8)).optInt("num_speakers", 1) else {
+                // بدون .json: n_speakers داخل متادیتای الحاق‌شده به انتهای خود .onnx است (appendOnnxMeta)
+                val o = d.listFiles()?.firstOrNull { it.name.endsWith(".onnx") } ?: return@mapNotNull null
+                java.io.RandomAccessFile(o, "r").use { r ->
+                    val len = minOf(2048L, r.length()).toInt(); val b = ByteArray(len)
+                    r.seek(r.length() - len); r.readFully(b)
+                    Regex("n_speakers\u0012.(\\d+)").find(String(b, Charsets.ISO_8859_1))?.groupValues?.get(1)?.toIntOrNull()
+                }
+            }
+            d.name + "=" + (n ?: "?")
+        }.joinToString(", ")
+    } catch (e: Throwable) { "?" }
+
     @PluginMethod
     fun diag(call: PluginCall) {
         call.resolve(JSObject().put("underruns", underruns).put("sampleRate", sampleRate).put("sdk", android.os.Build.VERSION.SDK_INT)
-            .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL))
+            .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL).put("speakers", speakersInfo()))
     }
     private val cpu = Executors.newSingleThreadExecutor()    // ساخت صدا (پشت‌سرهم)
     private var tts: OfflineTts? = null
