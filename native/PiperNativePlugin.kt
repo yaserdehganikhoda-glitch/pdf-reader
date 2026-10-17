@@ -19,6 +19,7 @@ import java.io.BufferedOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import com.getcapacitor.JSArray
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
@@ -227,7 +228,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r4-sentence-cache"))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r5-marks"))
     }
 
     @PluginMethod
@@ -869,6 +870,7 @@ class PiperNativePlugin : Plugin() {
                 } else { items.add(Pair(text, sp)); itemGaps.add(gap) }
                 val pieces = ArrayList<FloatArray>()
                 val pieceGaps = ArrayList<Int>()   // نمونه‌های سکوت پس از هر تکه
+                val pieceItem = ArrayList<Int>()   // اندیس جملهٔ (part) هر تکه؛ جمله‌های خالی تکه ندارند
                 var genMs = 0L
                 var hit = 0
                 for ((ix, itp) in items.withIndex()) {
@@ -897,25 +899,42 @@ class PiperNativePlugin : Plugin() {
                         pieces.add(pr)
                     }
                     pieceGaps.add((itemGaps[ix] * sr).toInt())
+                    pieceItem.add(ix)
                 }
                 if (pieces.isEmpty()) throw IllegalStateException("متن قابل‌خواندن ندارد")
                 var total = 0
                 for (x in pieces) total += x.size
                 for (j in 0 until pieces.size - 1) total += pieceGaps[j]   // مکث پس از جملهٔ j (نه ثابت؛ از نوع و طول همان جمله)
                 val all = FloatArray(total)
+                val starts = IntArray(pieces.size)   // نمونهٔ شروع هر تکه در بافر پیش از صیقل
                 var pos = 0
                 for ((k, x) in pieces.withIndex()) {
+                    starts[k] = pos
                     System.arraycopy(x, 0, all, pos, x.size); pos += x.size
                     if (k < pieces.size - 1) pos += pieceGaps[k]   // سکوت (صفر)
                 }
-                val pol = polish(all, sr)
+                val trim = IntArray(1)   // نمونه‌هایی که صیقل از ابتدای بافر بریده (مرزها باید همین‌قدر جابه‌جا شوند)
+                val pol = polish(all, sr, trim)
                 val fin = if (fxOn) MasterFx.process(pol, sr, fxPk, fxHs, fxLp, strong) else pol
+                // مرز واقعی شروع هر جمله (کسری از ۰ تا ۱ از کل خروجی)؛ برای هم‌گام‌سازی هایلایت به‌جای تخمین از نسبت نویسه‌ها (T-14)
+                // playerPos بومی هم کسری از همین بافر است (مستقل از سرعت پخش)؛ در وب نسبت زمان به مدت صداست
+                val marks: JSArray? = if (partsArr != null && partsArr.length() > 0 && fin.isNotEmpty()) {
+                    val m = DoubleArray(items.size) { -1.0 }
+                    for (k in pieces.indices) m[pieceItem[k]] = ((starts[k] - trim[0]).coerceAtLeast(0).toDouble() / fin.size).coerceIn(0.0, 1.0)
+                    var nx = 1.0
+                    for (ix in items.size - 1 downTo 0) { if (m[ix] < 0.0) m[ix] = nx else nx = m[ix] }   // جملهٔ بدون تکه: مرزش شروع جملهٔ بعدی
+                    JSArray().also { a -> for (v in m) a.put(v) }
+                } else null
                 if (keep) {
                     val h = pcmPut(fin, sr)
-                    call.resolve(JSObject().put("handle", h).put("sampleRate", sr).put("durationMs", fin.size * 1000L / sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size))
+                    val res = JSObject().put("handle", h).put("sampleRate", sr).put("durationMs", fin.size * 1000L / sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
+                    if (marks != null) res.put("marks", marks)
+                    call.resolve(res)
                 } else {
                     val wav = toWav(fin, sr)
-                    call.resolve(JSObject().put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size))
+                    val res = JSObject().put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
+                    if (marks != null) res.put("marks", marks)
+                    call.resolve(res)
                 }
             } catch (e: Throwable) {
                 call.reject(if (e.message == "NATIVE_CANCELLED") "NATIVE_CANCELLED" else "خطای موتور بومی: ${e.message}")
@@ -924,7 +943,7 @@ class PiperNativePlugin : Plugin() {
     }
 
     /** صیقل خروجی هر تکه: حذف سکوت اضافهٔ ابتدا/انتها، محوشدن کوتاه (جلوگیری از «تق» بین جمله‌ها)، یکنواخت‌کردن بلندی صدا با محدودکنندهٔ نرم */
-    private fun polish(f: FloatArray, sr: Int): FloatArray {
+    private fun polish(f: FloatArray, sr: Int, trim: IntArray? = null): FloatArray {
         if (f.size < sr / 5) return f
         var peak = 0f
         for (x in f) { val a = kotlin.math.abs(x); if (a > peak) peak = a }
@@ -939,6 +958,7 @@ class PiperNativePlugin : Plugin() {
         // ابتدا ۴۵ میلی‌ثانیه و انتها ۷۰ میلی‌ثانیه سکوت طبیعی نگه داشته می‌شود (مکث بین جمله‌ها را خود برنامه می‌گذارد)
         s = kotlin.math.max(0, s - (sr * 0.045).toInt())
         e = kotlin.math.min(f.size - 1, e + (sr * 0.07).toInt())
+        trim?.set(0, s)
         val out = f.copyOfRange(s, e + 1)
         // بلندی یکنواخت: بر پایهٔ RMS نمونه‌های غیرسکوت؛ قله‌های اضافه با محدودکنندهٔ نرم (tanh) و نه بریدن سخت مهار می‌شوند
         var sum = 0.0; var cnt = 0; var pk = 0f
