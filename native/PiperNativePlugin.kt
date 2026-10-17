@@ -49,6 +49,8 @@ import java.util.concurrent.Executors
  * کیفیت صدا: synthesize({..., clean?: 0..3, clarity?: 0..3}) → حذف نویز و ارتقای شفافیت/رسایی؛ ۰ خاموش، ۲ متعادل (پیش‌فرض)؛ جزئیات در SpeechClean (انتهای فایل)
  * مسترینگ: synthesize({..., master?: Boolean, fxPk?: dB, fxHs?: dB, fxLp?: Hz}) → EQ + کمپرسور + لیمیتر روی خروجی نهایی؛ جزئیات در MasterFx
  * ساخت صدا: synthesize({id, text, parts?:[{t, s}], gap?, noiseScale?, noiseScaleW?, speed?}) هر جمله (part) جدا ساخته و روی دیسک کش می‌شود؛
+ *   کش دولایهٔ جمله‌ای روی دیسک (v1 خام، v2 پس از SpeechClean)؛ کلید فقط به متن همان جمله، صدا، نویز، سرعت و سطح پاک‌سازی بستگی دارد، نه به مرز تکه.
+ *   سرعت s/speed بین ۰٫۴ و ۲٫۵ (سرعت کاربر داخل مدل).
  *   cancel() کارهای صف‌شده و در حال ساخت را فوری رها می‌کند؛ cacheInfo / cacheClear / cacheLimit({mb})
  *
  * پخش بومی (AudioTrack): synthesize({..., keep: true}) به‌جای WAV یک handle برمی‌گرداند؛ playerPlay({handle, rate}), playerQueue({handle, gapMs}) (پخش پشت‌سرهم بی‌وقفه),
@@ -225,7 +227,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r3-calm-gap"))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r4-sentence-cache"))
     }
 
     @PluginMethod
@@ -837,7 +839,7 @@ class PiperNativePlugin : Plugin() {
         if (text.isBlank()) return call.reject("متن خالی است")
         val ns = (call.getFloat("noiseScale") ?: 0.667f).coerceIn(0.2f, 1.2f)
         val nw = (call.getFloat("noiseScaleW") ?: 0.8f).coerceIn(0.2f, 1.2f)
-        val sp = (call.getFloat("speed") ?: 1.0f).coerceIn(0.6f, 1.6f)   // <1 کندتر (سرعت هوشمند)
+        val sp = (call.getFloat("speed") ?: 1.0f).coerceIn(0.4f, 2.5f)   // <1 کندتر؛ >1 تندتر (سرعت کاربر داخل خود مدل)
         val gap = (call.getFloat("gap") ?: 0.12f).coerceIn(0f, 0.6f)      // ثانیه، سکوت بین جمله‌ها
         val partsArr = call.getArray("parts")
         val lvlClean = (call.getInt("clean") ?: 2).coerceIn(0, 3)       // حذف نویز و صداهای اضافه
@@ -861,7 +863,7 @@ class PiperNativePlugin : Plugin() {
                 if (partsArr != null && partsArr.length() > 0) {
                     for (i in 0 until partsArr.length()) {
                         val o = partsArr.getJSONObject(i)
-                        items.add(Pair(o.optString("t", ""), o.optDouble("s", sp.toDouble()).toFloat().coerceIn(0.6f, 1.6f)))
+                        items.add(Pair(o.optString("t", ""), o.optDouble("s", sp.toDouble()).toFloat().coerceIn(0.4f, 2.5f)))
                         itemGaps.add(o.optDouble("g", gap.toDouble()).toFloat().coerceIn(0f, 1.5f))
                     }
                 } else { items.add(Pair(text, sp)); itemGaps.add(gap) }
@@ -872,16 +874,28 @@ class PiperNativePlugin : Plugin() {
                 for ((ix, itp) in items.withIndex()) {
                     val pt = itp.first; val ps = itp.second
                     if (pt.isBlank() || pt.none { it.isLetterOrDigit() }) continue
-                    val key = hashKey("v1|$id|$ns|$nw|" + String.format(java.util.Locale.US, "%.2f", ps) + "|" + pt)
-                    val cached = cacheGet(key, sr)
-                    val s = if (cached != null) { hit++; cached } else {
-                        val t0 = System.nanoTime()
-                        val g = genPart(eng, pt, ps, ep)
-                        genMs += (System.nanoTime() - t0) / 1_000_000L   // زمان خالص مدل (بدون صیقل و انتقال)
-                        cachePut(key, sr, g)
-                        g
+                    val psq = String.format(java.util.Locale.US, "%.2f", ps)
+                    val key = hashKey("v1|$id|$ns|$nw|" + psq + "|" + pt)
+                    // کش دولایه، هر دو جمله‌به‌جمله و مستقل از مرز تکه‌ها: ۱) خروجی پردازش‌شده (پرش از مدل و پاک‌سازی)  ۲) نسخهٔ خام (با تغییر سطح پاک‌سازی مدل دوباره اجرا نمی‌شود)
+                    val procOn = lvlClean > 0 || lvlClarity > 0
+                    val key2 = if (procOn) hashKey("v2|$id|$ns|$nw|" + psq + "|$lvlClean|$lvlClarity|$strong|" + pt) else key
+                    val done = if (procOn) cacheGet(key2, sr) else null
+                    if (done != null) {
+                        hit++
+                        pieces.add(done)
+                    } else {
+                        val cached = cacheGet(key, sr)
+                        val s = if (cached != null) { hit++; cached } else {
+                            val t0 = System.nanoTime()
+                            val g = genPart(eng, pt, ps, ep)
+                            genMs += (System.nanoTime() - t0) / 1_000_000L   // زمان خالص مدل (بدون صیقل و انتقال)
+                            cachePut(key, sr, g)
+                            g
+                        }
+                        val pr = SpeechClean.process(s, sr, lvlClean, lvlClarity, strong)   // روی نسخهٔ خام کش؛ خودِ کش دست‌نخورده می‌ماند
+                        if (procOn && pr !== s) cachePut(key2, sr, pr)
+                        pieces.add(pr)
                     }
-                    pieces.add(SpeechClean.process(s, sr, lvlClean, lvlClarity, strong))   // روی نسخهٔ خام کش؛ خودِ کش دست‌نخورده می‌ماند
                     pieceGaps.add((itemGaps[ix] * sr).toInt())
                 }
                 if (pieces.isEmpty()) throw IllegalStateException("متن قابل‌خواندن ندارد")
