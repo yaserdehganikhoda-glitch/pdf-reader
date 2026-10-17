@@ -2348,6 +2348,10 @@ var ocrSpell = (function(){
   /* --- PaddleOCR (PP-OCRv5 عربی/فارسی، ONNX) داخل Worker: تشخیص خط (DB) ← برش ← شناسایی (CTC) ← ترتیب منطقی راست‌به‌چپ --- */
   function paddleWGlue(){
     var P = { tile: true, ds: null, rs: null, ch: null, chain: ['wasm'], ci: 0, thr: 1, side: 1472, ep: 'wasm', bat: true, dsk: true, dn: false, adp: true, lx: false, d: null, fb: false, RB: null };
+    /* واژه‌نامهٔ OCR (LX) و قاعده‌های واژهٔ شناخته‌شده؛ پیش‌تر تعریف نشده بودند و بارگذاری واژه‌نامه «LX is not defined» می‌داد */
+    var LX = null, PL = /^[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC]+$/,
+        LSFX = ['ها', 'های', 'هایی', 'ان', 'ات', 'ین', 'تر', 'ترین', 'ی', 'ای', 'ام', 'اش', 'مان', 'تان', 'شان'],
+        LPFX = ['می', 'نمی', 'بی', 'نا', 'هم', 'با', 'بر', 'در', 'وا', 'فرا', 'پیش', 'پس'];
     var AR = /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/g, SW = { '(': ')', ')': '(', '[': ']', ']': '[', '{': '}', '}': '{', '<': '>', '>': '<', '\u00AB': '\u00BB', '\u00BB': '\u00AB' };
     function hex(b){ var a = new Uint8Array(b), s = '', i; for (i = 0; i < a.length; i++) s += (a[i] < 16 ? '0' : '') + a[i].toString(16); return s; }
     async function sha(b){ return (self.crypto && self.crypto.subtle) ? hex(await self.crypto.subtle.digest('SHA-256', b)) : ''; }
@@ -5180,7 +5184,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r7 · 2026-10-17 · audit-fixes', npBuild = '';
+  var APP_BUILD = 'html-r8 · 2026-10-17 · ocr-lx-fix', npBuild = '';
   function buildBadge(){ try { var b = document.getElementById('buildBadge'); if (b && b.parentNode) b.parentNode.removeChild(b); } catch (e) {} }
   if (document.body) buildBadge(); else document.addEventListener('DOMContentLoaded', buildBadge);
   function perf(){
