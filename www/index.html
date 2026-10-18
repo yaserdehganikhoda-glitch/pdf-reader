@@ -922,7 +922,6 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           <div class="ttabs" role="tablist" aria-label="بخش‌های منوی ابزار">
             <button type="button" class="ttab on" role="tab" aria-selected="true" id="ttab-main" aria-controls="tpanel-main" tabindex="0" data-tt="main"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg><span>اصلی</span></button>
             <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-tools" aria-controls="tpanel-tools" tabindex="-1" data-tt="tools"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.3-.6-.6-2.3z"/></svg><span>ابزارها</span></button>
-            <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-data" aria-controls="tpanel-data" tabindex="-1" data-tt="data"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg><span>داده‌ها</span></button>
             <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-device" aria-controls="tpanel-device" tabindex="-1" data-tt="device"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM11 18h2"/></svg><span>پیشرفته</span></button>
           </div>
           <div class="tbody">
@@ -932,30 +931,17 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 <button type="button" class="tbanner" data-act="resume"><span class="tx"><b id="tbT">انتخاب فایل PDF</b><small id="tbS">متن آن با صدای فارسی خوانده می‌شود</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5C5.5 4.2 9 4.4 12 6.5c3-2.1 6.5-2.3 9-1v13c-2.5-1.3-6-1.1-9 1-3-2.1-6.5-2.3-9-1zM12 6.5v13"/></svg></button>
 <button type="button" class="tile t-a" data-act="file"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M12 11v6M9 14h6"/></svg></span><span class="tx"><b>انتخاب PDF</b><small>از حافظهٔ دستگاه</small></span></button>
 <button type="button" class="tile t-b" data-act="home"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span><span class="tx"><b>فهرست فایل‌ها</b><small>همه، علاقه‌مندی، اخیر</small></span></button>
-<button type="button" class="tile t-g" data-go="voice" data-only="#styleBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h2M8 8v8M12 5v14M16 8v8M20 12h-2"/></svg></span><span class="tx"><b>سبک گفتار</b><small>لحن و آرامش صدا</small></span></button>
+<button type="button" class="tile t-g" data-go="voice" data-only="#spkBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h2M8 8v8M12 5v14M16 8v8M20 12h-2"/></svg></span><span class="tx"><b>وضعیت صدا</b><small>نصب صدای فارسی</small></span></button>
 <button type="button" class="tile t-b" data-go="view" data-only="#navGrp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"/></svg></span><span class="tx"><b>جستجو در متن</b><small>و رفتن به صفحه</small></span></button>
             </div>
             <div class="tpanel" id="tpanel-tools" role="tabpanel" aria-labelledby="ttab-tools" data-tp="tools">
 <button type="button" class="tile t-a" data-go="text" data-only="#ocrBox" data-click="#ocrBtn"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/></svg></span><span class="tx"><b>اجرای OCR</b><small>از صفحهٔ فعلی</small></span></button>
 <button type="button" class="tile t-b" data-click="#manBtn"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg></span><span class="tx"><b>اسکن دستی</b><small>ناحیه یا کل صفحه</small></span></button>
-<button type="button" class="tile t-a" data-go="text" data-only="#dictBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h10"/></svg></span><span class="tx"><b>واژه‌نامهٔ تلفظ</b><small>افزودن و ویرایش</small></span></button>
-<button type="button" class="tile t-g" data-go="voice" data-only="#bgmBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 16a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/></svg></span><span class="tx"><b>موسیقی پس‌زمینه</b><small>همراه با خواندن</small></span></button>
-<button type="button" class="tile t-b" data-go="voice" data-only="#qualBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8v8M8 5v14M12 9v6M16 6v12M20 10v4"/></svg></span><span class="tx"><b>کیفیت صدا</b><small>نویز، شفافیت و بهبود</small></span></button>
 <button type="button" class="tile t-b" data-go="view" data-only="#presetBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6"/></svg></span><span class="tx"><b>حالت‌های آماده</b><small>متعادل، مطالعه، مصرف کم</small></span></button>
-            </div>
-            <div class="tpanel" id="tpanel-data" role="tabpanel" aria-labelledby="ttab-data" data-tp="data">
-<div class="bkgrp" role="group" aria-label="پشتیبان‌گیری و بازیابی">
-<div class="bkrow"><span class="bkl"><b>کتابخانه (ZIP)</b><small>PDFها و جای خواندن</small></span><button type="button" class="tile bkb t-a" data-go="lib" data-only="#stBox" data-click="#stExp" data-title="صادرات ZIP" data-sub="کتابخانهٔ PDFها"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>خروجی</span></button><button type="button" class="tile bkb t-b" data-go="lib" data-only="#stBox" data-click="#stImp" data-title="واردات ZIP" data-sub="بازیابی آرشیو"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg><span>ورودی</span></button></div>
-<div class="bkrow"><span class="bkl"><b>حافظهٔ نهان صدا</b><small>صداهای ساخته‌شده</small></span><button type="button" class="tile bkb t-a" data-go="voice" data-only="#advBox" data-click="#acExp" data-title="خروجی حافظهٔ نهان" data-sub="صداهای ساخته‌شده"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>خروجی</span></button><button type="button" class="tile bkb t-b" data-go="voice" data-only="#advBox" data-click="#acImp" data-title="ورودی حافظهٔ نهان" data-sub="از فایل ZIP"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg><span>ورودی</span></button></div>
-<div class="bkrow"><span class="bkl"><b>واژه‌نامهٔ تلفظ</b><small>فایل txt</small></span><button type="button" class="tile bkb t-a" data-go="text" data-only="#dictBox" data-click="#dictExp" data-title="برون‌بری واژه‌نامه" data-sub="فایل txt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>خروجی</span></button><button type="button" class="tile bkb t-b" data-go="text" data-only="#dictBox" data-click="#dictImp" data-title="درون‌ریزی واژه‌نامه" data-sub="از فایل txt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg><span>ورودی</span></button></div>
-<div class="bkrow"><span class="bkl"><b>تنظیمات برنامه</b><small>فایل JSON؛ بدون PDF و متن</small></span><button type="button" class="tile bkb t-a" data-act="cfgExp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>خروجی</span></button><button type="button" class="tile bkb t-b" data-act="cfgImp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg><span>ورودی</span></button></div>
-<input type="file" id="cfgFile" accept=".json,application/json" hidden>
-</div>
             </div>
             <div class="tpanel" id="tpanel-device" role="tabpanel" aria-labelledby="ttab-device" data-tp="device">
 <button type="button" class="tile t-a" data-act="theme"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></span><span class="tx"><b>پوسته</b><small id="thTileSub">خودکار</small></span></button>
 <button type="button" class="tile t-b" data-go="view" data-only="#fxBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg></span><span class="tx"><b>جلوه‌های بصری</b><small>کامل تا فوق‌ساده</small></span></button>
-<button type="button" class="tile t-b" data-go="text" data-only="#offbox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></span><span class="tx"><b>وضعیت آفلاین</b><small>بررسی فایل‌ها</small></span></button>
 <button type="button" class="tile t-g" data-go="voice" data-only="#advBox" data-click="#logShow"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6"/></svg></span><span class="tx"><b>گزارش خطا</b><small>برای عیب‌یابی</small></span></button>
 <button type="button" class="tile t-g" data-go="view" data-only="#rstBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5"/></svg></span><span class="tx"><b>بازنشانی تنظیمات</b><small>برگشت به پیش‌فرض</small></span></button>
 <button type="button" class="tile t-b exitB" ><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></span><span class="tx"><b>خروج</b><small>بستن برنامه</small></span></button>
@@ -1052,6 +1038,42 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
       <button class="peektxt" id="peekShow" type="button" aria-label="نمایش نوار پخش"><span id="peekPos">نوار پخش</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
     </div>
   </main>
+    <!-- مقادیر ثابت موتور (بدون رابط کاربری) -->
+    <div id="cfgState" hidden aria-hidden="true">
+<select id="voice"></select>
+<input type="range" id="rate" min="0.4" max="2.5" step="0.01" value="1">
+<select id="vstyle">
+            <option value="serene" data-short="بسیار آرام" data-desc="آرام‌ترین حالت: کندتر، یکدست‌تر و با مکث‌های بازتر میان جمله‌ها؛ جمله‌ها هرگز پشت‌سرهم و بی‌نفس نمی‌آیند. مناسب کتاب و گوش‌دادن طولانی.">بسیار آرام (نفس‌دار و بی‌شتاب)</option>
+            <option value="calm" data-short="آرام" data-desc="لحن نرم، یکدست و بی‌شتاب با مکث‌های بازتر؛ شنیدن راحت و آرامش‌بخش.">آرام (دلنشین و آرامش‌بخش)</option>
+            <option value="stable" data-short="پایدار" data-desc="یکنواخت و بی‌نوسان؛ مناسب کتاب‌های بلند و متن‌های رسمی.">پایدار (یکنواخت‌تر، مناسب کتاب)</option>
+            <option value="balanced" data-short="متعادل" data-desc="تعادل میان پایداری و حالت؛ مناسب بیشتر متن‌ها.">متعادل</option>
+            <option value="natural" data-short="انسانی" data-desc="نزدیک‌ترین حالت به لحن یک گوینده انسانی: زیر و بمی و ریتم طبیعی (پیشنهادی).">انسانی (پیشنهادی)</option>
+            <option value="lively" data-short="پرحالت" data-desc="پرحال‌تر و پرتنوع‌تر؛ مناسب داستان و گفت‌وگو.">گویا (پرحالت‌تر)</option>
+</select>
+<select id="vclean"><option value="0"></option><option value="1"></option><option value="2" selected></option><option value="3"></option></select>
+<select id="vclarity"><option value="0"></option><option value="1"></option><option value="2" selected></option><option value="3"></option></select>
+<input type="checkbox" id="enh" checked>
+<input type="checkbox" id="humPace" checked>
+<input type="checkbox" id="smartPace">
+<input type="checkbox" id="phLex" checked>
+<select id="lnMode"><option value="auto" selected></option><option value="join"></option><option value="line"></option></select>
+<input type="number" id="pgFrom"><input type="number" id="pgTo">
+<input type="range" id="maxL" min="60" max="300" step="10" value="200">
+<input type="checkbox" id="oPos">
+<input type="checkbox" id="oCols">
+<select id="encMode"><option value="auto" selected></option><option value="none"></option><option value="utf-8"></option><option value="windows-1256"></option><option value="iso-8859-6"></option></select>
+<select id="ocrMode"><option value="auto" selected></option><option value="always"></option><option value="off"></option></select>
+<select id="ocrQ"><option value="1" selected></option><option value="2"></option><option value="3"></option></select>
+<input type="checkbox" id="ocrDsk" checked>
+<input type="checkbox" id="ocrDn">
+<input type="checkbox" id="ocrLex" checked>
+<input type="checkbox" id="ocrGpu" checked>
+<input type="checkbox" id="oGlue" checked><input type="checkbox" id="oSpell" checked><input type="checkbox" id="oDots" checked><input type="checkbox" id="oHdr" checked><input type="checkbox" id="oNorm" checked><input type="checkbox" id="oFix" checked><input type="checkbox" id="oScript" checked><input type="checkbox" id="oLatin" checked><input type="checkbox" id="oToc" checked><input type="checkbox" id="oPause" checked>
+<input type="checkbox" id="fixOn" checked><input type="checkbox" id="fixHi" checked><input type="checkbox" id="fixPro" checked><input type="checkbox" id="fixCite" checked>
+<select id="dictScope"><option value="pdf"></option><option value="all"></option></select>
+<textarea id="dict"></textarea><button id="dictSave" type="button" disabled></button><p id="dictWho"></p><p id="dictMsg"></p>
+<p id="fixStats"></p><p id="fixBreak"></p><p id="fixUnsHead" hidden></p><div id="fixChips"></div><p id="fixMsg"></p>
+    </div>
     <!-- ===================== صفحه‌های تب‌ها (کتابخانه، صدا، متن، نمایش) ===================== -->
     <section class="pages" id="menu" aria-label="صفحه‌ها">
   <div class="mbody" id="mbody">
@@ -1068,51 +1090,13 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         <button class="btn wide" id="libClear" type="button" hidden>حذف همهٔ فایل‌های ذخیره‌شده</button>
       </section>
 
-      <details class="acc" id="stBox">
-        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></i><span class="stt"><b>مدیریت حافظه و آرشیو</b><small>سهمیه، پاک‌سازی هوشمند و ZIP</small></span></summary>
-        <div class="in">
-          <p class="hint" id="stInfo"></p>
-          <div class="field"><label for="stCap"><span>سقف حجم کتابخانه</span></label>
-            <select id="stCap"><option value="200">۲۰۰ مگابایت</option><option value="500">۵۰۰ مگابایت</option><option value="1000">۱ گیگابایت</option><option value="2000">۲ گیگابایت</option><option value="0">بدون سقف</option></select></div>
-          <div class="slist"><label class="chk"><input type="checkbox" id="stAuto" checked><span class="st"><b>حذف خودکار قدیمی‌ترین‌ها (LRU)</b><small>هنگام کمبود سهمیه یا عبور از سقف، PDFهایی که مدت بیشتری باز نشده‌اند حذف می‌شوند. فایل در حال خواندن هرگز حذف نمی‌شود؛ جای خواندن و نتیجهٔ OCR می‌ماند.</small></span></label></div>
-          <button class="btn wide" id="stTrim" type="button">پاک‌سازی قدیمی‌ترین فایل‌ها (تا ۶۰٪ سقف)</button>
-          <div class="two"><button class="btn" id="stExp" type="button">صادرات ZIP</button><button class="btn" id="stImp" type="button">واردات ZIP</button></div>
-          <input type="file" id="stZip" accept=".zip,application/zip" hidden>
-          <p class="hint" id="stMsg" aria-live="polite"></p>
-        </div>
-      </details>
 
-      <details class="acc" id="vfbox" hidden>
-        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></i><span class="stt"><b>پوشهٔ ذخیرهٔ صداها</b><small>نسخهٔ پشتیبان صداهای دانلودشده</small></span></summary>
-        <div class="in">
-          <p class="hint" id="vfName"></p>
-          <div class="two">
-            <button class="btn" id="vfPick" type="button">انتخاب پوشه</button>
-            <button class="btn" id="vfSave" type="button" disabled>ذخیره در پوشه</button>
-          </div>
-          <button class="btn wide" id="vfLoad" type="button" disabled>بارگذاری صداها از پوشه</button>
-          <button class="btn wide" id="vfRef" type="button">تازه‌سازی (بررسی دوبارهٔ فایل‌ها)</button>
-          <div class="slist"><label class="chk"><input type="checkbox" id="vfAuto" checked><span class="st"><b>ذخیرهٔ خودکار در پوشه</b><small>بعد از هر دانلود در پوشه ذخیره می‌شود و صداهای گم‌شده خودکار از پوشه بارگذاری می‌شوند.</small></span></label></div>
-          <p class="hint" id="vfMsg" aria-live="off"></p>
-          <details class="sub hintbox"><summary>راهنما</summary><div class="in"><p class="hint">یک پوشه روی گوشی انتخاب کنید تا صداهای دانلودشده به‌صورت فایل zip در آن ذخیره شوند. بعد از نصب دوبارهٔ برنامه یا روی گوشی دیگر، همان پوشه را انتخاب و صداها را بدون دانلود بارگذاری کنید.</p></div></details>
-        </div>
-      </details>
     </div>
 
     <!-- صدا -->
     <div class="panel" data-panel="voice" role="tabpanel">
-      <div id="nosupport" class="warn" hidden>مرورگر شما از تبدیل متن به گفتار پشتیبانی نمی‌کند. از Chrome یا Edge یا Safari استفاده کنید.</div>
-      <div id="novoice" class="warn" hidden>هیچ صدای فارسی روی این دستگاه پیدا نشد. صداهای سایر زبان‌ها نمایش داده شده‌اند، ولی فارسی را درست نمی‌خوانند. در تنظیمات سیستم‌عامل (Text-to-speech) می‌توانید صدای فارسی نصب کنید.</div>
-      <input type="hidden" id="engine" value="piper">
-      <nav class="jump" aria-label="پرش به بخش‌های تنظیمات صدا"><button type="button" class="chip" data-j="#spkBox">گوینده</button><button type="button" class="chip" data-j="#rateBox">سرعت</button><button type="button" class="chip" data-j="#styleBox">سبک</button><button type="button" class="chip" data-j="#paceBox">مکث</button><button type="button" class="chip" data-j="#qualBox">کیفیت</button><button type="button" class="chip" data-j="#sleepBox">خواب</button><button type="button" class="chip" data-j="#bgmBox">موسیقی</button><button type="button" class="chip" data-j="#advBox">پیشرفته</button></nav>
-
-<div class="cfgv">
       <section class="grp" id="spkBox">
-        <h3>گوینده</h3>
-        <div class="field">
-          <label for="voice"><span>صدای خواننده</span></label>
-          <select id="voice"></select>
-        </div>
+        <h3>صدای فارسی</h3>
         <div id="piperbox" class="grp" hidden>
           <p class="hint" id="pstat"></p>
           <progress id="pbar" max="100" value="0" hidden style="width:100%;height:8px"></progress>
@@ -1121,120 +1105,10 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             <button class="btn" id="pRef" type="button" title="بررسی دوبارهٔ فایل‌های صدا">تازه‌سازی</button>
           </div>
         </div>
-        <p class="hint">کاملاً رایگان و بدون سقف است؛ صدا یک‌بار بعد از نصب برنامه دانلود می‌شود و از آن به بعد بدون اینترنت کار می‌کند. ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
       </section>
-</div>
-
-<div class="cfgv">
-      <section class="grp" id="rateBox">
-        <h3>سرعت گفتار</h3>
-        <div class="field">
-          <label for="rate"><span>سرعت</span><span id="rateV"></span></label>
-          <div class="rwrap">
-            <button class="btn sm rstep" id="rateDn" type="button" aria-label="کندتر">−</button>
-            <input type="range" class="rng" id="rate" min="0.4" max="2.5" step="0.01" value="1">
-            <button class="btn sm rstep" id="rateUp" type="button" aria-label="تندتر">+</button>
-          </div>
-          <div class="chips rchips" id="rateChips"></div>
-          <p class="hint">سرعت کمتر از ۱× بدون تغییر زیر و بمی ساخته می‌شود.</p>
-        </div>
-      </section>
-</div>
-
-<section class="grp" id="styleBox">
-        <div class="field">
-          <h3>سبک گفتار</h3>
-          <select id="vstyle" data-seg aria-label="سبک گفتار">
-            <option value="serene" data-short="بسیار آرام" data-desc="آرام‌ترین حالت: کندتر، یکدست‌تر و با مکث‌های بازتر میان جمله‌ها؛ جمله‌ها هرگز پشت‌سرهم و بی‌نفس نمی‌آیند. مناسب کتاب و گوش‌دادن طولانی.">بسیار آرام (نفس‌دار و بی‌شتاب)</option>
-            <option value="calm" data-short="آرام" data-desc="لحن نرم، یکدست و بی‌شتاب با مکث‌های بازتر؛ شنیدن راحت و آرامش‌بخش.">آرام (دلنشین و آرامش‌بخش)</option>
-            <option value="stable" data-short="پایدار" data-desc="یکنواخت و بی‌نوسان؛ مناسب کتاب‌های بلند و متن‌های رسمی.">پایدار (یکنواخت‌تر، مناسب کتاب)</option>
-            <option value="balanced" data-short="متعادل" data-desc="تعادل میان پایداری و حالت؛ مناسب بیشتر متن‌ها.">متعادل</option>
-            <option value="natural" data-short="انسانی" data-desc="نزدیک‌ترین حالت به لحن یک گوینده انسانی: زیر و بمی و ریتم طبیعی (پیشنهادی).">انسانی (پیشنهادی)</option>
-            <option value="lively" data-short="پرحالت" data-desc="پرحال‌تر و پرتنوع‌تر؛ مناسب داستان و گفت‌وگو.">گویا (پرحالت‌تر)</option>
-          </select>
-        </div>
-</section>
-
-<section class="grp" id="paceBox">
-        <h3>ریتم و تلفظ</h3>
-        <div class="field">
-          <label for="pauseLvl"><span>طول مکث بین جمله‌ها</span></label>
-          <select id="pauseLvl" data-seg aria-label="طول مکث بین جمله‌ها">
-            <option value="0" data-short="کوتاه" data-desc="مکث‌ها کوتاه‌تر؛ خواندن پیوسته‌تر و سریع‌تر.">کوتاه</option>
-            <option value="1" data-short="عادی" data-desc="مکث متناسب با نوع و طول جمله." selected>عادی</option>
-            <option value="2" data-short="بلند" data-desc="مکث بازتر؛ مناسب متن سنگین و شنیدن راحت‌تر.">بلند</option>
-            <option value="3" data-short="بسیار بلند" data-desc="بازترین مکث میان جمله‌ها و بندها.">بسیار بلند</option>
-          </select>
-        </div>
-        <div class="slist">
-          <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است؛ مثل نفس‌گیری گوینده. سرعت خود صدا تغییر نمی‌کند.</small></span></label>
-          <label class="chk"><input type="checkbox" id="smartPace"><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
-          <label class="chk"><input type="checkbox" id="phLex" checked><span class="st"><b>واژه‌نامهٔ آوایی داخلی</b><small>برای صدها واژهٔ پرکاربرد، کوتاه‌مصوت‌ها (َ ِ ُ) را مشخص می‌کند تا تلفظ دقیق‌تر شود. اگر جایی عجیب خوانده شد خاموشش کنید.</small></span></label>
-        </div>
-      </section>
-
-<section class="grp" id="qualBox">
-        <h3>کیفیت صدا</h3>
-        <div class="field">
-          <span class="flab">حذف نویز و صداهای اضافه</span>
-          <select id="vclean" data-seg aria-label="حذف نویز و صداهای اضافه">
-            <option value="0" data-short="خاموش" data-desc="صدا دقیقاً همان خروجی خام مدل است.">خاموش</option>
-            <option value="1" data-short="ملایم" data-desc="کاهش ملایم خش‌خش زمینه و حذف «تق» مرز جمله‌ها؛ کمترین دخالت در صدا.">ملایم</option>
-            <option value="2" data-short="متعادل" data-desc="حذف خش‌خش و نویز زمینه، غرّش کم‌صدا، نفس و «تق» مرز جمله‌ها و مکث‌های تمیز، بدون دست‌زدن به وضوح گفتار (پیشنهادی).">متعادل (پیشنهادی)</option>
-            <option value="3" data-short="قوی" data-desc="پاک‌سازی بیشتر نویز؛ اگر گفتار کمی «خفه» شد به حالت متعادل برگردید.">قوی</option>
-          </select>
-        </div>
-        <div class="field">
-          <span class="flab">شفافیت و رسایی صدا</span>
-          <select id="vclarity" data-seg aria-label="شفافیت و رسایی صدا">
-            <option value="0" data-short="خاموش" data-desc="بدون ارتقا؛ ترازِ خود مدل.">خاموش</option>
-            <option value="1" data-short="ملایم" data-desc="صامت‌های کم‌صدا (ف، ه، ث…) و پایان کلمه‌ها کمی واضح‌تر.">ملایم</option>
-            <option value="2" data-short="متعادل" data-desc="صامت‌های ضعیف واضح‌تر، «س» و «ش» تند نرم‌تر و پایان کلمه‌ها رساتر؛ ترازِ بهتر میان واکه‌ها و صامت‌ها (پیشنهادی).">متعادل (پیشنهادی)</option>
-            <option value="3" data-short="قوی" data-desc="وضوح و رسایی بیشتر؛ مناسب هنگام گوش‌دادن در محیط شلوغ یا با بلندگوی ضعیف.">قوی</option>
-          </select>
-        </div>
-        <div class="slist">
-          <label class="chk"><input type="checkbox" id="enh" checked><span class="st"><b>بهبود کیفیت صدا</b><small>گرمی و وضوح بیشتر، نرم‌کردن «س» و «ش» تند و یکنواختی بلندی؛ تنظیم خودکار برای هر گوینده.</small></span></label>
-        </div>
-        <p class="hint">اگر صدا روبوتی یا «غ‌غ‌غ» شد: «حذف نویز» را روی «خاموش» یا «ملایم» بگذارید و اگر مشکل ماند «بهبود کیفیت صدا» را خاموش کنید. با هر تغییر، جمله‌ها دوباره ساخته می‌شوند.</p>
-</section>
-
-<div class="cfgv">
-      <section class="grp" id="sleepBox">
-        <h3>تایمر خواب</h3>
-        <div class="field">
-          <label><span>توقف خودکار پخش</span><span id="slV">خاموش</span></label>
-          <div class="chips" id="slChips"></div>
-          <p class="hint">پس از زمان انتخاب‌شده، پخش خودکار متوقف می‌شود.</p>
-        </div>
-      </section>
-</div>
-
-      <details class="acc" id="bgmBox">
-        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 16a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/></svg></i><span class="stt"><b>موسیقی پس‌زمینه</b><small>همراه با خواندن، کم‌صدا و پیوسته</small></span></summary>
-        <div class="in">
-          <input type="file" id="bgmFile" accept="audio/*" hidden>
-          <div class="slist">
-            <label class="chk"><input type="checkbox" id="bgmOn" checked><span class="st"><b>پخش موسیقی همراه با خواندن</b></span></label>
-          </div>
-          <div class="field">
-            <label for="bgmLvl"><span>میزان موسیقی</span><span id="bgmLvlV"></span></label>
-            <input type="range" class="rng" id="bgmLvl" min="0" max="100" step="1" value="60">
-          </div>
-          <div class="three">
-            <button class="btn" id="bgmPick" type="button">انتخاب موسیقی</button>
-            <button class="btn" id="bgmTry" type="button" disabled>پیش‌شنیدن</button>
-            <button class="btn" id="bgmDel" type="button" disabled>حذف</button>
-          </div>
-          <p class="hint" id="bgmName"></p>
-          <details class="sub hintbox"><summary>راهنما</summary><div class="in"><p class="hint">یک فایل موسیقی از گوشی انتخاب کنید تا همزمان با خواندن، آرام و پیوسته پخش شود. برای اینکه گفتار واضح بماند، موسیقی کم‌صدا پخش می‌شود و فرکانس‌های اصلی گفتار در آن کم می‌شود. با «توقف موقت» موسیقی هم آرام خاموش می‌شود.</p></div></details>
-        </div>
-      </details>
-
       <details class="acc" id="advBox">
-        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM4 12h2.5M17.5 12H20M12 4v2.5M12 17.5V20"/></svg></i><span class="stt"><b>پیشرفته و اطلاعات فنی</b><small>وضعیت موتور و سرعت ساخت صدا</small></span></summary>
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM4 12h2.5M17.5 12H20M12 4v2.5M12 17.5V20"/></svg></i><span class="stt"><b>پیشرفته و اطلاعات فنی</b><small>گزارش خطا و سرعت OCR</small></span></summary>
         <div class="in">
-          <label class="chk"><input type="checkbox" id="allLangs"><span class="st"><b>نمایش صداهای همهٔ زبان‌ها</b></span></label>
           <p class="hint" id="pperf"></p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0">
             <button type="button" class="btn sm" id="logShow">گزارش خطا</button>
@@ -1249,96 +1123,17 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             <textarea id="ocrPerfText" readonly rows="9" style="width:100%;direction:ltr;font:11px monospace" aria-label="گزارش سرعت OCR"></textarea>
             <div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="ocrPerfCopy">کپی</button><button type="button" class="btn sm" id="ocrPerfClear">پاک‌کردن</button></div>
           </div>
-          <p class="hint" id="pcInfo">حافظهٔ نهان صدا: فقط در اپ اندروید با موتور بومی کار می‌کند.</p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <select id="pcLimit" aria-label="حداکثر حجم حافظهٔ نهان صدا"><option value="200">حداکثر ۲۰۰ مگابایت</option><option value="600">حداکثر ۶۰۰ مگابایت</option><option value="1500">حداکثر ۱٫۵ گیگابایت</option><option value="3000">حداکثر ۳ گیگابایت</option></select>
-            <button type="button" class="btn sm" id="pcClear">پاک‌کردن حافظهٔ نهان صدا</button>
-          </div>
-          <p class="hint" id="acInfo"></p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0">
-            <button type="button" class="btn sm" id="acExp">خروجی ZIP حافظهٔ نهان</button>
-            <button type="button" class="btn sm" id="acImp">ورودی ZIP</button>
-            <input type="file" id="acFile" accept=".zip,application/zip" hidden>
-          </div>
-          <p class="hint" id="acMsg" aria-live="polite"></p>
         </div>
       </details>
-      <button class="btn wide" id="voiceReset" type="button">بازنشانی تنظیمات صدا</button>
     </div>
 
     <!-- متن -->
     <div class="panel" data-panel="text" role="tabpanel">
-      <nav class="jump" aria-label="پرش به بخش‌های تنظیمات متن"><button type="button" class="chip" data-j="#txtbox">ساختار</button><button type="button" class="chip" data-j="#ocrBox">OCR</button><button type="button" class="chip" data-j="#offbox">آفلاین</button><button type="button" class="chip" data-j="#cleanBox">پاک‌سازی</button><button type="button" class="chip" data-j="#fixbox">تصحیح گفتار</button><button type="button" class="chip" data-j="#dictBox">واژه‌نامه</button></nav>
       <p class="pgh">استخراج متن و OCR</p>
-      <details class="acc" id="txtbox" open>
-        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"/></svg></i><span class="stt"><b>ساختار متن و صفحه‌ها</b><small>سطربندی، بازهٔ صفحه‌ها و طول جمله‌ها</small></span></summary>
-        <div class="in">
-          <div class="field">
-            <label for="lnMode"><span>سطربندی</span></label>
-            <select id="lnMode" data-seg>
-              <option value="auto" data-short="خودکار" data-desc="پایان بند به‌طور خودکار تشخیص داده می‌شود.">خودکار (تشخیص پایان بند)</option>
-              <option value="join" data-short="ادغام" data-desc="سطرها به هم می‌پیوندند؛ مناسب متن پیوسته و کتاب.">ادغام سطرها (متن پیوسته و کتاب)</option>
-              <option value="line" data-short="هر سطر جدا" data-desc="هر سطر جدا خوانده می‌شود؛ مناسب شعر، فهرست و جدول.">هر سطر جدا (شعر، فهرست، جدول)</option>
-            </select>
-          </div>
-          <div class="two">
-            <div class="field"><label for="pgFrom"><span>از صفحهٔ</span></label><input type="number" id="pgFrom" min="1" inputmode="numeric" placeholder="ابتدا"></div>
-            <div class="field"><label for="pgTo"><span>تا صفحهٔ</span></label><input type="number" id="pgTo" min="1" inputmode="numeric" placeholder="انتها"></div>
-          </div>
-          <div class="field">
-            <label for="maxL"><span>بیشینهٔ طول هر تکه‌جمله (نویسه)</span><span id="maxV"></span></label>
-            <input type="range" class="rng" id="maxL" min="60" max="300" step="10" value="200">
-          </div>
-          <div class="slist">
-            <label class="chk"><input type="checkbox" id="oPos"><span class="st"><b>مرتب‌سازی سطرها بر اساس موقعیت</b><small>برای فهرست و جدول.</small></span></label>
-            <label class="chk"><input type="checkbox" id="oCols"><span class="st"><b>تشخیص ستون‌بندی</b><small>برای متن دوستونی؛ فقط همراه با گزینهٔ بالا کار می‌کند.</small></span></label>
-          </div>
-          <div class="field">
-            <label for="encMode"><span>اصلاح کدگذاری (برای متنی مثل Ø§Ù„ یا ÇáÓá)</span></label>
-            <select id="encMode">
-              <option value="auto">خودکار (فقط اگر نتیجه بهتر شد)</option>
-              <option value="none">بدون تغییر</option>
-              <option value="utf-8">UTF-8</option>
-              <option value="windows-1256">Windows-1256 (فارسی/عربی)</option>
-              <option value="iso-8859-6">ISO-8859-6 (عربی)</option>
-            </select>
-          </div>
-        </div>
-      </details>
 
       <details class="acc" id="ocrBox">
-        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></svg></i><span class="stt"><b>OCR</b><small>حالت، کیفیت، پیش‌پردازش و اصلاح خروجی</small></span></summary>
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></svg></i><span class="stt"><b>OCR</b><small>اجرای OCR و اسکن دستی صفحه</small></span></summary>
         <div class="in">
-<div class="ocrcfg">
-          <div class="sgh">حالت و کیفیت</div>
-          <div class="field">
-            <label for="ocrMode"><span>حالت OCR</span></label>
-            <select id="ocrMode" data-seg>
-              <option value="auto" data-short="خودکار" data-desc="فقط صفحه‌های خراب یا بدون متن.">خودکار: فقط صفحه‌های خراب یا بدون متن</option>
-              <option value="always" data-short="همیشه" data-desc="برای همهٔ صفحه‌ها اجرا می‌شود.">همیشه، برای همهٔ صفحه‌ها</option>
-              <option value="off" data-short="خاموش" data-desc="OCR انجام نمی‌شود.">خاموش</option>
-            </select>
-          </div>
-          <div class="field"><label for="ocrQ"><span>کیفیت</span></label>
-            <select id="ocrQ" data-seg><option value="1" data-short="سریع" selected>سریع</option><option value="2" data-short="متعادل">متعادل</option><option value="3" data-short="دقیق" data-desc="دقیق‌تر ولی کندتر.">دقیق (کندتر)</option></select></div>
-          <div class="field"><label for="ocrLn"><span>مسیرهای موازی</span></label>
-            <select id="ocrLn" data-seg><option value="" data-short="خودکار" data-desc="تعداد مسیر بر اساس توان گوشی تعیین می‌شود." selected>خودکار</option><option value="1" data-short="۱" data-desc="کم‌بارترین؛ مناسب گوشی ضعیف یا باتری کم.">۱ مسیر (کم‌بار)</option><option value="2" data-short="۲" data-desc="سریع‌تر ولی پرمصرف‌تر.">۲ مسیر</option></select></div>
-          <div class="sgh">پیش‌پردازش تصویر</div>
-          <div class="slist">
-            <label class="chk"><input type="checkbox" id="ocrDsk" checked><span class="st"><b>صاف‌کردن کجی صفحه</b><small>اسکن کج (تا ±۵ درجه) پیش از OCR مستقیم می‌شود و کنتراست هم اصلاح می‌شود.</small></span></label>
-            <label class="chk"><input type="checkbox" id="ocrDn"><span class="st"><b>کاهش نویز اسکن</b><small>برای اسکن‌های خالی‌دار و کثیف؛ کمی کندتر.</small></span></label>
-          </div>
-          <div class="sgh">تشخیص و سرعت</div>
-          <div class="slist">
-            <label class="chk"><input type="checkbox" id="ocrLex" checked><span class="st"><b>رمزگشایی راهنمایی‌شده با واژه‌نامه</b><small>واژهٔ ناشناخته با نامزد دوم مدل اصلاح می‌شود و تکه‌های جداافتادهٔ واژه («کتا ب») به هم می‌چسبند.</small></span></label>
-            <label class="chk"><input type="checkbox" id="ocrGpu" checked><span class="st"><b>شتاب‌دهندهٔ گرافیکی</b><small>زنجیرهٔ WebGPU ← WebGL ← WASM SIMD (چندنخی در صورت crossOriginIsolated)؛ هر مرحله با خروجی آزمایشی اعتبارسنجی می‌شود و در صورت خطا خودکار به مرحلهٔ بعد می‌رود. WebGPU به فایل‌های اختیاری ocr/ort/ort.webgpu.min.js و ort-wasm-simd.jsep.wasm نیاز دارد.</small></span></label>
-          </div>
-          <div class="sgh">اصلاح متن خروجی OCR</div>
-          <div class="slist">
-            <label class="chk"><input type="checkbox" id="oGlue" checked><span class="st"><b>اصلاح کلمات چسبیدهٔ OCR</b><small>«دراین»، «کردهاست»، «میشود»، «کتابها».</small></span></label>
-            <label class="chk"><input type="checkbox" id="oSpell" checked><span class="st"><b>اصلاح املای خروجی OCR</b><small>حروف مشابه (ب/پ/ت، ج/ح)، نویسه‌های اشتباه و کشیده؛ فقط روی صفحه‌های OCR.</small></span></label>
-          </div>
-</div>
           <button class="btn primary wide" id="ocrBtn" type="button" disabled>اجرای OCR (از صفحهٔ فعلی)</button>
           <p class="hint" id="ocrStat" aria-live="off"></p>
           <p class="hint" id="ocrSrc"></p>
@@ -1348,74 +1143,8 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         </div>
       </details>
 
-      <details class="acc" id="offbox">
-        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></i><span class="stt"><b>وضعیت آفلاین</b><small>بررسی فایل‌های داخل برنامه</small></span></summary>
-        <div class="in">
-          <button class="btn wide" id="offRun" type="button">بررسی وضعیت آفلاین</button>
-          <div id="offRes" aria-live="off"></div>
-        </div>
-      </details>
 
-      <p class="pgh">پاک‌سازی و تلفظ</p>
-      <details class="acc" id="cleanBox">
-        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19l7-7M14 4l1.5 3.5L19 9l-3.5 1.5L14 14l-1.5-3.5L9 9l3.5-1.5z"/></svg></i><span class="stt"><b>پاک‌سازی و اصلاح متن</b><small>سرصفحه، نقطه‌چین، حروف عربی و فاصله‌گذاری</small></span></summary>
-        <div class="in">
-          <div class="slist">
-            <label class="chk"><input type="checkbox" id="oDots" checked><span class="st"><b>حذف نقطه‌چین، خط‌چین و خطوط جداکننده</b><small>نقطه‌چین فهرست‌ها، خط‌های افقی (-----، ═════) و نمادهای تزئینی تکراری (★ ★ ★).</small></span></label>
-            <label class="chk"><input type="checkbox" id="oHdr" checked><span class="st"><b>حذف سرصفحه، پاصفحه و شمارهٔ صفحه</b></span></label>
-            <label class="chk"><input type="checkbox" id="oNorm" checked><span class="st"><b>یکدست‌سازی حروف</b><small>«ي ك ى» عربی به فارسی، و حذف اعراب و کشیده.</small></span></label>
-            <label class="chk"><input type="checkbox" id="oFix" checked><span class="st"><b>اصلاح فاصله‌گذاری</b><small>نیم‌فاصله و فاصله اطراف نشانه‌ها.</small></span></label>
-            <label class="chk"><input type="checkbox" id="oScript" checked><span class="st"><b>کنار گذاشتن متن زبان‌های دیگر</b><small>غیرفارسی و غیرلاتین، مثل ارمنی.</small></span></label>
-            <label class="chk"><input type="checkbox" id="oLatin" checked><span class="st"><b>پاک‌سازی حروف لاتین بی‌معنی</b><small>«WV Ui»، «CT» و تک‌حرف‌های معلق وسط متن فارسی؛ URL، ایمیل و اختصارهای معتبر می‌مانند.</small></span></label>
-            <label class="chk"><input type="checkbox" id="oToc" checked><span class="st"><b>مرتب‌سازی فهرست مطالب</b><small>عنوان را از شمارهٔ صفحه یا کد درهم‌رفته (مثل ۱۵۲-۴) جدا می‌کند و هر مدخل را در یک سطر می‌گذارد.</small></span></label>
-            <label class="chk"><input type="checkbox" id="oPause" checked><span class="st"><b>مکث طبیعی در جمله‌های بلند</b><small>ویرگول پیش از «که»، «اما»، «زیرا» و پایان بند شرطی؛ سپس تکه‌کردن تا بیشینهٔ طول.</small></span></label>
-          </div>
-        </div>
-      </details>
 
-      <details class="acc" id="fixbox">
-        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></i><span class="stt"><b>تصحیح‌گر هوشمند گفتار</b><small>عدد، تاریخ، اختصار، لاتین و مکث‌گذاری</small></span></summary>
-        <div class="in">
-          <div class="slist">
-            <label class="chk"><input type="checkbox" id="fixOn" checked><span class="st"><b>تصحیح گفتار فعال باشد</b></span></label>
-            <label class="chk"><input type="checkbox" id="fixHi" checked><span class="st"><b>حساسیت بالا</b><small>حروف جداافتاده، تکرار و کشیدگی بی‌دلیل.</small></span></label>
-            <label class="chk"><input type="checkbox" id="fixPro" checked><span class="st"><b>مکث‌گذاری هوشمند</b><small>پیش از پیوندها و شکستن جملهٔ بلند.</small></span></label>
-            <label class="chk"><input type="checkbox" id="fixCite" checked><span class="st"><b>نخواندن ارجاع درون‌متنی</b><small>مثل «(احمدی، ۱۳۹۸: ۲۴)» و «(Smith, 2020)»؛ در متن نمایش‌داده‌شده می‌ماند.</small></span></label>
-          </div>
-          <details class="sub hintbox"><summary>این بخش چه می‌کند؟</summary><div class="in"><p class="hint">پیش از خواندن هر جمله، متن را بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع (از جمله ارجاع درون‌متنی)، تنوین قیدها (مثلاً، حتماً)، کلمه‌های لاتین و سرواژه‌ها و مکث‌گذاری هوشمند. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p></div></details>
-          <p class="hint" id="fixStats" aria-live="off"></p>
-          <p class="hint" id="fixBreak"></p>
-          <p class="hint" id="fixUnsHead" hidden>کلمه‌هایی که تلفظشان قطعی نبود و تقریبی ساخته شد. روی هر کلمه بزنید تا با تلفظ پیشنهادی به واژه‌نامه اضافه شود؛ بعد می‌توانید تلفظ را در واژه‌نامه ویرایش کنید.</p>
-          <div class="chips" id="fixChips"></div>
-          <p class="hint" id="fixMsg" aria-live="polite"></p>
-        </div>
-      </details>
-
-      <details class="acc" id="dictBox">
-        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h10"/></svg></i><span class="stt"><b>واژه‌نامهٔ تلفظ</b><small>تلفظ دلخواه برای کلمه‌های خاص</small></span></summary>
-        <div class="in">
-          <p class="hint">در هر خط یک مورد بنویسید: «کلمه = تلفظ». برای حذف یک کلمه از خواندن، سمت راست را خالی بگذارید. پس از زدن «ثبت و ذخیره»، تغییرها اعمال می‌شوند و صدا از نو ساخته می‌شود.</p>
-          <div class="field">
-            <label for="dictScope"><span>واژه‌نامهٔ</span></label>
-            <select id="dictScope">
-              <option value="pdf">این فایل</option>
-              <option value="all">همهٔ فایل‌ها</option>
-            </select>
-          </div>
-          <p class="hint" id="dictWho"></p>
-          <p class="hint">واژه‌نامهٔ «این فایل» با نام همین PDF ذخیره می‌شود و هر بار که همان فایل را باز کنید خودکار برمی‌گردد. در متن هم می‌توانید کلمه را انتخاب (هایلایت) کنید و «افزودن به واژه‌نامه» را بزنید. برای اصلاح غلط‌های OCR در خود متن بنویسید «غلط => درست» (چند شکل: «الف | ب => درست»).</p>
-          <textarea id="dict" dir="rtl" placeholder="مثلاً:&#10;خویش = خویش&#10;ChatGPT = چت جی پی تی"></textarea>
-          <button class="btn primary wide" id="dictSave" type="button" disabled>ثبت و ذخیرهٔ واژه‌ها</button>
-          <div class="two"><button class="btn" id="dictExp" type="button">برون‌بری (.txt)</button><button class="btn" id="dictImp" type="button">درون‌ریزی</button></div>
-          <input type="file" id="dictFile" accept=".txt,text/plain" hidden>
-          <p class="hint">«الف | ب = تلفظ» چند شکل را با هم تعریف می‌کند، «/الگو/ = جایگزین» عبارت منظم است و خط‌های شروع‌شده با # توضیح‌اند. پسوندهای «‌ها، ‌های، ‌ی…» خودکار شناخته می‌شوند.</p>
-          <p class="hint" id="dictMsg" aria-live="polite"></p>
-        </div>
-      </details>
-
-<div class="cfgv">
-      <button class="btn wide" id="txtReset" type="button">بازنشانی تنظیمات متن</button>
-</div>
     </div>
 
     <!-- نمایش -->
@@ -1624,7 +1353,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
   /* ---------- settings (best-effort) ---------- */
   function sget(k, d){ try { var v = localStorage.getItem(k); return v === null ? d : v; } catch(e){ return d; } }
   function sset(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
-  var PAUSE_MUL = [0.7, 1, 1.4, 1.8], PAUSE_I = (function(){ var v = parseInt(sget('pauseLvl', '1'), 10); return v >= 0 && v <= 3 ? v : 1; })();   /* طول مکث بین جمله‌ها: کوتاه ۰٫۷× … بسیار بلند ۱٫۸× */
+  var PAUSE_MUL = [0.7, 1, 1.4, 1.8], PAUSE_I = 1;   /* طول مکث بین جمله‌ها: کوتاه ۰٫۷× … بسیار بلند ۱٫۸× */
   function fxLevel(){ return document.documentElement.getAttribute('data-fx') || 'full'; }
   function fxCalm(){ var f = fxLevel(); return f === 'perf' || f === 'flat'; }
   $('#rate').value = sget('rate', '1');
@@ -1632,7 +1361,6 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
   function fillRng(el){ var mn = +el.min, mx = +el.max, p = mx > mn ? (el.value - mn) / (mx - mn) * 100 : 0; el.style.setProperty('--p', Math.max(0, Math.min(100, p)) + '%'); }
   function showVals(){ try { syncSpd(); } catch (e) {}
     var r = +$('#rate').value, ch = document.querySelectorAll('#rateChips .chip'), i;
-    $('#rateV').textContent = nf.format(r) + '×';
     fillRng($('#rate'));
     for (i = 0; i < ch.length; i++) ch[i].classList.toggle('on', Math.abs(+ch[i].dataset.v - r) < 0.001);
   }
@@ -1663,13 +1391,11 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
   function renderVoices(){
     var pp = true, cloud = true;
     $('#piperbox').hidden = false;
-    $('#allLangs').parentNode.hidden = cloud;
     var sel = $('#voice');
     var prev = sel.value || sget('voice', '');
     var all = allVoices();
     var fa = all.filter(function(v){ return v.fa; });
-    var useAll = $('#allLangs').checked || fa.length === 0;
-    $('#novoice').hidden = cloud || !(fa.length === 0 && all.length > 0);
+    var useAll = fa.length === 0;
     var list = useAll ? all : fa;
     list = list.filter(function(v){ return v.gender !== 'f' && !FEM_ID.test(v.id); });
     sel.textContent = '';
@@ -1694,7 +1420,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
   }
   function loadVoices(){ renderVoices(); }
   function engVoice(){ return currentVoice(); }
-  setTimeout(function(){ perf(); if (NP) ensurePiper().then(function(){ perf(); vfRefresh(); }); }, 0);
+  setTimeout(function(){ perf(); if (NP) ensurePiper().then(function(){ perf(); }); }, 0);
 
   /* ---------- Piper native (sherpa-onnx via Capacitor plugin "PiperNative") ---------- */
   var NP = null, npOK = false, npTry = null, npErr = '';
@@ -1862,89 +1588,26 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
     }); }).then(function(){
       st.textContent = 'در حال آزمایش صدا…';
       return piperPredict('سلام.', v.id);
-    }).then(function(){ updatePiperStatus(); warmPiper(); vfAuto(v.id); }).catch(function(e){
+    }).then(function(){ updatePiperStatus(); warmPiper(); }).catch(function(e){
       st.textContent = 'نصب صدا ناموفق بود: ' + (e && e.message ? e.message : e);
     }).then(function(){ btn.disabled = false; $('#pbar').hidden = true; });
   };
   window.addEventListener('offline', function(){ if (!$('#pbar').hidden) $('#pstat').textContent = 'اینترنت قطع شد؛ دانلود تا وصل‌شدن مجدد منتظر می‌ماند.'; });
-  /* ---------- وضعیت آفلاین: بررسی وجود فایل‌های داخل برنامه ---------- */
-  function offDiag(){
-    var out = $('#offRes'), rows = [];
-    out.textContent = 'در حال بررسی…';
-    var add = function(ok, t, opt, nt){ rows.push({ ok: !!ok, t: t, opt: !!opt, nt: nt }); };
-    return Promise.all([
-      probe('fonts/fonts.css'), probe('lib/pdf.min.js'), probe('lib/pdf.worker.min.js'),
-      probe('lib/cmaps/UniJIS-UCS2-H.bcmap'), probe('lib/standard_fonts/LiberationSans-Regular.ttf'),
-      paddleLocal(),
-      Promise.resolve(NP && NP.bundled ? NP.bundled() : null).catch(function(){ return null; }),
-      Promise.resolve(NP && NP.stored ? NP.stored() : null).catch(function(){ return null; })
-    ]).then(function(r){
-      var b = (r[6] && r[6].ids) || [], s = (r[7] && r[7].ids) || [];
-      add(r[0], 'فونت‌های فارسی', true);
-      add(r[1] && r[2] && window.pdfjsLib, 'نمایش PDF (pdf.js)');
-      add(r[3] && r[4], 'نگاشت‌ها و فونت‌های کمکی PDF', true);
-      add(r[5], 'موتور و مدل‌های OCR (PaddleOCR)' + (r[5] ? '' : (probeBad.length ? ' — پیدا نشد: ' + probeBad.join(' ، ') : '')));
-      add(npOK, 'موتور صدای بومی');
-      add(b.length > 0 || s.length > 0, 'صداهای فارسی: ' + nf.format(s.length) + ' نصب‌شده' + (b.length ? '، ' + nf.format(b.length) + ' همراه برنامه' : ' (بعد از نصب برنامه دانلود می‌شوند)'), true, '');
-      out.textContent = '';
-      var bad = 0;
-      rows.forEach(function(x){
-        if (!x.ok && !x.opt) bad++;
-        var p = document.createElement('p'); p.className = 'hint';
-        p.textContent = (x.ok ? '✓ ' : (x.opt ? '△ ' : '✗ ')) + x.t + (!x.ok && x.opt ? (x.nt != null ? x.nt : ' (اختیاری؛ نبودنش مشکلی ایجاد نمی‌کند)') : '');
-        out.appendChild(p);
-      });
-      var m = document.createElement('p'); m.className = 'hint';
-      m.textContent = bad ? 'برخی فایل‌های لازم داخل برنامه نیست؛ لاگ مرحلهٔ ساخت را بررسی کنید.' : (rows[rows.length - 1].ok ? 'همه‌چیز لازم داخل برنامه است و اینترنت لازم نیست.' : 'فایل‌های برنامه کامل است؛ فقط برای نصب صدا (یک‌بار) اینترنت لازم است.');
-      out.appendChild(m);
-    }).catch(function(e){ out.textContent = 'بررسی انجام نشد: ' + em(e); });
-  }
-  $('#offRun').onclick = offDiag;
   /* پاک‌سازی دادهٔ قدیمی «صدای شخصی» و «کلون صدا» (از جمله کلید API ذخیره‌شده) */
   try { ['cloneVoices', 'cvKey', 'cvBase', 'matchVoices', 'mStr', 'mBase'].forEach(function(k){ localStorage.removeItem(k); }); Object.keys(localStorage).forEach(function(k){ if (k.indexOf('mcal:') === 0) localStorage.removeItem(k); }); } catch (e) {}
 
   loadVoices();
   setTimeout(loadVoices, 600);
 
-  /* ---------- voices folder (native Android, SAF) ---------- */
-  var vfFirst = true;
   function em(e){ return (e && (e.message || e.errorMessage)) || String(e); }
-  function vfMsg(t){ $('#vfMsg').textContent = t || ''; }
-  function vfRefresh(){
-    if (!npOK || !NP) return Promise.resolve();
-    return NP.folder().then(function(r){
-      var set = !!(r && r.set), ids = (r && r.ids) || [];
-      $('#vfbox').hidden = false;
-      $('#vfName').textContent = set ? 'پوشهٔ انتخاب‌شده: ' + (r.name || '—') + (ids.length ? ' — ' + nf.format(ids.length) + ' صدا در پوشه' : ' — هنوز صدایی در آن نیست') : 'هنوز پوشه‌ای انتخاب نشده است.';
-      $('#vfSave').disabled = $('#vfLoad').disabled = !set;
-      if (set && vfFirst && $('#vfAuto').checked && ids.length) {
-        vfFirst = false;
-        return NP.stored().then(function(have){
-          var miss = ids.filter(function(i){ return (have.ids || []).indexOf(i) < 0; });
-          if (!miss.length) return;
-          vfMsg('در حال بارگذاری خودکار صداها از پوشه…');
-          return NP.importVoices({ ids: miss }).then(function(x){ vfMsg(x.count ? nf.format(x.count) + ' صدا از پوشه بارگذاری شد.' : ''); updatePiperStatus(); });
-        });
-      }
-    }).catch(function(){});
-  }
-  function vfAuto(id){
-    if (npOK && NP && $('#vfAuto').checked && !$('#vfSave').disabled) NP.exportVoices({ ids: [id] }).then(vfRefresh, function(){});
-  }
-  $('#vfAuto').checked = sget('vfAuto', '1') !== '0';
-  $('#vfAuto').onchange = function(){ sset('vfAuto', this.checked ? '1' : '0'); };
-  $('#vfPick').onclick = function(){ NP.pickFolder().then(function(){ vfMsg(''); vfFirst = true; return vfRefresh(); }, function(e){ vfMsg('انتخاب پوشه انجام نشد: ' + em(e)); }); };
-  $('#vfSave').onclick = function(){ vfMsg('در حال ذخیره در پوشه…'); NP.exportVoices({}).then(function(r){ vfMsg(nf.format(r.count) + ' صدا در پوشه ذخیره شد.'); return vfRefresh(); }, function(e){ vfMsg(em(e)); }); };
-  $('#vfLoad').onclick = function(){ vfMsg('در حال بارگذاری از پوشه…'); NP.importVoices({}).then(function(r){ vfMsg(r.count ? nf.format(r.count) + ' صدا از پوشه بارگذاری شد.' : 'صدای جدیدی برای بارگذاری نبود؛ صداهای موجود دست‌نخورده می‌مانند.'); updatePiperStatus(); }, function(e){ vfMsg(em(e)); }); };
 
   /* تازه‌سازی: فایل‌های صدا و پوشه دوباره بررسی می‌شوند؛ صدای پاک‌شده دوباره دکمهٔ دانلود می‌گیرد */
   function refreshVoices(){
-    var st = $('#pstat'); st.textContent = 'در حال بررسی فایل‌های صدا…'; vfMsg('در حال بررسی…');
-    return ensurePiper().then(function(){ vfFirst = false; return vfRefresh(); }).then(function(){ updatePiperStatus(); vfMsg('بررسی شد.'); }, function(){ updatePiperStatus(); });
+    var st = $('#pstat'); st.textContent = 'در حال بررسی فایل‌های صدا…';
+    return ensurePiper().then(function(){ updatePiperStatus(); }, function(){ updatePiperStatus(); });
   }
   $('#pRef').onclick = refreshVoices;
-  $('#vfRef').onclick = refreshVoices;
-  document.addEventListener('visibilitychange', function(){ if (!document.hidden && window.PiperTTS) { vfFirst = false; vfRefresh(); updatePiperStatus(); } });
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden && window.PiperTTS) updatePiperStatus(); });
 
   /* ---------- text settings / OCR ---------- */
 /*@@TXW:A*/
@@ -4401,7 +4064,7 @@ var ocrSpell = (function(){
   function kvSet(k, v){
     return kvOpen().then(function(db){ return db ? new Promise(function(res){ try { var tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = function(){ res(true); }; tx.onerror = tx.onabort = function(){ res(false); }; } catch (e) { res(false); } }) : false; });
   }
-  /* ---------- حافظهٔ نهان صدا در IndexedDB: سهمیه، حذف LRU هوشمند، آرشیو ZIP ---------- */
+  /* ---------- حافظهٔ نهان صدا در IndexedDB: سهمیه، حذف LRU هوشمند ---------- */
   var ACH_VER = 'a4', ach = { db: null, tot: -1, q: Promise.resolve(), pers: false, busy: false };
   function achLock(fn){ var p = ach.q.then(fn); ach.q = p.catch(function(){}); return p; }
   function achOpen(){
@@ -4508,16 +4171,6 @@ var ocrSpell = (function(){
       });
     });
   }
-  function achClear(){
-    return achLock(function(){
-      return achOpen().then(function(db){
-        if (!db) return false;
-        return new Promise(function(res){
-          try { var tx = db.transaction(['a', 'm'], 'readwrite'); tx.objectStore('a').clear(); tx.objectStore('m').clear(); tx.oncomplete = function(){ ach.tot = 0; res(true); }; tx.onerror = tx.onabort = function(){ ach.tot = -1; res(false); }; } catch (e) { res(false); }
-        });
-      });
-    }).catch(function(){ return false; });
-  }
   function achTrim(){
     return achLock(function(){
       return achOpen().then(function(db){
@@ -4550,121 +4203,6 @@ var ocrSpell = (function(){
         return { key: key, hit: b };
       });
     }).catch(function(){ return { key: null, hit: null }; });
-  }
-  /* --- ZIP (بدون فشرده‌سازی؛ WAV از قبل حجیم است و ذخیره‌ی خام، سریع و کم‌مصرف است) --- */
-  var crcT = null;
-  function crc32(u){
-    if (!crcT) { crcT = new Int32Array(256); for (var n = 0, k, v; n < 256; n++) { v = n; for (k = 0; k < 8; k++) v = (v & 1) ? (v >>> 1) ^ 0xEDB88320 : v >>> 1; crcT[n] = v; } }
-    var c = -1, i; for (i = 0; i < u.length; i++) c = crcT[(c ^ u[i]) & 255] ^ (c >>> 8);
-    return (c ^ -1) >>> 0;
-  }
-  function zDos(d){ return { t: (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1), d: ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate() }; }
-  function zLocal(nm, crc, size, dt){
-    var h = new DataView(new ArrayBuffer(30 + nm.length));
-    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, 0, true); h.setUint16(10, dt.t, true); h.setUint16(12, dt.d, true);
-    h.setUint32(14, crc, true); h.setUint32(18, size, true); h.setUint32(22, size, true); h.setUint16(26, nm.length, true); h.setUint16(28, 0, true);
-    new Uint8Array(h.buffer).set(nm, 30); return h.buffer;
-  }
-  function zCentral(nm, crc, size, dt, off){
-    var h = new DataView(new ArrayBuffer(46 + nm.length));
-    h.setUint32(0, 0x02014b50, true); h.setUint16(4, 20, true); h.setUint16(6, 20, true); h.setUint16(8, 0x0800, true); h.setUint16(10, 0, true); h.setUint16(12, dt.t, true); h.setUint16(14, dt.d, true);
-    h.setUint32(16, crc, true); h.setUint32(20, size, true); h.setUint32(24, size, true); h.setUint16(28, nm.length, true);
-    h.setUint32(42, off, true);
-    new Uint8Array(h.buffer).set(nm, 46); return h.buffer;
-  }
-  function achTick(){ return new Promise(function(r){ setTimeout(r, 0); }); }
-  function achMsg(t){ var e = $('#acMsg'); if (e) e.textContent = t || ''; }
-  async function achExport(){
-    var db = await achOpen(); if (!db) throw new Error('IndexedDB در دسترس نیست.');
-    var metas = await new Promise(function(res){
-      try { var q = db.transaction('m').objectStore('m').getAll(); q.onsuccess = function(){ res(q.result || []); }; q.onerror = function(){ res([]); }; } catch (e) { res([]); }
-    });
-    if (!metas.length) return null;
-    metas.sort(function(a, b){ return a.t - b.t; });
-    var te = new TextEncoder(), parts = [], cen = [], off = 0, done = [], dt = zDos(new Date()), i, m, b, u, crc, nm, lh;
-    for (i = 0; i < metas.length; i++) {
-      m = metas[i];
-      b = await new Promise(function(res){ try { var g = db.transaction('a').objectStore('a').get(m.k); g.onsuccess = function(){ res(g.result || null); }; g.onerror = function(){ res(null); }; } catch (e) { res(null); } });
-      if (!b) continue;
-      u = new Uint8Array(await b.arrayBuffer()); crc = crc32(u); nm = te.encode('audio/' + m.k + '.wav');
-      lh = zLocal(nm, crc, u.length, dt); parts.push(lh, b); cen.push(zCentral(nm, crc, u.length, dt, off)); off += lh.byteLength + u.length; done.push(m);
-      u = null;
-      if (off > 3.5e9) break;
-      if (i % 4 === 3) { achMsg('در حال ساخت آرشیو… ' + nf.format(i + 1) + ' از ' + nf.format(metas.length)); await achTick(); }
-    }
-    if (!done.length) return null;
-    var man = te.encode(JSON.stringify({ app: 'pdf-voice-reader', ver: ACH_VER, entries: done })), mn = te.encode('manifest.json'), mc = crc32(man);
-    lh = zLocal(mn, mc, man.length, dt); parts.push(lh, man); cen.push(zCentral(mn, mc, man.length, dt, off)); off += lh.byteLength + man.length;
-    var cs = 0; cen.forEach(function(x){ cs += x.byteLength; });
-    var eo = new DataView(new ArrayBuffer(22));
-    eo.setUint32(0, 0x06054b50, true); eo.setUint16(8, cen.length, true); eo.setUint16(10, cen.length, true); eo.setUint32(12, cs, true); eo.setUint32(16, off, true);
-    var d = new Date(), z = function(n){ return (n < 10 ? '0' : '') + n; };
-    return { blob: new Blob(parts.concat(cen, [eo.buffer]), { type: 'application/zip' }), n: done.length, name: 'audio-cache-' + d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) + '.zip' };
-  }
-  function achSave(blob, name){
-    var dl = function(){
-      var u = URL.createObjectURL(blob), a = document.createElement('a');
-      a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function(){ URL.revokeObjectURL(u); }, 60000);
-      return true;
-    }, f = null;
-    try { f = new File([blob], name, { type: 'application/zip' }); } catch (e) {}
-    if (f && navigator.share && navigator.canShare && navigator.canShare({ files: [f] })) {
-      return navigator.share({ files: [f], title: name }).then(function(){ return true; }, function(e){ return (e && e.name === 'AbortError') ? true : dl(); });
-    }
-    return Promise.resolve(dl());
-  }
-  async function zData(file, e){
-    var lh = new DataView(await file.slice(e.lo, e.lo + 30).arrayBuffer());
-    if (lh.getUint32(0, true) !== 0x04034b50) return null;
-    var st = e.lo + 30 + lh.getUint16(26, true) + lh.getUint16(28, true), raw = file.slice(st, st + e.cs);
-    if (e.meth === 0) return new Uint8Array(await raw.arrayBuffer());
-    if (e.meth === 8 && typeof DecompressionStream === 'function') {
-      try { return new Uint8Array(await new Response(raw.stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer()); } catch (x) { return null; }
-    }
-    return null;
-  }
-  async function achImport(file){
-    var sz = file.size, tail, p = -1, i, td = new TextDecoder();
-    if (sz < 22) throw new Error('فایل ZIP معتبر نیست.');
-    tail = new Uint8Array(await file.slice(Math.max(0, sz - 65557)).arrayBuffer());
-    for (i = tail.length - 22; i >= 0; i--) if (tail[i] === 0x50 && tail[i + 1] === 0x4b && tail[i + 2] === 5 && tail[i + 3] === 6) { p = i; break; }
-    if (p < 0) throw new Error('فایل ZIP معتبر نیست.');
-    var eo = new DataView(tail.buffer, tail.byteOffset + p, 22), cnt = eo.getUint16(10, true), cds = eo.getUint32(12, true), cdo = eo.getUint32(16, true);
-    if (cnt > 100000 || cdo + cds > sz) throw new Error('ساختار ZIP پشتیبانی نمی‌شود.');
-    var cdb = await file.slice(cdo, cdo + cds).arrayBuffer(), cd = new DataView(cdb), cu = new Uint8Array(cdb), o = 0, ents = [], man = null, e, nl, ok = 0, skip = 0, mm = {};
-    for (i = 0; i < cnt && o + 46 <= cd.byteLength; i++) {
-      if (cd.getUint32(o, true) !== 0x02014b50) break;
-      nl = cd.getUint16(o + 28, true);
-      ents.push({ meth: cd.getUint16(o + 10, true), crc: cd.getUint32(o + 16, true), cs: cd.getUint32(o + 20, true), us: cd.getUint32(o + 24, true), lo: cd.getUint32(o + 42, true), nm: td.decode(cu.subarray(o + 46, o + 46 + nl)) });
-      o += 46 + nl + cd.getUint16(o + 30, true) + cd.getUint16(o + 32, true);
-    }
-    for (i = 0; i < ents.length; i++) if (ents[i].nm === 'manifest.json') {
-      try { var mu = await zData(file, ents[i]); if (mu) man = JSON.parse(td.decode(mu)); } catch (x) {}
-    }
-    if (man && Array.isArray(man.entries)) man.entries.forEach(function(x){ if (x && typeof x.k === 'string') mm[x.k] = x; });
-    for (i = 0; i < ents.length; i++) {
-      e = ents[i];
-      var mt = /^audio\/([a-f0-9]{16,64})\.wav$/.exec(e.nm);
-      if (!mt || e.us > 67108864 || e.us < 1024) continue;
-      var u = null;
-      try { u = await zData(file, e); } catch (x) {}
-      if (!u || u.length !== e.us || crc32(u) !== e.crc || u[0] !== 0x52 || u[1] !== 0x49 || u[2] !== 0x46 || u[3] !== 0x46) { skip++; continue; }
-      var im = mm[mt[1]] || {};
-      if (await achPut(mt[1], new Blob([u], { type: 'audio/wav' }), { v: String(im.v || ''), sr: +im.sr || 22050, np: +im.np || 0, t: +im.t || 0 })) ok++; else skip++;
-      u = null;
-      if (i % 4 === 3) { achMsg('در حال وارد کردن… ' + nf.format(i + 1) + ' از ' + nf.format(ents.length)); await achTick(); }
-    }
-    return { ok: ok, skip: skip };
-  }
-  function achUi(){
-    var el = $('#acInfo'); if (!el) return;
-    var st = navigator.storage;
-    Promise.all([achStat(), st && st.estimate ? st.estimate().catch(function(){ return null; }) : null, st && st.persisted ? st.persisted().catch(function(){ return false; }) : false]).then(function(a){
-      var t = 'حافظهٔ نهان آفلاین (IndexedDB): ' + nf.format(a[0].n) + ' قطعه، ' + pcFmt(a[0].b), e = a[1];
-      if (e && e.quota) t += ' — فضای مصرفی برنامه ' + pcFmt(e.usage || 0) + ' از ' + pcFmt(e.quota) + ' (' + nf.format(Math.round((e.usage || 0) * 1000 / e.quota) / 10) + '٪)' + (a[2] ? ' — ذخیرهٔ پایدار' : '');
-      el.textContent = t + '.';
-    });
   }
   async function fileHash(f){                                      /* SHA-256 از اندازه + ۱MB اول + ۱MB آخر */
     var A = 1048576, ps = [String(f.size) + ':', f.slice(0, A)], b, d, h = '', i, x = 2166136261;
@@ -5911,16 +5449,6 @@ var ocrSpell = (function(){
     if (Date.now() - lpDone > 600) { lpDone = Date.now(); showTip(+sp.dataset.i); }
   });
   document.addEventListener('pointerdown', function(e){ if (e.target.closest && !e.target.closest('span.risk')) $('#fixTip').hidden = true; });
-  $('#fixOn').checked = sget('fixon', '1') !== '0';
-  $('#fixHi').checked = sget('fixhi', '1') !== '0';
-  $('#fixPro').checked = sget('fixpro', '1') !== '0';
-  $('#fixOn').onchange = function(){ sset('fixon', this.checked ? '1' : '0'); fixLock(); changed(); analyze(); };
-  $('#fixPro').onchange = function(){ sset('fixpro', this.checked ? '1' : '0'); changed(); analyze(); };
-  $('#fixHi').onchange = function(){ sset('fixhi', this.checked ? '1' : '0'); changed(); analyze(); };
-  $('#fixCite').checked = sget('fixcite', '1') !== '0';
-  $('#fixCite').onchange = function(){ sset('fixcite', this.checked ? '1' : '0'); changed(); analyze(); };
-  function fixLock(){ var d = !$('#fixOn').checked; $('#fixHi').disabled = $('#fixPro').disabled = $('#fixCite').disabled = d; }
-  fixLock();
   analyze();
 
 
@@ -6289,7 +5817,6 @@ var ocrSpell = (function(){
     fxG = g;
   }
   function fxStart(){ if (!fxTm && actx && fxN && !fxN.wk) fxTm = setInterval(fxLoop, 25); }
-  $('#enh').addEventListener('change', function(){ if (playing) { setupFx(); wireFx(true); } });
   function wireFx(on){
     if (!actx) return;
     var e = on && $('#enh').checked;
@@ -6594,7 +6121,6 @@ var ocrSpell = (function(){
   var wdPhase = 'idle', wdAt = 0, wdProg = 0, wdGapMs = 0, wdNat = false, wdPosN = 0, wdKick = 0, wdLen = 200, wdGid = 0, wdGrace = 0, wdFails = [];
   function wdSet(p, ms, nat){
     wdPhase = p; wdAt = wdProg = Date.now(); wdGapMs = ms || 0; wdNat = !!nat; wdPosN = 0; wdKick = 0;
-    try { bgmDuckPhase(p, ms || 0); } catch (e) {}
   }
   function wdLog(why){ try { if (window.__elog) window.__elog.add('watchdog', why + ' | جمله ' + idx + ' | فاز ' + wdPhase); } catch (e) {} }
   function wdRecover(why){
@@ -6761,7 +6287,6 @@ var ocrSpell = (function(){
       }
       fail(my, 'پخش صدا ناموفق بود: ' + ((e && e.message) || e));
     });
-    setTimeout(musicSync, 400);
     trimCache(c.start);
     primeNext(c, my);
   }
@@ -6825,7 +6350,6 @@ var ocrSpell = (function(){
     if (el.src !== url) el.src = url;
     applyRate(el);
     el.play().catch(function(e){ fail(my, 'پخش صدا ناموفق بود: ' + e.message); });
-    setTimeout(musicSync, 400);
     trimCache(c.start);
     primeNext(c, my);
   }
@@ -7183,7 +6707,6 @@ var ocrSpell = (function(){
     document.body.classList.toggle('no-sents', !sents.length);
     $('#play').setAttribute('aria-label', playing ? 'توقف موقت' : 'پخش');
     $('#play').title = playing ? 'توقف موقت (فاصله)' : 'پخش (فاصله)';
-    musicSync();
     try { if (navigator.mediaSession) navigator.mediaSession.playbackState = playing ? 'playing' : 'paused'; } catch (e) {}
   }
 
@@ -7264,21 +6787,11 @@ var ocrSpell = (function(){
   $('#libAuto').checked = sget('libAuto', '1') !== '0';
   $('#libAuto').onchange = function(){ sset('libAuto', this.checked ? '1' : '0'); };
 
-  /* ---------- مدیریت حافظه: سهمیه، LRU، آرشیو ZIP ---------- */
-  var stBusy = false, CRCT = null;
-  function stAutoOn(){ return sget('stAuto', '1') !== '0'; }
-  function stCapB(){ var m = +sget('stCap', '1000'); return m > 0 ? m * 1048576 : 0; }
+  /* ---------- مدیریت حافظه: سهمیه، LRU ---------- */
+  function stAutoOn(){ return true; }
+  function stCapB(){ return 1000 * 1048576; }
   function stEst(){ try { return navigator.storage && navigator.storage.estimate ? navigator.storage.estimate().catch(function(){ return null; }) : Promise.resolve(null); } catch (e) { return Promise.resolve(null); } }
   function stSum(a){ return a.reduce(function(s, e){ return s + (e.size || 0); }, 0); }
-  function stMsg(t){ $('#stMsg').textContent = t || ''; }
-  function stLock(b){ stBusy = b; ['stTrim', 'stExp', 'stImp'].forEach(function(i){ $('#' + i).disabled = b; }); }
-  function stRender(){
-    var el = $('#stInfo'); if (!el) return;
-    Promise.all([stEst(), libIdx(), navigator.storage && navigator.storage.persisted ? navigator.storage.persisted().catch(function(){ return false; }) : false]).then(function(r){
-      var s = r[0], a = r[1];
-      el.textContent = 'کتابخانه: ' + libSize(stSum(a)) + ' (' + nf.format(a.length) + ' فایل)' + (s && s.quota ? ' — مصرف کل: ' + libSize(s.usage) + ' از ' + libSize(s.quota) + ' (' + nf.format(Math.round(s.usage * 100 / s.quota)) + '٪)' : '') + (r[2] ? ' — حافظه پایدار است.' : '');
-    }).catch(function(){});
-  }
   /* حذف قدیمی‌ترین‌ها (بر اساس آخرین بازشدن) تا freed ≥ deficit؛ فایل جاری و keep محافظت می‌شوند. a درجا تغییر می‌کند و فهرست ذخیره می‌شود */
   function stEvict(a, deficit, keep){
     var cur = curKey.slice(4), ps = [], n = 0, freed = 0;
@@ -7296,247 +6809,9 @@ var ocrSpell = (function(){
       return d > 0 ? stEvict(a, d, keep) : { n: 0 };
     });
   }
-  /* ZIP بدون فشرده‌سازی (store): Blob تکه‌تکه ساخته می‌شود و فقط یک فایل هم‌زمان در حافظه است */
-  function crc32(u){
-    var c = -1, i, n, k, v;
-    if (!CRCT) { CRCT = new Uint32Array(256); for (n = 0; n < 256; n++) { v = n; for (k = 0; k < 8; k++) v = v & 1 ? 0xEDB88320 ^ (v >>> 1) : v >>> 1; CRCT[n] = v >>> 0; } }
-    for (i = 0; i < u.length; i++) c = CRCT[(c ^ u[i]) & 255] ^ (c >>> 8);
-    return (c ^ -1) >>> 0;
-  }
-  async function zipBlob(items){
-    var te = new TextEncoder(), parts = [], cd = [], off = 0, i, it, nm, h, d, c, z, crc, sz;
-    for (i = 0; i < items.length; i++) {
-      it = items[i]; nm = te.encode(it.n); sz = it.b.size;
-      crc = crc32(new Uint8Array(await it.b.arrayBuffer()));
-      h = new Uint8Array(30 + nm.length); d = new DataView(h.buffer);
-      d.setUint32(0, 0x04034b50, true); d.setUint16(4, 20, true); d.setUint16(6, 0x0800, true); d.setUint16(12, 0x21, true);
-      d.setUint32(14, crc, true); d.setUint32(18, sz, true); d.setUint32(22, sz, true); d.setUint16(26, nm.length, true); h.set(nm, 30);
-      c = new Uint8Array(46 + nm.length); z = new DataView(c.buffer);
-      z.setUint32(0, 0x02014b50, true); z.setUint16(4, 20, true); z.setUint16(6, 20, true); z.setUint16(8, 0x0800, true); z.setUint16(14, 0x21, true);
-      z.setUint32(16, crc, true); z.setUint32(20, sz, true); z.setUint32(24, sz, true); z.setUint16(28, nm.length, true); z.setUint32(42, off, true); c.set(nm, 46);
-      parts.push(h, it.b); cd.push(c); off += h.length + sz;
-    }
-    var cs = cd.reduce(function(s, x){ return s + x.length; }, 0), e = new Uint8Array(22), ev = new DataView(e.buffer);
-    ev.setUint32(0, 0x06054b50, true); ev.setUint16(8, items.length, true); ev.setUint16(10, items.length, true); ev.setUint32(12, cs, true); ev.setUint32(16, off, true);
-    return new Blob(parts.concat(cd, [e]), { type: 'application/zip' });
-  }
-  async function zipRead(f){
-    var tl = Math.min(f.size, 65557), t = new DataView(await f.slice(f.size - tl).arrayBuffer()), e = -1, i, p = 0, out = [], td = new TextDecoder();
-    for (i = tl - 22; i >= 0; i--) if (t.getUint32(i, true) === 0x06054b50) { e = i; break; }
-    if (e < 0) throw new Error('فایل ZIP معتبر نیست.');
-    var cnt = t.getUint16(e + 10, true), cs = t.getUint32(e + 12, true), co = t.getUint32(e + 16, true), cd = new DataView(await f.slice(co, co + cs).arrayBuffer());
-    for (i = 0; i < cnt && p + 46 <= cd.byteLength && cd.getUint32(p, true) === 0x02014b50; i++) {
-      var nl = cd.getUint16(p + 28, true);
-      out.push({ n: td.decode(new Uint8Array(cd.buffer, p + 46, nl)), m: cd.getUint16(p + 10, true), s: cd.getUint32(p + 20, true), o: cd.getUint32(p + 42, true) });
-      p += 46 + nl + cd.getUint16(p + 30, true) + cd.getUint16(p + 32, true);
-    }
-    return out;
-  }
-  function zipData(f, en){
-    return f.slice(en.o, en.o + 30).arrayBuffer().then(function(b){
-      var d = new DataView(b), s = en.o + 30 + d.getUint16(26, true) + d.getUint16(28, true), sl = f.slice(s, s + en.s);
-      if (en.m === 0) return sl;
-      if (en.m === 8 && window.DecompressionStream) return new Response(sl.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob();
-      throw new Error('روش فشرده‌سازی این ZIP پشتیبانی نمی‌شود.');
-    });
-  }
-  function stDl(b, n){
-    var u = URL.createObjectURL(b), a = document.createElement('a');
-    a.href = u; a.download = n; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function(){ URL.revokeObjectURL(u); }, 60000);
-  }
-  function stDeliver(b, n){
-    var f = new File([b], n, { type: 'application/zip' });
-    if (navigator.canShare && navigator.share && navigator.canShare({ files: [f] })) return navigator.share({ files: [f], title: n }).catch(function(e){ if (!e || e.name !== 'AbortError') stDl(b, n); });
-    stDl(b, n); return Promise.resolve();
-  }
-  async function stExport(){
-    var a = await libIdx(), items = [], man = { v: 1, dict: sget('dict', ''), files: [] }, i, e, b, o, has;
-    if (!a.length) { stMsg('کتابخانه خالی است.'); return; }
-    for (i = 0; i < a.length; i++) {
-      e = a[i]; stMsg('آماده‌سازی ' + nf.format(i + 1) + ' از ' + nf.format(a.length) + '…');
-      b = await kvGet('lib:f:' + e.id); if (!b) continue;
-      items.push({ n: 'pdf/' + i + '.pdf', b: b });
-      o = e.ok ? await ocrLoadC(e.ok, e.total || e.pages || 0) : {}; if (!Object.keys(o).length) o = await ocrLoad(e.ok || ('ocr:' + e.id)); if (!Object.keys(o || {}).length && e.ok) o = await ocrLoad('ocr:' + e.id); has = o && Object.keys(o).length > 0;
-      if (has) items.push({ n: 'ocr/' + i + '.json', b: new Blob([JSON.stringify(o)]) });
-      man.files.push({ id: e.id, name: e.name, size: e.size, added: e.added, opened: e.opened, pages: e.pages, total: e.total, pos: sget('pos:' + e.id, '0'), dict: sget('dict:' + e.name, ''), f: i, o: has ? 1 : 0 });
-    }
-    items.unshift({ n: 'manifest.json', b: new Blob([JSON.stringify(man)]) });
-    stMsg('در حال ساخت ZIP…');
-    var z = await zipBlob(items); items = null;
-    await stDeliver(z, 'pdf-reader-' + new Date().toISOString().slice(0, 10) + '.zip');
-    stMsg(nf.format(man.files.length) + ' فایل صادر شد (' + libSize(z.size) + ').');
-  }
-  async function stImport(file){
-    var en = await zipRead(file), by = {}, man, a, have = {}, n = 0, i, m, pe, b, o;
-    en.forEach(function(x){ by[x.n] = x; });
-    if (!by['manifest.json']) throw new Error('این ZIP آرشیو این برنامه نیست.');
-    man = JSON.parse(await (await zipData(file, by['manifest.json'])).text());
-    await libLock(async function(){
-      a = await libIdx(); a.forEach(function(x){ have[x.id] = 1; });
-      var keep = {}; (man.files || []).forEach(function(x){ keep[x.id] = 1; });
-      for (i = 0; i < (man.files || []).length; i++) {
-        m = man.files[i]; pe = by['pdf/' + m.f + '.pdf'];
-        if (!pe || have[m.id]) continue;
-        stMsg('واردات ' + nf.format(i + 1) + ' از ' + nf.format(man.files.length) + '…');
-        b = new Blob([await zipData(file, pe)], { type: 'application/pdf' });
-        await stRoom(a, b.size, keep);
-        if (!(await kvSet('lib:f:' + m.id, b))) throw new Error('حافظه پر است؛ سقف را افزایش دهید یا فایل‌های قدیمی را حذف کنید.');
-        a.unshift({ id: m.id, name: m.name, size: m.size, added: m.added, opened: m.opened, pages: m.pages, total: m.total });
-        await kvSet('lib:index', a);
-        if (m.o && by['ocr/' + m.f + '.json']) { o = JSON.parse(await (await zipData(file, by['ocr/' + m.f + '.json'])).text()); await ocrSave('ocr:' + m.id, o); }
-        if (+m.pos) sset('pos:' + m.id, m.pos);
-        if (m.dict && !sget('dict:' + m.name, '')) sset('dict:' + m.name, m.dict);
-        have[m.id] = 1; n++;
-      }
-    });
-    if (man.dict && !dictG) { dictSetText('all', man.dict); parseDict(); dictShow(); }
-    return n;
-  }
-  function stRun(fn){
-    if (stBusy) return; stLock(true);
-    Promise.resolve().then(fn).catch(function(e){ stMsg('ناموفق: ' + em(e)); }).then(function(){ stLock(false); libRender(); stRender(); });
-  }
-  $('#stCap').value = sget('stCap', '1000'); if (!$('#stCap').value) $('#stCap').value = '1000';
-  $('#stCap').onchange = function(){ sset('stCap', this.value); stMsg(''); };
-  $('#stAuto').checked = stAutoOn();
-  $('#stAuto').onchange = function(){ sset('stAuto', this.checked ? '1' : '0'); };
-  $('#stBox').addEventListener('toggle', function(){ if (this.open) { try { navigator.storage.persist(); } catch (e) {} stRender(); } });
-  $('#stTrim').onclick = function(){
-    stRun(function(){
-      return libIdx().then(function(a){
-        var tot = stSum(a), cap = stCapB(), d = tot - (cap || tot) * 0.6;
-        return d > 0 ? stEvict(a, d, {}) : { n: 0, freed: 0 };
-      }).then(function(r){ stMsg(r.n ? nf.format(r.n) + ' فایل قدیمی حذف شد و ' + libSize(r.freed) + ' آزاد شد.' : 'چیزی برای حذف نبود.'); });
-    });
-  };
-  $('#stExp').onclick = function(){ stRun(stExport); };
-  $('#stImp').onclick = function(){ if (!stBusy) $('#stZip').click(); };
-  $('#stZip').onchange = function(){
-    var f = this.files[0]; this.value = ''; if (!f) return;
-    stRun(function(){ return stImport(f).then(function(n){ stMsg(nf.format(n) + ' فایل وارد شد.'); }); });
-  };
   $('#libBox').addEventListener('toggle', function(){ if (this.open) libRender(); });
   libRender();
 
-  /* ---------- background music ---------- */
-  var bgm = { el: null, ctx: null, gain: null, dk: null, dm: 1, dT: 0, url: '', loaded: false, preview: false, off: 0, re: 0, blocked: false };
-  var BGM_MAX = 0.6;
-  function bgmLevel(){ var v = Math.max(0, Math.min(100, +$('#bgmLvl').value || 0)) / 100; return BGM_MAX * v * v; }
-  function bgmWant(){ return !!(bgm.loaded && (bgm.preview || (playing && $('#bgmOn').checked))); }
-  function bgmGraph(){
-    if (bgm.ctx) return true;
-    if (!bgm.el) return false;
-    try {
-      var c = mkCtx(0), src = c.createMediaElementSource(bgm.el);
-      function bq(type, f, q, g){ var n = c.createBiquadFilter(); n.type = type; n.frequency.value = f; if (q) n.Q.value = q; if (g !== undefined) n.gain.value = g; return n; }
-      /* فیلترهای ملایم: فرکانس‌های اصلی گفتار کمی کم می‌شود، ولی موسیقی همچنان واضح شنیده می‌شود */
-      var hp = bq('highpass', 80, 0.7), mid = bq('peaking', 1000, 0.7, -4), pres = bq('peaking', 3000, 0.9, -3), lp = bq('lowpass', 9000, 0.6);
-      var cp = c.createDynamicsCompressor(); cp.threshold.value = -24; cp.knee.value = 20; cp.ratio.value = 3; cp.attack.value = 0.02; cp.release.value = 0.3;
-      var mk = c.createGain(); mk.gain.value = 1.5;
-      var g = c.createGain(); g.gain.value = 0;
-      var dk = c.createGain(); dk.gain.value = bgm.dm;   /* گرهٔ داکینگ: جدا از ولوم کاربر تا هر دو بدون تداخل نرم تغییر کنند */
-      src.connect(hp); hp.connect(mid); mid.connect(pres); pres.connect(lp); lp.connect(cp); cp.connect(mk); mk.connect(g); g.connect(dk); dk.connect(c.destination);
-      bgm.ctx = c; bgm.gain = g; bgm.dk = dk;
-      try { bgm.el.volume = 1; } catch (e) {}
-      c.onstatechange = function(){ if (bgmWant() && c.state !== 'running') { try { c.resume(); } catch (e) {} } };
-    } catch (e) { bgm.ctx = null; bgm.gain = null; bgm.dk = null; return false; }
-    return true;
-  }
-  function bgmSetGain(v, tc){
-    if (bgm.gain) {
-      try { var t = bgm.ctx.currentTime; bgm.gain.gain.cancelScheduledValues(t); bgm.gain.gain.setTargetAtTime(v, t, tc); } catch (e) { try { bgm.gain.gain.value = v; } catch (x) {} }
-    } else if (bgm.el) { try { bgm.el.volume = Math.max(0, Math.min(1, v * 2 * bgm.dm)); } catch (e) {} }
-  }
-  /* داکینگ هوشمند: هنگام گفتار حمله‌ی سریع، در مکث‌های کوتاه بین جمله‌ها نگه‌داشتن (بدون پمپاژ)، در مکث‌های بلند رهاسازی نرم */
-  var DUCK = 0.4, DUCK_ATK = 0.05, DUCK_REL = 0.45;
-  function bgmDuckTo(m, tc){
-    if (bgm.dm === m) return;
-    bgm.dm = m;
-    if (bgm.dk) {
-      try { var t = bgm.ctx.currentTime, pr = bgm.dk.gain; pr.cancelScheduledValues(t); pr.setValueAtTime(pr.value, t); pr.setTargetAtTime(m, t, tc); } catch (e) { try { bgm.dk.gain.value = m; } catch (x) {} }
-    } else if (bgm.el && bgmWant()) bgmSetGain(bgmLevel(), 0);
-  }
-  function bgmDuckPhase(ph, ms){
-    clearTimeout(bgm.dT);
-    if (ph === 'play') { if (!bgm.preview && bgm.loaded) bgmDuckTo(DUCK, DUCK_ATK); return; }
-    if (ph === 'gap' && ms < 500) return;
-    var hold = ph === 'idle' ? 0 : ph === 'gap' ? 260 : 900;
-    if (!hold) { bgmDuckTo(1, DUCK_REL); return; }
-    bgm.dT = setTimeout(function(){ bgmDuckTo(1, DUCK_REL); }, hold);
-  }
-  function bgmPlay(){
-    var el = bgm.el; if (!el || !el.paused) return;
-    var pr; try { pr = el.play(); } catch (e) { bgm.blocked = true; return; }
-    if (pr && pr.then) pr.then(function(){ bgm.blocked = false; }, function(){ bgm.blocked = true; });
-  }
-  function musicSync(){
-    if (!bgm || !bgm.loaded || !bgm.el) return;
-    clearTimeout(bgm.off);
-    if (bgmWant()) {
-      bgmGraph();
-      try { if (bgm.ctx && bgm.ctx.state !== 'running') { var rp = bgm.ctx.resume(); if (rp && rp.catch) rp.catch(function(){}); } } catch (e) {}
-      bgmSetGain(bgmLevel(), 0.25);
-      bgmPlay();
-    } else {
-      bgmSetGain(0, 0.25);
-      if (!bgm.el.paused) bgm.off = setTimeout(function(){ if (!bgmWant()) { try { bgm.el.pause(); } catch (e) {} } }, 1200);
-    }
-  }
-  /* اگر مرورگر پخش را تا اولین لمس کاربر بلوکه کرد، با اولین لمس دوباره امتحان می‌شود */
-  ['pointerdown', 'touchend', 'click', 'keydown'].forEach(function(t){
-    document.addEventListener(t, function(){
-      if (bgm.loaded && bgmWant() && (bgm.blocked || (bgm.el && bgm.el.paused) || (bgm.ctx && bgm.ctx.state !== 'running'))) musicSync();
-    }, { capture: true, passive: true });
-  });
-  function bgmUi(){
-    $('#bgmDel').disabled = !bgm.loaded;
-    $('#bgmTry').disabled = !bgm.loaded;
-    $('#bgmTry').textContent = bgm.preview ? 'توقف' : 'پیش‌شنیدن';
-  }
-  function bgmLoadBlob(blob, name){
-    if (!bgm.el) {
-      bgm.el = new Audio(); bgm.el.loop = true; bgm.el.preload = 'auto';
-      bgm.el.onerror = function(){ if (bgm.loaded) { bgm.preview = false; bgmUi(); status('این فایل موسیقی پخش نشد؛ فایل دیگری انتخاب کنید.'); } };
-      /* اگر هنگام شروع صدای گفتار، سیستم موسیقی را متوقف کرد، دوباره ادامه می‌دهد */
-      bgm.el.onpause = function(){
-        if (!bgm.loaded || !bgmWant() || bgm.el.ended) return;
-        clearTimeout(bgm.re);
-        bgm.re = setTimeout(function(){ if (bgm.loaded && bgmWant() && bgm.el.paused) bgmPlay(); }, 300);
-      };
-    }
-    if (bgm.url) { try { URL.revokeObjectURL(bgm.url); } catch (e) {} }
-    bgm.url = URL.createObjectURL(blob); bgm.el.src = bgm.url; bgm.loaded = true;
-    try { bgm.el.load(); } catch (e) {}
-    $('#bgmName').textContent = 'موسیقی انتخاب‌شده: ' + (name || 'بدون نام');
-    bgmUi(); musicSync();
-  }
-  function bgmClear(){
-    bgm.preview = false; bgm.loaded = false; clearTimeout(bgm.off); clearTimeout(bgm.re);
-    if (bgm.el) { try { bgm.el.pause(); bgm.el.removeAttribute('src'); bgm.el.load(); } catch (e) {} }
-    if (bgm.url) { try { URL.revokeObjectURL(bgm.url); } catch (e) {} bgm.url = ''; }
-    $('#bgmName').textContent = '';
-    bgmUi();
-  }
-  $('#bgmLvl').value = Math.max(0, Math.min(100, +sget('bgmLvl', '60') || 0));
-  $('#bgmOn').checked = sget('bgmOn', '1') !== '0';
-  $('#bgmLvl').oninput = function(){
-    $('#bgmLvlV').textContent = nf.format(+this.value) + '٪'; sset('bgmLvl', this.value); fillRng(this);
-    if (bgm.loaded && bgmWant()) bgmSetGain(bgmLevel(), 0.05);
-  };
-  $('#bgmLvl').oninput();
-  $('#bgmOn').onchange = function(){ sset('bgmOn', this.checked ? '1' : '0'); musicSync(); };
-  $('#bgmPick').onclick = function(){ $('#bgmFile').click(); };
-  $('#bgmFile').onchange = function(){
-    var f = this.files[0]; this.value = '';
-    if (!f) return;
-    if (f.type && f.type.indexOf('audio') !== 0 && !/\.(mp3|m4a|aac|wav|ogg|oga|opus|flac|webm)$/i.test(f.name)) { status('فایل انتخاب‌شده صوتی نیست.'); return; }
-    bgmLoadBlob(f, f.name);
-    kvSet('bgm', { blob: f, name: f.name }).then(function(ok){ if (!ok) status('موسیقی پخش می‌شود، ولی برای دفعهٔ بعد ذخیره نشد.'); });
-  };
-  $('#bgmDel').onclick = function(){ bgmClear(); kvSet('bgm', null); };
-  $('#bgmTry').onclick = function(){ bgm.preview = !bgm.preview; bgmUi(); musicSync(); };
-  kvGet('bgm').then(function(v){ if (v && v.blob && !bgm.loaded) bgmLoadBlob(v.blob, v.name); }).catch(function(){});
 
   /* ---------- events ---------- */
   $('#play').onclick = function(){ playing ? pause() : start(); };
@@ -7627,47 +6902,7 @@ var ocrSpell = (function(){
     if (npPlay) npSetRate();
     clearTimeout(rpT); rpT = setTimeout(function(){ if (!npPlay && playing && curC) primeNext(curC, token); }, 250);
   }
-  [0.5, 0.75, 1, 1.25, 1.5, 2].forEach(function(v){
-    var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.dataset.v = v; b.textContent = nf.format(v) + '×';
-    b.onclick = function(){ setRate(v); }; $('#rateChips').appendChild(b);
-  });
-  /* دکمه‌های − و +: یک لمس = یک گام ریز (۰٫۰۱)؛ نگه‌داشتن = تکرار پیوسته */
-  function holdRepeat(btn, dir){
-    var t0 = 0, t1 = 0;
-    function step(){ setRate(+$('#rate').value + dir * RSTEP); }
-    function stop(){ clearTimeout(t0); clearInterval(t1); t0 = t1 = 0; }
-    btn.addEventListener('pointerdown', function(e){
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
-      e.preventDefault(); stop(); step();
-      t0 = setTimeout(function(){ t1 = setInterval(step, 70); }, 420);
-    });
-    ['pointerup', 'pointerleave', 'pointercancel', 'blur'].forEach(function(ev){ btn.addEventListener(ev, stop); });
-    btn.addEventListener('contextmenu', function(e){ e.preventDefault(); });
-    btn.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); step(); } });
-  }
-  holdRepeat($('#rateDn'), -1); holdRepeat($('#rateUp'), 1);
   showVals();
-  /* تایمر خواب (در منو ‹ صدا): خاموش / ۱۰ / ۲۰ / ۳۰ / ۶۰ دقیقه */
-  var SLP = [0, 10, 20, 30, 60], slSel = 0, slEnd = 0, slT = 0, slL = 0;
-  function slLabel(){
-    $('#slV').textContent = slEnd ? nf.format(Math.max(1, Math.ceil((slEnd - Date.now()) / 60000))) + ' دقیقه مانده' : 'خاموش';
-    document.querySelectorAll('#slChips .chip').forEach(function(c){ c.classList.toggle('on', +c.dataset.v === slSel); });
-  }
-  function slOff(){ clearTimeout(slT); clearInterval(slL); slEnd = 0; slSel = 0; slLabel(); }
-  function slSet(m){
-    clearTimeout(slT); clearInterval(slL); slEnd = 0; slSel = m;
-    if (!m) { slLabel(); status('تایمر خواب خاموش شد.'); return; }
-    slEnd = Date.now() + m * 60000;
-    slT = setTimeout(function(){ slOff(); if (playing) pause(); status('تایمر خواب: پخش متوقف شد.'); }, m * 60000);
-    slL = setInterval(slLabel, 20000); slLabel();
-    status('تایمر خواب: ' + nf.format(m) + ' دقیقه');
-  }
-  SLP.forEach(function(m){
-    var c = document.createElement('button'); c.type = 'button'; c.className = 'chip'; c.dataset.v = m;
-    c.textContent = m ? nf.format(m) + ' دقیقه' : 'خاموش';
-    c.onclick = function(){ slSet(m); }; $('#slChips').appendChild(c);
-  });
-  slLabel();
   $('#locBtn').onclick = function(){ if (pvOn()) { pvUserT = 0; pvPage = 0; pvVp = null; pvMark(true); return; } if (curEl) curEl.scrollIntoView({ block: 'center', behavior: fxCalm() ? 'auto' : 'smooth' }); };
   $('#prev').onclick = function(){ seekTo(idx - 1); };
   $('#next').onclick = function(){ seekTo(idx + 1); };
@@ -7682,99 +6917,11 @@ var ocrSpell = (function(){
   function changed(){ clearCache(); restartIfPlaying(); }
   $('#rate').oninput = function(){ setRate(this.value); };
   $('#voice').onchange = function(){ sset('voice', this.value); if (engine() === 'piper') updatePiperStatus(); applyFxProfile(); changed(); warmPiper(); };
-  $('#allLangs').onchange = renderVoices;
-  $('#engine').onchange = function(){
-    var was = playing;
-    pause(); clearCache();
-    sset('engine', this.value);
-    renderVoices(); ui(); warmPiper();
-    if (was) start();
-  };
-  $('#enh').checked = sget('enh', '1') !== '0';
   if (sget('vstyleV', '') !== '5') { sset('vstyle', 'natural'); sset('vstyleV', '5'); }   /* پیش‌فرض «انسانی» = پیش‌فرض خود مدل (یک‌بار) */   /* سبک «بسیار آرام» پیش‌فرض تازه (یک‌بار) */
   $('#vstyle').value = sget('vstyle', 'natural'); if (!STYLES[$('#vstyle').value]) $('#vstyle').value = 'natural';
   $('#vstyle').onchange = function(){ sset('vstyle', this.value); changed(); warmPiper(); };
-  ['vclean', 'vclarity'].forEach(function(id){
-    var el = $('#' + id); el.value = sget(id, '2'); if (['0', '1', '2', '3'].indexOf(el.value) < 0) el.value = '2';
-    el.onchange = function(){ sset(id, this.value); changed(); warmPiper(); };   /* کش خام بومی می‌ماند؛ پس تغییر سطح سریع اعمال می‌شود */
-  });
-  if (sget('smartV', '') !== '1') { sset('smartV', '1'); sset('smartPace', '0'); }   /* سرعت صدا دقیقاً مثل حالت اولیه؛ فقط با تیک‌زدن دستی فعال می‌شود */
-  $('#smartPace').checked = sget('smartPace', '0') === '1';
-  $('#humPace').checked = sget('humPace', '1') !== '0';
-  $('#humPace').onchange = function(){ sset('humPace', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
-  $('#phLex').checked = sget('phLex', '1') !== '0';
-  $('#phLex').onchange = function(){ sset('phLex', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
-  /* حافظهٔ نهان صدای بومی: نمایش حجم، سقف و پاک‌کردن */
-  function pcFmt(b){ return b >= 1048576 ? nf.format(Math.round(b / 104857.6) / 10) + ' مگابایت' : nf.format(Math.max(0, Math.round(b / 1024))) + ' کیلوبایت'; }
-  function pcRefresh(){
-    var el = $('#pcInfo'); if (!el) return;
-    achUi();
-    if (!npOK || !NP || !NP.cacheInfo) { el.textContent = 'حافظهٔ نهان صدا: فقط در اپ اندروید با موتور بومی کار می‌کند.'; return; }
-    NP.cacheInfo().then(function(r){
-      el.textContent = 'حافظهٔ نهان صدا: ' + pcFmt(r.bytes || 0) + ' از حداکثر ' + pcFmt(r.max || 0) + ' (' + nf.format(r.files || 0) + ' جمله). باز کردن دوبارهٔ همین کتاب با همین گوینده و تنظیمات، فوری می‌شود.';
-      var mb = String(Math.round((r.max || 0) / 1048576)), o = $('#pcLimit'); if (o && o.querySelector('option[value="' + mb + '"]')) o.value = mb;
-    }).catch(function(){ el.textContent = 'این APK هنوز حافظهٔ نهان صدا ندارد؛ پلاگین Kotlin جدید را در پروژه بگذارید و دوباره بسازید.'; });
-  }
-  $('#advBox').addEventListener('toggle', function(){ if (this.open) pcRefresh(); });
-  (function(){ var v = sget('pcLim', ''), o = $('#pcLimit'); if (v && o && o.querySelector('option[value="' + v + '"]')) o.value = v; })();
-  $('#pcClear').onclick = function(){
-    askOk('حافظهٔ نهان صدا پاک شود؟ صداها در پخش بعدی دوباره ساخته می‌شوند.', 'پاک‌کردن', 'انصراف', true).then(function(y){
-      if (!y) return;
-      achClear().then(achUi); if (!npOK || !NP || !NP.cacheClear) { pcRefresh(); return; } NP.cacheClear().then(pcRefresh, pcRefresh);
-    });
-  };
-  $('#pcLimit').onchange = function(){ sset('pcLim', this.value); achTrim().then(achUi); if (!npOK || !NP || !NP.cacheLimit) return; NP.cacheLimit({ mb: +this.value }).then(pcRefresh, pcRefresh); };
-  $('#acExp').onclick = function(){
-    if (ach.busy) return; ach.busy = true; achMsg('در حال ساخت آرشیو…');
-    achExport().then(function(r){
-      if (!r) { achMsg('حافظهٔ نهان صدا خالی است؛ چیزی برای خروجی نیست.'); return; }
-      return achSave(r.blob, r.name).then(function(){ achMsg(nf.format(r.n) + ' قطعه در آرشیو ZIP قرار گرفت (' + pcFmt(r.blob.size) + ').'); });
-    }).catch(function(e){ achMsg('خروجی ناموفق بود: ' + em(e)); }).then(function(){ ach.busy = false; });
-  };
-  $('#acImp').onclick = function(){ if (!ach.busy) $('#acFile').click(); };
-  $('#acFile').onchange = function(){
-    var f = this.files[0]; this.value = '';
-    if (!f || ach.busy) return;
-    ach.busy = true; achMsg('در حال وارد کردن آرشیو…');
-    achImport(f).then(function(r){ achMsg(nf.format(r.ok) + ' قطعه وارد شد' + (r.skip ? ' (' + nf.format(r.skip) + ' قطعه رد شد: خراب، تکراری یا خارج از سهمیه)' : '') + '.'); achUi(); })
-      .catch(function(e){ achMsg('ورودی ناموفق بود: ' + em(e)); }).then(function(){ ach.busy = false; });
-  };
   setTimeout(function(){ achTrim(); }, 5000);
-  $('#smartPace').onchange = function(){ sset('smartPace', this.checked ? '1' : '0'); changed(); warmPiper(); };
-  $('#enh').onchange = function(){ sset('enh', this.checked ? '1' : '0'); if (npOK) { changed(); return; } setupFx(); wireFx(engine() === 'piper'); };
   dictG = sget('dict', ''); parseDict(); dictShow();
-  $('#dict').oninput = function(){ dictUi(); };
-  $('#dictExp').onclick = function(){
-    var v = $('#dict').value;
-    if (!v.trim()) { $('#dictMsg').textContent = 'واژه‌نامه خالی است.'; return; }
-    try {
-      var u = URL.createObjectURL(new Blob([v], { type: 'text/plain;charset=utf-8' })), a = document.createElement('a');
-      a.href = u; a.download = 'واژه‌نامه.txt'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(u); }, 4000);
-    } catch (e) { if (navigator.clipboard) { navigator.clipboard.writeText(v); $('#dictMsg').textContent = 'دانلود ممکن نشد؛ متن واژه‌نامه کپی شد.'; } }
-  };
-  $('#dictImp').onclick = function(){ $('#dictFile').click(); };
-  $('#dictFile').onchange = function(){
-    var f = this.files && this.files[0], inp = this; if (!f) return;
-    var r = new FileReader();
-    r.onload = function(){
-      var d = $('#dict'), have = {}, add = [];
-      d.value.split('\n').forEach(function(l){ have[l.trim()] = 1; });
-      String(r.result || '').replace(/^\ufeff/, '').split(/\r?\n/).forEach(function(l){ l = l.trim(); if (l && !have[l]) { have[l] = 1; add.push(l); } });
-      if (add.length) d.value = (d.value.replace(/\s+$/, '') + '\n' + add.join('\n')).replace(/^\n/, '');
-      dictUi(); $('#dictMsg').textContent = nf.format(add.length) + ' سطر جدید اضافه شد؛ «ثبت و ذخیره» را بزنید.';
-      inp.value = '';
-    };
-    r.readAsText(f, 'utf-8');
-  };
-  $('#dictScope').onchange = function(){
-    if ($('#dict').value !== dictSaved) { this.value = dictScopeNow(); dictUi(); $('#dictMsg').textContent = 'ابتدا تغییرهای این واژه‌نامه را ذخیره کنید.'; return; }
-    sset('dictScope', this.value); dictShow();
-  };
-  $('#dictSave').onclick = function(){
-    var v = $('#dict').value.replace(/[ \t]+$/gm, '').replace(/\s+$/, ''), sc = dictScopeNow();
-    $('#dict').value = v; dictSetText(sc, v); dictSaved = v; parseDict(); changed(); analyze();
-    dictUi('ذخیره شد.');
-  };
 
   /* ---------- انتخاب کلمه در متن → افزودن سریع به واژه‌نامه / کپی ---------- */
   var selTxt = '', selT = 0, selHide = 0;
@@ -7831,17 +6978,6 @@ var ocrSpell = (function(){
     var sc = dictScopeNow(), f = dictFind(w), v = f ? f.v : (dqSuggest(w) || w);
     if (!f) dictAddLine(sc, w, v);
     status('«' + w + '» ' + (f ? 'از قبل در واژه‌نامه بود.' : 'به واژه‌نامهٔ تلفظ اضافه شد.'));
-    openMenu('text');
-    setTimeout(function(){
-      var box = $('#dictBox'), d = $('#dict'); box.open = true;
-      if (sc !== dictScopeNow() || !d.value) return;
-      var ls = d.value.split('\n'), k = dictKeyW(w), pos = 0, i, q;
-      for (i = 0; i < ls.length; i++) {
-        q = ls[i].indexOf('=');
-        if (q > 0 && dictKeyW(ls[i].slice(0, q)) === k) { try { d.scrollIntoView({ block: 'center' }); d.focus(); d.setSelectionRange(pos + q + 1, pos + ls[i].length); } catch (x) {} break; }
-        pos += ls[i].length + 1;
-      }
-    }, 300);
   });
   $('#selCopy').onclick = function(){
     var t = selTxt, b = this, ok = function(){ b.textContent = 'کپی شد'; setTimeout(function(){ b.textContent = 'کپی'; }, 1400); };
@@ -7869,26 +7005,7 @@ var ocrSpell = (function(){
     [['play', function(){ if (!playing) start(); }], ['pause', function(){ if (playing) pause(); }], ['previoustrack', function(){ seekTo(idx - 1); }], ['nexttrack', function(){ seekTo(idx + 1); }]].forEach(function(a){ navigator.mediaSession.setActionHandler(a[0], a[1]); });
   } catch (e) {} }
 
-  if (sget('maxLV', '') !== '2') { sset('o_maxL', '200'); sset('maxLV', '2'); }   /* سقف جمله ۲۰۰ (یک‌بار): جمله کمتر تکه می‌شود */
-  var TXT_IDS = ['lnMode','oDots','oHdr','oNorm','oFix','oScript','oLatin','oPos','oCols','maxL','pgFrom','pgTo','ocrMode','ocrQ','encMode','oGlue','oSpell','oPause','oToc'], TXT_DEF = {};
-  TXT_IDS.forEach(function(id){
-    var e = $('#' + id), c = e.type === 'checkbox'; TXT_DEF[id] = c ? e.checked : e.value;
-    var v = sget('o_' + id, null);
-    if (v !== null) { if (c) e.checked = v === '1'; else e.value = v; }
-    e.onchange = function(){ sset('o_' + id, c ? (e.checked ? '1' : '0') : e.value); if (pdfDoc) process(true); };
-  });
-  $('#txtReset').onclick = function(){
-    TXT_IDS.forEach(function(id){ var e = $('#' + id); if (e.type === 'checkbox') e.checked = TXT_DEF[id]; else e.value = TXT_DEF[id]; try { localStorage.removeItem('o_' + id); } catch (x) {} });
-    $('#maxL').oninput(); segRefresh();
-    [['fixOn', 'fixon'], ['fixHi', 'fixhi'], ['fixPro', 'fixpro'], ['fixCite', 'fixcite']].forEach(function(p){ $('#' + p[0]).checked = true; try { localStorage.removeItem(p[1]); } catch (x) {} });
-    syncCols(); fixLock(); if (pdfDoc) process(true); else analyze();
-    changed();
-  };
-  function syncCols(){ $('#oCols').disabled = !$('#oPos').checked; }
-  $('#oPos').addEventListener('change', syncCols); syncCols();
-  $('#maxL').oninput = function(){ $('#maxV').textContent = nf.format(+this.value); fillRng(this); };
-  $('#maxL').oninput(); O = opts();
-  if (sget('ocrQV', '') !== '4') { sset('o_ocrQ', '1'); $('#ocrQ').value = '1'; sset('ocrQV', '4'); }   /* OCR خودکار با کیفیت «سریع» (یک‌بار) */
+  O = opts();
   $('#ocrBtn').onclick = runOcr;
   $('#ocrGpuRetry').onclick = function(){ sset('ocrGpuBad', ''); sset('ocrGpuWhy', ''); sset('o_ocrGpu', '1'); var g = $('#ocrGpu'); if (g) g.checked = true; status('آزمون GPU در OCR بعدی دوباره انجام می‌شود.'); };
   $('#ocrPerfShow').onclick = function(){ var b = $('#ocrPerfBox'); b.hidden = !b.hidden; if (!b.hidden) $('#ocrPerfText').value = ocrPerfJson(); };
@@ -7900,7 +7017,6 @@ var ocrSpell = (function(){
     try { r.textContent = await window.ocrNatAuto(); } catch (e) { r.textContent = 'خطا: ' + ((e && e.message) || e); }
     b.disabled = false;
   };
-  ['ocrGpu', 'ocrDsk', 'ocrDn', 'ocrLex'].forEach(function(id){ var e = $('#' + id), v = sget('o_' + id, null); if (v !== null) e.checked = v === '1'; e.onchange = function(){ sset('o_' + id, e.checked ? '1' : '0'); if (id === 'ocrGpu') sset('ocrGpuBad', ''); }; });
 
   /* ---------- کنترل قطعه‌ای برای انتخاب‌های کوتاه (روی همان select کار می‌کند) ---------- */
   var SEGS = [];
@@ -7973,11 +7089,6 @@ var ocrSpell = (function(){
     }
     updateHeader(t, o); syncMini(); closeTools(); segRefresh(); if (t !== 'read') chgSoon();
   }
-  /* سازگاری با فراخوانی‌های قدیمی (باز کردن فایل ← بازگشت به متن؛ دوبار لمس واژه ← واژه‌نامه) */
-  function openMenu(t){
-    if (t === 'text') setAppTab('text', { only: '#dictBox', title: 'واژه‌نامهٔ تلفظ', sub: 'افزودن و ویرایش' });
-    else setAppTab(t || 'lib');
-  }
   function closeMenu(){ if (curTab !== 'read') setAppTab('read'); }
   window.addEventListener('popstate', function(){
     if (tabSkip > 0) { tabSkip--; return; }
@@ -8026,8 +7137,6 @@ var ocrSpell = (function(){
     var act = b.dataset.act, go = b.dataset.go, only = b.dataset.only, sel = b.dataset.click, el, tg, bt, sm, pt;
     if (act === 'theme') { toolsHold = true; try { cycleBtns('#thSw button'); } finally { toolsHold = false; } toolsSync(); return; }
     closeTools();
-    if (act === 'cfgExp') { cfgExport(); return; }
-    if (act === 'cfgImp') { $('#cfgFile').click(); return; }
     if (act === 'file') { fin.click(); return; }
     if (act === 'home') { showHome(); return; }
     if (act === 'resume') { if ($('#play').disabled) showHome(); else { hideHome(); setAppTab('read'); } return; }
@@ -8046,7 +7155,7 @@ var ocrSpell = (function(){
   Array.prototype.forEach.call(toolsEl.querySelectorAll('.tile,.tbanner'), function(b){ b.addEventListener('click', function(){ toolRun(b); }); });
 
   /* ---- جستجوی تنظیمات، نشانگر «تغییریافته» و بازنشانی هر بخش ---- */
-  var CFG_DEF = {"pauseLvl":"1","ocrLn":"","vstyle":"natural","vclean":"2","vclarity":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', sqT = 0, chgQ = 0, cfgN = 0;
+  var CFG_DEF = {"rFont":"vazir"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', sqT = 0, chgQ = 0, cfgN = 0;
   function sqNorm(s){ return String(s || '').toLowerCase().replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/[\u200c\u064b-\u0652]/g, '').replace(/\s+/g, ' ').trim(); }
   Array.prototype.forEach.call(document.querySelectorAll(CFG_SEC), function(s){
     var h = s.tagName === 'DETAILS' ? s.querySelector('summary .stt b') : s.querySelector('h3'), pn = s.closest('.panel');
@@ -8114,42 +7223,10 @@ var ocrSpell = (function(){
   $('#mbody').addEventListener('change', chgSoon, true);
   chgScan();
 
-  /* ---- پشتیبان و بازیابی خودِ تنظیمات (JSON) ---- */
   var CFG_KEY = /^(bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|harakat|pauseLvl$|vib$|rlh$|dockAuto$|ocrLanesMax$|lpAsk$|tt$)/;
-  function cfgExport(){
-    var s = {}, i, k, n = 0, txt, u, a;
-    try { for (i = 0; i < localStorage.length; i++) { k = localStorage.key(i); if (CFG_KEY.test(k)) { s[k] = localStorage.getItem(k); n++; } } } catch (e) {}
-    if (!n) { status('تنظیم ذخیره‌شده‌ای وجود ندارد.'); return; }
-    txt = JSON.stringify({ app: 'pdf-voice-reader', v: 1, t: new Date().toISOString(), s: s }, null, 1);
-    try {
-      u = URL.createObjectURL(new Blob([txt], { type: 'application/json' })); a = document.createElement('a');
-      a.href = u; a.download = 'تنظیمات-خوانندهٔ-صوتی.json'; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function(){ URL.revokeObjectURL(u); }, 4000); status('تنظیمات ذخیره شد (' + nf.format(n) + ' مورد).');
-    } catch (e) { try { navigator.clipboard.writeText(txt); status('دانلود ممکن نشد؛ متن تنظیمات کپی شد.'); } catch (x) { status('خروجی گرفتن از تنظیمات ممکن نشد.'); } }
-  }
-  $('#cfgFile').onchange = function(){
-    var f = this.files && this.files[0], inp = this, r;
-    if (!f) return;
-    if (f.size > 262144) { status('فایل تنظیمات معتبر نیست.'); inp.value = ''; return; }
-    r = new FileReader();
-    r.onload = function(){
-      var o, k, n = 0;
-      try {
-        o = JSON.parse(String(r.result));
-        if (!o || o.app !== 'pdf-voice-reader' || !o.s || typeof o.s !== 'object') throw 0;
-        for (k in o.s) if (Object.prototype.hasOwnProperty.call(o.s, k) && CFG_KEY.test(k) && typeof o.s[k] === 'string' && o.s[k].length <= 4000) { localStorage.setItem(k, o.s[k]); n++; }
-      } catch (e) { status('فایل تنظیمات معتبر نیست.'); inp.value = ''; return; }
-      inp.value = '';
-      if (!n) { status('موردی برای وارد کردن نبود.'); return; }
-      status(nf.format(n) + ' تنظیم وارد شد؛ برنامه دوباره بارگذاری می‌شود…');
-      setTimeout(function(){ try { location.reload(); } catch (e) {} }, 900);
-    };
-    r.onerror = function(){ status('خواندن فایل ممکن نشد.'); inp.value = ''; };
-    r.readAsText(f);
-  };
 
   /* ---- حالت‌های آماده (متعادل | مطالعهٔ طولانی | مصرف کم) ---- */
-  var prLock = false, PR_TXT = { bal: 'سرعت ۱×، موسیقی روشن، جلوه‌ها بر اساس توان گوشی.', read: 'سرعت ۰٫۹×، موسیقی خاموش، جلوه‌های سبک.', low: 'جلوه‌های فوق‌ساده و موسیقی خاموش؛ کم‌بارترین حالت.', '': 'تنظیم دستی.' };
+  var prLock = false, PR_TXT = { bal: 'سرعت ۱×، جلوه‌ها بر اساس توان گوشی.', read: 'سرعت ۰٫۹×، جلوه‌های سبک.', low: 'جلوه‌های فوق‌ساده؛ کم‌بارترین حالت.', '': 'تنظیم دستی.' };
   function prFxDefault(){
     var m = navigator.deviceMemory, c = navigator.hardwareConcurrency, r = false;
     try { r = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (x) {}
@@ -8172,14 +7249,12 @@ var ocrSpell = (function(){
     try {
       fb = document.querySelector('#fxSw button[data-fx="' + fx + '"]'); if (fb) fb.click();
       prCtl('rate', id === 'read' ? 0.9 : 1, 'input');
-      prCtl('bgmOn', id === 'bal', 'change');
     } finally { prLock = false; }
     sset('preset', id); prSync();
   }
   Array.prototype.forEach.call(document.querySelectorAll('#prSw button'), function(b){ b.addEventListener('click', function(){ prApply(b.dataset.pr); }); });
   function prDirty(){ if (prLock || !sget('preset', '')) return; sset('preset', ''); prSync(); }
   $('#rate').addEventListener('input', prDirty);
-  $('#bgmOn').addEventListener('change', prDirty);
   Array.prototype.forEach.call(document.querySelectorAll('#fxSw button'), function(b){ b.addEventListener('click', prDirty); });
   prSync();
 
@@ -8326,13 +7401,6 @@ var ocrSpell = (function(){
   $('#lhUp').onclick = function(){ if (lhI < LHS.length - 1) { lhI++; sset('rlh', String(LHS[lhI])); applyLh(); if (curEl) follow(curEl); } };
   applyLh();
 
-  /* مسیرهای موازی OCR: خودکار / ۱ / ۲ */
-  (function(){
-    var sel = $('#ocrLn'), v = sget('ocrLanesMax', '');
-    sel.value = (v === '1' || v === '2') ? v : '';
-    sel.onchange = function(){ sset('ocrLanesMax', this.value); };
-    segRefresh();
-  })();
 
   /* پنهان‌شدن خودکار نوار پخش پس از بی‌حرکتی (فقط هنگام پخش؛ ذخیره نمی‌شود) */
   var dkSec = +sget('dockAuto', '0') || 0, dkT = 0, dkAuto = false, dkSel = $('#dockAuto');
@@ -8421,60 +7489,6 @@ var ocrSpell = (function(){
   }
 
   /* ===== ارتقای صفحه‌های تنظیمات (صدا، متن، OCR) ===== */
-  /* ناوبری سریع میان بخش‌ها */
-  Array.prototype.forEach.call(document.querySelectorAll('.jump'), function(nv){
-    nv.addEventListener('click', function(e){
-      var b = e.target.closest && e.target.closest('button[data-j]'), t = b && document.querySelector(b.dataset.j), go;
-      if (!t) return;
-      if (t.tagName === 'DETAILS') t.open = true;
-      go = function(){ try { t.scrollIntoView({ block: 'start' }); } catch (x) {} };
-      go(); setTimeout(go, 160);
-    });
-  });
-  /* طول مکث بین جمله‌ها */
-  (function(){
-    var pl = $('#pauseLvl'); pl.value = String(PAUSE_I);
-    pl.onchange = function(){ var v = parseInt(this.value, 10); PAUSE_I = v >= 0 && v <= 3 ? v : 1; sset('pauseLvl', String(PAUSE_I)); changed(); };
-    segRefresh();
-  })();
-  /* نشان وضعیت روی سربرگ بخش‌های بازشونده */
-  function segTxt(id){ var e = $('#' + id), o = e && e.options && e.options[e.selectedIndex]; return o ? (o.dataset.short || o.textContent).split(/[:(،]/)[0].trim() : ''; }
-  var BDG = {
-    ocrBox: function(){ return segTxt('ocrMode') + ' · ' + segTxt('ocrQ'); },
-    txtbox: function(){ var a = $('#pgFrom').value, b = $('#pgTo').value; return segTxt('lnMode') + (a || b ? ' · ص ' + (a ? nf.format(+a) : '۱') + '–' + (b ? nf.format(+b) : 'پایان') : ''); },
-    cleanBox: function(){ var c = $('#cleanBox').querySelectorAll('input[type=checkbox]'), n = 0, i; for (i = 0; i < c.length; i++) if (c[i].checked) n++; return nf.format(n) + ' از ' + nf.format(c.length) + ' فعال'; },
-    fixbox: function(){ return $('#fixOn').checked ? 'فعال' : 'خاموش'; },
-    dictBox: function(){ return segTxt('dictScope'); },
-    bgmBox: function(){ return $('#bgmOn').checked ? 'روشن · ' + nf.format(+$('#bgmLvl').value) + '٪' : 'خاموش'; }
-  }, bdgQ = 0;
-  Object.keys(BDG).forEach(function(id){
-    var d = $('#' + id), sm = d && d.querySelector('summary'), st = sm && sm.querySelector('.stt'), b;
-    if (!st) return;
-    b = document.createElement('span'); b.className = 'bdg'; b.id = 'bdg-' + id; sm.insertBefore(b, st.nextSibling);
-  });
-  function bdgRun(){
-    bdgQ = 0;
-    Object.keys(BDG).forEach(function(id){ var b = $('#bdg-' + id); if (b) { try { b.textContent = BDG[id](); } catch (x) { b.textContent = ''; } } });
-  }
-  function bdgSoon(){ if (!bdgQ) bdgQ = requestAnimationFrame(bdgRun); }
-  $('#mbody').addEventListener('input', bdgSoon, true);
-  $('#mbody').addEventListener('change', bdgSoon, true);
-  $('#txtReset').addEventListener('click', function(){ setTimeout(bdgSoon, 30); });
-  bdgRun();
-  /* بازنشانی کل تنظیمات صدا (گوینده تغییر نمی‌کند) */
-  $('#voiceReset').onclick = function(){
-    askOk('تنظیمات صدا (سبک، کیفیت، سرعت، مکث و موسیقی) به پیش‌فرض برمی‌گردد. گوینده تغییر نمی‌کند.', 'بازنشانی', 'انصراف', true).then(function(y){
-      if (!y) return;
-      Array.prototype.forEach.call(document.querySelectorAll('.panel[data-panel="voice"] input[id],.panel[data-panel="voice"] select[id]'), function(el){
-        if (!Object.prototype.hasOwnProperty.call(CFG_DEF, el.id)) return;
-        var d = CFG_DEF[el.id]; if (cfgSame(el, d)) return;
-        if (el.type === 'checkbox') el.checked = d; else el.value = d;
-        if (el.type === 'range') el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      });
-      segRefresh(); chgScan(); bdgSoon(); status('تنظیمات صدا به پیش‌فرض برگشت.');
-    });
-  };
 
   /* قلم متن */
   var RFONTS = { vazir: 'var(--font)', naskh: '"Noto Naskh Arabic","Vazirmatn",Tahoma,serif' };
@@ -8486,7 +7500,6 @@ var ocrSpell = (function(){
   try { localStorage.removeItem('harakat'); if (sget('rfont', '') === 'sch') sset('rfont', 'vazir'); } catch (e) {}
 
   /* نوار لغزندهٔ بیشینهٔ طول جمله */
-  fillRng($('#maxL'));
 
   /* عنوان فایل */
   function setDocTitle(n){ var t = $('#docTitle'), r = (n || '').replace(/\.pdf$/i, ''); t.textContent = r; t.title = n || ''; $('#rdTitle').textContent = r; }
