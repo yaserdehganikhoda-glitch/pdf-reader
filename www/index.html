@@ -2087,19 +2087,19 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
     hbT = setInterval(function(){ var n = performance.now(), g = n - hbL - 1000; hbL = n; if (g > 400 && ocrPerf && ocrPerf.stalls && ocrPerf.stalls.length < 40) ocrPerf.stalls.push({ pg: ocrPerf.n, gap: Math.round(g), hid: !!document.hidden, ln: (ocrLanes || []).filter(function(x){ return !x.dead; }).length, cur: (ocrLanes || []).map(function(x){ return x.cur || 0; }).filter(Boolean), hpm: mainHeap(), th: thermal() }); }, 1000); }
   window.ocrRecH = function(h){ sset('ocrRecH', String(+h || 48)); return 'ارتفاع rec = ' + (+h || 48) + ' (از OCR بعدی؛ Worker گرم ≤۹۰ثانیه ممکن است مقدار قبلی را نگه دارد)'; };
   /* r19: سرویس rec بومی برای Workerها (ترد اصلی پل Capacitor را دارد) — پیش‌فرض خاموش: ocrNative(1) */
-  function natU8(u){ var s = '', i, c = 0x8000; for (i = 0; i < u.length; i += c) s += String.fromCharCode.apply(null, u.subarray(i, i + c)); return btoa(s); }
-  function natB(s){ var b = atob(s), n = b.length, u = new Uint8Array(n), i; for (i = 0; i < n; i++) u[i] = b.charCodeAt(i); return u; }
+  function natU8(u){ if (typeof u.toBase64 === 'function') { try { return u.toBase64(); } catch (e) {} } var s = '', i, c = 0x8000; for (i = 0; i < u.length; i += c) s += String.fromCharCode.apply(null, u.subarray(i, i + c)); return btoa(s); }
+  function natB(s){ if (typeof Uint8Array.fromBase64 === 'function') { try { return Uint8Array.fromBase64(s); } catch (e) {} } var b = atob(s), n = b.length, u = new Uint8Array(n), i; for (i = 0; i < n; i++) u[i] = b.charCodeAt(i); return u; }
   async function natServe(ln, v){
-    var P = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.OcrNative, t0 = performance.now(), r, ix, vl, cf = natCfg(), th = cf.th > 0 ? +cf.th : Math.max(1, Math.min(4, bigCores() > 0 ? bigCores() - 1 : 3)), ex = { ep: cf.ep, ith: cf.ith, spin: cf.spin, mp: cf.mp };
+    var P = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.OcrNative, t0 = performance.now(), r, ix, vl, te, dd, tb, cf = natCfg(), th = cf.th > 0 ? +cf.th : Math.max(1, Math.min(4, bigCores() > 0 ? bigCores() - 1 : 3)), ex = { ep: cf.ep, ith: cf.ith, spin: cf.spin, mp: cf.mp };
     try {
       if (!P) throw new Error('OcrNative نیست');
       if (v.kind === 'det') {
-        r = await P.det({ w: v.w, h: v.h, th: cf.dth > 0 ? +cf.dth : Math.min(2, th), ep: ex.ep, spin: ex.spin, mp: ex.mp, data: natU8(v.u) }); ix = natB(r.out);
+        te = performance.now(); dd = natU8(v.u); te = performance.now() - te; r = await P.det({ w: v.w, h: v.h, th: cf.dth > 0 ? +cf.dth : Math.min(2, th), ep: ex.ep, spin: ex.spin, mp: ex.mp, data: dd }); dd = null; tb = performance.now(); ix = natB(r.out); tb = performance.now() - tb; if (ocrPerf) { ocrPerf.dEnc = (ocrPerf.dEnc || 0) + te; ocrPerf.dDec = (ocrPerf.dDec || 0) + tb; }   /* r29: زمان‌سنجی رمزگذاری/رمزگشایی پل */
         if (ocrPerf) { ocrPerf.ndc = (ocrPerf.ndc | 0) + 1; ocrPerf.ndms = (ocrPerf.ndms || 0) + (performance.now() - t0); ocrPerf.ndin = (ocrPerf.ndin || 0) + (+r.ms || 0); }
         ln.ow.post('natres', { id: v.id, out: ix.buffer }, [ix.buffer]); return;
       }
-      r = await P.rec({ b: v.b, tw: v.tw, th: th, ep: ex.ep, ith: ex.ith, spin: ex.spin, mp: ex.mp, data: natU8(v.u) });
-      ix = natB(r.idx); vl = natB(r.val);
+      te = performance.now(); dd = natU8(v.u); te = performance.now() - te; r = await P.rec({ b: v.b, tw: v.tw, th: th, ep: ex.ep, ith: ex.ith, spin: ex.spin, mp: ex.mp, data: dd }); dd = null;
+      tb = performance.now(); ix = natB(r.idx); vl = natB(r.val); tb = performance.now() - tb; if (ocrPerf) { ocrPerf.rEnc = (ocrPerf.rEnc || 0) + te; ocrPerf.rDec = (ocrPerf.rDec || 0) + tb; }
       if (ocrPerf) { ocrPerf.nc = (ocrPerf.nc | 0) + 1; ocrPerf.nms = (ocrPerf.nms || 0) + (performance.now() - t0); ocrPerf.nin = (ocrPerf.nin || 0) + (+r.ms || 0); }
       ln.ow.post('natres', { id: v.id, dims: r.dims, idx: ix.buffer, val: vl.buffer }, [ix.buffer, vl.buffer]);
     } catch (e) { try { ln.ow.post('natres', { id: v.id, err: String((e && e.message) || e).slice(0, 120) }); } catch (x) {} }
@@ -2119,12 +2119,12 @@ window.ocrNatSweep = async function(tw, b, n){   /* r23: جاروی پیکربن
 window.ocrNatAuto = async function(tw, b, n){   /* r27: جاروی خودکار + ثبت بهترین پیکربندی بومی (بدون کپی دستی خروجی) */
   try {
     if (thermal() >= 2) return 'گوشی داغ است (وضعیت حرارتی ' + thermal() + ')؛ چند دقیقه صبر کنید و دوباره اجرا کنید';
-    var r = await window.ocrNatSweep(tw, b, n), j, ctl, dr;
+    var r = await window.ocrNatSweep(tw, b, n), j, ctl, bs, dr;
     try { j = JSON.parse(r); } catch (e) { return String(r).slice(0, 200); }
     if (!j.best || !j.bestPxs) return 'جاروی بومی نتیجه نداد: ' + r.slice(0, 200);
-    ctl = (j.rows || []).filter(function(x){ return x.ctl && x.pxs; })[0]; dr = ctl ? Math.round((ctl.pxs / j.bestPxs - 1) * 100) : 0;
+    ctl = (j.rows || []).filter(function(x){ return x.ctl && x.pxs; })[0]; bs = (j.rows || []).filter(function(x){ return !x.ctl && x.pxs && x.cfg && x.cfg.ep === 'xnn' && x.cfg.th === 3 && x.cfg.ith === undefined && x.cfg.spin === undefined && x.cfg.mp === undefined; })[0]; dr = (ctl && bs) ? Math.round((ctl.pxs / bs.pxs - 1) * 100) : 0;   /* رانش = تکرار کنترل نسبت به اولین اجرای همان تنظیم */
     window.ocrNatCfg(j.best);
-    return 'ثبت شد: ' + JSON.stringify(j.best) + ' · ' + Math.round(j.bestPxs) + ' px/s (WASM ≈ ' + j.wasm + ')' + (ctl ? ' · کنترل ' + Math.round(ctl.pxs) + ' px/s (' + dr + '٪)' : '') + ' — از OCR بعدی اعمال می‌شود';
+    return 'ثبت شد: ' + JSON.stringify(j.best) + ' · ' + Math.round(j.bestPxs) + ' px/s (WASM ≈ ' + j.wasm + ')' + (ctl ? ' · رانش حرارتی ' + dr + '٪' : '') + ' — از OCR بعدی اعمال می‌شود';
   } catch (e) { return 'خطا: ' + String((e && e.message) || e).slice(0, 120); }
 };
   window.ocrOrt = function(on){ sset('ocrOrt', on ? '1' : '0'); return on ? 'ORT-format فعال (اگر فایل‌های .ort کنار .onnx باشند؛ از OCR بعدی با Worker تازه)' : 'ORT-format خاموش'; };
@@ -2144,7 +2144,7 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
     var o = ocrPerf, n = o.n || 1, r = { ver: APP_BUILD, ep: o.ep, q: ($('#ocrQ') || {}).value || '', pages: o.n, ppm: o.n > 1 && o.t1 > o.t0 ? +(((o.n - 1) * 60000) / (o.t1 - o.t0)).toFixed(2) : null, pctOrient: Math.round(100 * o.c.orient / n), pctTile: Math.round(100 * o.c.tile / n), pctBeamLines: o.c.lines ? Math.round(100 * o.c.beam / o.c.lines) : 0, ms: {}, note: 'recDecode شامل beam؛ orient شامل det/rec عبورهای اضافه؛ hp = MB heap جاوااسکریپت Worker (در WebView ممکن نیست)؛ hpMain = heap ترد اصلی؛ rwait = انتظار مسیر برای رندر؛ renderTop = ۳ رندر کندتر؛ th = وضعیت حرارتی (۲+ = تروتل)' };
     Object.keys(o.k).forEach(function(x){ var a = o.k[x].slice().sort(function(p, q){ return p - q; }), c = a.length, sm = 0; a.forEach(function(v){ sm += v; }); r.ms[x] = { n: c, p50: a[c >> 1], p95: a[Math.min(c - 1, Math.floor(c * 0.95))], avg: Math.round(sm / c * 10) / 10 }; });
     r.dev = { hc: navigator.hardwareConcurrency, dm: navigator.deviceMemory, ua: (navigator.userAgent || '').slice(0, 120) };
-    r.stalls = o.stalls || []; r.recH = +sget('ocrRecH', '48') || 48; r.gov = o.gov || []; r.dx = o.dx || null; r.gpuWhy = sget('ocrGpuWhy', ''); r.lanesEnd = (ocrLanes || []).filter(function(x){ return !x.dead; }).length; r.hpMain = mainHeap(); r.renderTop = o.rtop || []; r.thermNow = thermal(); r.thermMax = o.thMax; r.nat = { on: sget('ocrNat', '') !== '0', calls: o.nc || 0, msAvg: o.nc ? Math.round(o.nms / o.nc) : 0, detCalls: o.ndc || 0, detMsAvg: o.ndc ? Math.round(o.ndms / o.ndc) : 0, infAvg: o.nc ? Math.round((o.nin || 0) / o.nc) : 0, detInfAvg: o.ndc ? Math.round((o.ndin || 0) / o.ndc) : 0, cfg: natCfg(), bad: sget('ocrNatBad', '') }; r.epEff = (r.nat.on && r.nat.calls) ? 'native:' + ((r.nat.cfg && r.nat.cfg.ep) || 'default') : r.ep; r.ort = !!(o.dx && o.dx.ort); r.hrNow = headroom(); r.hrMax = o.hrMax; r.bigCores = bigCores(); r.lt = o.lt || []; r.pxs = o.t1 > o.t0 ? Math.round((o.wd || 0) * 1000 / (o.t1 - o.t0)) : null;
+    r.stalls = o.stalls || []; r.recH = +sget('ocrRecH', '48') || 48; r.gov = o.gov || []; r.dx = o.dx || null; r.gpuWhy = sget('ocrGpuWhy', ''); r.lanesEnd = (ocrLanes || []).filter(function(x){ return !x.dead; }).length; r.hpMain = mainHeap(); r.renderTop = o.rtop || []; r.thermNow = thermal(); r.thermMax = o.thMax; r.nat = { on: sget('ocrNat', '') !== '0', calls: o.nc || 0, msAvg: o.nc ? Math.round(o.nms / o.nc) : 0, detCalls: o.ndc || 0, detMsAvg: o.ndc ? Math.round(o.ndms / o.ndc) : 0, infAvg: o.nc ? Math.round((o.nin || 0) / o.nc) : 0, detInfAvg: o.ndc ? Math.round((o.ndin || 0) / o.ndc) : 0, cfg: natCfg(), ov: { rEnc: o.nc ? Math.round((o.rEnc || 0) / o.nc) : 0, rDec: o.nc ? Math.round((o.rDec || 0) / o.nc) : 0, rBr: o.nc ? Math.round((o.nms - (o.nin || 0) - (o.rEnc || 0) - (o.rDec || 0)) / o.nc) : 0, dEnc: o.ndc ? Math.round((o.dEnc || 0) / o.ndc) : 0, dDec: o.ndc ? Math.round((o.dDec || 0) / o.ndc) : 0, dBr: o.ndc ? Math.round((o.ndms - (o.ndin || 0) - (o.dEnc || 0) - (o.dDec || 0)) / o.ndc) : 0 }, bad: sget('ocrNatBad', '') }; r.epEff = (r.nat.on && r.nat.calls) ? 'native:' + ((r.nat.cfg && r.nat.cfg.ep) || 'default') : r.ep; r.ort = !!(o.dx && o.dx.ort); r.hrNow = headroom(); r.hrMax = o.hrMax; r.bigCores = bigCores(); r.lt = o.lt || []; r.pxs = o.t1 > o.t0 ? Math.round((o.wd || 0) * 1000 / (o.t1 - o.t0)) : null;
     r.gpuDx = { wgpu: !!navigator.gpu, coi: !!window.crossOriginIsolated, sab: typeof SharedArrayBuffer !== 'undefined', gpuBox: !!($('#ocrGpu') || {}).checked, gpuBad: !!sget('ocrGpuBad') };
     return JSON.stringify(r, null, 1);
   }
@@ -5854,7 +5854,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r28 · 2026-10-18 · nat-auto-ui', npBuild = '';
+  var APP_BUILD = 'html-r30 · 2026-10-18 · nat-ov', npBuild = '';
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r17: عیب‌یابی crossOriginIsolated — هدرهای واقعی سند را می‌خواند؛ اگر هدرها هست ولی coi=false (سند پیش از تعویض WebViewClient بار شده) یک‌بار صفحه را بازبارگذاری می‌کند */
   try { if (!window.crossOriginIsolated && window.fetch) fetch(location.href, { cache: 'no-store' }).then(function(r){
