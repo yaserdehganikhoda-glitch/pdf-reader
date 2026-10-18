@@ -35,6 +35,10 @@ cp "$N/onnxruntime-web/dist/ort.min.js" "$N/onnxruntime-web/dist/ort-wasm-simd.w
 for f in ort.webgpu.min.js ort-wasm-simd.jsep.wasm; do
   [ -s "$N/onnxruntime-web/dist/$f" ] && cp "$N/onnxruntime-web/dist/$f" "$D/ocr/ort/" || echo "WARN: $f not found; WebGPU disabled" >&2
 done
+# فایل‌های WASM چندنخی (فقط وقتی crossOriginIsolated باشد استفاده می‌شوند؛ نبودشان OCR را خراب نمی‌کند)
+for f in ort-wasm-simd-threaded.wasm ort-wasm-simd-threaded.jsep.wasm; do
+  [ -s "$N/onnxruntime-web/dist/$f" ] && cp "$N/onnxruntime-web/dist/$f" "$D/ocr/ort/" || echo "WARN: $f not found; multithreaded OCR disabled" >&2
+done
 cp "$N/pdfjs-dist/build/pdf.min.js" "$N/pdfjs-dist/build/pdf.worker.min.js" "$D/lib/"
 [ -d "$N/pdfjs-dist/cmaps" ] && cp -r "$N/pdfjs-dist/cmaps/." "$D/lib/cmaps/" || echo "WARN: cmaps not found" >&2
 [ -d "$N/pdfjs-dist/standard_fonts" ] && cp -r "$N/pdfjs-dist/standard_fonts/." "$D/lib/standard_fonts/" || echo "WARN: standard_fonts not found" >&2
