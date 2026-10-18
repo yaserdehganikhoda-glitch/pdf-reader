@@ -47,6 +47,7 @@ jobs:
         run: |
           ls -la www/ocr/ort www/ocr/paddle
           ls -la android/app/src/main/assets/public/ocr/ort android/app/src/main/assets/public/ocr/paddle
+          ls www/ocr/ort/ort-wasm-simd-threaded.wasm >/dev/null 2>&1 || echo "::warning::ort-wasm-simd-threaded.wasm در www/ocr/ort نیست؛ OCR چندنخی فعال نمی‌شود (fetch-offline.sh باید آن را از onnxruntime-web 1.17.3 بگیرد)"
       - name: Patch Gradle repos
         run: |
           sed -i "s#^\([[:space:]]*\)google()#\1google()\n\1maven { url 'https://maven-central.storage-download.googleapis.com/maven2/' }#" android/build.gradle
