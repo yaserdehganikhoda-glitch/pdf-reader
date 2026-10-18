@@ -1029,7 +1029,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
       <div id="novoice" class="warn" hidden>هیچ صدای فارسی روی این دستگاه پیدا نشد. صداهای سایر زبان‌ها نمایش داده شده‌اند، ولی فارسی را درست نمی‌خوانند. در تنظیمات سیستم‌عامل (Text-to-speech) می‌توانید صدای فارسی نصب کنید.</div>
       <input type="hidden" id="engine" value="piper">
 
-<div class="bgcfg" hidden>
+<div class="cfgv">
       <section class="grp">
         <h3>گوینده</h3>
         <div class="field">
@@ -1086,7 +1086,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         </div>
         <p class="hint">اگر صدا روبوتی یا «غ‌غ‌غ» شد: «حذف نویز» را روی «خاموش» یا «ملایم» بگذارید و اگر مشکل ماند «بهبود کیفیت صدا» را خاموش کنید. با هر تغییر، جمله‌ها دوباره ساخته می‌شوند.</p>
 </section>
-<div class="bgcfg" hidden>
+<div class="cfgv">
         <div class="slist">
           <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است؛ مثل نفس‌گیری گوینده. سرعت خود صدا تغییر نمی‌کند.</small></span></label>
           <label class="chk"><input type="checkbox" id="smartPace"><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
@@ -1094,7 +1094,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         </div>
 </div>
 
-<div class="bgcfg" hidden>
+<div class="cfgv">
       <section class="grp">
         <h3>سرعت گفتار</h3>
         <div class="field">
@@ -1110,7 +1110,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
       </section>
 </div>
 
-<div class="bgcfg" hidden>
+<div class="cfgv">
       <section class="grp" id="sleepBox">
         <h3>تایمر خواب</h3>
         <div class="field">
@@ -1154,7 +1154,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             <textarea id="logText" readonly rows="9" style="width:100%;direction:ltr;font:11px monospace" aria-label="گزارش خطا"></textarea>
             <div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="logCopy">کپی</button><button type="button" class="btn sm" id="logAll">همهٔ ثبت‌ها</button><button type="button" class="btn sm" id="logClear">پاک‌کردن</button></div>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0"><button type="button" class="btn sm" id="ocrPerfShow">سرعت OCR (JSON)</button></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0"><button type="button" class="btn sm" id="ocrPerfShow">سرعت OCR (JSON)</button><button type="button" class="btn sm" id="ocrGpuRetry">آزمون دوبارهٔ GPU</button></div>
           <div id="ocrPerfBox" hidden>
             <textarea id="ocrPerfText" readonly rows="9" style="width:100%;direction:ltr;font:11px monospace" aria-label="گزارش سرعت OCR"></textarea>
             <div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="ocrPerfCopy">کپی</button><button type="button" class="btn sm" id="ocrPerfClear">پاک‌کردن</button></div>
@@ -1177,7 +1177,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 
     <!-- متن -->
     <div class="panel" data-panel="text" role="tabpanel">
-<div class="bgcfg" hidden>
+<div class="cfgv">
       <details class="acc" id="txtbox" open>
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"/></svg></i><span class="stt"><b>ساختار متن و صفحه‌ها</b><small>سطربندی، بازهٔ صفحه‌ها و طول جمله‌ها</small></span></summary>
         <div class="in">
@@ -1215,7 +1215,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
       </details>
 </div>
 
-<div class="bgcfg" hidden>
+<div class="cfgv">
       <details class="acc" id="cleanBox">
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19l7-7M14 4l1.5 3.5L19 9l-3.5 1.5L14 14l-1.5-3.5L9 9l3.5-1.5z"/></svg></i><span class="stt"><b>پاک‌سازی و اصلاح متن</b><small>سرصفحه، نقطه‌چین، حروف عربی و فاصله‌گذاری</small></span></summary>
         <div class="in">
@@ -1238,7 +1238,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
       <details class="acc" id="ocrBox">
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></svg></i><span class="stt"><b>OCR</b><small>خواندن متن از روی تصویر صفحه</small></span></summary>
         <div class="in">
-<div class="bgcfg" hidden>
+<div class="ocrcfg">
           <div class="field">
             <label for="ocrMode"><span>حالت OCR</span></label>
             <select id="ocrMode" data-seg>
@@ -1273,7 +1273,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         </div>
       </details>
 
-<div class="bgcfg" hidden>
+<div class="cfgv">
       <details class="acc" id="fixbox">
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></i><span class="stt"><b>تصحیح‌گر هوشمند گفتار</b><small>عدد، تاریخ، اختصار، لاتین و مکث‌گذاری</small></span></summary>
         <div class="in">
@@ -1315,7 +1315,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         </div>
       </details>
 
-<div class="bgcfg" hidden>
+<div class="cfgv">
       <button class="btn wide" id="txtReset" type="button">بازنشانی تنظیمات متن</button>
 </div>
     </div>
@@ -5637,7 +5637,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r11 · 2026-10-18 · ocr-rec-height', npBuild = '';
+  var APP_BUILD = 'html-r14 · 2026-10-18 · all-settings-visible', npBuild = '';
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   function buildBadge(){ try { var b = document.getElementById('buildBadge'); if (b && b.parentNode) b.parentNode.removeChild(b); } catch (e) {} }
   if (document.body) buildBadge(); else document.addEventListener('DOMContentLoaded', buildBadge);
@@ -7531,6 +7531,7 @@ var ocrSpell = (function(){
   $('#maxL').oninput(); O = opts();
   if (sget('ocrQV', '') !== '4') { sset('o_ocrQ', '1'); $('#ocrQ').value = '1'; sset('ocrQV', '4'); }   /* OCR خودکار با کیفیت «سریع» (یک‌بار) */
   $('#ocrBtn').onclick = runOcr;
+  $('#ocrGpuRetry').onclick = function(){ sset('ocrGpuBad', ''); sset('ocrGpuWhy', ''); sset('o_ocrGpu', '1'); var g = $('#ocrGpu'); if (g) g.checked = true; status('آزمون GPU در OCR بعدی دوباره انجام می‌شود.'); };
   $('#ocrPerfShow').onclick = function(){ var b = $('#ocrPerfBox'); b.hidden = !b.hidden; if (!b.hidden) $('#ocrPerfText').value = ocrPerfJson(); };
   $('#ocrPerfCopy').onclick = function(){ var t = $('#ocrPerfText'); t.value = ocrPerfJson(); try { navigator.clipboard.writeText(t.value); } catch (e) { try { t.select(); document.execCommand('copy'); } catch (x) {} } };
   $('#ocrPerfClear').onclick = function(){ ocrPerfReset(); $('#ocrPerfText').value = ocrPerfJson(); };
