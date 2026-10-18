@@ -94,7 +94,7 @@ linear-gradient(180deg,var(--bg1),var(--bg0));animation:drift 50s ease-in-out in
 .frame::after{bottom:0;height:calc(var(--dock-h) + 18px);background:linear-gradient(to top,var(--paper) 52%,transparent)}
 @keyframes rise{from{opacity:0;transform:translateY(18px)}}
 .stage{position:absolute;inset:0;z-index:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:28px clamp(16px,5vw,48px) calc(var(--dock-h) + 34px);scroll-padding-top:56px;scroll-padding-bottom:var(--dock-h);scrollbar-width:thin;scrollbar-color:var(--line) transparent}
-#reader{max-width:42rem;margin:0 auto;font-family:var(--rfont);font-size:1.15rem;line-height:2.15;overflow-wrap:anywhere}
+#reader{max-width:42rem;margin:0 auto;font-family:var(--rfont);font-size:1.15rem;line-height:var(--rlh,2.15);overflow-wrap:anywhere}
 #reader p{margin:0 0 .9em}
 .pgc+.pgc{margin-top:2.4em}
 .pg{display:flex;align-items:center;gap:14px;margin:0 0 1.1em;color:var(--muted);font-family:var(--font);font-size:.76rem;font-weight:600;line-height:1.4}
@@ -430,7 +430,8 @@ input[type=range].rng{height:22px}
 .is-playing #reader span.cur{animation:none}
 @media (hover:none){#reader span:hover:not(.cur){background:none}}
 .pgc{contain:layout style}
-.menu{box-shadow:none;will-change:transform;contain:layout style}
+.menu{box-shadow:none;contain:layout style}
+.menu-open .menu{will-change:transform}
 .panel.on{animation:fadein2 .12s ease both}
 @keyframes fadein2{from{opacity:0}}
 
@@ -836,6 +837,34 @@ body.has-doc:not(.home-on)[data-apptab="read"] .rdbar{border-radius:0;border-wid
 body.has-doc:not(.home-on)[data-apptab="read"] .frame{width:100%;max-width:none;margin:0;border-radius:0;border-width:0;box-shadow:none;animation:none}
 body.has-doc:not(.home-on)[data-apptab="read"] .stage{padding-inline:clamp(10px,3vw,40px)}
 body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
+
+/* ===== ارتقای رابط: دسترس‌پذیری، لمس، کیبورد مجازی، گفت‌وگوی تأیید ===== */
+@media (prefers-reduced-motion:reduce){html,body,*{scroll-behavior:auto!important}}
+.lib-i{content-visibility:auto;contain-intrinsic-size:auto 64px}
+.hti{position:relative}.hti::after{content:"";position:absolute;inset:-5px}
+.sw button[aria-pressed="true"]::after{content:"✓";position:absolute;top:2px;inset-inline-end:6px;font-size:.72rem;font-weight:800;line-height:1;color:var(--accent)}
+.hseg button[aria-pressed="true"]::before{content:"✓ "}
+.tmenu.sheet .ttabs{touch-action:none}
+.tmenu.sheet{bottom:var(--kb,0px)}
+.dqsheet{padding-bottom:var(--kb,0px)}
+.vs{bottom:var(--kb,0px)}
+#cfSheet{z-index:95}
+#cfSheet .dqin p{margin:0;font-size:.85rem;line-height:1.9}
+#cfOk.danger{background:#b3261e;border-color:#b3261e;color:#fff}
+
+/* ===== ارتقای صفحه‌های تنظیمات: ناوبری سریع، گروه‌بندی و نشان وضعیت ===== */
+.jump{position:sticky;top:0;z-index:4;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:-10px -12px 0;padding:8px 12px;background:var(--paper);border-bottom:1px solid var(--line)}
+.jump::-webkit-scrollbar{display:none}
+.jump .chip{flex:none;min-height:36px;padding:2px 12px;font-size:.8rem}
+.panel .grp,.panel details.acc{scroll-margin-top:58px}
+.pgh,.sgh{display:flex;align-items:center;gap:8px;margin:0;font-weight:800}
+.pgh{margin-top:6px;padding-inline:4px;font-size:.8rem;color:var(--muted)}
+.sgh{margin-top:6px;padding-inline:2px;font-size:.74rem;color:var(--accent)}
+.pgh::after,.sgh::after{content:"";flex:1;height:1px;background:var(--line)}
+.ocrcfg{display:grid;gap:9px}
+.bdg{flex:none;max-width:46%;padding:2px 9px;border-radius:999px;font-size:.7rem;font-weight:700;line-height:1.7;color:var(--accent);background:color-mix(in srgb,var(--accent) 11%,transparent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bdg:empty{display:none}
+#voiceReset{margin-top:2px}
 </style>
 </head>
 <body data-apptab="read">
@@ -848,13 +877,20 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 <div id="dqSheet" class="dqsheet" hidden>
   <div class="dqin" role="dialog" aria-modal="true" aria-labelledby="dqT">
     <h3 id="dqT">افزودن به واژه‌نامهٔ تلفظ</h3>
-    <div class="field"><label for="dqW"><span>واژه</span></label><input id="dqW" type="text" dir="rtl" autocomplete="off"></div>
-    <div class="field"><label for="dqP"><span>تلفظ</span></label><input id="dqP" type="text" dir="rtl" autocomplete="off"></div>
+    <div class="field"><label for="dqW"><span>واژه</span></label><input id="dqW" type="text" enterkeyhint="next" dir="rtl" autocomplete="off"></div>
+    <div class="field"><label for="dqP"><span>تلفظ</span></label><input id="dqP" type="text" enterkeyhint="done" dir="rtl" autocomplete="off"></div>
     <div class="field"><label for="dqS"><span>ثبت برای</span></label>
       <select id="dqS"><option value="pdf">این فایل</option><option value="all">همهٔ فایل‌ها</option></select>
     </div>
     <p class="hint" id="dqMsg" aria-live="polite"></p>
     <div class="two"><button class="btn primary" id="dqOk" type="button">ثبت</button><button class="btn" id="dqNo" type="button">انصراف</button></div>
+  </div>
+</div>
+<div id="cfSheet" class="dqsheet" hidden>
+  <div class="dqin" role="alertdialog" aria-modal="true" aria-labelledby="cfT" aria-describedby="cfM">
+    <h3 id="cfT">تأیید</h3>
+    <p id="cfM"></p>
+    <div class="two"><button class="btn" id="cfNo" type="button">انصراف</button><button class="btn primary" id="cfOk" type="button">بله</button></div>
   </div>
 </div>
 
@@ -921,6 +957,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 <button type="button" class="tile t-b" data-go="view" data-only="#fxBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg></span><span class="tx"><b>جلوه‌های بصری</b><small>کامل تا فوق‌ساده</small></span></button>
 <button type="button" class="tile t-b" data-go="text" data-only="#offbox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></span><span class="tx"><b>وضعیت آفلاین</b><small>بررسی فایل‌ها</small></span></button>
 <button type="button" class="tile t-g" data-go="voice" data-only="#advBox" data-click="#logShow"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6"/></svg></span><span class="tx"><b>گزارش خطا</b><small>برای عیب‌یابی</small></span></button>
+<button type="button" class="tile t-g" data-go="view" data-only="#rstBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5"/></svg></span><span class="tx"><b>بازنشانی تنظیمات</b><small>برگشت به پیش‌فرض</small></span></button>
 <button type="button" class="tile t-b exitB" ><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></span><span class="tx"><b>خروج</b><small>بستن برنامه</small></span></button>
             </div>
           </div>
@@ -957,7 +994,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         <button class="hti" id="hLay" type="button" aria-label="نمایش شبکه‌ای" title="چیدمان"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg></button>
         <button class="hti" id="hSortB" type="button" aria-label="مرتب‌سازی" title="مرتب‌سازی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h6"/></svg></button>
       </div>
-      <div class="hsearch" id="hSearchRow" hidden><input id="hQ" type="search" dir="auto" autocomplete="off" placeholder="جستجوی نام فایل…" aria-label="جستجوی نام فایل"><button class="hti" id="hQx" type="button" aria-label="بستن جستجو"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="hsearch" id="hSearchRow" hidden><input id="hQ" type="search" enterkeyhint="search" dir="auto" autocomplete="off" placeholder="جستجوی نام فایل…" aria-label="جستجوی نام فایل"><button class="hti" id="hQx" type="button" aria-label="بستن جستجو"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       <div class="hsortp" id="hSortP" hidden role="group" aria-label="مرتب‌سازی">
         <div class="hseg" id="hSortK"><button type="button" data-k="name" aria-pressed="false">نام</button><button type="button" data-k="date" aria-pressed="false">تاریخ</button><button type="button" data-k="time" aria-pressed="false">زمان</button></div>
         <div class="hseg" id="hSortD"><button type="button" data-d="asc" aria-pressed="false">صعودی ↑</button><button type="button" data-d="desc" aria-pressed="false">نزولی ↓</button></div>
@@ -1056,7 +1093,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           <button class="btn wide" id="vfLoad" type="button" disabled>بارگذاری صداها از پوشه</button>
           <button class="btn wide" id="vfRef" type="button">تازه‌سازی (بررسی دوبارهٔ فایل‌ها)</button>
           <div class="slist"><label class="chk"><input type="checkbox" id="vfAuto" checked><span class="st"><b>ذخیرهٔ خودکار در پوشه</b><small>بعد از هر دانلود در پوشه ذخیره می‌شود و صداهای گم‌شده خودکار از پوشه بارگذاری می‌شوند.</small></span></label></div>
-          <p class="hint" id="vfMsg" aria-live="polite"></p>
+          <p class="hint" id="vfMsg" aria-live="off"></p>
           <details class="sub hintbox"><summary>راهنما</summary><div class="in"><p class="hint">یک پوشه روی گوشی انتخاب کنید تا صداهای دانلودشده به‌صورت فایل zip در آن ذخیره شوند. بعد از نصب دوبارهٔ برنامه یا روی گوشی دیگر، همان پوشه را انتخاب و صداها را بدون دانلود بارگذاری کنید.</p></div></details>
         </div>
       </details>
@@ -1067,9 +1104,10 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
       <div id="nosupport" class="warn" hidden>مرورگر شما از تبدیل متن به گفتار پشتیبانی نمی‌کند. از Chrome یا Edge یا Safari استفاده کنید.</div>
       <div id="novoice" class="warn" hidden>هیچ صدای فارسی روی این دستگاه پیدا نشد. صداهای سایر زبان‌ها نمایش داده شده‌اند، ولی فارسی را درست نمی‌خوانند. در تنظیمات سیستم‌عامل (Text-to-speech) می‌توانید صدای فارسی نصب کنید.</div>
       <input type="hidden" id="engine" value="piper">
+      <nav class="jump" aria-label="پرش به بخش‌های تنظیمات صدا"><button type="button" class="chip" data-j="#spkBox">گوینده</button><button type="button" class="chip" data-j="#rateBox">سرعت</button><button type="button" class="chip" data-j="#styleBox">سبک</button><button type="button" class="chip" data-j="#paceBox">مکث</button><button type="button" class="chip" data-j="#qualBox">کیفیت</button><button type="button" class="chip" data-j="#sleepBox">خواب</button><button type="button" class="chip" data-j="#bgmBox">موسیقی</button><button type="button" class="chip" data-j="#advBox">پیشرفته</button></nav>
 
 <div class="cfgv">
-      <section class="grp">
+      <section class="grp" id="spkBox">
         <h3>گوینده</h3>
         <div class="field">
           <label for="voice"><span>صدای خواننده</span></label>
@@ -1087,9 +1125,25 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
       </section>
 </div>
 
+<div class="cfgv">
+      <section class="grp" id="rateBox">
+        <h3>سرعت گفتار</h3>
+        <div class="field">
+          <label for="rate"><span>سرعت</span><span id="rateV"></span></label>
+          <div class="rwrap">
+            <button class="btn sm rstep" id="rateDn" type="button" aria-label="کندتر">−</button>
+            <input type="range" class="rng" id="rate" min="0.4" max="2.5" step="0.01" value="1">
+            <button class="btn sm rstep" id="rateUp" type="button" aria-label="تندتر">+</button>
+          </div>
+          <div class="chips rchips" id="rateChips"></div>
+          <p class="hint">سرعت کمتر از ۱× بدون تغییر زیر و بمی ساخته می‌شود.</p>
+        </div>
+      </section>
+</div>
+
 <section class="grp" id="styleBox">
         <div class="field">
-          <span class="flab">سبک گفتار</span>
+          <h3>سبک گفتار</h3>
           <select id="vstyle" data-seg aria-label="سبک گفتار">
             <option value="serene" data-short="بسیار آرام" data-desc="آرام‌ترین حالت: کندتر، یکدست‌تر و با مکث‌های بازتر میان جمله‌ها؛ جمله‌ها هرگز پشت‌سرهم و بی‌نفس نمی‌آیند. مناسب کتاب و گوش‌دادن طولانی.">بسیار آرام (نفس‌دار و بی‌شتاب)</option>
             <option value="calm" data-short="آرام" data-desc="لحن نرم، یکدست و بی‌شتاب با مکث‌های بازتر؛ شنیدن راحت و آرامش‌بخش.">آرام (دلنشین و آرامش‌بخش)</option>
@@ -1100,6 +1154,25 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           </select>
         </div>
 </section>
+
+<section class="grp" id="paceBox">
+        <h3>ریتم و تلفظ</h3>
+        <div class="field">
+          <label for="pauseLvl"><span>طول مکث بین جمله‌ها</span></label>
+          <select id="pauseLvl" data-seg aria-label="طول مکث بین جمله‌ها">
+            <option value="0" data-short="کوتاه" data-desc="مکث‌ها کوتاه‌تر؛ خواندن پیوسته‌تر و سریع‌تر.">کوتاه</option>
+            <option value="1" data-short="عادی" data-desc="مکث متناسب با نوع و طول جمله." selected>عادی</option>
+            <option value="2" data-short="بلند" data-desc="مکث بازتر؛ مناسب متن سنگین و شنیدن راحت‌تر.">بلند</option>
+            <option value="3" data-short="بسیار بلند" data-desc="بازترین مکث میان جمله‌ها و بندها.">بسیار بلند</option>
+          </select>
+        </div>
+        <div class="slist">
+          <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است؛ مثل نفس‌گیری گوینده. سرعت خود صدا تغییر نمی‌کند.</small></span></label>
+          <label class="chk"><input type="checkbox" id="smartPace"><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
+          <label class="chk"><input type="checkbox" id="phLex" checked><span class="st"><b>واژه‌نامهٔ آوایی داخلی</b><small>برای صدها واژهٔ پرکاربرد، کوتاه‌مصوت‌ها (َ ِ ُ) را مشخص می‌کند تا تلفظ دقیق‌تر شود. اگر جایی عجیب خوانده شد خاموشش کنید.</small></span></label>
+        </div>
+      </section>
+
 <section class="grp" id="qualBox">
         <h3>کیفیت صدا</h3>
         <div class="field">
@@ -1125,29 +1198,6 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         </div>
         <p class="hint">اگر صدا روبوتی یا «غ‌غ‌غ» شد: «حذف نویز» را روی «خاموش» یا «ملایم» بگذارید و اگر مشکل ماند «بهبود کیفیت صدا» را خاموش کنید. با هر تغییر، جمله‌ها دوباره ساخته می‌شوند.</p>
 </section>
-<div class="cfgv">
-        <div class="slist">
-          <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است؛ مثل نفس‌گیری گوینده. سرعت خود صدا تغییر نمی‌کند.</small></span></label>
-          <label class="chk"><input type="checkbox" id="smartPace"><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
-          <label class="chk"><input type="checkbox" id="phLex" checked><span class="st"><b>واژه‌نامهٔ آوایی داخلی</b><small>برای صدها واژهٔ پرکاربرد، کوتاه‌مصوت‌ها (َ ِ ُ) را مشخص می‌کند تا تلفظ دقیق‌تر شود. اگر جایی عجیب خوانده شد خاموشش کنید.</small></span></label>
-        </div>
-</div>
-
-<div class="cfgv">
-      <section class="grp">
-        <h3>سرعت گفتار</h3>
-        <div class="field">
-          <label for="rate"><span>سرعت</span><span id="rateV"></span></label>
-          <div class="rwrap">
-            <button class="btn sm rstep" id="rateDn" type="button" aria-label="کندتر">−</button>
-            <input type="range" class="rng" id="rate" min="0.4" max="2.5" step="0.01" value="1">
-            <button class="btn sm rstep" id="rateUp" type="button" aria-label="تندتر">+</button>
-          </div>
-          <div class="chips rchips" id="rateChips"></div>
-          <p class="hint">سرعت کمتر از ۱× بدون تغییر زیر و بمی ساخته می‌شود.</p>
-        </div>
-      </section>
-</div>
 
 <div class="cfgv">
       <section class="grp" id="sleepBox">
@@ -1194,7 +1244,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             <div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="logCopy">کپی</button><button type="button" class="btn sm" id="logAll">همهٔ ثبت‌ها</button><button type="button" class="btn sm" id="logClear">پاک‌کردن</button></div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0"><button type="button" class="btn sm" id="ocrPerfShow">سرعت OCR (JSON)</button><button type="button" class="btn sm" id="ocrGpuRetry">آزمون دوبارهٔ GPU</button><button type="button" class="btn sm" id="natAutoBtn">بهینه‌سازی خودکار سرعت OCR</button></div>
-          <p class="hint" id="natAutoRes" aria-live="polite"></p>
+          <p class="hint" id="natAutoRes" aria-live="off"></p>
           <div id="ocrPerfBox" hidden>
             <textarea id="ocrPerfText" readonly rows="9" style="width:100%;direction:ltr;font:11px monospace" aria-label="گزارش سرعت OCR"></textarea>
             <div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="ocrPerfCopy">کپی</button><button type="button" class="btn sm" id="ocrPerfClear">پاک‌کردن</button></div>
@@ -1213,11 +1263,13 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           <p class="hint" id="acMsg" aria-live="polite"></p>
         </div>
       </details>
+      <button class="btn wide" id="voiceReset" type="button">بازنشانی تنظیمات صدا</button>
     </div>
 
     <!-- متن -->
     <div class="panel" data-panel="text" role="tabpanel">
-<div class="cfgv">
+      <nav class="jump" aria-label="پرش به بخش‌های تنظیمات متن"><button type="button" class="chip" data-j="#txtbox">ساختار</button><button type="button" class="chip" data-j="#ocrBox">OCR</button><button type="button" class="chip" data-j="#offbox">آفلاین</button><button type="button" class="chip" data-j="#cleanBox">پاک‌سازی</button><button type="button" class="chip" data-j="#fixbox">تصحیح گفتار</button><button type="button" class="chip" data-j="#dictBox">واژه‌نامه</button></nav>
+      <p class="pgh">استخراج متن و OCR</p>
       <details class="acc" id="txtbox" open>
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"/></svg></i><span class="stt"><b>ساختار متن و صفحه‌ها</b><small>سطربندی، بازهٔ صفحه‌ها و طول جمله‌ها</small></span></summary>
         <div class="in">
@@ -1253,32 +1305,12 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           </div>
         </div>
       </details>
-</div>
-
-<div class="cfgv">
-      <details class="acc" id="cleanBox">
-        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19l7-7M14 4l1.5 3.5L19 9l-3.5 1.5L14 14l-1.5-3.5L9 9l3.5-1.5z"/></svg></i><span class="stt"><b>پاک‌سازی و اصلاح متن</b><small>سرصفحه، نقطه‌چین، حروف عربی و فاصله‌گذاری</small></span></summary>
-        <div class="in">
-          <div class="slist">
-            <label class="chk"><input type="checkbox" id="oDots" checked><span class="st"><b>حذف نقطه‌چین، خط‌چین و خطوط جداکننده</b><small>نقطه‌چین فهرست‌ها، خط‌های افقی (-----، ═════) و نمادهای تزئینی تکراری (★ ★ ★).</small></span></label>
-            <label class="chk"><input type="checkbox" id="oHdr" checked><span class="st"><b>حذف سرصفحه، پاصفحه و شمارهٔ صفحه</b></span></label>
-            <label class="chk"><input type="checkbox" id="oNorm" checked><span class="st"><b>یکدست‌سازی حروف</b><small>«ي ك ى» عربی به فارسی، و حذف اعراب و کشیده.</small></span></label>
-            <label class="chk"><input type="checkbox" id="oFix" checked><span class="st"><b>اصلاح فاصله‌گذاری</b><small>نیم‌فاصله و فاصله اطراف نشانه‌ها.</small></span></label>
-            <label class="chk"><input type="checkbox" id="oScript" checked><span class="st"><b>کنار گذاشتن متن زبان‌های دیگر</b><small>غیرفارسی و غیرلاتین، مثل ارمنی.</small></span></label>
-            <label class="chk"><input type="checkbox" id="oLatin" checked><span class="st"><b>پاک‌سازی حروف لاتین بی‌معنی</b><small>«WV Ui»، «CT» و تک‌حرف‌های معلق وسط متن فارسی؛ URL، ایمیل و اختصارهای معتبر می‌مانند.</small></span></label>
-            <label class="chk"><input type="checkbox" id="oGlue" checked><span class="st"><b>اصلاح کلمات چسبیدهٔ OCR</b><small>«دراین»، «کردهاست»، «میشود»، «کتابها».</small></span></label>
-            <label class="chk"><input type="checkbox" id="oToc" checked><span class="st"><b>مرتب‌سازی فهرست مطالب</b><small>عنوان را از شمارهٔ صفحه یا کد درهم‌رفته (مثل ۱۵۲-۴) جدا می‌کند و هر مدخل را در یک سطر می‌گذارد.</small></span></label>
-            <label class="chk"><input type="checkbox" id="oPause" checked><span class="st"><b>مکث طبیعی در جمله‌های بلند</b><small>ویرگول پیش از «که»، «اما»، «زیرا» و پایان بند شرطی؛ سپس تکه‌کردن تا بیشینهٔ طول.</small></span></label>
-            <label class="chk"><input type="checkbox" id="oSpell" checked><span class="st"><b>اصلاح املای خروجی OCR</b><small>حروف مشابه (ب/پ/ت، ج/ح)، نویسه‌های اشتباه و کشیده؛ فقط روی صفحه‌های OCR.</small></span></label>
-          </div>
-        </div>
-      </details>
-</div>
 
       <details class="acc" id="ocrBox">
-        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></svg></i><span class="stt"><b>OCR</b><small>خواندن متن از روی تصویر صفحه</small></span></summary>
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></svg></i><span class="stt"><b>OCR</b><small>حالت، کیفیت، پیش‌پردازش و اصلاح خروجی</small></span></summary>
         <div class="in">
 <div class="ocrcfg">
+          <div class="sgh">حالت و کیفیت</div>
           <div class="field">
             <label for="ocrMode"><span>حالت OCR</span></label>
             <select id="ocrMode" data-seg>
@@ -1289,15 +1321,26 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           </div>
           <div class="field"><label for="ocrQ"><span>کیفیت</span></label>
             <select id="ocrQ" data-seg><option value="1" data-short="سریع" selected>سریع</option><option value="2" data-short="متعادل">متعادل</option><option value="3" data-short="دقیق" data-desc="دقیق‌تر ولی کندتر.">دقیق (کندتر)</option></select></div>
+          <div class="field"><label for="ocrLn"><span>مسیرهای موازی</span></label>
+            <select id="ocrLn" data-seg><option value="" data-short="خودکار" data-desc="تعداد مسیر بر اساس توان گوشی تعیین می‌شود." selected>خودکار</option><option value="1" data-short="۱" data-desc="کم‌بارترین؛ مناسب گوشی ضعیف یا باتری کم.">۱ مسیر (کم‌بار)</option><option value="2" data-short="۲" data-desc="سریع‌تر ولی پرمصرف‌تر.">۲ مسیر</option></select></div>
+          <div class="sgh">پیش‌پردازش تصویر</div>
           <div class="slist">
-            <label class="chk"><input type="checkbox" id="ocrGpu" checked><span class="st"><b>شتاب‌دهندهٔ گرافیکی</b><small>زنجیرهٔ WebGPU ← WebGL ← WASM SIMD (چندنخی در صورت crossOriginIsolated)؛ هر مرحله با خروجی آزمایشی اعتبارسنجی می‌شود و در صورت خطا خودکار به مرحلهٔ بعد می‌رود. WebGPU به فایل‌های اختیاری ocr/ort/ort.webgpu.min.js و ort-wasm-simd.jsep.wasm نیاز دارد.</small></span></label>
             <label class="chk"><input type="checkbox" id="ocrDsk" checked><span class="st"><b>صاف‌کردن کجی صفحه</b><small>اسکن کج (تا ±۵ درجه) پیش از OCR مستقیم می‌شود و کنتراست هم اصلاح می‌شود.</small></span></label>
-            <label class="chk"><input type="checkbox" id="ocrLex" checked><span class="st"><b>رمزگشایی راهنمایی‌شده با واژه‌نامه</b><small>واژهٔ ناشناخته با نامزد دوم مدل اصلاح می‌شود و تکه‌های جداافتادهٔ واژه («کتا ب») به هم می‌چسبند.</small></span></label>
             <label class="chk"><input type="checkbox" id="ocrDn"><span class="st"><b>کاهش نویز اسکن</b><small>برای اسکن‌های خالی‌دار و کثیف؛ کمی کندتر.</small></span></label>
+          </div>
+          <div class="sgh">تشخیص و سرعت</div>
+          <div class="slist">
+            <label class="chk"><input type="checkbox" id="ocrLex" checked><span class="st"><b>رمزگشایی راهنمایی‌شده با واژه‌نامه</b><small>واژهٔ ناشناخته با نامزد دوم مدل اصلاح می‌شود و تکه‌های جداافتادهٔ واژه («کتا ب») به هم می‌چسبند.</small></span></label>
+            <label class="chk"><input type="checkbox" id="ocrGpu" checked><span class="st"><b>شتاب‌دهندهٔ گرافیکی</b><small>زنجیرهٔ WebGPU ← WebGL ← WASM SIMD (چندنخی در صورت crossOriginIsolated)؛ هر مرحله با خروجی آزمایشی اعتبارسنجی می‌شود و در صورت خطا خودکار به مرحلهٔ بعد می‌رود. WebGPU به فایل‌های اختیاری ocr/ort/ort.webgpu.min.js و ort-wasm-simd.jsep.wasm نیاز دارد.</small></span></label>
+          </div>
+          <div class="sgh">اصلاح متن خروجی OCR</div>
+          <div class="slist">
+            <label class="chk"><input type="checkbox" id="oGlue" checked><span class="st"><b>اصلاح کلمات چسبیدهٔ OCR</b><small>«دراین»، «کردهاست»، «میشود»، «کتابها».</small></span></label>
+            <label class="chk"><input type="checkbox" id="oSpell" checked><span class="st"><b>اصلاح املای خروجی OCR</b><small>حروف مشابه (ب/پ/ت، ج/ح)، نویسه‌های اشتباه و کشیده؛ فقط روی صفحه‌های OCR.</small></span></label>
           </div>
 </div>
           <button class="btn primary wide" id="ocrBtn" type="button" disabled>اجرای OCR (از صفحهٔ فعلی)</button>
-          <p class="hint" id="ocrStat" aria-live="polite"></p>
+          <p class="hint" id="ocrStat" aria-live="off"></p>
           <p class="hint" id="ocrSrc"></p>
           <button class="btn wide" id="manBtn" type="button" disabled>اسکن و اصلاح دستی صفحه…</button>
           <p class="hint">اسکن دوبارهٔ یک صفحه یا فقط یک ناحیه، با تنظیمات دلخواه، و اصلاح دستی متن؛ نتیجه برای همین فایل ذخیره می‌شود.</p>
@@ -1309,11 +1352,27 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></i><span class="stt"><b>وضعیت آفلاین</b><small>بررسی فایل‌های داخل برنامه</small></span></summary>
         <div class="in">
           <button class="btn wide" id="offRun" type="button">بررسی وضعیت آفلاین</button>
-          <div id="offRes" aria-live="polite"></div>
+          <div id="offRes" aria-live="off"></div>
         </div>
       </details>
 
-<div class="cfgv">
+      <p class="pgh">پاک‌سازی و تلفظ</p>
+      <details class="acc" id="cleanBox">
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19l7-7M14 4l1.5 3.5L19 9l-3.5 1.5L14 14l-1.5-3.5L9 9l3.5-1.5z"/></svg></i><span class="stt"><b>پاک‌سازی و اصلاح متن</b><small>سرصفحه، نقطه‌چین، حروف عربی و فاصله‌گذاری</small></span></summary>
+        <div class="in">
+          <div class="slist">
+            <label class="chk"><input type="checkbox" id="oDots" checked><span class="st"><b>حذف نقطه‌چین، خط‌چین و خطوط جداکننده</b><small>نقطه‌چین فهرست‌ها، خط‌های افقی (-----، ═════) و نمادهای تزئینی تکراری (★ ★ ★).</small></span></label>
+            <label class="chk"><input type="checkbox" id="oHdr" checked><span class="st"><b>حذف سرصفحه، پاصفحه و شمارهٔ صفحه</b></span></label>
+            <label class="chk"><input type="checkbox" id="oNorm" checked><span class="st"><b>یکدست‌سازی حروف</b><small>«ي ك ى» عربی به فارسی، و حذف اعراب و کشیده.</small></span></label>
+            <label class="chk"><input type="checkbox" id="oFix" checked><span class="st"><b>اصلاح فاصله‌گذاری</b><small>نیم‌فاصله و فاصله اطراف نشانه‌ها.</small></span></label>
+            <label class="chk"><input type="checkbox" id="oScript" checked><span class="st"><b>کنار گذاشتن متن زبان‌های دیگر</b><small>غیرفارسی و غیرلاتین، مثل ارمنی.</small></span></label>
+            <label class="chk"><input type="checkbox" id="oLatin" checked><span class="st"><b>پاک‌سازی حروف لاتین بی‌معنی</b><small>«WV Ui»، «CT» و تک‌حرف‌های معلق وسط متن فارسی؛ URL، ایمیل و اختصارهای معتبر می‌مانند.</small></span></label>
+            <label class="chk"><input type="checkbox" id="oToc" checked><span class="st"><b>مرتب‌سازی فهرست مطالب</b><small>عنوان را از شمارهٔ صفحه یا کد درهم‌رفته (مثل ۱۵۲-۴) جدا می‌کند و هر مدخل را در یک سطر می‌گذارد.</small></span></label>
+            <label class="chk"><input type="checkbox" id="oPause" checked><span class="st"><b>مکث طبیعی در جمله‌های بلند</b><small>ویرگول پیش از «که»، «اما»، «زیرا» و پایان بند شرطی؛ سپس تکه‌کردن تا بیشینهٔ طول.</small></span></label>
+          </div>
+        </div>
+      </details>
+
       <details class="acc" id="fixbox">
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></i><span class="stt"><b>تصحیح‌گر هوشمند گفتار</b><small>عدد، تاریخ، اختصار، لاتین و مکث‌گذاری</small></span></summary>
         <div class="in">
@@ -1324,14 +1383,13 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             <label class="chk"><input type="checkbox" id="fixCite" checked><span class="st"><b>نخواندن ارجاع درون‌متنی</b><small>مثل «(احمدی، ۱۳۹۸: ۲۴)» و «(Smith, 2020)»؛ در متن نمایش‌داده‌شده می‌ماند.</small></span></label>
           </div>
           <details class="sub hintbox"><summary>این بخش چه می‌کند؟</summary><div class="in"><p class="hint">پیش از خواندن هر جمله، متن را بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع (از جمله ارجاع درون‌متنی)، تنوین قیدها (مثلاً، حتماً)، کلمه‌های لاتین و سرواژه‌ها و مکث‌گذاری هوشمند. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p></div></details>
-          <p class="hint" id="fixStats" aria-live="polite"></p>
+          <p class="hint" id="fixStats" aria-live="off"></p>
           <p class="hint" id="fixBreak"></p>
           <p class="hint" id="fixUnsHead" hidden>کلمه‌هایی که تلفظشان قطعی نبود و تقریبی ساخته شد. روی هر کلمه بزنید تا با تلفظ پیشنهادی به واژه‌نامه اضافه شود؛ بعد می‌توانید تلفظ را در واژه‌نامه ویرایش کنید.</p>
           <div class="chips" id="fixChips"></div>
           <p class="hint" id="fixMsg" aria-live="polite"></p>
         </div>
       </details>
-</div>
 
       <details class="acc" id="dictBox">
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h10"/></svg></i><span class="stt"><b>واژه‌نامهٔ تلفظ</b><small>تلفظ دلخواه برای کلمه‌های خاص</small></span></summary>
@@ -1369,7 +1427,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           <button type="button" data-pr="read" aria-pressed="false"><i style="background:linear-gradient(135deg,#f0c466,#c98a2b)"></i>مطالعهٔ طولانی</button>
           <button type="button" data-pr="low" aria-pressed="false"><i style="background:var(--muted)"></i>مصرف کم</button>
         </div>
-        <p class="hint" id="prHint" aria-live="polite"></p>
+        <p class="hint" id="prHint" aria-live="off"></p>
       </section>
 
       <section class="grp">
@@ -1399,8 +1457,13 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         <h3>متن</h3>
         <div class="fsrow">
           <button class="btn sm" id="fsDn" type="button" aria-label="کوچک‌تر کردن متن">آ−</button>
-          <output id="fsV" aria-live="polite"></output>
+          <output id="fsV" aria-live="off"></output>
           <button class="btn sm" id="fsUp" type="button" aria-label="بزرگ‌تر کردن متن">آ+</button>
+        </div>
+        <div class="fsrow" id="lhRow">
+          <button class="btn sm" id="lhDn" type="button" aria-label="کم‌کردن فاصلهٔ خطوط">−</button>
+          <output id="lhV" aria-live="off"></output>
+          <button class="btn sm" id="lhUp" type="button" aria-label="بیشتر کردن فاصلهٔ خطوط">+</button>
         </div>
         <div class="field">
           <label for="rFont"><span>قلم متن</span></label>
@@ -1412,14 +1475,30 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         <p class="sample" id="fsSample">نمونهٔ متن: صدای کتاب، جمله به جمله، دنبال می‌شود.</p>
       </section>
 
+      <section class="grp" id="dkBox">
+        <h3>نوار پخش و لمس</h3>
+        <div class="field">
+          <label for="dockAuto"><span>پنهان‌شدن خودکار نوار پخش</span></label>
+          <select id="dockAuto"><option value="0">خاموش</option><option value="10">پس از ۱۰ ثانیه</option><option value="20">پس از ۲۰ ثانیه</option><option value="40">پس از ۴۰ ثانیه</option></select>
+        </div>
+        <p class="hint">فقط هنگام پخش و بی‌حرکتی؛ با لمس صفحه برمی‌گردد.</p>
+        <div class="slist"><label class="chk" id="vibRow"><input type="checkbox" id="vibOn" checked><span class="st"><b>لرزش لمسی</b><small>با لمس دکمه‌ها، لرزش کوتاه می‌دهد.</small></span></label></div>
+      </section>
+
+      <section class="grp" id="rstBox">
+        <h3>بازنشانی</h3>
+        <p class="hint">همهٔ تنظیمات به پیش‌فرض برمی‌گردد؛ PDFها، کتابخانه و واژه‌نامه پاک نمی‌شود.</p>
+        <button type="button" class="btn wide" id="rstAll">بازنشانی همهٔ تنظیمات</button>
+      </section>
+
       <section class="grp" id="navGrp" hidden>
         <h3>جستجو و رفتن به صفحه</h3>
         <div class="navrow">
-          <input id="pgGo" type="text" inputmode="numeric" placeholder="شمارهٔ صفحه" aria-label="شمارهٔ صفحه" autocomplete="off">
+          <input id="pgGo" type="text" inputmode="numeric" enterkeyhint="go" placeholder="شمارهٔ صفحه" aria-label="شمارهٔ صفحه" autocomplete="off">
           <button class="btn" id="pgBtn" type="button">برو</button>
         </div>
         <div class="navrow">
-          <input id="qBox" type="search" placeholder="جستجو در متن" aria-label="جستجو در متن" autocomplete="off">
+          <input id="qBox" type="search" enterkeyhint="search" placeholder="جستجو در متن" aria-label="جستجو در متن" autocomplete="off">
           <button class="btn" id="qPrev" type="button" aria-label="نتیجهٔ قبلی">‹</button>
           <button class="btn" id="qNext" type="button" aria-label="نتیجهٔ بعدی">›</button>
         </div>
@@ -1508,7 +1587,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         <button class="btn" id="manDel" type="button">حذف نتیجهٔ OCR</button>
       </div>
       <button class="btn wide" id="manSaveNext" type="button">ذخیره و رفتن به صفحهٔ بعد</button>
-      <p class="hint" id="manSt" aria-live="polite"></p>
+      <p class="hint" id="manSt" aria-live="off"></p>
     </div>
   </div>
 </div>
@@ -1522,7 +1601,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
   <div class="vs-voices" id="vsVoices" role="radiogroup" aria-label="گوینده"></div>
   <div class="vs-sec">سبک گفتار</div>
   <div class="vs-styles" id="vsStyles" role="radiogroup" aria-label="سبک گفتار"></div>
-  <p class="vs-desc" id="vsDesc" aria-live="polite"></p>
+  <p class="vs-desc" id="vsDesc" aria-live="off"></p>
 </section>
 
 <script src="lib/pdf.min.js"></script>
@@ -1545,6 +1624,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
   /* ---------- settings (best-effort) ---------- */
   function sget(k, d){ try { var v = localStorage.getItem(k); return v === null ? d : v; } catch(e){ return d; } }
   function sset(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
+  var PAUSE_MUL = [0.7, 1, 1.4, 1.8], PAUSE_I = (function(){ var v = parseInt(sget('pauseLvl', '1'), 10); return v >= 0 && v <= 3 ? v : 1; })();   /* طول مکث بین جمله‌ها: کوتاه ۰٫۷× … بسیار بلند ۱٫۸× */
   function fxLevel(){ return document.documentElement.getAttribute('data-fx') || 'full'; }
   function fxCalm(){ var f = fxLevel(); return f === 'perf' || f === 'flat'; }
   $('#rate').value = sget('rate', '1');
@@ -5851,7 +5931,7 @@ var ocrSpell = (function(){
   var MANA_ID = 'fa_IR-mana-medium';
   /* noise_scale/noise_w در VITS هر دو نویز نمونه‌برداری‌اند؛ برای Mana (که خروجی‌اش خش و زبری دارد) سقف آن‌ها با سطح «حذف نویز» پایین می‌آید: ۱ ملایم … ۳ قوی */
   function styleParams(id){
-    PART_GAP = [0.12, 0.2, 0.3][calmLvl()];   /* مقدار پیش‌فرض؛ مکث هر جمله در chunkAt با pauseMs جداگانه تعیین می‌شود */
+    PART_GAP = [0.12, 0.2, 0.3][calmLvl()] * PAUSE_MUL[PAUSE_I];   /* مقدار پیش‌فرض؛ مکث هر جمله در chunkAt با pauseMs جداگانه تعیین می‌شود */
     var st = STYLES[$('#vstyle').value] || STYLES.natural, v, l;
     if (id === undefined) { v = currentVoice(); id = v && v.id; }
     if (id === MANA_ID && (l = cleanLevel()) > 0) return [Math.min(st[0], [0, 0.5, 0.4, 0.33][l]), Math.min(st[1], [0, 0.75, 0.65, 0.55][l])];
@@ -5903,7 +5983,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r30 · 2026-10-18 · nat-ov', npBuild = '';
+  var APP_BUILD = 'html-r32 · 2026-10-18 · cfg-pages', npBuild = '';
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r17: عیب‌یابی crossOriginIsolated — هدرهای واقعی سند را می‌خواند؛ اگر هدرها هست ولی coi=false (سند پیش از تعویض WebViewClient بار شده) یک‌بار صفحه را بازبارگذاری می‌کند */
   try { if (!window.crossOriginIsolated && window.fetch) fetch(location.href, { cache: 'no-store' }).then(function(r){
@@ -6607,7 +6687,7 @@ var ocrSpell = (function(){
     } else if (q.pe) ms = (!strong && !soft && t.length < 80) ? 720 : (/[?؟]["»”')\]]*$/.test(t) ? 470 : 410);
     else if (q.cont && !strong) ms = 25;
     else ms = strong ? 170 : soft ? 130 : 160;
-    ms *= [1, 1.3, 1.6][calmLvl()];   /* آرام: مکث‌ها بازتر (×۱٫۳)، بسیار آرام (×۱٫۶)، مثل نفس‌گیری آرام گوینده */
+    ms *= [1, 1.3, 1.6][calmLvl()]; ms *= PAUSE_MUL[PAUSE_I];   /* آرام: مکث‌ها بازتر (×۱٫۳)، بسیار آرام (×۱٫۶)، مثل نفس‌گیری آرام گوینده */
     return Math.round(nr ? ms : ms / Math.pow(r, 0.6));
   }
   function gap(my){
@@ -7151,7 +7231,7 @@ var ocrSpell = (function(){
         if (pr) { var bar = document.createElement('i'); bar.className = 'lib-pr'; bar.style.setProperty('--w', pr + '%'); ob.appendChild(bar); }
         ob.onclick = function(){ libOpen(e.id); };
         del.type = 'button'; del.className = 'btn sm lib-del'; del.textContent = 'حذف'; del.setAttribute('aria-label', 'حذف ' + e.name);
-        del.onclick = function(){ if (confirm('«' + e.name + '» از کتابخانه حذف شود؟')) libDel(e.id); };
+        del.onclick = function(){ askOk('«' + e.name + '» از کتابخانه حذف شود؟', 'حذف', 'انصراف', true).then(function(y){ if (y) libDel(e.id); }); };
         row.appendChild(ob); row.appendChild(del); box.appendChild(row);
       });
       libMsg('مجموع حجم ذخیره‌شده: ' + libSize(tot));
@@ -7174,7 +7254,9 @@ var ocrSpell = (function(){
     }).then(libRender);
   }
   $('#libClear').onclick = function(){
-    if (!confirm('همهٔ PDFهای ذخیره‌شده حذف شوند؟ جای خواندن و نتیجهٔ OCR حفظ می‌ماند.')) return;
+    askOk('همهٔ PDFهای ذخیره‌شده حذف شوند؟ جای خواندن و نتیجهٔ OCR حفظ می‌ماند.', 'حذف همه', 'انصراف', true).then(function(y){ if (y) libClearGo(); });
+  };
+  function libClearGo(){
     libLock(function(){
       return libIdx().then(function(a){ return Promise.all(a.map(function(e){ return kvDel('lib:f:' + e.id); })).then(function(){ return kvSet('lib:index', []); }); });
     }).then(libRender);
@@ -7635,7 +7717,12 @@ var ocrSpell = (function(){
   }
   $('#advBox').addEventListener('toggle', function(){ if (this.open) pcRefresh(); });
   (function(){ var v = sget('pcLim', ''), o = $('#pcLimit'); if (v && o && o.querySelector('option[value="' + v + '"]')) o.value = v; })();
-  $('#pcClear').onclick = function(){ achClear().then(achUi); if (!npOK || !NP || !NP.cacheClear) { pcRefresh(); return; } NP.cacheClear().then(pcRefresh, pcRefresh); };
+  $('#pcClear').onclick = function(){
+    askOk('حافظهٔ نهان صدا پاک شود؟ صداها در پخش بعدی دوباره ساخته می‌شوند.', 'پاک‌کردن', 'انصراف', true).then(function(y){
+      if (!y) return;
+      achClear().then(achUi); if (!npOK || !NP || !NP.cacheClear) { pcRefresh(); return; } NP.cacheClear().then(pcRefresh, pcRefresh);
+    });
+  };
   $('#pcLimit').onchange = function(){ sset('pcLim', this.value); achTrim().then(achUi); if (!npOK || !NP || !NP.cacheLimit) return; NP.cacheLimit({ mb: +this.value }).then(pcRefresh, pcRefresh); };
   $('#acExp').onclick = function(){
     if (ach.busy) return; ach.busy = true; achMsg('در حال ساخت آرشیو…');
@@ -7820,7 +7907,7 @@ var ocrSpell = (function(){
   Array.prototype.forEach.call(document.querySelectorAll('select[data-seg]'), function(sel){
     var box = document.createElement('div'), cap = document.createElement('p'), bs = [];
     box.className = 'seg'; box.setAttribute('role', 'radiogroup'); box.setAttribute('aria-label', sel.getAttribute('aria-label') || '');
-    cap.className = 'hint segcap'; cap.setAttribute('aria-live', 'polite');
+    cap.className = 'hint segcap'; cap.setAttribute('aria-live', 'off');
     function sync(){
       var o = sel.options[sel.selectedIndex];
       bs.forEach(function(b){ b.setAttribute('aria-checked', b.dataset.v === sel.value ? 'true' : 'false'); });
@@ -7959,7 +8046,7 @@ var ocrSpell = (function(){
   Array.prototype.forEach.call(toolsEl.querySelectorAll('.tile,.tbanner'), function(b){ b.addEventListener('click', function(){ toolRun(b); }); });
 
   /* ---- جستجوی تنظیمات، نشانگر «تغییریافته» و بازنشانی هر بخش ---- */
-  var CFG_DEF = {"vstyle":"natural","vclean":"2","vclarity":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', sqT = 0, chgQ = 0, cfgN = 0;
+  var CFG_DEF = {"pauseLvl":"1","ocrLn":"","vstyle":"natural","vclean":"2","vclarity":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', sqT = 0, chgQ = 0, cfgN = 0;
   function sqNorm(s){ return String(s || '').toLowerCase().replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/[\u200c\u064b-\u0652]/g, '').replace(/\s+/g, ' ').trim(); }
   Array.prototype.forEach.call(document.querySelectorAll(CFG_SEC), function(s){
     var h = s.tagName === 'DETAILS' ? s.querySelector('summary .stt b') : s.querySelector('h3'), pn = s.closest('.panel');
@@ -8028,7 +8115,7 @@ var ocrSpell = (function(){
   chgScan();
 
   /* ---- پشتیبان و بازیابی خودِ تنظیمات (JSON) ---- */
-  var CFG_KEY = /^(bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|harakat)/;
+  var CFG_KEY = /^(bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|harakat|pauseLvl$|vib$|rlh$|dockAuto$|ocrLanesMax$|lpAsk$|tt$)/;
   function cfgExport(){
     var s = {}, i, k, n = 0, txt, u, a;
     try { for (i = 0; i < localStorage.length; i++) { k = localStorage.key(i); if (CFG_KEY.test(k)) { s[k] = localStorage.getItem(k); n++; } } } catch (e) {}
@@ -8121,10 +8208,12 @@ var ocrSpell = (function(){
     status('برای خروج از دکمهٔ «خانه» یا «بازگشت» گوشی استفاده کنید.');
   }
   function exitApp(){
-    if (!confirm('از برنامه خارج می‌شوید؟')) return;
-    try { if (playing) pause(); } catch (e) {}
-    try { if (NP && NP.exitApp) { Promise.resolve(NP.exitApp()).catch(exitFallback); return; } } catch (e) {}
-    exitFallback();
+    askOk('از برنامه خارج می‌شوید؟', 'خروج', 'ماندن', true).then(function(y){
+      if (!y) return;
+      try { if (playing) pause(); } catch (e) {}
+      try { if (NP && NP.exitApp) { Promise.resolve(NP.exitApp()).catch(exitFallback); return; } } catch (e) {}
+      exitFallback();
+    });
   }
   document.querySelectorAll('.exitB').forEach(function(b){ b.onclick = exitApp; });
   $('#menuOpen').onclick = function(){ fin.click(); };
@@ -8152,7 +8241,9 @@ var ocrSpell = (function(){
   }
   function syncPct(){
     var s = $('#seek'), mx = +s.max, el = $('#posPct');
-    el.textContent = mx > 0 && !s.disabled ? nf.format(Math.round((+s.value) / mx * 100)) + '٪' : '';
+    var pc = mx > 0 && !s.disabled ? nf.format(Math.round((+s.value) / mx * 100)) + '٪' : '';
+    el.textContent = pc;
+    if (pc) s.setAttribute('aria-valuetext', 'جملهٔ ' + nf.format((+s.value) + 1) + ' از ' + nf.format(mx + 1) + '، ' + pc); else s.removeAttribute('aria-valuetext');
   }
   function syncSpd(){ var b = $('#spdBtn'); if (b) b.textContent = 'سرعت ' + nf.format(+$('#rate').value || 1) + '×'; }
   function applyHide(){
@@ -8181,6 +8272,209 @@ var ocrSpell = (function(){
   function syncDock(){ var h = document.body.classList.contains('dock-hide') ? 40 : $('#dock').offsetHeight; if (h) document.documentElement.style.setProperty('--dock-h', (h + 10) + 'px'); }
   if (window.ResizeObserver) new ResizeObserver(syncDock).observe($('#dock'));
   window.addEventListener('resize', syncDock); syncDock();
+
+  /* ===== ارتقای رابط (مرحلهٔ ۳ و ۴) ===== */
+  /* گفت‌وگوی تأیید درون‌برنامه‌ای (جایگزین confirm بومی؛ فوکوس پیش‌فرض روی گزینهٔ ایمن) */
+  var cfEl = $('#cfSheet'), cfRes = null, cfBack = null;
+  function cfClose(v){
+    if (!cfRes) return;
+    var r = cfRes; cfRes = null; cfEl.hidden = true;
+    try { if (cfBack && cfBack.focus) cfBack.focus({ preventScroll: true }); } catch (x) {}
+    r(v);
+  }
+  function askOk(msg, okT, noT, danger){
+    if (cfRes) cfClose(false);
+    return new Promise(function(res){
+      cfRes = res; cfBack = document.activeElement;
+      $('#cfM').textContent = msg; $('#cfOk').textContent = okT || 'بله'; $('#cfNo').textContent = noT || 'انصراف';
+      $('#cfOk').classList.toggle('danger', !!danger);
+      cfEl.hidden = false;
+      try { $('#cfNo').focus({ preventScroll: true }); } catch (x) {}
+    });
+  }
+  $('#cfOk').onclick = function(){ cfClose(true); };
+  $('#cfNo').onclick = function(){ cfClose(false); };
+  cfEl.addEventListener('click', function(e){ if (e.target === cfEl) cfClose(false); });
+  cfEl.addEventListener('keydown', function(e){
+    if (e.key !== 'Tab') return;
+    var a = $('#cfNo'), b = $('#cfOk');
+    if (e.shiftKey && document.activeElement === a) { e.preventDefault(); b.focus(); }
+    else if (!e.shiftKey && document.activeElement === b) { e.preventDefault(); a.focus(); }
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && cfRes) { e.preventDefault(); e.stopPropagation(); cfClose(false); } }, true);
+
+  /* لرزش لمسی */
+  var vibOK = !!navigator.vibrate, vibOn = sget('vib', '1') !== '0';
+  if (!vibOK) $('#vibRow').style.display = 'none';
+  $('#vibOn').checked = vibOn;
+  $('#vibOn').onchange = function(){ vibOn = this.checked; sset('vib', vibOn ? '1' : '0'); if (vibOn && vibOK) { try { navigator.vibrate(12); } catch (x) {} } };
+  document.addEventListener('click', function(e){
+    if (!vibOn || !vibOK || !e.isTrusted) return;
+    var t = e.target;
+    if (t && t.closest && t.closest('button,.tile,[role="radio"],[role="tab"]')) { try { navigator.vibrate(8); } catch (x) {} }
+  }, true);
+
+  /* فاصلهٔ خطوط متن */
+  var LHS = [1.7, 1.9, 2.15, 2.4, 2.7], lhI = (function(){ var v = +sget('rlh', '2.15'), b = 2, i; for (i = 0; i < LHS.length; i++) if (Math.abs(LHS[i] - v) < 0.01) b = i; return b; })();
+  function applyLh(){
+    document.documentElement.style.setProperty('--rlh', LHS[lhI]);
+    $('#lhV').textContent = 'فاصلهٔ خط ' + nf.format(lhI + 1) + ' از ' + nf.format(LHS.length);
+    $('#lhDn').disabled = lhI === 0; $('#lhUp').disabled = lhI === LHS.length - 1;
+    var sm = $('#fsSample'); if (sm) sm.style.lineHeight = LHS[lhI];
+  }
+  $('#lhDn').onclick = function(){ if (lhI > 0) { lhI--; sset('rlh', String(LHS[lhI])); applyLh(); if (curEl) follow(curEl); } };
+  $('#lhUp').onclick = function(){ if (lhI < LHS.length - 1) { lhI++; sset('rlh', String(LHS[lhI])); applyLh(); if (curEl) follow(curEl); } };
+  applyLh();
+
+  /* مسیرهای موازی OCR: خودکار / ۱ / ۲ */
+  (function(){
+    var sel = $('#ocrLn'), v = sget('ocrLanesMax', '');
+    sel.value = (v === '1' || v === '2') ? v : '';
+    sel.onchange = function(){ sset('ocrLanesMax', this.value); };
+    segRefresh();
+  })();
+
+  /* پنهان‌شدن خودکار نوار پخش پس از بی‌حرکتی (فقط هنگام پخش؛ ذخیره نمی‌شود) */
+  var dkSec = +sget('dockAuto', '0') || 0, dkT = 0, dkAuto = false, dkSel = $('#dockAuto');
+  dkSel.value = String(dkSec); if (dkSel.value !== String(dkSec)) dkSel.value = '0';
+  function dkArm(){
+    clearTimeout(dkT); dkT = 0;
+    if (!dkSec || dockHidden || !document.body.classList.contains('has-doc')) return;
+    dkT = setTimeout(function(){
+      dkT = 0;
+      if (!playing || dockHidden || toolsOn || cfRes) return;
+      dkAuto = true; dockHidden = true; applyHide();
+    }, dkSec * 1000);
+  }
+  function dkTouch(e){
+    if (dkAuto) {
+      if (e && e.target && e.target.closest && e.target.closest('#dockPeek')) return;
+      dkAuto = false; dockHidden = false; applyHide();
+    }
+    dkArm();
+  }
+  ['pointerdown', 'keydown'].forEach(function(t){ document.addEventListener(t, dkTouch, { passive: true, capture: true }); });
+  $('#peekShow').addEventListener('click', function(){ dkAuto = false; dkArm(); });
+  dkSel.onchange = function(){
+    dkSec = +this.value || 0; sset('dockAuto', String(dkSec));
+    if (!dkSec && dkAuto) { dkAuto = false; dockHidden = false; applyHide(); }
+    dkArm();
+  };
+
+  /* بازنشانی همهٔ تنظیمات (تأیید دومرحله‌ای) */
+  $('#rstAll').onclick = function(){
+    askOk('همهٔ تنظیمات برنامه به پیش‌فرض برمی‌گردد. PDFها، کتابخانه و واژه‌نامه پاک نمی‌شود.', 'ادامه', 'انصراف').then(function(y){
+      if (!y) return;
+      return askOk('این کار قابل بازگشت نیست. مطمئنید؟', 'بازنشانی', 'انصراف', true).then(function(z){
+        if (!z) return;
+        var ks = [], i, k;
+        try { for (i = 0; i < localStorage.length; i++) { k = localStorage.key(i); if (CFG_KEY.test(k)) ks.push(k); } ks.forEach(function(x){ localStorage.removeItem(x); }); } catch (e) {}
+        status('تنظیمات بازنشانی شد؛ برنامه دوباره بارگذاری می‌شود…');
+        setTimeout(function(){ try { location.reload(); } catch (e) {} }, 700);
+      });
+    });
+  };
+
+  /* پیشنهاد «مصرف کم» هنگام صرفه‌جویی داده یا باتری کم (فقط پرسش، نه اجبار؛ حداکثر روزی یک‌بار) */
+  function lpAsk(why){
+    if (Date.now() - (+sget('lpAsk', '0') || 0) < 864e5 || sget('preset', '') === 'low' || playing) return;
+    sset('lpAsk', String(Date.now()));
+    askOk(why + ' حالت «مصرف کم» فعال شود؟', 'فعال کن', 'نه، ممنون').then(function(y){ if (y) prApply('low'); });
+  }
+  setTimeout(function(){
+    try {
+      var c = navigator.connection;
+      if (c && c.saveData) { lpAsk('صرفه‌جویی داده در گوشی روشن است.'); return; }
+      if (navigator.getBattery) navigator.getBattery().then(function(b){ if (b.level < 0.2 && !b.charging) lpAsk('باتری کمتر از ۲۰٪ است.'); }).catch(function(){});
+    } catch (x) {}
+  }, 6000);
+
+  /* کشیدن شیت منو به پایین برای بستن (فقط روی نوار بالای شیت) */
+  (function(){
+    var bar = toolsEl.querySelector('.ttabs'), y0 = 0, dy = 0, on = false, moved = false;
+    bar.addEventListener('pointerdown', function(e){ if (!toolsEl.classList.contains('sheet') || e.button) return; on = true; moved = false; y0 = e.clientY; dy = 0; });
+    bar.addEventListener('pointermove', function(e){
+      if (!on) return; dy = e.clientY - y0;
+      if (dy > 8) { moved = true; toolsEl.style.transition = 'none'; toolsEl.style.transform = 'translateY(' + dy + 'px)'; }
+    });
+    function end(){
+      if (!on) return; on = false;
+      toolsEl.style.transition = ''; toolsEl.style.transform = '';
+      if (moved && dy > 70) closeTools(true);
+    }
+    bar.addEventListener('pointerup', end); bar.addEventListener('pointercancel', end);
+    bar.addEventListener('click', function(e){ if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+  })();
+
+  /* هماهنگی با کیبورد مجازی (شیت‌ها بالا می‌آیند و فیلد فعال دیده می‌شود) */
+  if (window.visualViewport) {
+    var vv = window.visualViewport, vvQ = 0;
+    vv.addEventListener('resize', function(){
+      if (vvQ) return;
+      vvQ = requestAnimationFrame(function(){
+        vvQ = 0;
+        var kb = Math.max(0, Math.round(document.documentElement.clientHeight - vv.height - vv.offsetTop)), a = document.activeElement;
+        document.documentElement.style.setProperty('--kb', kb > 80 ? kb + 'px' : '0px');
+        if (kb > 80 && a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) { try { a.scrollIntoView({ block: 'center' }); } catch (x) {} }
+      });
+    });
+  }
+
+  /* ===== ارتقای صفحه‌های تنظیمات (صدا، متن، OCR) ===== */
+  /* ناوبری سریع میان بخش‌ها */
+  Array.prototype.forEach.call(document.querySelectorAll('.jump'), function(nv){
+    nv.addEventListener('click', function(e){
+      var b = e.target.closest && e.target.closest('button[data-j]'), t = b && document.querySelector(b.dataset.j), go;
+      if (!t) return;
+      if (t.tagName === 'DETAILS') t.open = true;
+      go = function(){ try { t.scrollIntoView({ block: 'start' }); } catch (x) {} };
+      go(); setTimeout(go, 160);
+    });
+  });
+  /* طول مکث بین جمله‌ها */
+  (function(){
+    var pl = $('#pauseLvl'); pl.value = String(PAUSE_I);
+    pl.onchange = function(){ var v = parseInt(this.value, 10); PAUSE_I = v >= 0 && v <= 3 ? v : 1; sset('pauseLvl', String(PAUSE_I)); changed(); };
+    segRefresh();
+  })();
+  /* نشان وضعیت روی سربرگ بخش‌های بازشونده */
+  function segTxt(id){ var e = $('#' + id), o = e && e.options && e.options[e.selectedIndex]; return o ? (o.dataset.short || o.textContent).split(/[:(،]/)[0].trim() : ''; }
+  var BDG = {
+    ocrBox: function(){ return segTxt('ocrMode') + ' · ' + segTxt('ocrQ'); },
+    txtbox: function(){ var a = $('#pgFrom').value, b = $('#pgTo').value; return segTxt('lnMode') + (a || b ? ' · ص ' + (a ? nf.format(+a) : '۱') + '–' + (b ? nf.format(+b) : 'پایان') : ''); },
+    cleanBox: function(){ var c = $('#cleanBox').querySelectorAll('input[type=checkbox]'), n = 0, i; for (i = 0; i < c.length; i++) if (c[i].checked) n++; return nf.format(n) + ' از ' + nf.format(c.length) + ' فعال'; },
+    fixbox: function(){ return $('#fixOn').checked ? 'فعال' : 'خاموش'; },
+    dictBox: function(){ return segTxt('dictScope'); },
+    bgmBox: function(){ return $('#bgmOn').checked ? 'روشن · ' + nf.format(+$('#bgmLvl').value) + '٪' : 'خاموش'; }
+  }, bdgQ = 0;
+  Object.keys(BDG).forEach(function(id){
+    var d = $('#' + id), sm = d && d.querySelector('summary'), st = sm && sm.querySelector('.stt'), b;
+    if (!st) return;
+    b = document.createElement('span'); b.className = 'bdg'; b.id = 'bdg-' + id; sm.insertBefore(b, st.nextSibling);
+  });
+  function bdgRun(){
+    bdgQ = 0;
+    Object.keys(BDG).forEach(function(id){ var b = $('#bdg-' + id); if (b) { try { b.textContent = BDG[id](); } catch (x) { b.textContent = ''; } } });
+  }
+  function bdgSoon(){ if (!bdgQ) bdgQ = requestAnimationFrame(bdgRun); }
+  $('#mbody').addEventListener('input', bdgSoon, true);
+  $('#mbody').addEventListener('change', bdgSoon, true);
+  $('#txtReset').addEventListener('click', function(){ setTimeout(bdgSoon, 30); });
+  bdgRun();
+  /* بازنشانی کل تنظیمات صدا (گوینده تغییر نمی‌کند) */
+  $('#voiceReset').onclick = function(){
+    askOk('تنظیمات صدا (سبک، کیفیت، سرعت، مکث و موسیقی) به پیش‌فرض برمی‌گردد. گوینده تغییر نمی‌کند.', 'بازنشانی', 'انصراف', true).then(function(y){
+      if (!y) return;
+      Array.prototype.forEach.call(document.querySelectorAll('.panel[data-panel="voice"] input[id],.panel[data-panel="voice"] select[id]'), function(el){
+        if (!Object.prototype.hasOwnProperty.call(CFG_DEF, el.id)) return;
+        var d = CFG_DEF[el.id]; if (cfgSame(el, d)) return;
+        if (el.type === 'checkbox') el.checked = d; else el.value = d;
+        if (el.type === 'range') el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      segRefresh(); chgScan(); bdgSoon(); status('تنظیمات صدا به پیش‌فرض برگشت.');
+    });
+  };
 
   /* قلم متن */
   var RFONTS = { vazir: 'var(--font)', naskh: '"Noto Naskh Arabic","Vazirmatn",Tahoma,serif' };
