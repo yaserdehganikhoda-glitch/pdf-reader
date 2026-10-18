@@ -72,6 +72,7 @@ jobs:
       - name: Verify OCR files inside the APK
         run: |
           unzip -l PdfVoiceReader.apk | grep -E "assets/public/ocr/" || true
+          unzip -l PdfVoiceReader.apk | grep -q "assets/public/ocr/ort/ort-wasm-simd-threaded.wasm" || echo "::warning::ort-wasm-simd-threaded.wasm داخل APK نیست؛ OCR چندنخی کار نمی‌کند"
           for f in ort/ort.min.js ort/ort-wasm-simd.wasm paddle/PP-OCRv5_mobile_det.onnx paddle/arabic_PP-OCRv5_mobile_rec.onnx paddle/arabic_PP-OCRv5_mobile_rec_dict.txt; do
             unzip -l PdfVoiceReader.apk | grep -q "assets/public/ocr/$f" || { echo "OCR file missing from APK: $f"; exit 1; }
           done
