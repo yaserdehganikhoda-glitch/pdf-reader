@@ -12,14 +12,15 @@ try{var _f=localStorage.getItem('fx');if(_f==='off')_f='flat';if(_f!=='full'&&_f
 <script>
 /* ثبت خطاهای جاوااسکریپت (حتی پیش از بارگذاری برنامه) برای «پیشرفته ‹ گزارش خطا»؛ ۲۵ هزار نویسهٔ آخر در localStorage می‌ماند */
 (function(){
-  var K = 'errlog', L = window.__elog = { items: [], add: function(kind, msg){
+  var K = 'errlog', L = window.__elog = { items: [], onAdd: null, add: function(kind, msg){
     try {
       L.items.push('[' + new Date().toISOString().slice(0, 19).replace('T', ' ') + '] ' + kind + ': ' + String(msg).slice(0, 1500));
       if (L.items.length > 80) L.items.shift();
       localStorage.setItem(K, L.items.join('\n').slice(-25000));
     } catch (e) {}
+    try { if (L.onAdd) L.onAdd(); } catch (e) {}
   } };
-  try { var o = localStorage.getItem(K); if (o) L.items = o.split('\n'); } catch (e) {}
+  try { var o = localStorage.getItem(K); if (o) o.split('\n').forEach(function(x){ if (/^\[\d{4}-/.test(x) || !L.items.length) L.items.push(x); else L.items[L.items.length - 1] += '\n' + x; }); } catch (e) {}
   window.addEventListener('error', function(e){ L.add('error', (e.message || '') + ' @' + String(e.filename || '').split('/').pop() + ':' + (e.lineno || 0) + ':' + (e.colno || 0) + (e.error && e.error.stack ? '\n' + e.error.stack : '')); });
   window.addEventListener('unhandledrejection', function(e){ var r = e.reason; L.add('promise', r && r.stack ? r.stack : (r && r.message) || r); });
 })();
@@ -1151,7 +1152,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           </div>
           <div id="logBox" hidden>
             <textarea id="logText" readonly rows="9" style="width:100%;direction:ltr;font:11px monospace" aria-label="گزارش خطا"></textarea>
-            <div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="logCopy">کپی</button><button type="button" class="btn sm" id="logClear">پاک‌کردن</button></div>
+            <div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="logCopy">کپی</button><button type="button" class="btn sm" id="logAll">همهٔ ثبت‌ها</button><button type="button" class="btn sm" id="logClear">پاک‌کردن</button></div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0"><button type="button" class="btn sm" id="ocrPerfShow">سرعت OCR (JSON)</button></div>
           <div id="ocrPerfBox" hidden>
@@ -1659,9 +1660,12 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
       }).catch(function(){});
     } catch (e) {}
   }
+  var logAll = false;
   function logRender(){
     var head = ['نسخه ' + APP_BUILD + (npBuild ? ' / ' + npBuild : '') + ' — ' + (onNative ? 'اندروید' : 'وب'), 'UA: ' + navigator.userAgent, 'rtf: ' + (rtf() ? rtf().toFixed(2) : '-')].join('\n');
-    var body = (window.__elog && window.__elog.items.length) ? window.__elog.items.join('\n') : '(خطایی ثبت نشده)';
+    var it = (window.__elog && window.__elog.items) || [], st = 0, k;
+    if (!logAll) for (k = it.length - 1; k >= 0; k--) if (/^\[[^\]]*\] build: /.test(it[k])) { st = k; break; }
+    var body = it.length ? (st ? '(' + st + ' ثبت مربوط به بیلدهای قدیمی‌تر مخفی است؛ «همهٔ ثبت‌ها»)\n' : '') + it.slice(st).join('\n') : '(خطایی ثبت نشده)';
     var ta = $('#logText');
     ta.value = head + '\n---\n' + body;
     if (npOK && NP && NP.diag) NP.diag().then(function(d){ ta.value = head + '\nnative: ' + JSON.stringify(d) + '\n---\n' + body; }).catch(function(){});
@@ -1673,6 +1677,8 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
     if (!ok && navigator.clipboard) { try { navigator.clipboard.writeText(ta.value); ok = true; } catch (e) {} }
     status(ok ? 'گزارش کپی شد.' : 'کپی نشد؛ متن را با لمس طولانی انتخاب و کپی کنید.');
   };
+  $('#logAll').onclick = function(){ logAll = !logAll; this.textContent = logAll ? 'فقط بیلد فعلی' : 'همهٔ ثبت‌ها'; logRender(); };
+  if (window.__elog) window.__elog.onAdd = function(){ var b = $('#logBox'); if (b && !b.hidden) logRender(); };   /* بروزرسانی خودکار هنگام باز بودن */
   $('#logClear').onclick = function(){ if (window.__elog) { window.__elog.items = []; try { localStorage.removeItem('errlog'); } catch (e) {} } logRender(); };
   function ensurePiper(){
     if (npOK) return Promise.resolve(true);
@@ -2058,7 +2064,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
   var ocrMeta = {}, ocrLanes = [], ocrFlush = null, OCR_VER = 'r7', ocrKeep = null, ocrKeepTm = 0;
   function gpuTag(){ return (navigator.userAgent || '1') + '|' + (typeof APP_BUILD === 'string' ? APP_BUILD : ''); }
   function gpuBad(){ return sget('ocrGpuBad', '') === gpuTag(); }   /* S3: اگر GPU قبلاً رد شد، پروب تکرار نمی‌شود (با تغییر گزینهٔ GPU پاک می‌شود) */
-  function gpuNote(ep, asked, dx){ if (asked && /^wasm/.test(ep || '')) { sset('ocrGpuBad', gpuTag()); try { sset('ocrGpuWhy', JSON.stringify(dx || {}).slice(0, 700)); } catch (e) {} } }   /* دلیل رد GPU برای گزارش JSON ذخیره می‌شود */
+  function gpuNote(ep, asked, dx){ if (asked && /^wasm/.test(ep || '')) { sset('ocrGpuBad', gpuTag()); try { sset('ocrGpuWhy', JSON.stringify(dx || {}).slice(0, 700)); window.__elog.add('gpu', 'GPU رد شد: ' + JSON.stringify((dx && dx.err) || []).slice(0, 400)); } catch (e) {} } }   /* دلیل رد GPU برای گزارش JSON ذخیره می‌شود */
   var ocrPerf = null;                                              /* گزارش سرعت OCR (JSON در «پیشرفته و اطلاعات فنی») */
   function ocrPerfReset(){ ocrPerf = { t0: 0, t1: 0, n: 0, ep: '', k: {}, c: { orient: 0, tile: 0, beam: 0, lines: 0 } }; }
   ocrPerfReset();
@@ -3096,6 +3102,7 @@ var ocrSpell = (function(){
         if (!simdOK()) throw new Error('WebView این دستگاه از WASM SIMD پشتیبانی نمی‌کند (نسخهٔ سیستم‌وب‌ویو را به‌روز کنید).');
         var gu = !!d.gpu, wg = false, gb = false, o, tx, ls, hc, thr = 1;
         P.dx = { gu: gu, files: !!d.gpuFiles, nav: !!(self.navigator && self.navigator.gpu), ad: false, imp: '', err: [] };
+        try { var GA = self.GPUAdapter && self.GPUAdapter.prototype; if (GA && !GA.requestAdapterInfo) GA.requestAdapterInfo = function(){ return Promise.resolve(this.info || {}); }; } catch (e) {}   /* Chrome ≥127: requestAdapterInfo حذف شده؛ ORT قدیمی هنوز آن را صدا می‌زند */
         if (gu && d.gpuFiles && d.ortGpu && self.navigator && self.navigator.gpu) { try { wg = !!(await self.navigator.gpu.requestAdapter()); } catch (e) { wg = false; P.dx.imp = 'adapter: ' + String((e && e.message) || e).slice(0, 100); } P.dx.ad = wg; }
         if (!self.ort) {
           if (wg) { try { importScripts(d.ortGpu); gb = true; } catch (e) { wg = false; P.dx.imp = 'import: ' + String((e && e.message) || e).slice(0, 100); } }
@@ -3594,14 +3601,14 @@ var ocrSpell = (function(){
           ln.pre = null;
           if (!cr) { tk = take(ln); if (tk === 0) break; if (tk === -1) { await sleep(500); continue; } cr = tk; }
           pn = cr.pn; kk = done + 1; ln.cur = pn;
-          try { img = await cr.p; } catch (e) { failed[pn] = em(e); delete inflight[pn]; ln.cur = 0; continue; }   /* خطای رندر یک صفحه، کل OCR را نمی‌خواباند */
+          try { img = await cr.p; } catch (e) { failed[pn] = em(e); try { window.__elog.add('ocr', 'رندر صفحه ' + pn + ': ' + em(e)); } catch (x) {} delete inflight[pn]; ln.cur = 0; continue; }   /* خطای رندر یک صفحه، کل OCR را نمی‌خواباند */
           status('OCR صفحهٔ ' + nf.format(pn) + ' (' + nf.format(kk) + ' از ' + nf.format(L.length) + ')…' + epTag());
           tk = take(ln); if (tk && tk !== -1) { ln.pre = tk; tk.p.catch(function(){}); }
           try { rr = await ln.ow.call('prec', img.m, img.tr, mkPr(ln, pn, kk)); }
           catch (e) {
             if (ln.killed || ocrStop) throw e;
             if (/worker/.test(em(e)) && ln.rs < 1) ln.rs++;         /* مرگ Worker (کمبود حافظه/GPU) */
-            else if (tried[pn]) { failed[pn] = em(e); delete inflight[pn]; ln.cur = 0; continue; }   /* بار دوم هم شکست: صفحه «ناموفق» ثبت و بقیه ادامه می‌یابد */
+            else if (tried[pn]) { failed[pn] = em(e); try { window.__elog.add('ocr', 'صفحه ' + pn + ': ' + em(e)); } catch (x) {} delete inflight[pn]; ln.cur = 0; continue; }   /* بار دوم هم شکست: صفحه «ناموفق» ثبت و بقیه ادامه می‌یابد */
             else tried[pn] = 1;
             redo.push(pn); delete inflight[pn]; dropPre(ln); try { ln.ow.kill(); } catch (x) {}   /* یک‌بار راه‌اندازی دوباره روی WASM تک‌نخی و تکرار همین صفحه */
             ln.sig = null; await spawn(ln, true, true); continue;
@@ -3636,7 +3643,7 @@ var ocrSpell = (function(){
           try { await spawn(ln, false); } catch (e) { try { if (ln.ow) ln.ow.kill(); } catch (x) {} return; }
           if (ocrStop || fin || playing) { try { ln.ow.kill(); } catch (x) {} return; }
           go(ln); a = mk(); gx = { lanes: cnt + 1, ppmBefore: +r0.toFixed(2), ppmAfter: null, pending: true }; ocrPerf.gov = (ocrPerf.gov || []).concat([gx]); if (!(await wd(4))) return; b = mk();
-          r1 = (b.d - a.d) * 60000 / Math.max(1, b.t - a.t); gx.ppmAfter = +r1.toFixed(2); gx.pending = false; gx.kept = r1 >= r0 * 1.15;
+          r1 = (b.d - a.d) * 60000 / Math.max(1, b.t - a.t); gx.ppmAfter = +r1.toFixed(2); gx.pending = false; gx.kept = r1 >= r0 * 1.15; try { window.__elog.add('gov', 'مسیر ' + gx.lanes + ': ' + gx.ppmBefore + ' → ' + gx.ppmAfter + (gx.kept ? ' (ماند)' : ' (حذف)')); } catch (x) {}
           if (r1 >= r0 * 1.15) cnt++; else { ln.retire = true; return; }
         }
       };
@@ -3943,7 +3950,7 @@ var ocrSpell = (function(){
       if (rr.ep) ocrEp = rr.ep;
       txt = rr.page || '';
       man.geoNew = (!reg && rr.geo && rr.geo.L && rr.geo.L.length) ? { pn: pn, g: rr.geo } : null;
-    } catch (e) { if (!man.stop) err = em(e); }
+    } catch (e) { if (!man.stop) { err = em(e); try { window.__elog.add('ocr', 'اسکن دستی: ' + err); } catch (x) {} } }
     if (cv) { cv.width = 0; cv = null; }
     if (ow && msig && !err && !man.stop && !document.hidden && ocrKeep == null) { ocrKeep = { ow: ow, sig: msig }; ocrKeepTm = setTimeout(dropKeep, (navigator.deviceMemory || 4) <= 3 ? 15000 : 60000); }
     else if (ow) { try { await Promise.race([ow.call('term'), new Promise(function(x){ setTimeout(x, 400); })]); } catch (e) {} try { ow.kill(); } catch (e) {} }
@@ -4643,6 +4650,7 @@ var ocrSpell = (function(){
       if (O.ocr !== 'off' && ocrTodo().length) runOcr();
     } catch (e) {
       if (lt !== loadTok) return;
+      try { window.__elog.add('read', e && e.stack ? e.stack : (e && e.message) || e); } catch (x) {}
       status('خواندن فایل ناموفق بود: ' + (e && e.message ? e.message : e));
     }
   }
@@ -5617,7 +5625,8 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r8 · 2026-10-17 · ocr-perf-p5-fix', npBuild = '';
+  var APP_BUILD = 'html-r8 · 2026-10-17 · ocr-perf-p7-log', npBuild = '';
+  try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   function buildBadge(){ try { var b = document.getElementById('buildBadge'); if (b && b.parentNode) b.parentNode.removeChild(b); } catch (e) {} }
   if (document.body) buildBadge(); else document.addEventListener('DOMContentLoaded', buildBadge);
   function perf(){
@@ -6051,7 +6060,7 @@ var ocrSpell = (function(){
           var u = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
           swk = new Worker(u); URL.revokeObjectURL(u);
           swk.onmessage = function(e){ var d = e.data, w = swWait[d.id]; if (!w) return; delete swWait[d.id]; w(d.e ? null : { b: d.b }); };
-          swk.onerror = function(){ var q = swWait; swWait = {}; swk = false; Object.keys(q).forEach(function(id){ q[id](null); }); };
+          swk.onerror = function(){ try { window.__elog.add('worker', 'DSP worker خطا داد؛ پردازش روی ترد اصلی'); } catch (x) {} var q = swWait; swWait = {}; swk = false; Object.keys(q).forEach(function(id){ q[id](null); }); };
         } catch (e) { swk = false; }
       }
       if (!swk) { res(null); return; }
