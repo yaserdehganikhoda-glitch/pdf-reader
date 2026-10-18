@@ -3246,7 +3246,22 @@ var ocrSpell = (function(){
         if (gu && d.gpuFiles && d.ortGpu && self.navigator && self.navigator.gpu) { try { var gad = await self.navigator.gpu.requestAdapter(); wg = !!gad; try { var gi = (gad && gad.info) || {}; P.dx.vd = [gi.vendor, gi.architecture, gi.description].filter(Boolean).join('/').slice(0, 80); if (/mali|valhall/i.test(P.dx.vd)) { wg = false; P.dx.imp = 'denylist:' + P.dx.vd; } } catch (e2) {}   /* r18: Mali/Valhall خروجی نادرست می‌دهد ← بدون ساخت سشن GPU مستقیم WASM */ } catch (e) { wg = false; P.dx.imp = 'adapter: ' + String((e && e.message) || e).slice(0, 100); } P.dx.ad = wg; }
         if (!self.ort) {
           if (wg) { try { importScripts(d.ortGpu); gb = true; } catch (e) { wg = false; P.dx.imp = 'import: ' + String((e && e.message) || e).slice(0, 100); } }
-          if (!self.ort) { try { importScripts(d.ort); } catch (e) { throw new Error('موتور ONNX پیدا نشد: ocr/ort/ort.min.js ← ' + String((e && ((e.name || '') + ': ' + (e.message || ''))) || e).slice(0, 160) + ' ← ' + String(d.ort).slice(0, 80)); } }
+          if (!self.ort) {   /* r19: importScripts ناموفق (SyntaxError) ← دریافت متن، اعتبارسنجی، حذف import.meta و بارگذاری از Blob؛ در شکست، علت دقیق در پیام می‌آید */
+            var ou = [d.ort, d.ortBase + 'ort.wasm.min.js'], oe = '', oi, ot;
+            for (oi = 0; oi < ou.length && !self.ort; oi++) {
+              try { importScripts(ou[oi]); } catch (e) {
+                try {
+                  var or_ = await fetch(ou[oi], { cache: 'no-store' }); ot = await or_.text();
+                  if (!or_.ok || ot.length < 20000 || /^\s*</.test(ot)) { oe += (oe ? ' | ' : '') + ou[oi].split('/').pop() + ': ' + or_.status + ' · ' + ot.length + 'B · ' + ot.slice(0, 40).replace(/\s+/g, ' '); continue; }
+                  ot = ot.replace(/import\.meta/g, '({url:' + JSON.stringify(ou[oi]) + '})');
+                  var ob = URL.createObjectURL(new Blob([ot + '\n//# sourceURL=' + ou[oi]], { type: 'text/javascript' }));
+                  try { importScripts(ob); } finally { URL.revokeObjectURL(ob); }
+                } catch (e2) { oe += (oe ? ' | ' : '') + ou[oi].split('/').pop() + ': ' + String((e2 && ((e2.name || '') + ': ' + (e2.message || ''))) || e2).slice(0, 120); }
+                ot = null;
+              }
+            }
+            if (!self.ort) throw new Error('موتور ONNX بارگذاری نشد: ' + oe.slice(0, 300));
+          }
         }
         hc = (self.navigator && self.navigator.hardwareConcurrency) || 1;
         if (d.thr && (gb ? d.thr.j : d.thr.p) && self.crossOriginIsolated && typeof SharedArrayBuffer !== 'undefined') thr = d.nt > 0 ? Math.max(1, Math.min(d.nt | 0, hc)) : Math.max(1, Math.min(4, hc >> 1));   /* r15: ۸ نخ روی big.LITTLE کندتر است؛ پیش‌فرض ½ هسته (حداکثر ۴)، قابل تغییر با ocrNT(n) */
@@ -5827,7 +5842,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r24 · 2026-10-18 · ort-probe', npBuild = '';
+  var APP_BUILD = 'html-r25 · 2026-10-18 · ort-probe', npBuild = '';
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r17: عیب‌یابی crossOriginIsolated — هدرهای واقعی سند را می‌خواند؛ اگر هدرها هست ولی coi=false (سند پیش از تعویض WebViewClient بار شده) یک‌بار صفحه را بازبارگذاری می‌کند */
   try { if (!window.crossOriginIsolated && window.fetch) fetch(location.href, { cache: 'no-store' }).then(function(r){
