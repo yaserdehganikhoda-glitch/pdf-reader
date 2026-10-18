@@ -63,7 +63,10 @@ jobs:
         run: |
           cd android && chmod +x gradlew
           for i in 1 2 3; do
-            ./gradlew assembleDebug --no-daemon --stacktrace --refresh-dependencies && exit 0
+            ./gradlew assembleDebug --no-daemon --stacktrace --refresh-dependencies 2>&1 | tee ../build.log
+            [ "${PIPESTATUS[0]}" -eq 0 ] && exit 0
+            grep -n -A8 "What went wrong\|error:" ../build.log | head -60 | tee -a "$GITHUB_STEP_SUMMARY"
+            grep -q "error:\|cannot find symbol\|does not exist\|files found" ../build.log && break
             sleep 15
           done
           exit 1
