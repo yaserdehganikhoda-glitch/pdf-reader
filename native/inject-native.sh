@@ -43,6 +43,15 @@ cp -r /tmp/jniLibs/* android/app/src/main/jniLibs/
 # فقط ARM (گوشی‌های واقعی): حجم APK بسیار کمتر می‌شود
 rm -rf android/app/src/main/jniLibs/x86 android/app/src/main/jniLibs/x86_64
 
+# 1b) r23: نسخهٔ onnxruntime همراه sherpa. AAR جاوای ORT (برای OCR بومی) باید هم‌نسخه باشد؛ چون هر دو libonnxruntime.so دارند و فقط یکی داخل APK می‌ماند (pickFirsts پایین).
+ORT_V="${ORT_VER:-}"
+if [ -z "$ORT_V" ]; then
+  ORT_V="$(strings android/app/src/main/jniLibs/arm64-v8a/libonnxruntime.so 2>/dev/null | grep -E '^1\.(1[4-9]|2[0-9])\.[0-9]+$' | sort -V | tail -1 || true)"
+fi
+[ -n "$ORT_V" ] || { ORT_V=1.22.0; echo "WARN: نسخهٔ ORT داخل sherpa تشخیص داده نشد؛ پیش‌فرض $ORT_V (با ORT_VER=... عوض کن)" >&2; }
+echo "ORT نسخهٔ sherpa = $ORT_V"
+export ORT_V
+
 # 2) API کاتلین همان نسخه
 rm -rf /tmp/sherpa-src
 for i in 1 2 3; do
@@ -56,6 +65,7 @@ cp /tmp/sherpa-src/sherpa-onnx/kotlin-api/*.kt android/app/src/main/java/com/k2f
 # 3) پلاگین + MainActivity با appId درست
 sed "s/^package .*/package $APP_ID/" "$HERE/PiperNativePlugin.kt" > "$PKG_PATH/PiperNativePlugin.kt"
 sed "s/^package .*/package $APP_ID;/" "$HERE/MainActivity.java"   > "$PKG_PATH/MainActivity.java"
+sed "s/^package .*/package $APP_ID;/" "$HERE/OcrNativePlugin.java" > "$PKG_PATH/OcrNativePlugin.java"   # r23: OCR بومی (ORT)
 
 # 3b) صداهای فارسی: به‌طور پیش‌فرض داخل APK نیستند و بعد از نصب از داخل برنامه دانلود می‌شوند.
 # برای همراه‌کردن (اختیاری): VOICES="fa_IR-gyro-medium ..." bash native/inject-native.sh
@@ -112,13 +122,16 @@ p='android/app/build.gradle'; s=open(p).read()
 if "kotlin-android" not in s:
     s=re.sub(r"(apply plugin: ['\"]com\.android\.application['\"])", r"\1\napply plugin: 'kotlin-android'", s, count=1)
 if 'kotlinOptions' not in s:
-    s=re.sub(r"(android\s*\{)", r"\1\n    kotlinOptions { jvmTarget = '17' }\n    packagingOptions { jniLibs { useLegacyPackaging = true } }", s, count=1)
+    s=re.sub(r"(android\s*\{)", r"\1\n    kotlinOptions { jvmTarget = '17' }\n    packagingOptions { jniLibs { useLegacyPackaging = true; pickFirsts.add('**/libonnxruntime.so') } }", s, count=1)
 if 'signingConfigs' not in s:
     s=re.sub(r"(android\s*\{)", r"\1\n    signingConfigs {\n        debug {\n            storeFile file('debug.keystore')\n            storePassword 'android'\n            keyAlias 'androiddebugkey'\n            keyPassword 'android'\n        }\n    }", s, count=1)
 if 'commons-compress' not in s:
     s=re.sub(r"(dependencies\s*\{)", r"\1\n    implementation 'org.apache.commons:commons-compress:1.26.2'", s, count=1)
 if 'abiFilters' not in s and re.search(r"defaultConfig\s*\{", s):
     s=re.sub(r"(defaultConfig\s*\{)", r"\1\n        ndk { abiFilters 'arm64-v8a', 'armeabi-v7a' }", s, count=1)
+if 'onnxruntime-android' not in s:
+    import os
+    s=re.sub(r"(dependencies\s*\{)", r"\1\n    implementation 'com.microsoft.onnxruntime:onnxruntime-android:" + os.environ['ORT_V'] + "'", s, count=1)
 if 'documentfile' not in s:
     s=re.sub(r"(dependencies\s*\{)", r"\1\n    implementation 'androidx.documentfile:documentfile:1.0.1'", s, count=1)
 open(p,'w').write(s)
