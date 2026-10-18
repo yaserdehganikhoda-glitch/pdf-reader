@@ -197,7 +197,7 @@ input[type=range].rng:focus-visible{outline:2px solid var(--accent);outline-offs
 input[type=range]:not(.rng){width:100%;accent-color:var(--accent)}
 #seekTip,#fixTip{position:fixed;inset-inline:12px;margin:0 auto;max-width:560px;background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 14px 40px -12px rgba(0,0,0,.5);font-size:.85rem;line-height:1.9}
 #seekTip{z-index:31;bottom:calc(var(--dock-h) + 40px + env(safe-area-inset-bottom,0px));border-radius:16px;padding:8px 14px;pointer-events:none}
-#fixTip{z-index:30;bottom:calc(var(--dock-h) + 24px + env(safe-area-inset-bottom,0px));border-radius:20px;padding:12px 16px;max-height:45vh;overflow:auto}
+#fixTip{z-index:30;bottom:calc(var(--dock-h) + 24px + env(safe-area-inset-bottom,0px));border-radius:20px;padding:12px 16px;max-height:45vh;max-height:45dvh;overflow:auto}
 #seekTip b,#fixTip b{color:var(--accent)}
 
 /* ===== منو ===== */
@@ -322,7 +322,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
 .manno{display:flex;align-items:center;justify-content:center;gap:8px;font-size:.84rem;color:var(--muted)}
 .manno input{width:84px}
 .manpv{position:relative;display:flex;justify-content:center;background:color-mix(in srgb,var(--ink) 6%,transparent);border:1px solid var(--line);border-radius:12px;padding:6px;min-height:96px}
-.manpv canvas{display:block;max-width:100%;max-height:58vh;width:auto;height:auto;background:#fff;border-radius:6px}
+.manpv canvas{display:block;max-width:100%;max-height:58vh;max-height:58dvh;width:auto;height:auto;background:#fff;border-radius:6px}
 .manpv.reg{touch-action:none;cursor:crosshair}
 #manSel{position:absolute;border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 18%,transparent);border-radius:4px;pointer-events:none}
 #manSel[hidden]{display:none}
@@ -542,16 +542,50 @@ body.mini-on .panel{padding-bottom:88px}
 .mtxt b{font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mtxt small{font-size:.7rem;color:var(--muted)}
 
+.bkgrp{grid-column:1/-1;display:grid;border:1px solid var(--line);border-radius:14px;padding:2px 10px}
+.bkrow{display:flex;align-items:center;gap:6px;min-height:56px;padding:6px 0}
+.bkrow+.bkrow{border-top:1px solid var(--line)}
+.bkl{flex:1;min-width:0;display:grid;line-height:1.4}
+.bkl b{font-size:.8rem;font-weight:800}
+.bkl small{font-size:.7rem;color:var(--muted)}
+.tile.bkb{flex:none;min-height:44px;padding:6px 10px;gap:5px;font-size:.76rem;font-weight:700;justify-content:center;border:1px solid var(--line);border-radius:12px}
+.bkb svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bkb.t-a{color:var(--accent)}.bkb.t-b{color:var(--accent-2)}
+.tile.exitB{grid-column:1/-1;margin-top:4px;border:1px solid color-mix(in srgb,#c0392b 35%,var(--line))}
+.exitB .tic{background:color-mix(in srgb,#c0392b 14%,transparent);color:#c0392b}
+.tsearch{padding:0 0 8px}
+.tsearch input{width:100%;min-height:44px;font:inherit;font-size:.84rem;padding:8px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.tres{display:grid;gap:4px}
+.tres button{display:flex;flex-direction:column;align-items:flex-start;gap:0;min-height:48px;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;text-align:start;cursor:pointer}
+.tres button b{font-size:.82rem;font-weight:800}.tres button small{font-size:.7rem;color:var(--muted)}
+.tres button:active{background:color-mix(in srgb,currentColor 10%,transparent)}
+.tres p{margin:6px 4px;font-size:.78rem;color:var(--muted)}
+.tmenu.sq-on .ttabs,.tmenu.sq-on .tpanel{display:none!important}
+.rsb{display:none;flex:none;margin-inline-start:auto;min-height:32px;padding:4px 10px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);font:inherit;font-size:.7rem;font-weight:700;cursor:pointer}
+.chg>h3>.rsb,.chg>summary>.rsb{display:inline-flex;align-items:center}
+.grp.chg>h3{display:flex;align-items:center;gap:6px}
+.chg>h3::after{order:2}.rsb{order:3}
+.chg>h3::after,.chg>summary .stt b::after{content:"";display:inline-block;flex:none;width:7px;height:7px;margin-inline-start:6px;border-radius:50%;background:var(--gold)}
+#tscrim{position:fixed;inset:0;z-index:59;background:rgba(0,0,0,.42)}
+.tmenu.sheet{position:fixed;inset:auto 0 0 0;top:auto;left:0;right:0;bottom:0;width:100%;max-height:min(72vh,560px);max-height:min(72dvh,560px);border-radius:22px 22px 0 0;padding-bottom:env(safe-area-inset-bottom,0px);z-index:60;animation:sheetup .22s ease both}
+.tmenu.sheet .ttabs{padding-top:16px;border-radius:22px 22px 0 0}
+.tmenu.sheet .ttabs::before{content:"";position:absolute;top:6px;left:50%;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--line)}
+@keyframes sheetup{from{transform:translateY(28px);opacity:0}}
+:root[data-fx="perf"] .tmenu.sheet,:root[data-fx="flat"] .tmenu.sheet{animation:none}
+/* رندر تنبل گروه‌های تنظیمات (گوشی‌های ضعیف) */
+.panel .grp{content-visibility:auto;contain-intrinsic-size:auto 220px}
+@media (prefers-contrast:more){:root{--muted:var(--ink)}}
+
 /* ----- منوی ابزار تب‌دار ----- */
-.tmenu{position:absolute;top:calc(100% + 10px);left:0;width:min(21rem,calc(100vw - 24px));max-height:min(78vh,560px);overflow:auto;display:flex;flex-direction:column;border-radius:20px;background:var(--paper);color:var(--ink);border:1px solid var(--glass-line);box-shadow:var(--shadow);text-align:start;animation:fadein2 .15s ease both}
+.tmenu{position:absolute;top:calc(100% + 10px);left:0;width:min(21rem,calc(100vw - 24px));max-height:min(78vh,560px);max-height:min(78dvh,560px);overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;border-radius:20px;background:var(--paper);color:var(--ink);border:1px solid var(--glass-line);box-shadow:var(--shadow);text-align:start;animation:fadein2 .15s ease both}
 .ttabs{position:sticky;top:0;z-index:2;display:flex;gap:2px;padding:8px 8px 0;background:var(--paper);border-bottom:1px solid var(--line)}
-.ttab{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;font:inherit;font-size:.7rem;font-weight:800;color:var(--muted);background:transparent;border:0;border-bottom:2px solid transparent;border-radius:12px 12px 0 0;cursor:pointer;transition:color .2s,background .2s}
+.ttab{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:10px 4px;font:inherit;font-size:.76rem;font-weight:800;color:var(--muted);background:transparent;border:0;border-bottom:2px solid transparent;border-radius:12px 12px 0 0;cursor:pointer;transition:color .2s,background .2s}
 .ttab svg{flex:none;width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ttab.on{color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);border-bottom-color:var(--accent)}
 .tbody{padding:10px}
 .tpanel{display:none;grid-template-columns:1fr 1fr;gap:6px}
 .tpanel.on{display:grid}
-.tile{display:flex;align-items:center;gap:8px;min-height:54px;padding:8px 6px;border-radius:14px;border:0;background:transparent;color:var(--ink);font:inherit;text-align:start;cursor:pointer;transition:background .2s,transform .12s}
+.tile{display:flex;align-items:center;gap:8px;min-height:56px;padding:8px 6px;border-radius:14px;border:0;background:transparent;color:var(--ink);font:inherit;text-align:start;cursor:pointer;transition:background .2s,transform .12s}
 .tile:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .tile:active{transform:scale(.97)}
 .tic{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%}
@@ -560,18 +594,18 @@ body.mini-on .panel{padding-bottom:88px}
 .t-b .tic{background:color-mix(in srgb,var(--accent-2) 14%,transparent);color:var(--accent-2)}
 .t-g .tic{background:color-mix(in srgb,var(--gold) 22%,transparent);color:color-mix(in srgb,var(--gold) 72%,#6b4200)}
 .tx{min-width:0;display:grid;gap:0;line-height:1.45}
-.tx b{font-size:.74rem;font-weight:800;line-height:1.35}
-.tx small{font-size:.62rem;color:var(--muted);line-height:1.4}
+.tx b{font-size:.8rem;font-weight:800;line-height:1.35}
+.tx small{font-size:.7rem;color:var(--muted);line-height:1.4}
 .tbanner{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:8px 8px 8px 12px;margin-bottom:2px;border:1px solid rgba(255,255,255,.28);border-radius:14px;color:#2b1b00;font:inherit;text-align:start;cursor:pointer;background:linear-gradient(135deg,var(--gold),color-mix(in srgb,var(--gold) 62%,#b45309));box-shadow:0 6px 14px -8px color-mix(in srgb,var(--gold) 80%,#000),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .15s}
 .tbanner:active{transform:scale(.98)}
 .tbanner .tx b{font-size:.8rem}
-.tbanner .tx small{color:rgba(43,27,0,.78);font-size:.66rem}
+.tbanner .tx small{color:rgba(43,27,0,.78);font-size:.7rem}
 .tbanner>svg{flex:none;width:30px;height:30px;padding:6px;border-radius:50%;background:rgba(255,255,255,.3);stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 /* ----- افکت ریپل روی دکمه‌ها (در حالت‌های «بهینه» و «فوق‌ساده» خاموش است) ----- */
-.btn,.chip,.tile,.xbtn,.ttab,.sw button,.pill,.tbanner{position:relative;overflow:hidden}
-.ripple{position:absolute;border-radius:50%;background:currentColor;opacity:.2;transform:scale(0);animation:ripple .55s ease-out;pointer-events:none}
-@keyframes ripple{to{transform:scale(3);opacity:0}}
+.btn,.chip,.tile,.xbtn,.ttab,.sw button,.pill,.tbanner{position:relative;-webkit-tap-highlight-color:transparent}
+.tile:active,.ttab:active,.pill:active,.chip:active,.sw button:active{background-color:color-mix(in srgb,currentColor 12%,transparent)}
+@media (hover:none){.tile:hover{background:transparent}}
 
 /* ----- هماهنگی با سطح جلوه‌های بصری ----- */
 :root[data-fx="flat"] .hbar{background:var(--brand-flat)!important;background-image:none!important}
@@ -736,7 +770,7 @@ body:not(.has-doc) .top,body.home-on .top{padding:0}
 .hdlgc h4{margin:0;font-size:.95rem}
 .hdbox{display:grid;gap:6px}
 .hdbox input{font:inherit;min-height:40px;padding:4px 12px;border-radius:11px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
-.hdlist{display:grid;gap:5px;max-height:50vh;overflow:auto}
+.hdlist{display:grid;gap:5px;max-height:50vh;max-height:50dvh;overflow:auto}
 .hdlist .btn{text-align:start;min-height:38px;font-size:.8rem}
 .hdlga{display:flex;gap:8px;justify-content:flex-end}
 .hdlga .btn{min-height:36px;padding:3px 18px;font-size:.8rem}
@@ -766,7 +800,7 @@ body.view-page:not(.no-sents) #reader,body.view-page.no-sents.has-doc #reader{di
 .vav svg{display:block;width:100%;height:100%}
 .vs-scrim{position:fixed;inset:0;z-index:80;background:var(--scrim);opacity:0;transition:opacity .25s}
 .vs-scrim.on{opacity:1}
-.vs{position:fixed;z-index:81;inset-inline:0;bottom:0;margin:0 auto;max-width:560px;max-height:88vh;overflow:auto;overscroll-behavior:contain;padding:8px 14px calc(16px + env(safe-area-inset-bottom,0px));background:var(--card);color:var(--ink);border:1px solid var(--line);border-bottom:0;border-radius:26px 26px 0 0;box-shadow:0 -18px 44px -18px rgba(0,0,0,.45);transform:translateY(105%);transition:transform .3s cubic-bezier(.2,.9,.3,1)}
+.vs{position:fixed;z-index:81;inset-inline:0;bottom:0;margin:0 auto;max-width:560px;max-height:88vh;max-height:88dvh;overflow:auto;overscroll-behavior:contain;padding:8px 14px calc(16px + env(safe-area-inset-bottom,0px));background:var(--card);color:var(--ink);border:1px solid var(--line);border-bottom:0;border-radius:26px 26px 0 0;box-shadow:0 -18px 44px -18px rgba(0,0,0,.45);transform:translateY(105%);transition:transform .3s cubic-bezier(.2,.9,.3,1)}
 .vs.on{transform:none}
 .vs-grab{width:42px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 8px}
 .vs-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -844,45 +878,50 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         </button>
       </div>
       <div class="hcorner hc-l">
-        <button class="xbtn" id="menuBtn" type="button" aria-label="منوی ابزار" title="منوی ابزار" aria-haspopup="true" aria-expanded="false" aria-controls="toolsMenu">
+        <button class="xbtn" id="menuBtn" type="button" aria-label="منوی ابزار" title="منوی ابزار" aria-haspopup="dialog" aria-expanded="false" aria-controls="toolsMenu">
           <i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 12h10M4 17h16"/></svg></i><span>ابزار</span>
         </button>
-        <div class="tmenu" id="toolsMenu" hidden role="menu" aria-label="منوی ابزار">
+        <div id="tscrim" hidden></div>
+        <div class="tmenu" id="toolsMenu" hidden role="dialog" aria-label="منوی ابزار">
           <div class="ttabs" role="tablist" aria-label="بخش‌های منوی ابزار">
-            <button type="button" class="ttab on" role="tab" aria-selected="true" data-tt="main"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg><span>اصلی</span></button>
-            <button type="button" class="ttab" role="tab" aria-selected="false" data-tt="tools"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.3-.6-.6-2.3z"/></svg><span>ابزارها</span></button>
-            <button type="button" class="ttab" role="tab" aria-selected="false" data-tt="data"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg><span>داده‌ها</span></button>
-            <button type="button" class="ttab" role="tab" aria-selected="false" data-tt="device"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM11 18h2"/></svg><span>دستگاه</span></button>
+            <button type="button" class="ttab on" role="tab" aria-selected="true" id="ttab-main" aria-controls="tpanel-main" tabindex="0" data-tt="main"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg><span>اصلی</span></button>
+            <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-tools" aria-controls="tpanel-tools" tabindex="-1" data-tt="tools"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.3-.6-.6-2.3z"/></svg><span>ابزارها</span></button>
+            <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-data" aria-controls="tpanel-data" tabindex="-1" data-tt="data"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg><span>داده‌ها</span></button>
+            <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-device" aria-controls="tpanel-device" tabindex="-1" data-tt="device"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM11 18h2"/></svg><span>پیشرفته</span></button>
           </div>
           <div class="tbody">
-            <div class="tpanel on" data-tp="main">
+            <div class="tsearch"><input id="sqIn" type="search" enterkeyhint="search" autocomplete="off" placeholder="جستجو در تنظیمات…" aria-label="جستجو در تنظیمات"></div>
+            <div class="tres" id="sqRes" hidden></div>
+            <div class="tpanel on" id="tpanel-main" role="tabpanel" aria-labelledby="ttab-main" data-tp="main">
 <button type="button" class="tbanner" data-act="resume"><span class="tx"><b id="tbT">انتخاب فایل PDF</b><small id="tbS">متن آن با صدای فارسی خوانده می‌شود</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5C5.5 4.2 9 4.4 12 6.5c3-2.1 6.5-2.3 9-1v13c-2.5-1.3-6-1.1-9 1-3-2.1-6.5-2.3-9-1zM12 6.5v13"/></svg></button>
-<button type="button" class="tile t-a" role="menuitem" data-act="file"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M12 11v6M9 14h6"/></svg></span><span class="tx"><b>انتخاب PDF</b><small>از حافظهٔ دستگاه</small></span></button>
-<button type="button" class="tile t-b" role="menuitem" data-act="home"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span><span class="tx"><b>فهرست فایل‌ها</b><small>همه، علاقه‌مندی، اخیر</small></span></button>
-<button type="button" class="tile t-g" role="menuitem" data-go="voice" data-only="#styleBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h2M8 8v8M12 5v14M16 8v8M20 12h-2"/></svg></span><span class="tx"><b>سبک گفتار</b><small>لحن و آرامش صدا</small></span></button>
-<button type="button" class="tile t-b" role="menuitem" data-go="view" data-only="#navGrp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"/></svg></span><span class="tx"><b>جستجو در متن</b><small>و رفتن به صفحه</small></span></button>
+<button type="button" class="tile t-a" data-act="file"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M12 11v6M9 14h6"/></svg></span><span class="tx"><b>انتخاب PDF</b><small>از حافظهٔ دستگاه</small></span></button>
+<button type="button" class="tile t-b" data-act="home"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span><span class="tx"><b>فهرست فایل‌ها</b><small>همه، علاقه‌مندی، اخیر</small></span></button>
+<button type="button" class="tile t-g" data-go="voice" data-only="#styleBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h2M8 8v8M12 5v14M16 8v8M20 12h-2"/></svg></span><span class="tx"><b>سبک گفتار</b><small>لحن و آرامش صدا</small></span></button>
+<button type="button" class="tile t-b" data-go="view" data-only="#navGrp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"/></svg></span><span class="tx"><b>جستجو در متن</b><small>و رفتن به صفحه</small></span></button>
             </div>
-            <div class="tpanel" data-tp="tools">
-<button type="button" class="tile t-a" role="menuitem" data-go="text" data-only="#ocrBox" data-click="#ocrBtn"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/></svg></span><span class="tx"><b>اجرای OCR</b><small>از صفحهٔ فعلی</small></span></button>
-<button type="button" class="tile t-b" role="menuitem" data-click="#manBtn"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg></span><span class="tx"><b>اسکن دستی</b><small>ناحیه یا کل صفحه</small></span></button>
-<button type="button" class="tile t-a" role="menuitem" data-go="text" data-only="#dictBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h10"/></svg></span><span class="tx"><b>واژه‌نامهٔ تلفظ</b><small>افزودن و ویرایش</small></span></button>
-<button type="button" class="tile t-b" role="menuitem" data-go="text" data-only="#offbox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></span><span class="tx"><b>وضعیت آفلاین</b><small>بررسی فایل‌ها</small></span></button>
-<button type="button" class="tile t-g" role="menuitem" data-go="voice" data-only="#bgmBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 16a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/></svg></span><span class="tx"><b>موسیقی پس‌زمینه</b><small>همراه با خواندن</small></span></button>
-<button type="button" class="tile t-b" role="menuitem" data-go="voice" data-only="#qualBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8v8M8 5v14M12 9v6M16 6v12M20 10v4"/></svg></span><span class="tx"><b>کیفیت صدا</b><small>نویز، شفافیت و بهبود</small></span></button>
+            <div class="tpanel" id="tpanel-tools" role="tabpanel" aria-labelledby="ttab-tools" data-tp="tools">
+<button type="button" class="tile t-a" data-go="text" data-only="#ocrBox" data-click="#ocrBtn"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/></svg></span><span class="tx"><b>اجرای OCR</b><small>از صفحهٔ فعلی</small></span></button>
+<button type="button" class="tile t-b" data-click="#manBtn"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg></span><span class="tx"><b>اسکن دستی</b><small>ناحیه یا کل صفحه</small></span></button>
+<button type="button" class="tile t-a" data-go="text" data-only="#dictBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h10"/></svg></span><span class="tx"><b>واژه‌نامهٔ تلفظ</b><small>افزودن و ویرایش</small></span></button>
+<button type="button" class="tile t-g" data-go="voice" data-only="#bgmBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 16a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/></svg></span><span class="tx"><b>موسیقی پس‌زمینه</b><small>همراه با خواندن</small></span></button>
+<button type="button" class="tile t-b" data-go="voice" data-only="#qualBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8v8M8 5v14M12 9v6M16 6v12M20 10v4"/></svg></span><span class="tx"><b>کیفیت صدا</b><small>نویز، شفافیت و بهبود</small></span></button>
+<button type="button" class="tile t-b" data-go="view" data-only="#presetBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6"/></svg></span><span class="tx"><b>حالت‌های آماده</b><small>متعادل، مطالعه، مصرف کم</small></span></button>
             </div>
-            <div class="tpanel" data-tp="data">
-<button type="button" class="tile t-a" role="menuitem" data-go="lib" data-only="#stBox" data-click="#stExp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></span><span class="tx"><b>صادرات ZIP</b><small>کتابخانهٔ PDFها</small></span></button>
-<button type="button" class="tile t-b" role="menuitem" data-go="lib" data-only="#stBox" data-click="#stImp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg></span><span class="tx"><b>واردات ZIP</b><small>بازیابی آرشیو</small></span></button>
-<button type="button" class="tile t-g" role="menuitem" data-go="voice" data-only="#advBox" data-click="#acExp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></span><span class="tx"><b>خروجی حافظهٔ نهان</b><small>صداهای ساخته‌شده</small></span></button>
-<button type="button" class="tile t-a" role="menuitem" data-go="voice" data-only="#advBox" data-click="#acImp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg></span><span class="tx"><b>ورودی حافظهٔ نهان</b><small>از فایل ZIP</small></span></button>
-<button type="button" class="tile t-b" role="menuitem" data-go="text" data-only="#dictBox" data-click="#dictExp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></span><span class="tx"><b>برون‌بری واژه‌نامه</b><small>فایل txt</small></span></button>
-<button type="button" class="tile t-g" role="menuitem" data-go="text" data-only="#dictBox" data-click="#dictImp"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg></span><span class="tx"><b>درون‌ریزی واژه‌نامه</b><small>از فایل txt</small></span></button>
+            <div class="tpanel" id="tpanel-data" role="tabpanel" aria-labelledby="ttab-data" data-tp="data">
+<div class="bkgrp" role="group" aria-label="پشتیبان‌گیری و بازیابی">
+<div class="bkrow"><span class="bkl"><b>کتابخانه (ZIP)</b><small>PDFها و جای خواندن</small></span><button type="button" class="tile bkb t-a" data-go="lib" data-only="#stBox" data-click="#stExp" data-title="صادرات ZIP" data-sub="کتابخانهٔ PDFها"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>خروجی</span></button><button type="button" class="tile bkb t-b" data-go="lib" data-only="#stBox" data-click="#stImp" data-title="واردات ZIP" data-sub="بازیابی آرشیو"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg><span>ورودی</span></button></div>
+<div class="bkrow"><span class="bkl"><b>حافظهٔ نهان صدا</b><small>صداهای ساخته‌شده</small></span><button type="button" class="tile bkb t-a" data-go="voice" data-only="#advBox" data-click="#acExp" data-title="خروجی حافظهٔ نهان" data-sub="صداهای ساخته‌شده"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>خروجی</span></button><button type="button" class="tile bkb t-b" data-go="voice" data-only="#advBox" data-click="#acImp" data-title="ورودی حافظهٔ نهان" data-sub="از فایل ZIP"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg><span>ورودی</span></button></div>
+<div class="bkrow"><span class="bkl"><b>واژه‌نامهٔ تلفظ</b><small>فایل txt</small></span><button type="button" class="tile bkb t-a" data-go="text" data-only="#dictBox" data-click="#dictExp" data-title="برون‌بری واژه‌نامه" data-sub="فایل txt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>خروجی</span></button><button type="button" class="tile bkb t-b" data-go="text" data-only="#dictBox" data-click="#dictImp" data-title="درون‌ریزی واژه‌نامه" data-sub="از فایل txt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg><span>ورودی</span></button></div>
+<div class="bkrow"><span class="bkl"><b>تنظیمات برنامه</b><small>فایل JSON؛ بدون PDF و متن</small></span><button type="button" class="tile bkb t-a" data-act="cfgExp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>خروجی</span></button><button type="button" class="tile bkb t-b" data-act="cfgImp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg><span>ورودی</span></button></div>
+<input type="file" id="cfgFile" accept=".json,application/json" hidden>
+</div>
             </div>
-            <div class="tpanel" data-tp="device">
-<button type="button" class="tile t-a" role="menuitem" data-act="theme"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></span><span class="tx"><b>پوسته</b><small id="thTileSub">خودکار</small></span></button>
-<button type="button" class="tile t-b" role="menuitem" data-go="view" data-only="#fxBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg></span><span class="tx"><b>جلوه‌های بصری</b><small>کامل تا فوق‌ساده</small></span></button>
-<button type="button" class="tile t-g" role="menuitem" data-go="voice" data-only="#advBox" data-click="#logShow"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6"/></svg></span><span class="tx"><b>گزارش خطا</b><small>برای عیب‌یابی</small></span></button>
-<button type="button" class="tile t-b exitB" role="menuitem" ><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></span><span class="tx"><b>خروج</b><small>بستن برنامه</small></span></button>
+            <div class="tpanel" id="tpanel-device" role="tabpanel" aria-labelledby="ttab-device" data-tp="device">
+<button type="button" class="tile t-a" data-act="theme"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></span><span class="tx"><b>پوسته</b><small id="thTileSub">خودکار</small></span></button>
+<button type="button" class="tile t-b" data-go="view" data-only="#fxBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg></span><span class="tx"><b>جلوه‌های بصری</b><small>کامل تا فوق‌ساده</small></span></button>
+<button type="button" class="tile t-b" data-go="text" data-only="#offbox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></span><span class="tx"><b>وضعیت آفلاین</b><small>بررسی فایل‌ها</small></span></button>
+<button type="button" class="tile t-g" data-go="voice" data-only="#advBox" data-click="#logShow"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6"/></svg></span><span class="tx"><b>گزارش خطا</b><small>برای عیب‌یابی</small></span></button>
+<button type="button" class="tile t-b exitB" ><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></span><span class="tx"><b>خروج</b><small>بستن برنامه</small></span></button>
             </div>
           </div>
         </div>
@@ -1323,6 +1362,16 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 
     <!-- نمایش -->
     <div class="panel" data-panel="view" role="tabpanel">
+      <section class="grp" id="presetBox">
+        <h3>حالت‌های آماده</h3>
+        <div class="sw" id="prSw" style="grid-template-columns:repeat(3,1fr)">
+          <button type="button" data-pr="bal" aria-pressed="false"><i style="background:linear-gradient(135deg,#8ea2ee,#4cbdb0)"></i>متعادل</button>
+          <button type="button" data-pr="read" aria-pressed="false"><i style="background:linear-gradient(135deg,#f0c466,#c98a2b)"></i>مطالعهٔ طولانی</button>
+          <button type="button" data-pr="low" aria-pressed="false"><i style="background:var(--muted)"></i>مصرف کم</button>
+        </div>
+        <p class="hint" id="prHint" aria-live="polite"></p>
+      </section>
+
       <section class="grp">
         <h3>پوسته</h3>
         <div class="sw" id="thSw" style="grid-template-columns:repeat(3,1fr)">
@@ -7826,7 +7875,7 @@ var ocrSpell = (function(){
     if (t !== 'read') {
       var panel = pagesEl.querySelector('.panel[data-panel="' + t + '"]'), tg;
       Array.prototype.forEach.call(pagesEl.querySelectorAll('.panel'), function(p){ p.classList.toggle('on', p === panel); });
-      Array.prototype.forEach.call(panel.children, function(k){ k.classList.toggle('solo-off', !!o.only && !k.matches(o.only)); });
+      Array.prototype.forEach.call(panel.children, function(k){ k.classList.toggle('solo-off', !!o.only && !k.matches(o.only) && !k.querySelector(o.only)); });
       if (o.only) { tg = panel.querySelector(o.only); if (tg && tg.tagName === 'DETAILS') tg.open = true; }
       $('#mbody').scrollTop = 0;
       if (t === 'lib') setTimeout(function(){ libRender(); stRender(); }, 80);
@@ -7835,7 +7884,7 @@ var ocrSpell = (function(){
       tabHist = false;
       if (fromPop !== true) { tabSkip++; try { history.back(); } catch (e) { tabSkip--; } }
     }
-    updateHeader(t, o); syncMini(); closeTools(); segRefresh();
+    updateHeader(t, o); syncMini(); closeTools(); segRefresh(); if (t !== 'read') chgSoon();
   }
   /* سازگاری با فراخوانی‌های قدیمی (باز کردن فایل ← بازگشت به متن؛ دوبار لمس واژه ← واژه‌نامه) */
   function openMenu(t){
@@ -7857,16 +7906,29 @@ var ocrSpell = (function(){
     $('#tbS').textContent = ok ? (t || 'بازگشت به متن') : 'همه فایل‌ها، مورد علاقه و موارد اخیر';
     $('#thTileSub').textContent = th ? th.textContent.trim() : 'خودکار';
   }
-  function openTools(){ toolsSync(); toolsOn = true; toolsEl.hidden = false; menuBtn.setAttribute('aria-expanded', 'true'); }
-  function closeTools(){ if (!toolsOn) return; toolsOn = false; toolsEl.hidden = true; menuBtn.setAttribute('aria-expanded', 'false'); }
+  var toolsHome = toolsEl.parentNode, scrimEl = $('#tscrim'), narrowMQ = window.matchMedia ? matchMedia('(max-width:520px)') : null;
+  function openTools(){ toolsSync(); toolsOn = true;
+    var lt = sget('tt', 'main'), lb = toolsEl.querySelector('.ttab[data-tt="' + lt + '"]'); if (lb && !lb.classList.contains('on')) lb.click();
+    if (narrowMQ && narrowMQ.matches) { toolsEl.classList.add('sheet'); document.body.appendChild(toolsEl); scrimEl.hidden = false; }
+    toolsEl.hidden = false; menuBtn.setAttribute('aria-expanded', 'true'); var ft = toolsEl.querySelector('.ttab.on'); if (ft) try { ft.focus({ preventScroll: true }); } catch (x) {} }
+  function closeTools(refocus){ if (!toolsOn) return; toolsOn = false; toolsEl.hidden = true; scrimEl.hidden = true; if (toolsEl.classList.contains('sheet')) { toolsEl.classList.remove('sheet'); toolsHome.appendChild(toolsEl); } if ($('#sqIn').value) { $('#sqIn').value = ''; sqRun(); } menuBtn.setAttribute('aria-expanded', 'false'); if (refocus === true) try { menuBtn.focus({ preventScroll: true }); } catch (x) {} }
   menuBtn.onclick = function(e){ e.stopPropagation(); if (toolsOn) closeTools(); else openTools(); };
   toolsEl.addEventListener('click', function(e){ e.stopPropagation(); });
   document.addEventListener('click', function(){ if (!toolsHold) closeTools(); });
   Array.prototype.forEach.call(toolsEl.querySelectorAll('.ttab'), function(b){
     b.onclick = function(){
-      Array.prototype.forEach.call(toolsEl.querySelectorAll('.ttab'), function(x){ var on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-selected', on ? 'true' : 'false'); });
+      Array.prototype.forEach.call(toolsEl.querySelectorAll('.ttab'), function(x){ var on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-selected', on ? 'true' : 'false'); x.tabIndex = on ? 0 : -1; });
+      sset('tt', b.dataset.tt);
       Array.prototype.forEach.call(toolsEl.querySelectorAll('.tpanel'), function(p){ p.classList.toggle('on', p.dataset.tp === b.dataset.tt); });
     };
+  });
+  toolsEl.querySelector('.ttabs').addEventListener('keydown', function(e){
+    var k = e.key, tabs, i, rtl, d;
+    if (k !== 'ArrowLeft' && k !== 'ArrowRight' && k !== 'Home' && k !== 'End') return;
+    tabs = Array.prototype.slice.call(this.children); i = tabs.indexOf(document.activeElement); if (i < 0) return;
+    rtl = getComputedStyle(this).direction === 'rtl'; d = ((k === 'ArrowRight') === rtl) ? -1 : 1;
+    i = k === 'Home' ? 0 : k === 'End' ? tabs.length - 1 : (i + d + tabs.length) % tabs.length;
+    e.preventDefault(); tabs[i].click(); tabs[i].focus();
   });
   function cycleBtns(sel){
     var bs = Array.prototype.slice.call(document.querySelectorAll(sel)), i = -1, n;
@@ -7877,13 +7939,15 @@ var ocrSpell = (function(){
     var act = b.dataset.act, go = b.dataset.go, only = b.dataset.only, sel = b.dataset.click, el, tg, bt, sm, pt;
     if (act === 'theme') { toolsHold = true; try { cycleBtns('#thSw button'); } finally { toolsHold = false; } toolsSync(); return; }
     closeTools();
+    if (act === 'cfgExp') { cfgExport(); return; }
+    if (act === 'cfgImp') { $('#cfgFile').click(); return; }
     if (act === 'file') { fin.click(); return; }
     if (act === 'home') { showHome(); return; }
     if (act === 'resume') { if ($('#play').disabled) showHome(); else { hideHome(); setAppTab('read'); } return; }
     if (go) {
       if (only) { tg = pagesEl.querySelector(only); if (tg && tg.hidden) { setAppTab('read'); status('ابتدا یک PDF باز کنید.'); return; } }
       bt = b.querySelector('b'); sm = b.querySelector('small'); pt = b.querySelector('svg path');
-      setAppTab(go, { only: only, title: bt && bt.textContent, sub: sm && sm.textContent, icon: pt && pt.getAttribute('d') });
+      setAppTab(go, { only: only, title: b.dataset.title || (bt && bt.textContent), sub: b.dataset.sub || (sm && sm.textContent), icon: pt && pt.getAttribute('d') });
     }
     if (sel) {
       el = document.querySelector(sel);
@@ -7893,6 +7957,144 @@ var ocrSpell = (function(){
     }
   }
   Array.prototype.forEach.call(toolsEl.querySelectorAll('.tile,.tbanner'), function(b){ b.addEventListener('click', function(){ toolRun(b); }); });
+
+  /* ---- جستجوی تنظیمات، نشانگر «تغییریافته» و بازنشانی هر بخش ---- */
+  var CFG_DEF = {"vstyle":"natural","vclean":"2","vclarity":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', sqT = 0, chgQ = 0, cfgN = 0;
+  function sqNorm(s){ return String(s || '').toLowerCase().replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/[\u200c\u064b-\u0652]/g, '').replace(/\s+/g, ' ').trim(); }
+  Array.prototype.forEach.call(document.querySelectorAll(CFG_SEC), function(s){
+    var h = s.tagName === 'DETAILS' ? s.querySelector('summary .stt b') : s.querySelector('h3'), pn = s.closest('.panel');
+    if (!s.id) s.id = 'cs-' + (++cfgN);
+    s._t = h ? h.textContent.trim() : ''; s._pn = pn ? pn.dataset.panel : ''; s._sq = sqNorm(s.textContent);
+  });
+  function sqRun(){
+    var q = sqNorm($('#sqIn').value), box = $('#sqRes'), secs, hits = [], i, s, b, ti;
+    toolsEl.classList.toggle('sq-on', !!q); box.hidden = !q; box.textContent = '';
+    if (!q) return;
+    secs = document.querySelectorAll(CFG_SEC);
+    for (i = 0; i < secs.length; i++) {
+      s = secs[i]; if (s.hidden || !s._t) continue;
+      ti = sqNorm(s._t).indexOf(q) >= 0;
+      if (ti || s._sq.indexOf(q) >= 0) hits.push({ s: s, w: ti ? 0 : 1 });
+    }
+    hits.sort(function(a, b){ return a.w - b.w; });
+    if (!hits.length) { b = document.createElement('p'); b.textContent = 'موردی پیدا نشد.'; box.appendChild(b); return; }
+    hits.slice(0, 8).forEach(function(h){
+      var el = document.createElement('button'), m = TAB_META[h.s._pn] || ['', '', ''], bb = document.createElement('b'), sm = document.createElement('small');
+      el.type = 'button'; bb.textContent = h.s._t; sm.textContent = m[0]; el.appendChild(bb); el.appendChild(sm);
+      el.onclick = function(){
+        closeTools();
+        setAppTab(h.s._pn, { only: '#' + h.s.id, title: h.s._t, sub: m[0], icon: m[2] });
+      };
+      box.appendChild(el);
+    });
+  }
+  $('#sqIn').addEventListener('input', function(){ clearTimeout(sqT); sqT = setTimeout(sqRun, 120); });
+  function cfgSame(el, d){
+    if (el.type === 'checkbox') return el.checked === d;
+    var a = String(el.value), b = String(d), na = parseFloat(a), nb = parseFloat(b);
+    return (isFinite(na) && isFinite(nb) && a.trim() !== '') ? Math.abs(na - nb) < 1e-6 : a === b;
+  }
+  function cfgCtls(sec){ return Array.prototype.filter.call(sec.querySelectorAll('input[id],select[id]'), function(e){ return Object.prototype.hasOwnProperty.call(CFG_DEF, e.id); }); }
+  function chgScan(){
+    chgQ = 0;
+    Array.prototype.forEach.call(document.querySelectorAll(CFG_SEC), function(s){
+      var cs = cfgCtls(s), ch = false, i;
+      if (!cs.length) return;
+      for (i = 0; i < cs.length; i++) if (!cfgSame(cs[i], CFG_DEF[cs[i].id])) { ch = true; break; }
+      s.classList.toggle('chg', ch);
+    });
+  }
+  function chgSoon(){ if (!chgQ) chgQ = requestAnimationFrame(chgScan); }
+  Array.prototype.forEach.call(document.querySelectorAll(CFG_SEC), function(s){
+    if (!cfgCtls(s).length) return;
+    var b = document.createElement('button'), h = s.tagName === 'DETAILS' ? s.querySelector('summary') : s.querySelector('h3');
+    if (!h) return;
+    b.type = 'button'; b.className = 'rsb'; b.textContent = 'بازنشانی'; b.setAttribute('aria-label', 'بازنشانی این بخش به پیش‌فرض');
+    b.addEventListener('click', function(e){
+      var cs = cfgCtls(s), i, el, d;
+      e.preventDefault(); e.stopPropagation();
+      for (i = 0; i < cs.length; i++) {
+        el = cs[i]; d = CFG_DEF[el.id]; if (cfgSame(el, d)) continue;
+        if (el.type === 'checkbox') el.checked = d; else el.value = d;
+        if (el.type === 'range') el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      segRefresh(); chgScan(); status('بخش به پیش‌فرض بازنشانی شد.');
+    });
+    h.appendChild(b);
+  });
+  $('#mbody').addEventListener('input', chgSoon, true);
+  $('#mbody').addEventListener('change', chgSoon, true);
+  chgScan();
+
+  /* ---- پشتیبان و بازیابی خودِ تنظیمات (JSON) ---- */
+  var CFG_KEY = /^(bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|harakat)/;
+  function cfgExport(){
+    var s = {}, i, k, n = 0, txt, u, a;
+    try { for (i = 0; i < localStorage.length; i++) { k = localStorage.key(i); if (CFG_KEY.test(k)) { s[k] = localStorage.getItem(k); n++; } } } catch (e) {}
+    if (!n) { status('تنظیم ذخیره‌شده‌ای وجود ندارد.'); return; }
+    txt = JSON.stringify({ app: 'pdf-voice-reader', v: 1, t: new Date().toISOString(), s: s }, null, 1);
+    try {
+      u = URL.createObjectURL(new Blob([txt], { type: 'application/json' })); a = document.createElement('a');
+      a.href = u; a.download = 'تنظیمات-خوانندهٔ-صوتی.json'; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(u); }, 4000); status('تنظیمات ذخیره شد (' + nf.format(n) + ' مورد).');
+    } catch (e) { try { navigator.clipboard.writeText(txt); status('دانلود ممکن نشد؛ متن تنظیمات کپی شد.'); } catch (x) { status('خروجی گرفتن از تنظیمات ممکن نشد.'); } }
+  }
+  $('#cfgFile').onchange = function(){
+    var f = this.files && this.files[0], inp = this, r;
+    if (!f) return;
+    if (f.size > 262144) { status('فایل تنظیمات معتبر نیست.'); inp.value = ''; return; }
+    r = new FileReader();
+    r.onload = function(){
+      var o, k, n = 0;
+      try {
+        o = JSON.parse(String(r.result));
+        if (!o || o.app !== 'pdf-voice-reader' || !o.s || typeof o.s !== 'object') throw 0;
+        for (k in o.s) if (Object.prototype.hasOwnProperty.call(o.s, k) && CFG_KEY.test(k) && typeof o.s[k] === 'string' && o.s[k].length <= 4000) { localStorage.setItem(k, o.s[k]); n++; }
+      } catch (e) { status('فایل تنظیمات معتبر نیست.'); inp.value = ''; return; }
+      inp.value = '';
+      if (!n) { status('موردی برای وارد کردن نبود.'); return; }
+      status(nf.format(n) + ' تنظیم وارد شد؛ برنامه دوباره بارگذاری می‌شود…');
+      setTimeout(function(){ try { location.reload(); } catch (e) {} }, 900);
+    };
+    r.onerror = function(){ status('خواندن فایل ممکن نشد.'); inp.value = ''; };
+    r.readAsText(f);
+  };
+
+  /* ---- حالت‌های آماده (متعادل | مطالعهٔ طولانی | مصرف کم) ---- */
+  var prLock = false, PR_TXT = { bal: 'سرعت ۱×، موسیقی روشن، جلوه‌ها بر اساس توان گوشی.', read: 'سرعت ۰٫۹×، موسیقی خاموش، جلوه‌های سبک.', low: 'جلوه‌های فوق‌ساده و موسیقی خاموش؛ کم‌بارترین حالت.', '': 'تنظیم دستی.' };
+  function prFxDefault(){
+    var m = navigator.deviceMemory, c = navigator.hardwareConcurrency, r = false;
+    try { r = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (x) {}
+    return r ? 'flat' : ((m && m <= 3) || (c && c <= 4)) ? 'perf' : 'full';
+  }
+  function prCtl(id, v, ev){
+    var el = $('#' + id); if (!el) return;
+    if (el.type === 'checkbox') { if (el.checked === v) return; el.checked = v; }
+    else { if (String(el.value) === String(v)) return; el.value = v; }
+    el.dispatchEvent(new Event(ev, { bubbles: true }));
+  }
+  function prSync(){
+    var cur = sget('preset', ''), bs = document.querySelectorAll('#prSw button'), i;
+    for (i = 0; i < bs.length; i++) bs[i].setAttribute('aria-pressed', bs[i].dataset.pr === cur ? 'true' : 'false');
+    $('#prHint').textContent = PR_TXT[cur] || PR_TXT[''];
+  }
+  function prApply(id){
+    var fx = id === 'low' ? 'flat' : id === 'read' ? 'lite' : prFxDefault(), fb;
+    prLock = true;
+    try {
+      fb = document.querySelector('#fxSw button[data-fx="' + fx + '"]'); if (fb) fb.click();
+      prCtl('rate', id === 'read' ? 0.9 : 1, 'input');
+      prCtl('bgmOn', id === 'bal', 'change');
+    } finally { prLock = false; }
+    sset('preset', id); prSync();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('#prSw button'), function(b){ b.addEventListener('click', function(){ prApply(b.dataset.pr); }); });
+  function prDirty(){ if (prLock || !sget('preset', '')) return; sset('preset', ''); prSync(); }
+  $('#rate').addEventListener('input', prDirty);
+  $('#bgmOn').addEventListener('change', prDirty);
+  Array.prototype.forEach.call(document.querySelectorAll('#fxSw button'), function(b){ b.addEventListener('click', prDirty); });
+  prSync();
 
   /* ---- پخش‌کنندهٔ کوچک روی صفحه‌های تکی ---- */
   var miniEl = $('#mini');
@@ -7906,26 +8108,11 @@ var ocrSpell = (function(){
   $('#miniPlay').onclick = function(){ $('#play').click(); };
   $('#miniGo').onclick = function(){ setAppTab('read'); };
   if (window.MutationObserver) {
-    var moMini = new MutationObserver(function(){ syncMini(); syncPeek(); syncPct(); });
+    var syncQ = 0, moMini = new MutationObserver(function(){ if (syncQ) return; syncQ = requestAnimationFrame(function(){ syncQ = 0; syncMini(); syncPeek(); syncPct(); }); });
     moMini.observe($('#play'), { attributes: true, attributeFilter: ['disabled'] });
     moMini.observe($('#pos'), { childList: true, characterData: true, subtree: true });
     moMini.observe($('#docTitle'), { childList: true, characterData: true, subtree: true });
   }
-
-  /* ---- افکت ریپل ---- */
-  document.addEventListener('click', function(e){
-    var fx = document.documentElement.getAttribute('data-fx'), b, r, s, sp;
-    if (fx === 'perf' || fx === 'flat') return;
-    try { if (window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches) return; } catch (x) {}
-    b = e.target.closest && e.target.closest('.btn,.chip,.tile,.xbtn,.ttab,.sw button,.pill,.tbanner');
-    if (!b || b.disabled) return;
-    r = b.getBoundingClientRect(); s = Math.max(r.width, r.height);
-    sp = document.createElement('span'); sp.className = 'ripple';
-    sp.style.width = sp.style.height = s + 'px';
-    sp.style.left = ((e.clientX || r.left + r.width / 2) - r.left - s / 2) + 'px';
-    sp.style.top = ((e.clientY || r.top + r.height / 2) - r.top - s / 2) + 'px';
-    b.appendChild(sp); setTimeout(function(){ if (sp.parentNode) sp.parentNode.removeChild(sp); }, 600);
-  });
 
   /* خروج از برنامه */
   function exitFallback(){
@@ -7943,7 +8130,7 @@ var ocrSpell = (function(){
   $('#menuOpen').onclick = function(){ fin.click(); };
   document.addEventListener('keydown', function(e){
     if (e.key !== 'Escape') return;
-    if (toolsOn) { e.preventDefault(); closeTools(); menuBtn.focus(); return; }
+    if (toolsOn) { e.preventDefault(); closeTools(true); return; }
     if (curTab !== 'read') { e.preventDefault(); setAppTab('read'); }
   });
   setAppTab('read');
