@@ -3246,7 +3246,7 @@ var ocrSpell = (function(){
         if (gu && d.gpuFiles && d.ortGpu && self.navigator && self.navigator.gpu) { try { var gad = await self.navigator.gpu.requestAdapter(); wg = !!gad; try { var gi = (gad && gad.info) || {}; P.dx.vd = [gi.vendor, gi.architecture, gi.description].filter(Boolean).join('/').slice(0, 80); if (/mali|valhall/i.test(P.dx.vd)) { wg = false; P.dx.imp = 'denylist:' + P.dx.vd; } } catch (e2) {}   /* r18: Mali/Valhall خروجی نادرست می‌دهد ← بدون ساخت سشن GPU مستقیم WASM */ } catch (e) { wg = false; P.dx.imp = 'adapter: ' + String((e && e.message) || e).slice(0, 100); } P.dx.ad = wg; }
         if (!self.ort) {
           if (wg) { try { importScripts(d.ortGpu); gb = true; } catch (e) { wg = false; P.dx.imp = 'import: ' + String((e && e.message) || e).slice(0, 100); } }
-          if (!self.ort) { try { importScripts(d.ort); } catch (e) { throw new Error('موتور ONNX پیدا نشد: ocr/ort/ort.min.js'); } }
+          if (!self.ort) { try { importScripts(d.ort); } catch (e) { throw new Error('موتور ONNX پیدا نشد: ocr/ort/ort.min.js ← ' + String((e && ((e.name || '') + ': ' + (e.message || ''))) || e).slice(0, 160) + ' ← ' + String(d.ort).slice(0, 80)); } }
         }
         hc = (self.navigator && self.navigator.hardwareConcurrency) || 1;
         if (d.thr && (gb ? d.thr.j : d.thr.p) && self.crossOriginIsolated && typeof SharedArrayBuffer !== 'undefined') thr = d.nt > 0 ? Math.max(1, Math.min(d.nt | 0, hc)) : Math.max(1, Math.min(4, hc >> 1));   /* r15: ۸ نخ روی big.LITTLE کندتر است؛ پیش‌فرض ½ هسته (حداکثر ۴)، قابل تغییر با ocrNT(n) */
@@ -3451,6 +3451,12 @@ var ocrSpell = (function(){
   }
   var probeBad = [], padLoc = null, PADF = ['ocr/ort/ort.min.js', 'ocr/ort/ort-wasm-simd.wasm', 'ocr/paddle/PP-OCRv5_mobile_det.onnx', 'ocr/paddle/arabic_PP-OCRv5_mobile_rec.onnx', 'ocr/paddle/arabic_PP-OCRv5_mobile_rec_dict.txt'];
   function absUrl(u){ return new URL(u, location.href).href; }
+  async function ortProbe(){   /* r24: وضعیت واقعی فایل‌های OCR از دید WebView (status · content-type · length) */
+    var o = { href: location.href }, f = ['ocr/ort/ort.min.js', 'ocr/ort/ort-wasm-simd.wasm', 'ocr/paddle/arabic_PP-OCRv5_mobile_rec_dict.txt'], i, r;
+    for (i = 0; i < f.length; i++) { try { r = await fetch(absUrl(f[i]), { cache: 'no-store' }); o[f[i]] = r.status + ' · ' + (r.headers.get('content-type') || '-') + ' · ' + (r.headers.get('content-length') || '-'); try { if (r.body) r.body.cancel(); } catch (x) {} } catch (e) { o[f[i]] = 'ERR ' + String((e && e.message) || e).slice(0, 60); } }
+    return o;
+  }
+  window.ocrProbe = async function(){ return JSON.stringify(await ortProbe()); };
   function probe(u){
     return fetch(absUrl(u)).then(function(r){
       var ok = r.ok && !/html/i.test(r.headers.get('content-type') || '');
@@ -3698,7 +3704,7 @@ var ocrSpell = (function(){
         var ow = ln.ow = ocrwSpawn();
         if (!ow) throw new Error('OCR به Worker نیاز دارد و روی این دستگاه پشتیبانی نمی‌شود.');
         try { ocrEp = await ow.call('pinit', { ort: absUrl(PADF[0]), ortGpu: absUrl(OPTF[0]), ortBase: absUrl('ocr/ort/'), det: absUrl(PADF[2]), rec: absUrl(PADF[3]), detOrt: absUrl('ocr/paddle/PP-OCRv5_mobile_det.ort'), recOrt: absUrl('ocr/paddle/arabic_PP-OCRv5_mobile_rec.ort'), ort: sget('ocrOrt', '') !== '0', dict: absUrl(PADF[4]), side: PDET[qv] || 1472, sums: PSUM, lex: lexList(), gpu: !!(!noGpu && !gpuBad() && $('#ocrGpu').checked), gpuFiles: !!opt.gpu, thr: noThr ? null : opt.thr, dsk: $('#ocrDsk').checked, dn: $('#ocrDn').checked, rh: +sget('ocrRecH', '48') || 48, nt: +sget('ocrNT', '0') || 0 }, null, function(){ status('بارگذاری موتور OCR…'); }); var dxr = null, ask = !noGpu && !gpuBad() && $('#ocrGpu').checked; try { dxr = await ow.call('dx'); ln.dx = dxr; if (ocrPerf && dxr) (ocrPerf.dx = ocrPerf.dx || {})['l' + ln.i] = dxr; } catch (x) {} gpuNote(ocrEp, ask, dxr); }
-        catch (e) { if (!noThr && opt.thr && /THR:/.test(em(e))) { try { ow.kill(); } catch (x) {} return spawn(ln, noGpu, true); } throw e; }
+        catch (e) { if (!noThr && opt.thr && /THR:/.test(em(e))) { try { ow.kill(); } catch (x) {} return spawn(ln, noGpu, true); } try { ortProbe().then(function(p){ window.__elog.add('ocr', 'probe ' + JSON.stringify(p)); }); } catch (x) {} throw e; }
       };
       var l1 = { i: 0, ow: null, killed: false, rs: 0, pre: null };
       var sg = [qv, $('#ocrGpu').checked, !!opt.gpu, opt.thr, $('#ocrDsk').checked, $('#ocrDn').checked, lexMemo.n].join('|');
@@ -5821,7 +5827,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r23 · 2026-10-18 · nat-diag', npBuild = '';
+  var APP_BUILD = 'html-r24 · 2026-10-18 · ort-probe', npBuild = '';
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r17: عیب‌یابی crossOriginIsolated — هدرهای واقعی سند را می‌خواند؛ اگر هدرها هست ولی coi=false (سند پیش از تعویض WebViewClient بار شده) یک‌بار صفحه را بازبارگذاری می‌کند */
   try { if (!window.crossOriginIsolated && window.fetch) fetch(location.href, { cache: 'no-store' }).then(function(r){
