@@ -252,10 +252,8 @@ input[type=checkbox]:checked{background:var(--accent)}
 input[type=checkbox]:checked::after{transform:translateX(-18px)}
 input[type=checkbox]:disabled{opacity:.45;cursor:not-allowed}
 details.acc{border:1px solid var(--line);border-radius:16px;background:var(--card-bg);box-shadow:var(--card-sh)}
-details.acc>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:6px 14px;font-weight:700;font-size:.9rem;line-height:1.5}
+details.acc>summary{list-style:none;cursor:default;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:6px 14px;font-weight:700;font-size:.9rem;line-height:1.5}
 details.acc>summary::-webkit-details-marker{display:none}
-details.acc>summary::after,details.sub>summary::after{content:"";flex:none;width:9px;height:9px;border-inline-end:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin-top:-4px;transition:transform .25s,margin .25s}
-details[open]>summary::after{transform:rotate(-135deg);margin-top:4px}
 details.acc>.in{display:grid;gap:9px;padding:0 14px 12px}
 details.sub{border-top:1px solid var(--line)}
 details.sub>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:38px;font-size:.84rem;font-weight:700;color:var(--ink)}
@@ -330,29 +328,12 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
 .mfrow3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .mfrow3 .btn{min-width:0;padding-inline:6px}
 #mfStat{text-align:end}
-.rdb[hidden]{display:none}
-.pged{display:grid;gap:8px;font-family:var(--font);font-size:.95rem;line-height:1.6}
-.pgedh{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.8rem;color:var(--muted);font-weight:600}
-.pgedbar{position:sticky;top:6px;z-index:5;display:grid;gap:6px;padding:8px;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.1)}
-.pgedr{display:flex;flex-wrap:wrap;gap:6px}
-.pgedk{min-width:38px;height:38px;padding:0 9px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:1.05rem;line-height:1;cursor:pointer;touch-action:manipulation}
-.pgedk.t{font-size:.78rem;font-weight:600}
-.pgedk:active{background:color-mix(in srgb,var(--accent) 18%,transparent)}
-.pgedk:disabled{opacity:.4}
-#pgEdTx{width:100%;box-sizing:border-box;min-height:200px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink);font-family:var(--rfont);font-size:inherit;line-height:2.05;resize:none;overflow:hidden;direction:rtl}
-#pgEdTx:focus{outline:2px solid var(--accent);outline-offset:1px}
-.pgedact{display:flex;flex-wrap:wrap;gap:8px}
-.pgedact .btn{flex:1 1 auto}
-.pgedi{flex:1 1 110px;min-width:0;height:38px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:inherit;font-size:.9rem;direction:rtl}
-.pgedi:focus{outline:2px solid var(--accent);outline-offset:1px}
-.pgedc{display:inline-flex;align-items:center;gap:4px;font-size:.78rem;color:var(--muted);white-space:nowrap}
-.pgedpv{display:grid;gap:6px;padding:8px;border:1px solid var(--accent);border-radius:12px;background:var(--paper);font-family:var(--font)}
-.pgedpvh{font-size:.8rem;font-weight:600;color:var(--muted)}
-.pgedpv .pvb{max-height:42vh;overflow:auto;white-space:pre-wrap;direction:rtl;line-height:2;font-family:var(--rfont);overscroll-behavior:contain}
-.pgedpv del{background:color-mix(in srgb,#e5484d 24%,transparent);text-decoration:line-through;border-radius:3px}
-.pgedpv ins{background:color-mix(in srgb,#30a46c 26%,transparent);text-decoration:none;border-radius:3px}
-.pgedpv .pvg{color:var(--muted)}
-.pged .hint{margin:0;min-height:1.4em}
+.mfqk{position:sticky;top:0;z-index:4;display:grid;gap:6px;padding:6px;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.mfqr{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.mfqr::-webkit-scrollbar{display:none}
+.mfqk button{flex:0 0 auto;min-width:36px;height:36px;padding:0 9px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:1.05rem;line-height:1;cursor:pointer;touch-action:manipulation}
+.mfqk button.t{font-size:.78rem;font-weight:600}
+.mfqk button:active{background:color-mix(in srgb,var(--accent) 18%,transparent)}
 
 /* ===== جلوه‌های بصری: کامل | سبک | بهینه | فوق‌ساده (html[data-fx]) ===== */
 /* سبک: پس‌زمینهٔ ثابت، بدون تاری شیشه‌ای، بدون درخشش و نبض متحرک */
@@ -484,7 +465,6 @@ details.acc[open]>summary{border-bottom:1px solid var(--line);margin-bottom:10px
 #txtReset{margin-top:2px}
 .bgcfg{display:none!important}
 .tpanel .tile:last-child:nth-child(odd){grid-column:1/-1}
-details.acc>summary::after,details.sub>summary::after{border-inline-end:0 solid transparent;border-right:2px solid var(--muted)}
 
 /* ============================================================
    چیدمان جدید به سبک «کارو»: هدر برندی، نوار تب پایین با دکمهٔ مرکزی، صفحه‌های تب‌دار،
@@ -565,15 +545,6 @@ body.mini-on .panel{padding-bottom:88px}
 .mtxt b{font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mtxt small{font-size:.7rem;color:var(--muted)}
 
-.bkgrp{grid-column:1/-1;display:grid;border:1px solid var(--line);border-radius:14px;padding:2px 10px}
-.bkrow{display:flex;align-items:center;gap:6px;min-height:56px;padding:6px 0}
-.bkrow+.bkrow{border-top:1px solid var(--line)}
-.bkl{flex:1;min-width:0;display:grid;line-height:1.4}
-.bkl b{font-size:.8rem;font-weight:800}
-.bkl small{font-size:.7rem;color:var(--muted)}
-.tile.bkb{flex:none;min-height:44px;padding:6px 10px;gap:5px;font-size:.76rem;font-weight:700;justify-content:center;border:1px solid var(--line);border-radius:12px}
-.bkb svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.bkb.t-a{color:var(--accent)}.bkb.t-b{color:var(--accent-2)}
 .tile.exitB{grid-column:1/-1;margin-top:4px;border:1px solid color-mix(in srgb,#c0392b 35%,var(--line))}
 .exitB .tic{background:color-mix(in srgb,#c0392b 14%,transparent);color:#c0392b}
 .tsearch{padding:0 0 8px}
@@ -608,6 +579,8 @@ body.mini-on .panel{padding-bottom:88px}
 :root[data-fx="perf"] .tmenu.sheet,:root[data-fx="flat"] .tmenu.sheet{animation:none}
 .tlbl{grid-column:1/-1;margin:8px 4px 2px;font-size:.74rem;font-weight:800;color:var(--muted)}
 .cfgrow{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.cfgrow.c2{grid-template-columns:repeat(2,1fr)}
+.cfgrow.c2 .tile small{line-height:1.35}
 .tpanel .cfgrow .tile:last-child:nth-child(odd){grid-column:auto}
 .cfgrow .tile{flex-direction:column;justify-content:center;text-align:center;gap:4px;min-height:68px;padding:8px 4px}
 /* رندر تنبل گروه‌های تنظیمات (گوشی‌های ضعیف) */
@@ -618,11 +591,18 @@ body.mini-on .panel{padding-bottom:88px}
 .tmenu{position:absolute;top:calc(100% + 10px);left:0;width:min(21rem,calc(100vw - 24px));max-height:min(78vh,560px);max-height:min(78dvh,560px);overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;border-radius:20px;background:var(--paper);color:var(--ink);border:1px solid var(--glass-line);box-shadow:var(--shadow);text-align:start;animation:fadein2 .15s ease both}
 .ttabs{position:sticky;top:0;z-index:2;display:flex;gap:2px;padding:8px 8px 0;background:var(--paper);border-bottom:1px solid var(--line)}
 .ttab{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:10px 4px;font:inherit;font-size:.76rem;font-weight:800;color:var(--muted);background:transparent;border:0;border-bottom:2px solid transparent;border-radius:12px 12px 0 0;cursor:pointer;transition:color .2s,background .2s}
+@media (max-width:420px){.ttab svg{display:none}}
 .ttab svg{flex:none;width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ttab.on{color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);border-bottom-color:var(--accent)}
 .tbody{padding:10px}
 .tpanel{display:none;grid-template-columns:1fr 1fr;gap:6px}
 .tpanel.on{display:grid}
+.tmenu.gm .ttabs,.tmenu.gm .tsearch,.tmenu.gm .tres,.tmenu.gm .tpanel:not(#tpanel-device){display:none!important}
+.tmenu.gm #tpanel-device{display:grid}
+.tmenu:not(.gm) #tpanel-device{display:none!important}
+.tmenu.sheet.gm{inset:0 0 auto 0;top:0;bottom:auto;max-height:min(60vh,420px);max-height:min(60dvh,420px);border-radius:0 0 22px 22px;padding:env(safe-area-inset-top,0px) 0 0;animation:sheetdown .22s ease both}
+.tmenu.sheet.gm .tbody::after{content:"";display:block;width:36px;height:4px;border-radius:2px;background:var(--line);margin:10px auto 2px}
+@keyframes sheetdown{from{transform:translateY(-28px);opacity:0}}
 .tile{display:flex;align-items:center;gap:8px;min-height:56px;padding:8px 6px;border-radius:14px;border:0;background:transparent;color:var(--ink);font:inherit;text-align:start;cursor:pointer;transition:background .2s,transform .12s}
 .tile:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .tile:active{transform:scale(.97)}
@@ -846,6 +826,16 @@ body.view-page:not(.no-sents) #reader,body.view-page.no-sents.has-doc #reader{di
 .vs-x{flex:none;width:36px;height:36px;display:grid;place-items:center;padding:0;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
 .vs-x svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
 .vs-sec{font-size:.78rem;font-weight:700;color:var(--muted);margin:12px 2px 6px}
+.vfx{display:grid;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.vfx>b{font-size:.86rem}
+.vfl{display:grid;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.vfr{display:flex;align-items:center;gap:6px;padding:8px 10px}
+.vfr+.vfr{border-top:1px solid var(--line)}
+.vfr .vn{flex:1;min-width:0;display:grid;gap:2px}
+.vfr .vn b{font-size:.82rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vfr .vn small{font-size:.68rem;color:var(--muted)}
+.vfr .btn{min-height:34px;padding:2px 10px;font-size:.74rem}
+.vfx .btn:disabled{opacity:.45;cursor:default}
 .vs-voices{display:grid;gap:8px}
 .vs-v{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border-radius:18px;border:1.5px solid var(--line);background:transparent;color:inherit;font:inherit;text-align:start;cursor:pointer;transition:border-color .2s,background .2s}
 .vs-v .vav{width:54px;height:54px;box-shadow:0 6px 14px -6px var(--a2,#2b3fa8)}
@@ -919,24 +909,6 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 .hempty span{font-size:.8rem;color:var(--muted)}
 
 /* ===== کارت ذخیره‌سازی و دکمه‌های قرصی ===== */
-.sbtn{flex:none;min-height:38px;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;font-size:.74rem;font-weight:700;cursor:pointer;transition:background .15s,color .15s}
-.sbtn:active{background:color-mix(in srgb,currentColor 12%,transparent)}
-.sbtn:disabled{opacity:.45;pointer-events:none}
-.sbtn.pri{background:var(--accent);color:#fff;border-color:transparent}
-.sbtn.dng{color:#c0392b;border-color:color-mix(in srgb,#c0392b 38%,var(--line))}
-.sbtn.arm{background:#c0392b;color:#fff;border-color:transparent}
-.sbtn.wide{width:100%;min-height:44px;font-size:.82rem}
-.stcard{grid-column:1/-1;display:grid;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:14px}
-.stcard .sth{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-.stcard .sth b{font-size:.84rem;font-weight:800}
-.stcard .sth span{font-size:.7rem;color:var(--muted)}
-.stbar{height:8px;border-radius:99px;overflow:hidden;background:color-mix(in srgb,var(--ink) 9%,transparent)}
-.stbar i{display:block;height:100%;width:0;border-radius:inherit;background:var(--accent);transition:width .35s}
-.stbar i.hi{background:#c0392b}
-.stsub{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.7rem;color:var(--muted)}
-.stcard .bkrow{border-top:1px solid var(--line);min-height:52px;padding:6px 0}
-.tile.bkb{border-radius:999px;padding:6px 14px}
-:root[data-fx="perf"] .stbar i,:root[data-fx="flat"] .stbar i{transition:none}
 </style>
 </head>
 <body data-apptab="read">
@@ -966,10 +938,9 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
       <b class="rdt" id="rdTitle" dir="auto"></b>
       <button class="rdb" id="rdSearch" type="button" aria-label="جستجو در متن" title="جستجو"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"/></svg></button>
       <button class="rdb" id="rdMode" type="button" aria-label="نمایش متن" aria-pressed="true" title="نمای صفحه / متن"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h7"/></svg></button>
-      <button class="rdb" id="rdEdit" type="button" aria-label="ویرایش دستی صفحه" aria-pressed="false" title="ویرایش دستی صفحه" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg></button>
       <button class="rdb" id="rdFav" type="button" aria-label="افزودن به مورد علاقه" aria-pressed="false" title="مورد علاقه"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"/></svg></button>
       <button class="rdb" id="rdBm" type="button" aria-label="نشانه‌ها و یادداشت" title="نشانه‌ها"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4zM12 7v6M9 10h6"/></svg></button>
-      <button class="rdb" id="rdMore" type="button" aria-label="تنظیمات و ابزارها" title="تنظیمات"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      <button class="rdb" id="rdMore" type="button" aria-label="گزارش خطا و خروج" title="تنظیمات"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
     <div class="hbar" id="hBar">
       <div class="hcorner hc-r">
@@ -987,53 +958,26 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         <div id="tscrim" hidden></div>
         <div class="tmenu" id="toolsMenu" hidden role="dialog" aria-label="منوی ابزار">
           <div class="ttabs" role="tablist" aria-label="بخش‌های منوی ابزار">
-            <button type="button" class="ttab on" role="tab" aria-selected="true" id="ttab-main" aria-controls="tpanel-main" tabindex="0" data-tt="main"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg><span>اصلی</span></button>
-            <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-tools" aria-controls="tpanel-tools" tabindex="-1" data-tt="tools"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.3-.6-.6-2.3z"/></svg><span>ابزارها</span></button>
-            <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-data" aria-controls="tpanel-data" tabindex="-1" data-tt="data"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg><span>داده‌ها</span></button>
-            <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-device" aria-controls="tpanel-device" tabindex="-1" data-tt="device"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM11 18h2"/></svg><span>پیشرفته</span></button>
+            <button type="button" class="ttab on" role="tab" aria-selected="true" id="ttab-voice" aria-controls="tpanel-voice" tabindex="0" data-tt="voice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg><span>صدا</span></button>
+            <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-text" aria-controls="tpanel-text" tabindex="-1" data-tt="text"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/></svg><span>متن</span></button>
+            <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-view" aria-controls="tpanel-view" tabindex="-1" data-tt="view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg><span>نمایش</span></button>
           </div>
           <div class="tbody">
             <div class="tsearch"><input id="sqIn" type="search" enterkeyhint="search" autocomplete="off" placeholder="جستجو در تنظیمات…" aria-label="جستجو در تنظیمات"></div>
             <div class="tres" id="sqRes" hidden></div>
-            <div class="tpanel on" id="tpanel-main" role="tabpanel" aria-labelledby="ttab-main" data-tp="main">
-<p class="tlbl">تنظیمات کامل</p>
-<div class="cfgrow"><button type="button" class="tile t-a" data-go="voice" data-title="تنظیمات صدا" data-sub="همهٔ بخش‌ها"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg></span><span class="tx"><b>صدا</b></span></button><button type="button" class="tile t-b" data-go="text" data-title="تنظیمات متن" data-sub="همهٔ بخش‌ها"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/></svg></span><span class="tx"><b>متن</b></span></button><button type="button" class="tile t-g" data-go="view" data-title="تنظیمات نمایش" data-sub="همهٔ بخش‌ها"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></svg></span><span class="tx"><b>نمایش</b></span></button></div>
-<button type="button" class="tile t-g" data-go="voice" data-only="#styleBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h2M8 8v8M12 5v14M16 8v8M20 12h-2"/></svg></span><span class="tx"><b>سبک گفتار</b><small>لحن و آرامش صدا</small></span></button>
+            <div class="tpanel on" id="tpanel-voice" role="tabpanel" aria-labelledby="ttab-voice" data-tp="voice">
+<p class="tlbl">تنظیمات صدا</p>
+<div class="cfgrow c2"><button type="button" class="tile t-a" data-go="voice" data-only="#spkBox,#styleBox,#rateBox,#paceBox" data-title="گوینده و گفتار" data-sub="سبک، سرعت و مکث"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg></span><span class="tx"><b>گوینده و گفتار</b><small>سبک، سرعت و مکث</small></span></button><button type="button" class="tile t-b" data-go="voice" data-only="#qualBox,#bgmBox" data-title="کیفیت و موسیقی" data-sub="نویز، شفافیت و موسیقی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8v8M8 5v14M12 9v6M16 6v12M20 10v4"/></svg></span><span class="tx"><b>کیفیت و موسیقی</b><small>نویز، شفافیت و موسیقی</small></span></button><button type="button" class="tile t-g" data-go="voice" data-only="#sleepBox,#advBox" data-title="تایمر و پیشرفته" data-sub="خواب و اطلاعات فنی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/></svg></span><span class="tx"><b>تایمر و پیشرفته</b><small>خواب و اطلاعات فنی</small></span></button></div>
             </div>
-            <div class="tpanel" id="tpanel-tools" role="tabpanel" aria-labelledby="ttab-tools" data-tp="tools">
-<button type="button" class="tile t-a" data-go="text" data-only="#ocrBox" data-click="#ocrBtn"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/></svg></span><span class="tx"><b>اجرای OCR</b><small>از صفحهٔ فعلی</small></span></button>
-<button type="button" class="tile t-b" data-click="#manBtn"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg></span><span class="tx"><b>اسکن دستی</b><small>ناحیه یا کل صفحه</small></span></button>
-<button type="button" class="tile t-a" data-go="text" data-only="#dictBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h10"/></svg></span><span class="tx"><b>واژه‌نامهٔ تلفظ</b><small>افزودن و ویرایش</small></span></button>
-<button type="button" class="tile t-g" data-go="voice" data-only="#bgmBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 16a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/></svg></span><span class="tx"><b>موسیقی پس‌زمینه</b><small>همراه با خواندن</small></span></button>
-<button type="button" class="tile t-b" data-go="voice" data-only="#qualBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8v8M8 5v14M12 9v6M16 6v12M20 10v4"/></svg></span><span class="tx"><b>کیفیت صدا</b><small>نویز، شفافیت و بهبود</small></span></button>
-<button type="button" class="tile t-b" data-go="view" data-only="#presetBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6"/></svg></span><span class="tx"><b>حالت‌های آماده</b><small>متعادل، مطالعه، مصرف کم</small></span></button>
+            <div class="tpanel" id="tpanel-text" role="tabpanel" aria-labelledby="ttab-text" data-tp="text">
+<p class="tlbl">تنظیمات متن</p>
+<div class="cfgrow c2"><button type="button" class="tile t-a" data-go="text" data-only="#txtbox,#cleanBox,#fixbox,#dictBox,#txtReset" data-title="ساختار و تلفظ" data-sub="متن، پاک‌سازی و واژه‌نامه"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/></svg></span><span class="tx"><b>ساختار و تلفظ</b><small>متن، پاک‌سازی و واژه‌نامه</small></span></button><button type="button" class="tile t-b" data-go="text" data-only="#ocrBox,#offbox" data-title="OCR و آفلاین" data-sub="خواندن تصویر و فایل‌ها"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"/></svg></span><span class="tx"><b>OCR و آفلاین</b><small>خواندن تصویر و فایل‌ها</small></span></button><button type="button" class="tile t-b" data-click="#manBtn"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg></span><span class="tx"><b>اسکن دستی</b><small>ناحیه یا کل صفحه</small></span></button></div>
             </div>
-            <div class="tpanel" id="tpanel-data" role="tabpanel" aria-labelledby="ttab-data" data-tp="data">
-<p class="tlbl">فضا و پاک‌سازی</p>
-<div class="stcard" id="stCard">
-  <div class="sth"><b>فضای ذخیره‌سازی</b><span id="stcTot">…</span></div>
-  <div class="stbar" role="progressbar" aria-label="مصرف فضای برنامه" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="stcBar"><i id="stcFill"></i></div>
-  <div class="stsub"><span id="stcPers"></span><button type="button" class="sbtn" id="stcPersB" hidden>پایدار کن</button></div>
-  <div class="bkrow"><span class="bkl"><b>کتابخانهٔ PDF</b><small id="stcLib">…</small></span><button type="button" class="sbtn" data-a="openLib">مدیریت</button><button type="button" class="sbtn dng" data-a="trimLib" data-ar="حذف قدیمی‌ها؟">کم‌کردن</button></div>
-  <div class="bkrow"><span class="bkl"><b>صداهای ذخیره‌شده</b><small id="stcAud">…</small></span><button type="button" class="sbtn" data-a="openAud">سقف</button><button type="button" class="sbtn dng" data-a="clrAud" data-ar="پاک شود؟">پاک‌کردن</button></div>
-  <div class="bkrow"><span class="bkl"><b>نتایج OCR</b><small id="stcOcr">…</small></span><button type="button" class="sbtn dng" data-a="clrOcr" data-ar="حذف شود؟">پاک‌کردن</button></div>
-  <div class="bkrow"><span class="bkl"><b>تصویر فایل‌ها</b><small id="stcTh">…</small></span><button type="button" class="sbtn dng" data-a="clrTh" data-ar="پاک شود؟">پاک‌کردن</button></div>
-  <button type="button" class="sbtn pri wide" data-a="smart">پاک‌سازی هوشمند</button>
-  <p class="hint" id="stcMsg" aria-live="polite"></p>
-</div>
-<p class="tlbl">پشتیبان‌گیری و بازیابی</p>
-<div class="bkgrp" role="group" aria-label="پشتیبان‌گیری و بازیابی">
-<div class="bkrow"><span class="bkl"><b>کتابخانه (ZIP)</b><small>PDFها و جای خواندن</small></span><button type="button" class="tile bkb t-a" data-go="lib" data-only="#stBox" data-click="#stExp" data-title="صادرات ZIP" data-sub="کتابخانهٔ PDFها"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>خروجی</span></button><button type="button" class="tile bkb t-b" data-go="lib" data-only="#stBox" data-click="#stImp" data-title="واردات ZIP" data-sub="بازیابی آرشیو"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg><span>ورودی</span></button></div>
-<div class="bkrow"><span class="bkl"><b>حافظهٔ نهان صدا</b><small>صداهای ساخته‌شده</small></span><button type="button" class="tile bkb t-a" data-go="voice" data-only="#advBox" data-click="#acExp" data-title="خروجی حافظهٔ نهان" data-sub="صداهای ساخته‌شده"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>خروجی</span></button><button type="button" class="tile bkb t-b" data-go="voice" data-only="#advBox" data-click="#acImp" data-title="ورودی حافظهٔ نهان" data-sub="از فایل ZIP"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg><span>ورودی</span></button></div>
-<div class="bkrow"><span class="bkl"><b>واژه‌نامهٔ تلفظ</b><small>فایل txt</small></span><button type="button" class="tile bkb t-a" data-go="text" data-only="#dictBox" data-click="#dictExp" data-title="برون‌بری واژه‌نامه" data-sub="فایل txt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>خروجی</span></button><button type="button" class="tile bkb t-b" data-go="text" data-only="#dictBox" data-click="#dictImp" data-title="درون‌ریزی واژه‌نامه" data-sub="از فایل txt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg><span>ورودی</span></button></div>
-<div class="bkrow"><span class="bkl"><b>تنظیمات برنامه</b><small>فایل JSON؛ بدون PDF و متن</small></span><button type="button" class="tile bkb t-a" data-act="cfgExp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>خروجی</span></button><button type="button" class="tile bkb t-b" data-act="cfgImp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg><span>ورودی</span></button></div>
-<input type="file" id="cfgFile" accept=".json,application/json" hidden>
-</div>
+            <div class="tpanel" id="tpanel-view" role="tabpanel" aria-labelledby="ttab-view" data-tp="view">
+<p class="tlbl">تنظیمات نمایش</p>
+<div class="cfgrow c2"><button type="button" class="tile t-g" data-go="view" data-only="#presetBox,#themeBox,#fxBox" data-title="ظاهر و جلوه‌ها" data-sub="آماده، پوسته و جلوه‌ها"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg></span><span class="tx"><b>ظاهر و جلوه‌ها</b><small>آماده، پوسته و جلوه‌ها</small></span></button><button type="button" class="tile t-a" data-go="view" data-only="#fontBox,#navGrp" data-title="قلم و پیمایش" data-sub="اندازهٔ متن و رفتن به صفحه"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20l7-16 7 16M8 14h8"/></svg></span><span class="tx"><b>قلم و پیمایش</b><small>اندازهٔ متن و رفتن به صفحه</small></span></button></div>
             </div>
             <div class="tpanel" id="tpanel-device" role="tabpanel" aria-labelledby="ttab-device" data-tp="device">
-<button type="button" class="tile t-a" data-act="theme"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></span><span class="tx"><b>پوسته</b><small id="thTileSub">خودکار</small></span></button>
-<button type="button" class="tile t-b" data-go="view" data-only="#fxBox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg></span><span class="tx"><b>جلوه‌های بصری</b><small>کامل تا فوق‌ساده</small></span></button>
-<button type="button" class="tile t-b" data-go="text" data-only="#offbox"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></span><span class="tx"><b>وضعیت آفلاین</b><small>بررسی فایل‌ها</small></span></button>
 <button type="button" class="tile t-g" data-go="voice" data-only="#advBox" data-click="#logShow"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6"/></svg></span><span class="tx"><b>گزارش خطا</b><small>برای عیب‌یابی</small></span></button>
 <button type="button" class="tile t-b exitB" ><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></span><span class="tx"><b>خروج</b><small>بستن برنامه</small></span></button>
             </div>
@@ -1064,7 +1008,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         <button class="hti" id="hNewF" type="button" aria-label="ایجاد پوشه" title="ایجاد پوشه"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM12 10v6M9 13h6"/></svg></button>
         <button class="hti" id="hLay" type="button" aria-label="نمایش شبکه‌ای" title="چیدمان"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg></button>
         <button class="hti" id="hSortB" type="button" aria-label="مرتب‌سازی" title="مرتب‌سازی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h6"/></svg></button>
-        <button class="rdb" id="hGear" type="button" aria-label="تنظیمات و ابزارها" title="تنظیمات"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+        <button class="rdb" id="hGear" type="button" aria-label="گزارش خطا و خروج" title="تنظیمات"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
       </div>
       <div class="hsearch" id="hSearchRow" hidden><input id="hQ" type="search" dir="auto" autocomplete="off" placeholder="جستجوی نام فایل…" aria-label="جستجوی نام فایل"><button class="hti" id="hQx" type="button" aria-label="بستن جستجو"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       <div class="hsortp" id="hSortP" hidden role="group" aria-label="مرتب‌سازی">
@@ -1159,21 +1103,6 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         </div>
       </details>
 
-      <details class="acc" id="vfbox" hidden>
-        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></i><span class="stt"><b>پوشهٔ ذخیرهٔ صداها</b><small>نسخهٔ پشتیبان صداهای دانلودشده</small></span></summary>
-        <div class="in">
-          <p class="hint" id="vfName"></p>
-          <div class="two">
-            <button class="btn" id="vfPick" type="button">انتخاب پوشه</button>
-            <button class="btn" id="vfSave" type="button" disabled>ذخیره در پوشه</button>
-          </div>
-          <button class="btn wide" id="vfLoad" type="button" disabled>بارگذاری صداها از پوشه</button>
-          <button class="btn wide" id="vfRef" type="button">تازه‌سازی (بررسی دوبارهٔ فایل‌ها)</button>
-          <div class="slist"><label class="chk"><input type="checkbox" id="vfAuto" checked><span class="st"><b>ذخیرهٔ خودکار در پوشه</b><small>بعد از هر دانلود در پوشه ذخیره می‌شود و صداهای گم‌شده خودکار از پوشه بارگذاری می‌شوند.</small></span></label></div>
-          <p class="hint" id="vfMsg" aria-live="polite"></p>
-          <details class="sub hintbox"><summary>راهنما</summary><div class="in"><p class="hint">یک پوشه روی گوشی انتخاب کنید تا صداهای دانلودشده به‌صورت فایل zip در آن ذخیره شوند. بعد از نصب دوبارهٔ برنامه یا روی گوشی دیگر، همان پوشه را انتخاب و صداها را بدون دانلود بارگذاری کنید.</p></div></details>
-        </div>
-      </details>
     </div>
 
     <!-- صدا -->
@@ -1183,7 +1112,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
       <input type="hidden" id="engine" value="piper">
 
 <div class="cfgv">
-      <section class="grp">
+      <section class="grp" id="spkBox">
         <h3>گوینده</h3>
         <div class="field">
           <label for="voice"><span>صدای خواننده</span></label>
@@ -1196,6 +1125,21 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             <button class="btn primary" id="pdl" type="button">نصب صدای فارسی</button>
             <button class="btn" id="pRef" type="button" title="بررسی دوبارهٔ فایل‌های صدا">تازه‌سازی</button>
           </div>
+        </div>
+        <div class="vfx" id="vfbox">
+          <b>ذخیره و بارگذاری صداها</b>
+          <p class="hint" id="vfName">ذخیره و بارگذاری صداها فقط در اپ اندروید (موتور بومی) کار می‌کند.</p>
+          <div class="two">
+            <button class="btn" id="vfPick" type="button" disabled>انتخاب مسیر ذخیره</button>
+            <button class="btn" id="vfRef" type="button">تازه‌سازی</button>
+          </div>
+          <div class="vfl" id="vfList"></div>
+          <div class="two">
+            <button class="btn" id="vfSave" type="button" disabled>ذخیرهٔ همهٔ صداها</button>
+            <button class="btn" id="vfLoad" type="button" disabled>بارگذاری همه از مسیر</button>
+          </div>
+          <div class="slist"><label class="chk"><input type="checkbox" id="vfAuto" checked><span class="st"><b>ذخیرهٔ خودکار</b><small>هر صدای تازه‌نصب‌شده در مسیر انتخابی ذخیره می‌شود و صداهای گم‌شده خودکار از آن بارگذاری می‌شوند.</small></span></label></div>
+          <p class="hint" id="vfMsg" aria-live="polite"></p>
         </div>
         <p class="hint">کاملاً رایگان و بدون سقف است؛ صدا یک‌بار بعد از نصب برنامه دانلود می‌شود و از آن به بعد بدون اینترنت کار می‌کند. ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
       </section>
@@ -1240,7 +1184,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         <p class="hint">اگر صدا روبوتی یا «غ‌غ‌غ» شد: «حذف نویز» را روی «خاموش» یا «ملایم» بگذارید و اگر مشکل ماند «بهبود کیفیت صدا» را خاموش کنید. با هر تغییر، جمله‌ها دوباره ساخته می‌شوند.</p>
 </section>
 <div class="cfgv">
-        <div class="slist">
+        <div class="slist" id="paceBox">
           <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است؛ مثل نفس‌گیری گوینده. سرعت خود صدا تغییر نمی‌کند.</small></span></label>
           <label class="chk"><input type="checkbox" id="smartPace"><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
           <label class="chk"><input type="checkbox" id="phLex" checked><span class="st"><b>واژه‌نامهٔ آوایی داخلی</b><small>برای صدها واژهٔ پرکاربرد، کوتاه‌مصوت‌ها (َ ِ ُ) را مشخص می‌کند تا تلفظ دقیق‌تر شود. اگر جایی عجیب خوانده شد خاموشش کنید.</small></span></label>
@@ -1248,7 +1192,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 </div>
 
 <div class="cfgv">
-      <section class="grp">
+      <section class="grp" id="rateBox">
         <h3>سرعت گفتار</h3>
         <div class="field">
           <label for="rate"><span>سرعت</span><span id="rateV"></span></label>
@@ -1486,7 +1430,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         <p class="hint" id="prHint" aria-live="polite"></p>
       </section>
 
-      <section class="grp">
+      <section class="grp" id="themeBox">
         <h3>پوسته</h3>
         <div class="sw" id="thSw" style="grid-template-columns:repeat(3,1fr)">
           <button type="button" data-th="auto" aria-pressed="false"><i style="background:linear-gradient(135deg,#f4f6fb 50%,#0b1430 50%)"></i>خودکار</button>
@@ -1509,7 +1453,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         </div></details>
       </section>
 
-      <section class="grp">
+      <section class="grp" id="fontBox">
         <h3>متن</h3>
         <div class="fsrow">
           <button class="btn sm" id="fsDn" type="button" aria-label="کوچک‌تر کردن متن">آ−</button>
@@ -1615,6 +1559,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           <p class="hint">اعراب‌گذاری آفلاین است؛ حالت «هوشمند» کسرهٔ اضافه را با قاعده و تقریبی می‌گذارد، پس برای متن فنی یا ادبی پس از اعمال مرور کنید. اگر متنی را انتخاب کنید، ویرایش فقط روی همان اعمال می‌شود.</p>
         </div>
       </details>
+      <div class="mfqk" id="mfQk" role="toolbar" aria-label="ابزار سریع ویرایش متن"></div>
       <textarea id="manTx" dir="rtl" spellcheck="false" aria-label="متن صفحه"></textarea>
       <p class="hint" id="mfStat" aria-live="off"></p>
       <div class="btnrow">
@@ -1716,6 +1661,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
     });
     if (prev && list.some(function(v){ return v.id === prev; })) sel.value = prev;
     if (pp) updatePiperStatus();
+    vfDraw();
     if (VS) VS.sync();
   }
   function labelVoices(){
@@ -1875,7 +1821,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
       loadPiper();
       return PiperTTS.stored().then(function(a){
         var v = engVoice();
-        HAVE = a || []; labelVoices();
+        HAVE = a || []; labelVoices(); vfDraw();
         var done = !!v && (a || []).indexOf(v.id) >= 0;
         st.textContent = done ? 'صدا نصب شده و آفلاین کار می‌کند.' : 'این صدا هنوز نصب نشده است (حدود ' + nf.format((v && v.mb) || 60) + ' مگابایت؛ یک‌بار دانلود و نصب می‌شود، سپس بدون اینترنت کار می‌کند).';
         btn.hidden = done;
@@ -1941,36 +1887,73 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
   loadVoices();
   setTimeout(loadVoices, 600);
 
-  /* ---------- voices folder (native Android, SAF) ---------- */
-  var vfFirst = true;
+  /* ---------- ذخیره/بارگذاری صداهای گوینده در مسیر دلخواه کاربر (Android SAF) ---------- */
+  var vfFirst = true, vfIds = [], vfSet = false, vfBusy = false;
   function em(e){ return (e && (e.message || e.errorMessage)) || String(e); }
   function vfMsg(t){ $('#vfMsg').textContent = t || ''; }
+  function vfVName(id){ var a = allVoices(), i; for (i = 0; i < a.length; i++) if (a[i].id === id) return a[i].name; return id; }
+  function vfBtns(){
+    var ok = npOK && !!NP;
+    $('#vfPick').disabled = !ok || vfBusy;
+    $('#vfSave').disabled = !ok || !vfSet || vfBusy;
+    $('#vfLoad').disabled = !ok || !vfSet || vfBusy;
+    $('#vfRef').disabled = vfBusy;
+  }
+  function vfDraw(){
+    var box = $('#vfList'), a = allVoices(), ok = npOK && !!NP && vfSet && !vfBusy, f = document.createDocumentFragment(), i, v, have, inF, r, n, b1, b2, t;
+    box.textContent = '';
+    for (i = 0; i < a.length; i++) {
+      v = a[i]; if (v.gender === 'f' || FEM_ID.test(v.id)) continue;
+      have = HAVE.indexOf(v.id) >= 0; inF = (vfIds || []).indexOf(v.id) >= 0;
+      r = document.createElement('div'); r.className = 'vfr';
+      n = document.createElement('span'); n.className = 'vn';
+      t = document.createElement('b'); t.textContent = v.name; n.appendChild(t);
+      t = document.createElement('small'); t.textContent = (have ? 'نصب‌شده' : 'نصب‌نشده') + (vfSet ? ' · ' + (inF ? 'در مسیر ذخیره هست' : 'در مسیر نیست') : ''); n.appendChild(t);
+      b1 = document.createElement('button'); b1.type = 'button'; b1.className = 'btn'; b1.textContent = 'ذخیره'; b1.dataset.a = 's'; b1.dataset.id = v.id; b1.disabled = !ok || !have;
+      b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'btn'; b2.textContent = 'بارگذاری'; b2.dataset.a = 'l'; b2.dataset.id = v.id; b2.disabled = !ok || !inF;
+      r.appendChild(n); r.appendChild(b1); r.appendChild(b2); f.appendChild(r);
+    }
+    box.appendChild(f);
+  }
   function vfRefresh(){
-    if (!npOK || !NP) return Promise.resolve();
+    if (!npOK || !NP) { vfBtns(); vfDraw(); return Promise.resolve(); }
     return NP.folder().then(function(r){
-      var set = !!(r && r.set), ids = (r && r.ids) || [];
-      $('#vfbox').hidden = false;
-      $('#vfName').textContent = set ? 'پوشهٔ انتخاب‌شده: ' + (r.name || '—') + (ids.length ? ' — ' + nf.format(ids.length) + ' صدا در پوشه' : ' — هنوز صدایی در آن نیست') : 'هنوز پوشه‌ای انتخاب نشده است.';
-      $('#vfSave').disabled = $('#vfLoad').disabled = !set;
-      if (set && vfFirst && $('#vfAuto').checked && ids.length) {
+      var ids = (r && r.ids) || [];
+      vfSet = !!(r && r.set); vfIds = ids;
+      $('#vfName').textContent = vfSet ? 'مسیر ذخیره: ' + (r.name || '—') + (ids.length ? ' — ' + nf.format(ids.length) + ' صدا در آن هست' : ' — هنوز صدایی در آن نیست') : 'هنوز مسیری انتخاب نشده است؛ «انتخاب مسیر ذخیره» را بزنید.';
+      vfBtns(); vfDraw();
+      if (vfSet && vfFirst && $('#vfAuto').checked && ids.length) {
         vfFirst = false;
         return NP.stored().then(function(have){
           var miss = ids.filter(function(i){ return (have.ids || []).indexOf(i) < 0; });
           if (!miss.length) return;
-          vfMsg('در حال بارگذاری خودکار صداها از پوشه…');
-          return NP.importVoices({ ids: miss }).then(function(x){ vfMsg(x.count ? nf.format(x.count) + ' صدا از پوشه بارگذاری شد.' : ''); updatePiperStatus(); });
+          vfMsg('در حال بارگذاری خودکار صداها از مسیر ذخیره…');
+          return NP.importVoices({ ids: miss }).then(function(x){ vfMsg(x.count ? nf.format(x.count) + ' صدا از مسیر بارگذاری شد.' : ''); updatePiperStatus(); });
         });
       }
     }).catch(function(){});
   }
   function vfAuto(id){
-    if (npOK && NP && $('#vfAuto').checked && !$('#vfSave').disabled) NP.exportVoices({ ids: [id] }).then(vfRefresh, function(){});
+    if (npOK && NP && vfSet && $('#vfAuto').checked) NP.exportVoices({ ids: [id] }).then(vfRefresh, function(){});
+  }
+  function vfRun(msg, fn, done){   /* یک عملیات در هر لحظه؛ دکمه‌ها تا پایان قفل می‌مانند */
+    if (vfBusy || !npOK || !NP) return;
+    vfBusy = true; vfMsg(msg); vfBtns(); vfDraw();
+    Promise.resolve().then(fn).then(function(r){ vfMsg(done(r || {})); }, function(e){ vfMsg(em(e)); }).then(function(){ vfBusy = false; updatePiperStatus(); return vfRefresh(); });
   }
   $('#vfAuto').checked = sget('vfAuto', '1') !== '0';
   $('#vfAuto').onchange = function(){ sset('vfAuto', this.checked ? '1' : '0'); };
-  $('#vfPick').onclick = function(){ NP.pickFolder().then(function(){ vfMsg(''); vfFirst = true; return vfRefresh(); }, function(e){ vfMsg('انتخاب پوشه انجام نشد: ' + em(e)); }); };
-  $('#vfSave').onclick = function(){ vfMsg('در حال ذخیره در پوشه…'); NP.exportVoices({}).then(function(r){ vfMsg(nf.format(r.count) + ' صدا در پوشه ذخیره شد.'); return vfRefresh(); }, function(e){ vfMsg(em(e)); }); };
-  $('#vfLoad').onclick = function(){ vfMsg('در حال بارگذاری از پوشه…'); NP.importVoices({}).then(function(r){ vfMsg(r.count ? nf.format(r.count) + ' صدا از پوشه بارگذاری شد.' : 'صدای جدیدی برای بارگذاری نبود؛ صداهای موجود دست‌نخورده می‌مانند.'); updatePiperStatus(); }, function(e){ vfMsg(em(e)); }); };
+  $('#vfPick').onclick = function(){ if (vfBusy || !NP) return; NP.pickFolder().then(function(){ vfMsg(''); vfFirst = true; return vfRefresh(); }, function(e){ vfMsg('انتخاب مسیر انجام نشد: ' + em(e)); }); };
+  $('#vfSave').onclick = function(){ vfRun('در حال ذخیره در مسیر انتخاب‌شده…', function(){ return NP.exportVoices({}); }, function(r){ return r.count ? nf.format(r.count) + ' صدا در مسیر ذخیره شد.' : 'صدای نصب‌شده‌ای برای ذخیره نبود.'; }); };
+  $('#vfLoad').onclick = function(){ vfRun('در حال بارگذاری از مسیر ذخیره…', function(){ return NP.importVoices({}); }, function(r){ return r.count ? nf.format(r.count) + ' صدا از مسیر بارگذاری شد.' : 'صدای جدیدی برای بارگذاری نبود؛ صداهای موجود دست‌نخورده می‌مانند.'; }); };
+  $('#vfList').onclick = function(ev){   /* یک شنوندهٔ واحد برای همهٔ ردیف‌ها (بدون نشت حافظه) */
+    var b = ev.target.closest ? ev.target.closest('button[data-a]') : null, id, sv;
+    if (!b || b.disabled) return;
+    id = b.dataset.id; sv = b.dataset.a === 's';
+    vfRun(sv ? 'در حال ذخیرهٔ «' + vfVName(id) + '»…' : 'در حال بارگذاری «' + vfVName(id) + '»…',
+      function(){ return sv ? NP.exportVoices({ ids: [id] }) : NP.importVoices({ ids: [id] }); },
+      function(r){ return r.count ? '«' + vfVName(id) + (sv ? '» در مسیر ذخیره شد.' : '» بارگذاری شد.') : (sv ? 'ذخیره انجام نشد؛ ابتدا صدا را نصب کنید.' : 'این صدا در مسیر پیدا نشد.'); });
+  };
 
   /* تازه‌سازی: فایل‌های صدا و پوشه دوباره بررسی می‌شوند؛ صدای پاک‌شده دوباره دکمهٔ دانلود می‌گیرد */
   function refreshVoices(){
@@ -2317,7 +2300,7 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
   window.addEventListener('pagehide', function(){ if (ocrBusy && ocrFlush) ocrFlush(); });                  /* ocrMeta[p] = {w: ok|blank_contrast|no_boxes|filtered, v: نسخهٔ موتور+کیفیت, q: اطمینان} */
   function ocrVer(){ var q = $('#ocrQ'); return OCR_VER + ':' + (q ? q.value : ''); }
   function ocrDone(p){ if (ocrPages[p] == null) return false; var m = ocrMeta[p]; return !(m && m.w !== 'ok' && m.v !== ocrVer()); }   /* صفحهٔ خالی/بی‌خط فقط تا همان نسخهٔ موتور «انجام‌شده» است */
-  function ocrHarMap(){ var o = {}, p; for (p in ocrMeta) if (ocrMeta[p] && (ocrMeta[p].har || ocrMeta[p].man) && ocrDone(+p)) o[p] = ocrMeta[p].man ? 2 : 1; return o; }   /* ۲ = صفحهٔ ویرایش‌شدهٔ دستی: بدون پاک‌سازی OCR/املا/چسبیدگی و با حفظ سطرها */
+  function ocrHarMap(){ var o = {}, p; for (p in ocrMeta) if (ocrMeta[p] && ocrMeta[p].har && ocrDone(+p)) o[p] = 1; return o; }
   function ocrEdMap(){ var o = {}, p; for (p in ocrMeta) if (ocrMeta[p].ed && ocrDone(+p)) o[p] = ocrMeta[p].ed; return o; }
   function ocrActive(){ var o = {}, p; for (p in ocrPages) if (ocrDone(+p)) o[p] = ocrPages[p]; return o; }
   function ocrTodo(){ return need.filter(function(p){ return !ocrDone(p); }); }
@@ -3549,7 +3532,7 @@ var ocrSpell = (function(){
         if (!inR(i + 1)) { pre[i] = []; return; }
         var hp = har[i + 1], ky = lite ? (ocrPages[i + 1] != null ? 1 : 0) + '|' + (hp ? JSON.stringify(hp) : '') + '|' + t : '', h = pm && pm[i];
         if (h && h.k === ky) { pre[i] = h.p; dropped += h.d; return; }
-        var s = normL(clean(prep(ocrPages[i + 1] != null && hp !== 2 ? ocrPurge(tocFx(t)) : tocFx(t)), hp === 2 ? 'line' : O.ln), hp);
+        var s = normL(clean(prep(ocrPages[i + 1] != null ? ocrPurge(tocFx(t)) : tocFx(t)), O.ln), hp);
         if (O.glue && !hp) s = glueFix(s);
         if (O.spell && ocrPages[i + 1] != null && !hp) s = ocrSpell(s, fq);
         if (ocrPages[i + 1] != null && ocrFx.length) s = ocrFxApply(s);
@@ -3631,7 +3614,7 @@ var ocrSpell = (function(){
     var fq = O.spell ? ocrSpell.freq(pg.filter(function(t, i){ return ocrPages[i + 1] != null; })) : null;
     pg = pg.map(function(t, i){
       if (!inR(i + 1)) return '';
-      var s = normL(clean(prep(ocrPages[i + 1] != null && har[i + 1] !== 2 ? ocrPurge(tocFx(t)) : tocFx(t)), har[i + 1] === 2 ? 'line' : O.ln), har[i + 1]);
+      var s = normL(clean(prep(ocrPages[i + 1] != null ? ocrPurge(tocFx(t)) : tocFx(t)), O.ln), har[i + 1]);
       if (O.glue && !har[i + 1]) s = glueFix(s);
       if (O.spell && ocrPages[i + 1] != null && !har[i + 1]) s = ocrSpell(s, fq);
         if (ocrPages[i + 1] != null && ocrFx.length) s = ocrFxApply(s);
@@ -5223,9 +5206,8 @@ var ocrSpell = (function(){
     });
     d.style.minHeight = '';
   }
-  var edQ = 0;                                                       /* صفحه‌ای که ویرایشگر دستی در آن باز است؛ پاک نمی‌شود */
   function unrenderPage(q){
-    var d = pgEls[q]; if (!d || !d.firstChild || q === edQ || (sents[idx] && sents[idx].page === q)) return;
+    var d = pgEls[q]; if (!d || !d.firstChild || (sents[idx] && sents[idx].page === q)) return;
     d.style.minHeight = d.offsetHeight + 'px'; d.textContent = '';
     pageParas[q].forEach(function(ids){ ids.forEach(function(i){ sents[i].el = null; }); });
   }
@@ -6141,7 +6123,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r40 · 2026-10-19 · page-editor-find+diff', npBuild = '';
+  var APP_BUILD = 'html-r44 · 2026-10-19 · gear-top', npBuild = '';
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r17: عیب‌یابی crossOriginIsolated — هدرهای واقعی سند را می‌خواند؛ اگر هدرها هست ولی coi=false (سند پیش از تعویض WebViewClient بار شده) یک‌بار صفحه را بازبارگذاری می‌کند */
   try { if (!window.crossOriginIsolated && window.fetch) fetch(location.href, { cache: 'no-store' }).then(function(r){
@@ -7371,7 +7353,7 @@ var ocrSpell = (function(){
     try { Promise.resolve(NP.keepAwake({ on: kw, cpu: kw })).catch(function(){ kaBad = true; }); } catch (e) { kaBad = true; }
   }
   function ui(){
-    kaSync(); edSync();
+    kaSync();
     var has = sents.length > 0 && canSpeak();
     $('#play').disabled = !has;
     $('#prev').disabled = !has;
@@ -7760,66 +7742,6 @@ var ocrSpell = (function(){
   $('#libBox').addEventListener('toggle', function(){ if (this.open) libRender(); });
   libRender();
 
-  /* ---------- کارت «فضای ذخیره‌سازی» در تب داده‌ها ---------- */
-  var stcBusy = false, stcTok = 0, stcArm = null;
-  function stcSz(b){ return b > 0 ? libSize(b) : '۰ بایت'; }
-  function stcMsg(s){ var el = $('#stcMsg'); if (el) el.textContent = s || ''; }
-  function stcDisarm(b){ if (!b) return; clearTimeout(b._at); b.classList.remove('arm'); if (b._tx) b.textContent = b._tx; stcArm = null; }
-  function stcRefresh(){
-    var tok = ++stcTok;
-    stEstC = null;
-    Promise.all([stEst(), libIdx(), achStat(), kvScan('ocr'), kvScan('th:'),
-      navigator.storage && navigator.storage.persisted ? navigator.storage.persisted().catch(function(){ return false; }) : false]).then(function(r){
-      if (tok !== stcTok) return;
-      var s = r[0], lib = r[1], au = r[2], oc = r[3], th = r[4], pers = r[5], cap = stCapB(), pc, sum = stSum(lib) + au.b + oc.b + th.b, used = s && s.quota ? s.usage : sum;
-      $('#stcLib').textContent = nf.format(lib.length) + ' فایل · ' + stcSz(stSum(lib)) + (cap ? ' · سقف ' + libSize(cap).replace(' مگابایت', 'MB') : '');
-      $('#stcAud').textContent = nf.format(au.n) + ' قطعه · ' + stcSz(au.b);
-      $('#stcOcr').textContent = oc.n ? nf.format(oc.docs) + ' فایل · حدود ' + libSize(oc.b) : 'چیزی ذخیره نشده';
-      $('#stcTh').textContent = th.n ? nf.format(th.n - th.x) + ' تصویر · ' + libSize(th.b) : 'چیزی ذخیره نشده';
-      pc = s && s.quota ? Math.min(100, Math.round(used * 100 / s.quota)) : 0;
-      $('#stcTot').textContent = s && s.quota ? stcSz(used) + ' از ' + libSize(s.quota) + ' (' + nf.format(pc) + '٪)' : libSize(sum);
-      $('#stcFill').style.width = pc + '%'; $('#stcFill').classList.toggle('hi', pc >= 85);
-      $('#stcBar').setAttribute('aria-valuenow', String(pc));
-      $('#stcPers').textContent = pers ? 'ذخیره‌سازی پایدار فعال است' : 'ناپایدار؛ در کمبود فضا ممکن است پاک شود';
-      $('#stcPersB').hidden = !!pers || !(navigator.storage && navigator.storage.persist);
-      var set = function(a, n){ var b = document.querySelector('#stCard [data-a="' + a + '"]'); if (b) b.disabled = !n; };
-      set('trimLib', lib.length); set('clrAud', au.n); set('clrOcr', oc.n); set('clrTh', th.n);
-    }).catch(function(){});
-  }
-  function stcDo(a){
-    if (a === 'openLib') { closeTools(); setAppTab('lib', { only: '#libBox', title: 'PDFهای ذخیره‌شده', sub: 'کتابخانه', icon: (TAB_META.lib || [])[2] }); return Promise.resolve(); }
-    if (a === 'openAud') { closeTools(); setAppTab('voice', { only: '#advBox', title: 'سقف حافظهٔ صدا', sub: 'صدا', icon: (TAB_META.voice || [])[2] }); return Promise.resolve(); }
-    if (a === 'trimLib') return libLock(function(){
-      return libIdx().then(function(l){ var tot = stSum(l), cap = stCapB(), d = tot - (cap || tot) * 0.6; return d > 0 ? stEvict(l, d, {}) : { n: 0, freed: 0 }; });
-    }).then(function(r){ libRender(); stcMsg(r.n ? nf.format(r.n) + ' فایل قدیمی حذف و ' + libSize(r.freed) + ' آزاد شد.' : 'چیزی برای حذف نبود.'); });
-    if (a === 'clrAud') return achClear().then(function(ok){ stcMsg(ok ? 'حافظهٔ صدا پاک شد؛ در پخش بعدی دوباره ساخته می‌شود.' : 'پاک‌کردن حافظهٔ صدا ممکن نشد.'); });
-    if (a === 'clrOcr') return kvScan('ocr', true).then(function(r){ stcMsg(nf.format(r.n) + ' بخش از نتایج OCR حذف شد.'); });
-    if (a === 'clrTh') return kvScan('th:', true).then(function(r){ stcMsg(nf.format(r.n) + ' تصویر حذف شد؛ هنگام نمایش فهرست دوباره ساخته می‌شود.'); if ($('#homeView')) hRender(); });
-    if (a === 'smart') {
-      var rep = [];
-      return kvScan('th:', true, true).then(function(r){ if (r.n) rep.push(nf.format(r.n) + ' تصویر ناموفق برای تلاش دوباره آزاد شد'); return achStat(); })
-        .then(function(b0){ return achTrim().then(achStat).then(function(b1){ if (b0.b > b1.b) rep.push(libSize(b0.b - b1.b) + ' از حافظهٔ صدا آزاد شد'); }); })
-        .then(function(){ return libLock(function(){ return libIdx().then(function(l){ var tot = stSum(l), cap = stCapB(); return cap && tot > cap ? stEvict(l, tot - cap * 0.6, {}) : { n: 0, freed: 0 }; }); }); })
-        .then(function(r){ if (r.n) { rep.push(nf.format(r.n) + ' فایل قدیمی کتابخانه حذف شد'); libRender(); } stcMsg(rep.length ? rep.join('؛ ') + '.' : 'همه‌چیز مرتب است؛ چیزی برای پاک‌سازی نبود.'); });
-    }
-    return Promise.resolve();
-  }
-  $('#stCard').addEventListener('click', function(e){
-    var b = e.target.closest ? e.target.closest('button') : null, a;
-    if (!b || stcBusy) return;
-    if (b.id === 'stcPersB') { try { navigator.storage.persist().then(function(ok){ stcMsg(ok ? 'ذخیره‌سازی پایدار فعال شد.' : 'مرورگر درخواست را نپذیرفت؛ معمولاً بعد از چند بار استفاده از برنامه فعال می‌شود.'); stcRefresh(); }); } catch (x) {} return; }
-    a = b.dataset.a; if (!a) return;
-    if (b.dataset.ar) {
-      if (!b.classList.contains('arm')) {
-        stcDisarm(stcArm); b._tx = b.textContent; b.textContent = b.dataset.ar; b.classList.add('arm'); stcArm = b;
-        b._at = setTimeout(function(){ stcDisarm(b); }, 3500); return;
-      }
-      stcDisarm(b);
-    }
-    stcBusy = true; stcMsg('در حال انجام…');
-    stcDo(a).catch(function(){ stcMsg('انجام نشد.'); }).then(function(){ stcBusy = false; stEstC = null; stcRefresh(); });
-  });
-
   /* ---------- background music ---------- */
   var bgm = { el: null, ctx: null, gain: null, dk: null, dm: 1, dT: 0, url: '', loaded: false, preview: false, off: 0, re: 0, blocked: false };
   var BGM_MAX = 0.6;
@@ -8178,7 +8100,7 @@ var ocrSpell = (function(){
     var s = window.getSelection ? window.getSelection() : null;
     if (!s || s.isCollapsed || !s.rangeCount) return '';
     var n = s.getRangeAt(0).commonAncestorContainer; n = n.nodeType === 1 ? n : n.parentNode;
-    if (!n || !$('#reader').contains(n) || (n.closest && n.closest('.pged'))) return '';
+    if (!n || !$('#reader').contains(n)) return '';
     return String(s).replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
   }
   function selUpdate(){
@@ -8221,7 +8143,6 @@ var ocrSpell = (function(){
     return String(s).replace(/[\u064B-\u065F\u0670]/g, '').replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '').trim();
   }
   $('#reader').addEventListener('dblclick', function(e){
-    if (e.target.closest && e.target.closest('.pged')) return;
     var w = wordAt(e); if (!w || /\s/.test(w) || w.indexOf('=') >= 0) return;
     try { window.getSelection().removeAllRanges(); } catch (x) {}
     $('#selBar').hidden = true;
@@ -8335,6 +8256,7 @@ var ocrSpell = (function(){
 
   /* ---------- صفحه‌های تکی، منوی ابزار و پخش‌کنندهٔ کوچک ---------- */
   var pagesEl = $('#menu'), curTab = 'read', tabHist = false, tabSkip = 0, TAB_ORDER = ['lib', 'voice', 'text', 'view'];
+  var DEFONLY = { voice: '#spkBox,#styleBox,#rateBox,#paceBox', text: '#txtbox,#cleanBox,#fixbox,#dictBox,#txtReset', view: '#presetBox,#themeBox,#fxBox' };   /* ورود بی‌انتخاب به یک تب = نخستین صفحهٔ گروهی */
   var TAB_META = {
     lib: ['کتابخانه', 'فایل‌های ذخیره‌شده', 'M5 4h4v16H5zM11 4h4v16h-4zM17.5 5l3 .8-3.6 14-3-.8z'],
     voice: ['صدا', 'گوینده، سرعت و گفتار', 'M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4'],
@@ -8354,6 +8276,7 @@ var ocrSpell = (function(){
   function setAppTab(t, o, fromPop){
     o = o || {};
     if (t !== 'read' && TAB_ORDER.indexOf(t) < 0) t = 'read';
+    if (!o.only && DEFONLY[t]) o.only = DEFONLY[t];
     var was = curTab; curTab = t;
     document.body.dataset.apptab = t;
     if (t !== 'read') {
@@ -8361,6 +8284,7 @@ var ocrSpell = (function(){
       Array.prototype.forEach.call(pagesEl.querySelectorAll('.panel'), function(p){ p.classList.toggle('on', p === panel); });
       Array.prototype.forEach.call(panel.children, function(k){ k.classList.toggle('solo-off', !!o.only && !k.matches(o.only) && !k.querySelector(o.only)); });
       if (o.only) { tg = panel.querySelector(o.only); if (tg && tg.tagName === 'DETAILS') tg.open = true; }
+      Array.prototype.forEach.call(panel.querySelectorAll('details.acc'), function(d){ if (!d.open && !d.closest('.solo-off')) d.open = true; });   /* بدون فلش: کادرها همیشه بازند */
       $('#mbody').scrollTop = 0;
       if (t === 'lib') setTimeout(function(){ libRender(); stRender(); }, 80);
       if (was === 'read' && !tabHist) { try { history.pushState({ pdfTab: 1 }, ''); tabHist = true; } catch (e) {} }
@@ -8381,19 +8305,23 @@ var ocrSpell = (function(){
     if (curTab !== 'read') { tabHist = false; setAppTab('read', null, true); }
   });
   $('#pageClose').onclick = function(){ setAppTab('read'); };
+  document.addEventListener('click', function(e){          /* سرتیتر کادرها بسته نمی‌شود (دکمه‌های داخل سرتیتر مثل بازنشانی کار می‌کنند) */
+    var sm = e.target.closest ? e.target.closest('details.acc>summary') : null;
+    if (sm && !e.target.closest('button,a,input,select,label,.rsb')) e.preventDefault();
+  }, true);
 
   /* ---- منوی ابزار ---- */
   var toolsEl = $('#toolsMenu'), menuBtn = $('#menuBtn'), toolsOn = false, toolsHold = false;
   function toolsSync(){
     var th = document.querySelector('#thSw button[aria-pressed="true"]');
-    $('#thTileSub').textContent = th ? th.textContent.trim() : 'خودکار';
+    var ts = $('#thTileSub'); if (ts) ts.textContent = th ? th.textContent.trim() : 'خودکار';
   }
   var toolsHome = toolsEl.parentNode, scrimEl = $('#tscrim'), narrowMQ = window.matchMedia ? matchMedia('(max-width:520px)') : null;
-  function openTools(){ toolsSync(); toolsOn = true;
-    var lt = sget('tt', 'main'), lb = toolsEl.querySelector('.ttab[data-tt="' + lt + '"]'); if (lb && !lb.classList.contains('on')) lb.click();
-    if (narrowMQ && narrowMQ.matches) { toolsHome = toolsEl.parentNode; toolsEl.classList.add('sheet'); document.body.appendChild(toolsEl); scrimEl.hidden = false; }
+  function openTools(m){ var gm = m === 'gear'; toolsSync(); toolsOn = true; toolsEl.classList.toggle('gm', gm);
+    if (!gm) { var lt = sget('tt', 'voice'), lb = toolsEl.querySelector('.ttab[data-tt="' + lt + '"]'); if (lb && !lb.classList.contains('on')) lb.click(); }
+    if (gm || (narrowMQ && narrowMQ.matches)) { toolsHome = toolsEl.parentNode; toolsEl.classList.add('sheet'); document.body.appendChild(toolsEl); scrimEl.hidden = false; }
     toolsEl.hidden = false;
-    var ct = toolsEl.querySelector('.ttab.on'); if (ct && ct.dataset.tt === 'data') stcRefresh(); menuBtn.setAttribute('aria-expanded', 'true'); var ft = toolsEl.querySelector('.ttab.on'); if (ft) try { ft.focus({ preventScroll: true }); } catch (x) {} }
+    menuBtn.setAttribute('aria-expanded', 'true'); var ft = toolsEl.querySelector(gm ? '#tpanel-device .tile' : '.ttab.on'); if (ft) try { ft.focus({ preventScroll: true }); } catch (x) {} }
   function closeTools(refocus){ if (!toolsOn) return; toolsOn = false; toolsEl.hidden = true; scrimEl.hidden = true; if (toolsEl.classList.contains('sheet')) { toolsEl.classList.remove('sheet'); toolsHome.appendChild(toolsEl); } if ($('#sqIn').value) { $('#sqIn').value = ''; sqRun(); } menuBtn.setAttribute('aria-expanded', 'false'); if (refocus === true) try { menuBtn.focus({ preventScroll: true }); } catch (x) {} }
   menuBtn.onclick = function(e){ e.stopPropagation(); if (toolsOn) closeTools(); else openTools(); };
   toolsEl.addEventListener('click', function(e){ e.stopPropagation(); });
@@ -8402,7 +8330,6 @@ var ocrSpell = (function(){
     b.onclick = function(){
       Array.prototype.forEach.call(toolsEl.querySelectorAll('.ttab'), function(x){ var on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-selected', on ? 'true' : 'false'); x.tabIndex = on ? 0 : -1; });
       sset('tt', b.dataset.tt);
-      if (b.dataset.tt === 'data') stcRefresh();
       Array.prototype.forEach.call(toolsEl.querySelectorAll('.tpanel'), function(p){ p.classList.toggle('on', p.dataset.tp === b.dataset.tt); });
     };
   });
@@ -8423,13 +8350,11 @@ var ocrSpell = (function(){
     var act = b.dataset.act, go = b.dataset.go, only = b.dataset.only, sel = b.dataset.click, el, tg, bt, sm, pt;
     if (act === 'theme') { toolsHold = true; try { cycleBtns('#thSw button'); } finally { toolsHold = false; } toolsSync(); return; }
     closeTools();
-    if (act === 'cfgExp') { cfgExport(); return; }
-    if (act === 'cfgImp') { $('#cfgFile').click(); return; }
     if (act === 'file') { fin.click(); return; }
     if (act === 'home') { showHome(); return; }
     if (act === 'resume') { if ($('#play').disabled) showHome(); else { hideHome(); setAppTab('read'); } return; }
     if (go) {
-      if (only) { tg = pagesEl.querySelector(only); if (tg && tg.hidden) { setAppTab('read'); status('ابتدا یک PDF باز کنید.'); return; } }
+      if (only) { tg = pagesEl.querySelectorAll(only); if (tg.length && Array.prototype.every.call(tg, function(x){ return x.hidden; })) { setAppTab('read'); status('ابتدا یک PDF باز کنید.'); return; } }
       bt = b.querySelector('b'); sm = b.querySelector('small'); pt = b.querySelector('svg path');
       setAppTab(go, { only: only, title: b.dataset.title || (bt && bt.textContent), sub: b.dataset.sub || (sm && sm.textContent), icon: pt && pt.getAttribute('d') });
     }
@@ -8511,39 +8436,7 @@ var ocrSpell = (function(){
   $('#mbody').addEventListener('change', chgSoon, true);
   chgScan();
 
-  /* ---- پشتیبان و بازیابی خودِ تنظیمات (JSON) ---- */
   var CFG_KEY = /^(bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|harakat)/;
-  function cfgExport(){
-    var s = {}, i, k, n = 0, txt, u, a;
-    try { for (i = 0; i < localStorage.length; i++) { k = localStorage.key(i); if (CFG_KEY.test(k)) { s[k] = localStorage.getItem(k); n++; } } } catch (e) {}
-    if (!n) { status('تنظیم ذخیره‌شده‌ای وجود ندارد.'); return; }
-    txt = JSON.stringify({ app: 'pdf-voice-reader', v: 1, t: new Date().toISOString(), s: s }, null, 1);
-    try {
-      u = URL.createObjectURL(new Blob([txt], { type: 'application/json' })); a = document.createElement('a');
-      a.href = u; a.download = 'تنظیمات-خوانندهٔ-صوتی.json'; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function(){ URL.revokeObjectURL(u); }, 4000); status('تنظیمات ذخیره شد (' + nf.format(n) + ' مورد).');
-    } catch (e) { try { navigator.clipboard.writeText(txt); status('دانلود ممکن نشد؛ متن تنظیمات کپی شد.'); } catch (x) { status('خروجی گرفتن از تنظیمات ممکن نشد.'); } }
-  }
-  $('#cfgFile').onchange = function(){
-    var f = this.files && this.files[0], inp = this, r;
-    if (!f) return;
-    if (f.size > 262144) { status('فایل تنظیمات معتبر نیست.'); inp.value = ''; return; }
-    r = new FileReader();
-    r.onload = function(){
-      var o, k, n = 0;
-      try {
-        o = JSON.parse(String(r.result));
-        if (!o || o.app !== 'pdf-voice-reader' || !o.s || typeof o.s !== 'object') throw 0;
-        for (k in o.s) if (Object.prototype.hasOwnProperty.call(o.s, k) && CFG_KEY.test(k) && typeof o.s[k] === 'string' && o.s[k].length <= 4000) { localStorage.setItem(k, o.s[k]); n++; }
-      } catch (e) { status('فایل تنظیمات معتبر نیست.'); inp.value = ''; return; }
-      inp.value = '';
-      if (!n) { status('موردی برای وارد کردن نبود.'); return; }
-      status(nf.format(n) + ' تنظیم وارد شد؛ برنامه دوباره بارگذاری می‌شود…');
-      setTimeout(function(){ try { location.reload(); } catch (e) {} }, 900);
-    };
-    r.onerror = function(){ status('خواندن فایل ممکن نشد.'); inp.value = ''; };
-    r.readAsText(f);
-  };
 
   /* وقتی برنامه در پس‌زمینه است (مثلاً پخش با صفحهٔ خاموش) انیمیشن‌ها متوقف شوند */
   document.addEventListener('visibilitychange', function(){ document.documentElement.classList.toggle('bg-paused', document.hidden); });
@@ -9081,316 +8974,58 @@ var ocrSpell = (function(){
   }
   function tileClick(sel){ var b = document.querySelector('#toolsMenu .tile[' + sel + ']'); if (b) b.click(); }
   document.getElementById('appHeader').appendChild(toolsEl);   /* منو به کل هدر لنگر می‌شود تا با هر دو نوار کار کند */
-  /* ===== حالت دستی تدوین و ویرایش صفحه در صفحهٔ خوانش (r39) ===== */
-  var edt = { q: 0, doc: null, el: null, ta: null, st: null, sc: null, base: '', cur: null, h: [], p: 0, tm: 0, busy: false, warn: false, rv: 0, fit: 0, all: [], bU: null, bR: null, bV: null, pv: null, fr: null };
-  var ED_CH = ['،', '؛', '؟', '!', '.', ':', '«', '»', '(', ')', '…', '–'];
-  var ED_DG = ['\u064E', '\u0650', '\u064F', '\u0651', '\u0652', '\u064B', '\u064C', '\u064D'];
-  var ED_DGN = ['فتحه', 'کسره', 'ضمه', 'تشدید', 'سکون', 'تنوین نصب', 'تنوین رفع', 'تنوین جر'];
-  var ED_ACT = [['pun', 'نگارشی', 'اصلاح علائم نگارشی و فاصله‌ها'], ['com', 'ویرگول', 'ویرگول هوشمند'], ['dot', 'نقطه و ؟', 'نقطهٔ پایان بند و علامت پرسش'], ['har', 'اعراب', 'اعراب‌گذاری هوشمند (با کسرهٔ اضافه)'], ['unh', 'بی‌اعراب', 'حذف همهٔ اعراب'], ['ez', 'کسرهٔ اضافه ±', 'افزودن یا حذف کسرهٔ اضافه برای واژهٔ زیر مکان‌نما'], ['ts', 'تدوین', 'پیوند سطرهای شکسته و پاک‌کردن شمارهٔ صفحه'], ['all', 'همه', 'نگارشی + ویرگول + نقطه + فاصله‌ها']];
-  var ED_PV = { all: 1 };                                             /* کنش‌هایی که پیش از اعمال، پیش‌نمایش تفاوت دارند */
-  var ED_OPT = { pun: { pun: 1 }, com: { com: 1 }, dot: { dot: 1 }, har: { har: 'smart' }, unh: { har: 'strip' }, ts: { join: 1, ts: 1 }, all: { norm: 1, sp: 1, pun: 1, com: 1, dot: 1 } };
-  function edKey(q){ return ocrKey.replace(/^ocr:/, 'ocro:') + ':' + q; }               /* نسخهٔ پیش از ویرایش دستی، برای «بازگردانی اصل» */
-  function edNorm(v){ return String(v == null ? '' : v).replace(/\r\n?/g, '\n').replace(/[ \t]+$/gm, '').replace(/\n{3,}/g, '\n\n').trim(); }
-  function edText(q){ return (pageParas[q] || []).map(function(ids){ return ids.map(function(i){ return sents[i].text; }).join(' '); }).join('\n'); }
-  function edDirty(){ return !!edt.q && !!edt.ta && edNorm(edt.ta.value) !== edt.base; }
-  function edSt(t){ if (edt.st) edt.st.textContent = t || ''; }
-  function edStat(){ if (!edt.ta || !edt.sc) return; var v = edt.ta.value, h = (v.match(/[\u064B-\u0652\u0670]/g) || []).length; edt.sc.textContent = nf.format((v.match(/\S+/g) || []).length) + ' واژه' + (h ? ' · ' + nf.format(h) + ' اعراب' : ''); }
-  function edFit(){ if (edt.fit) return; edt.fit = requestAnimationFrame(function(){ edt.fit = 0; var t = edt.ta; if (!t) return; t.style.height = 'auto'; t.style.height = Math.max(200, t.scrollHeight + 6) + 'px'; }); }
-  function edMk(tag, cls, txt){ var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
-  function edUi(){
-    if (!edt.q || !edt.bU) return;
-    var d = edt.busy || !!edt.pv;
-    edt.all.forEach(function(b){ b.disabled = d; });
-    if (!d) { edt.bU.disabled = edt.p <= 0; edt.bR.disabled = edt.p >= edt.h.length - 1; }
-    edt.bV.textContent = edt.rv ? 'تأیید بازگردانی؟' : 'بازگردانی اصل';
-  }
-  function edPush(v){ if (edt.h[edt.p] === v) return; edt.h.length = edt.p + 1; edt.h.push(v); if (edt.h.length > 40) edt.h.shift(); edt.p = edt.h.length - 1; edUi(); }
-  function edFlush(){ clearTimeout(edt.tm); edt.tm = 0; if (edt.ta) edPush(edt.ta.value); }
-  function edPut(v, s, e){ var t = edt.ta; t.value = v; try { t.setSelectionRange(s, e == null ? s : e); } catch (x) {} edPush(v); edt.cur = v; edt.warn = false; edFit(); edStat(); }
-  function edHist(d){ edFlush(); var n = edt.p + d; if (n < 0 || n >= edt.h.length) return; edt.p = n; edt.ta.value = edt.h[n]; edt.cur = edt.h[n]; edFit(); edStat(); edUi(); }
-  function edIns(c, after){
-    var t = edt.ta, v = t.value, s = t.selectionStart, e = t.selectionEnd, focus = document.activeElement === t, p;
-    if (s == null) { s = e = v.length; }
-    if (after) s = e;                                                  /* اعراب پس از متن انتخاب‌شده می‌آید و آن را جایگزین نمی‌کند */
-    edFlush(); p = s + c.length; edPut(v.slice(0, s) + c + v.slice(e), p);
-    if (focus) { try { t.focus({ preventScroll: true }); t.setSelectionRange(p, p); } catch (x) {} }
-  }
-  function edWordAt(v, pos){ var re = /[\u0621-\u06D3\u200c]+/g, m; while ((m = re.exec(v))) { if (m.index > pos) break; if (pos <= m.index + m[0].length) return m; } return null; }
-
-  /* ---- پیش‌نمایش تفاوت (diff واژه‌ای، LCS سبک) ---- */
-  var ED_TK = /[\p{L}\p{M}\p{N}\u200c]+|\s+|[^\s]/gu;
-  function edWk(t){ return /^\s/.test(t) ? (t.indexOf('\n') < 0 ? ' ' : '\n') : t; }
-  function edDiff(a, b){
-    var A = a.match(ED_TK) || [], B = b.match(ED_TK) || [], ka = A.map(edWk), kb = B.map(edWk), s = 0, e = 0, n, m, i, j, W, L, o = [], d = [], ad = [], k, ps = 0, pd = 0;
-    while (s < A.length && s < B.length && ka[s] === kb[s]) s++;
-    while (e < A.length - s && e < B.length - s && ka[A.length - 1 - e] === kb[B.length - 1 - e]) e++;
-    n = A.length - s - e; m = B.length - s - e;
-    if (n * m > 6e6) return null;
-    function flush(){ if (d.length) { o.push(['-', d]); d = []; } if (ad.length) { o.push(['+', ad]); ad = []; } }
-    function eq(x){ flush(); if (o.length && o[o.length - 1][0] === '=') o[o.length - 1][1].push(x); else o.push(['=', [x]]); }
-    for (k = 0; k < s; k++) eq(B[k]);
-    if (n || m) {
-      W = m + 1; L = new Uint16Array((n + 1) * W);
-      for (i = n - 1; i >= 0; i--) for (j = m - 1; j >= 0; j--) L[i * W + j] = ka[s + i] === kb[s + j] ? L[(i + 1) * W + j + 1] + 1 : Math.max(L[(i + 1) * W + j], L[i * W + j + 1]);
-      i = j = 0;
-      while (i < n && j < m) {
-        if (ka[s + i] === kb[s + j]) { eq(B[s + j]); i++; j++; }
-        else if (L[(i + 1) * W + j] >= L[i * W + j + 1]) d.push(A[s + i++]); else ad.push(B[s + j++]);
-      }
-      while (i < n) d.push(A[s + i++]);
-      while (j < m) ad.push(B[s + j++]);
-      flush();
+  /* ===== نوار ابزار سریع صفحهٔ اسکن دستی: علائم، اعراب و ویرایش‌های هوشمند تک‌منظوره (r39) ===== */
+  (function(){
+    var bar = $('#mfQk'), ta = $('#manTx');
+    var CH = ['،', '؛', '؟', '!', '.', ':', '«', '»', '(', ')', '…', '–'];
+    var DG = ['\u064E', '\u0650', '\u064F', '\u0651', '\u0652', '\u064B', '\u064C', '\u064D'];
+    var DGN = ['فتحه', 'کسره', 'ضمه', 'تشدید', 'سکون', 'تنوین نصب', 'تنوین رفع', 'تنوین جر'];
+    var ACT = [['pun', 'نگارشی', 'اصلاح علائم نگارشی و فاصله‌ها'], ['com', 'ویرگول', 'ویرگول هوشمند'], ['dot', 'نقطه و ؟', 'نقطهٔ پایان بند و علامت پرسش'], ['har', 'اعراب', 'اعراب‌گذاری هوشمند (با کسرهٔ اضافه)'], ['unh', 'بی‌اعراب', 'حذف همهٔ اعراب'], ['ez', 'کسرهٔ اضافه ±', 'افزودن یا حذف کسرهٔ اضافه برای واژهٔ زیر مکان‌نما'], ['ts', 'تدوین', 'پیوند سطرهای شکسته و پاک‌کردن شمارهٔ صفحه'], ['all', 'همه', 'نگارشی + ویرگول + نقطه + فاصله‌ها']];
+    var OPT = { pun: { pun: 1 }, com: { com: 1 }, dot: { dot: 1 }, har: { har: 'smart' }, unh: { har: 'strip' }, ts: { join: 1, ts: 1 }, all: { norm: 1, sp: 1, pun: 1, com: 1, dot: 1 } };
+    function mk(row, label, cls, title, fn){ var b = document.createElement('button'); b.type = 'button'; b.className = cls; b.textContent = label; if (title) { b.title = title; b.setAttribute('aria-label', title); } b.addEventListener('click', fn); row.appendChild(b); }
+    function row(){ var r = document.createElement('div'); r.className = 'mfqr'; bar.appendChild(r); return r; }
+    function put(v, s, e){                                             /* اعمال متن تازه با ثبت در واگرد */
+      man.undo.push(ta.value); if (man.undo.length > 8) man.undo.shift();
+      ta.value = v; try { ta.setSelectionRange(s, e == null ? s : e); } catch (x) {}
+      man.warn = false; mfStat();
     }
-    for (k = B.length - e; k < B.length; k++) eq(B[k]);
-    return o;
-  }
-  function edPvClose(){
-    if (edt.pv) { edt.pv.remove(); edt.pv = null; }
-    if (edt.ta) edt.ta.readOnly = false;
-    edUi();
-  }
-  function edPrev(src, out, lab, fn){
-    if (edt.pv || !edt.ta) return;
-    var df = edDiff(src, out), pv = edMk('div', 'pgedpv'), h = edMk('div', 'pgedpvh'), bx = edMk('div', 'pvb'), ac = edMk('div', 'pgedact'), b1, b2, na = 0, nd = 0;
-    if (!df) { h.textContent = lab + ' · تغییر بسیار گسترده؛ پیش‌نمایش تفصیلی نشان داده نمی‌شود.'; }
-    else {
-      df.forEach(function(g, gi){
-        var t = g[1], x;
-        if (g[0] === '=') {
-          if (t.length > 24) t = gi === 0 ? ['… '].concat(t.slice(-8)) : gi === df.length - 1 ? t.slice(0, 8).concat([' …']) : t.slice(0, 8).concat([' … ']).concat(t.slice(-8));
-          x = edMk('span', g[1].length > 24 ? 'pvg' : '', t.join('')); bx.appendChild(x); return;
+    function ins(c, after){
+      var v = ta.value, s = ta.selectionStart, e = ta.selectionEnd, focus = document.activeElement === ta, p;
+      if (s == null) s = e = v.length;
+      if (after) s = e;                                                /* اعراب پس از متن انتخاب‌شده می‌آید و آن را جایگزین نمی‌کند */
+      p = s + c.length; put(v.slice(0, s) + c + v.slice(e), p);
+      if (focus) { try { ta.focus({ preventScroll: true }); ta.setSelectionRange(p, p); } catch (x) {} }
+    }
+    function wordAt(v, pos){ var re = /[\u0621-\u06D3\u200c]+/g, m; while ((m = re.exec(v))) { if (m.index > pos) break; if (pos <= m.index + m[0].length) return m; } return null; }
+    function act(k){
+      if (man.busy || man.fx) return;
+      var v = ta.value, s0 = ta.selectionStart, e0 = ta.selectionEnd, sel = s0 != null && e0 > s0, src, out, o, m, w, r, has;
+      if (s0 == null) s0 = e0 = 0;
+      try {
+        if (k === 'ez') {
+          m = wordAt(v, s0); if (!m) { manSt('مکان‌نما را روی یک واژه بگذارید.'); return; }
+          w = m[0]; has = EZ_HAS.test(w);
+          if (!has && EZ_FIN.test(w)) { manSt('این واژه از پیش اعراب پایانی دارد.'); return; }
+          r = has ? ezStrip(w) : ezMark(w);
+          put(v.slice(0, m.index) + r + v.slice(m.index + w.length), m.index + r.length);
+          manSt(has ? 'کسرهٔ اضافه برداشته شد.' : 'کسرهٔ اضافه گذاشته شد.'); return;
         }
-        t.forEach(function(w){ if (/\S/.test(w)) { if (g[0] === '+') na++; else nd++; } });
-        x = edMk(g[0] === '+' ? 'ins' : 'del', '', t.join('').replace(/^\s+$/, '␣'));
-        bx.appendChild(x);
-      });
-      h.textContent = lab + ' · ' + nf.format(na) + ' افزوده · ' + nf.format(nd) + ' حذف';
+        o = { norm: 0, sp: 0, spell: 0, pun: 0, com: 0, dot: 0, join: 0, ts: 0, har: 'none' };
+        Object.keys(OPT[k]).forEach(function(x){ o[x] = OPT[k][x]; });
+        src = sel ? v.slice(s0, e0) : v; out = manPolish(src, o);
+        if (out === src) { manSt('تغییری لازم نبود.'); return; }
+        put(sel ? v.slice(0, s0) + out + v.slice(e0) : out, sel ? s0 : Math.min(s0, out.length), sel ? s0 + out.length : null);
+        manSt(nf.format(mfDiff(src, out)) + ' تغییر' + (sel ? ' در متن انتخاب‌شده' : '') + ' اعمال شد. پس از بررسی «ذخیره اصلاح» را بزنید.');
+      } catch (e) { manSt('ویرایش ناموفق بود: ' + em(e)); }
     }
-    b1 = edMk('button', 'btn primary', 'اعمال تغییرات'); b1.type = 'button';
-    b2 = edMk('button', 'btn', 'انصراف'); b2.type = 'button';
-    b1.addEventListener('click', function(){ if (!edt.pv || edt.pv !== pv) return; edPvClose(); fn(); });
-    b2.addEventListener('click', function(){ if (edt.pv !== pv) return; edPvClose(); edSt('تغییری اعمال نشد.'); });
-    ac.appendChild(b1); ac.appendChild(b2); pv.appendChild(h); if (df) pv.appendChild(bx); pv.appendChild(ac);
-    edt.el.insertBefore(pv, edt.ta); edt.pv = pv; edt.ta.readOnly = true; edUi();
-    try { pv.scrollIntoView({ block: 'center' }); } catch (x) {}
-  }
-  /* ---- جست‌وجو و جایگزینی درون صفحه (بی‌اعراب و هم‌ارزی ی/ک عربی) ---- */
-  function edFold(c){ return c === 0x64A || c === 0x649 ? 0x6CC : c === 0x643 ? 0x6A9 : c >= 0x660 && c <= 0x669 ? c + 0x690 : c; }
-  function edFR(v, q, dia){
-    var f = [], mp = new Int32Array(v.length + 1), n = 0, i, c, qs = [], r = [], j, k, ql;
-    for (i = 0; i < v.length; i++) {
-      c = v.charCodeAt(i);
-      if (dia && ((c >= 0x64B && c <= 0x652) || c === 0x670 || c === 0x640)) continue;
-      mp[n] = i; f.push(String.fromCharCode(edFold(c))); n++;
-    }
-    mp[n] = v.length; f = f.join('');
-    for (i = 0; i < q.length; i++) { c = q.charCodeAt(i); if (dia && ((c >= 0x64B && c <= 0x652) || c === 0x670 || c === 0x640)) continue; qs.push(String.fromCharCode(edFold(c))); }
-    qs = qs.join(''); ql = qs.length;
-    if (!ql) return r;
-    for (j = f.indexOf(qs); j >= 0; j = f.indexOf(qs, j + ql)) r.push([mp[j], mp[j + ql]]);
-    return r;
-  }
-  function edYOf(t, pos){
-    var m = document.createElement('div'), cs = getComputedStyle(t), sp = document.createElement('span'), y;
-    m.style.cssText = 'position:absolute;visibility:hidden;top:0;left:-9999px;white-space:pre-wrap;overflow-wrap:break-word;box-sizing:border-box;';
-    ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'wordSpacing', 'direction', 'textAlign', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth', 'borderTopStyle', 'borderRightStyle', 'borderBottomStyle', 'borderLeftStyle'].forEach(function(k){ m.style[k] = cs[k]; });
-    m.style.width = t.offsetWidth + 'px'; m.textContent = t.value.slice(0, pos); sp.textContent = '.'; m.appendChild(sp);
-    document.body.appendChild(m); y = sp.offsetTop; m.remove(); return y;
-  }
-  function edScroller(e){ for (e = e.parentElement; e && e !== document.body; e = e.parentElement) { var o = getComputedStyle(e).overflowY; if ((o === 'auto' || o === 'scroll') && e.scrollHeight > e.clientHeight + 2) return e; } return document.scrollingElement || document.documentElement; }
-  function edReveal(pos){
-    var t = edt.ta, bar = edt.el && edt.el.querySelector('.pgedbar'), tr, y, top, bot, sc, vh;
-    if (!t || !bar) return;
-    try {
-      tr = t.getBoundingClientRect(); y = tr.top + edYOf(t, pos); top = bar.getBoundingClientRect().bottom + 16;
-      vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight; bot = vh - 90;
-      if (y < top || y > bot) { sc = edScroller(t); sc.scrollTop += y - top - 40; }
-    } catch (x) {}
-  }
-  function edFSel(i, n, c){ var t = edt.ta; try { t.focus({ preventScroll: true }); t.setSelectionRange(c[i][0], c[i][1]); } catch (x) {} edReveal(c[i][0]); edSt('مورد ' + nf.format(i + 1) + ' از ' + nf.format(n)); }
-  function edFGo(dir){
-    if (edt.busy || edt.pv || !edt.ta || !edt.fr) return;
-    var t = edt.ta, q = edt.fr.q.value, c, i, s, e;
-    if (!q) { edSt('عبارت جست‌وجو را بنویسید.'); return; }
-    c = edFR(t.value, q, edt.fr.d.checked);
-    if (!c.length) { edSt('موردی پیدا نشد.'); return; }
-    s = t.selectionStart; e = t.selectionEnd;
-    if (dir > 0) { for (i = 0; i < c.length && c[i][0] < (e > s ? e : s); i++); if (i >= c.length) i = 0; }
-    else { for (i = c.length - 1; i >= 0 && c[i][1] > s; i--); if (i < 0) i = c.length - 1; }
-    edFSel(i, c.length, c);
-  }
-  function edFRep(all){
-    if (edt.busy || edt.pv || !edt.ta || !edt.fr) return;
-    var t = edt.ta, q = edt.fr.q.value, r = edt.fr.r.value, v, c, i, s0, e0, p, out, k;
-    if (!q) { edSt('عبارت جست‌وجو را بنویسید.'); return; }
-    edFlush(); v = t.value; c = edFR(v, q, edt.fr.d.checked); s0 = t.selectionStart; e0 = t.selectionEnd;
-    if (!c.length) { edSt('موردی پیدا نشد.'); return; }
-    if (all) {
-      for (out = '', p = 0, k = 0; k < c.length; k++) { out += v.slice(p, c[k][0]) + r; p = c[k][1]; }
-      out += v.slice(p);
-      edPrev(v, out, 'جایگزینی ' + nf.format(c.length) + ' مورد', function(){ if (!edt.ta || edt.ta.value !== v) return; edPut(out, Math.min(s0, out.length)); edSt(nf.format(c.length) + ' مورد جایگزین شد.'); });
-      return;
-    }
-    for (i = 0; i < c.length && !(c[i][0] === s0 && c[i][1] === e0); i++);
-    if (i < c.length) { out = v.slice(0, s0) + r + v.slice(e0); p = s0 + r.length; edPut(out, p); edFGo(1); }
-    else edFGo(1);
-  }
-  function edFToggle(){
-    var f = edt.fr; if (!f) return;
-    f.row.hidden = !f.row.hidden; f.btn.classList.toggle('on', !f.row.hidden);
-    if (!f.row.hidden) setTimeout(function(){ try { f.q.focus(); } catch (x) {} }, 30);
-  }
-  function edAct(k){
-    if (edt.busy || edt.pv || !edt.ta) return;
-    var t = edt.ta, v = t.value, s0 = t.selectionStart, e0 = t.selectionEnd, sel = e0 > s0, src, out, o, m, w, r, has;
-    edFlush();
-    try {
-      if (k === 'ez') {
-        m = edWordAt(v, s0); if (!m) { edSt('مکان‌نما را روی یک واژه بگذارید.'); return; }
-        w = m[0]; has = EZ_HAS.test(w);
-        if (!has && EZ_FIN.test(w)) { edSt('این واژه از پیش اعراب پایانی دارد.'); return; }
-        r = has ? ezStrip(w) : ezMark(w);
-        edPut(v.slice(0, m.index) + r + v.slice(m.index + w.length), m.index + r.length);
-        edSt(has ? 'کسرهٔ اضافه برداشته شد.' : 'کسرهٔ اضافه گذاشته شد.'); return;
-      }
-      o = { norm: 0, sp: 0, spell: 0, pun: 0, com: 0, dot: 0, join: 0, ts: 0, har: 'none' };
-      Object.keys(ED_OPT[k]).forEach(function(x){ o[x] = ED_OPT[k][x]; });
-      src = sel ? v.slice(s0, e0) : v; out = manPolish(src, o);
-      if (out === src) { edSt('تغییری لازم نبود.'); return; }
-      var go = function(){
-        if (!edt.ta || edt.ta.value !== v) return;
-        edPut(sel ? v.slice(0, s0) + out + v.slice(e0) : out, sel ? s0 : Math.min(s0, out.length), sel ? s0 + out.length : null);
-        edSt(nf.format(mfDiff(src, out)) + ' تغییر' + (sel ? ' در متن انتخاب‌شده' : '') + ' اعمال شد.');
-      };
-      if (ED_PV[k]) { edPrev(src, out, sel ? 'متن انتخاب‌شده' : 'کل صفحه', go); return; }
-      go();
-    } catch (e) { edSt('ناموفق بود: ' + em(e)); }
-  }
-  function edNb(q, mv){ for (var p = q + mv; p >= 1 && p <= rawItems.length; p += mv) if (pgEls[p] && pageParas[p]) return p; return 0; }
-  function edClose(noRender){
-    var q = edt.q, d = q ? pgEls[q] : null;
-    clearTimeout(edt.tm); clearTimeout(edt.rv); if (edt.fit) { cancelAnimationFrame(edt.fit); edt.fit = 0; }
-    edt.q = 0; edQ = 0; edt.doc = edt.el = edt.ta = edt.st = edt.sc = edt.bU = edt.bR = edt.bV = edt.pv = edt.fr = null; edt.all = []; edt.h = []; edt.p = 0; edt.rv = 0; edt.warn = false; edt.cur = null; edt.busy = false;
-    if (d && !noRender) { d.textContent = ''; renderPage(q); try { mark(false); } catch (e) {} }
-    edSync();
-  }
-  function edCancel(){
-    if (edDirty() && !edt.warn) { edt.warn = true; edSt('تغییرات ذخیره‌نشده دارید؛ برای رها کردن دوباره «انصراف» را بزنید.'); return; }
-    edClose();
-  }
-  async function edSave(mv){
-    if (!edt.q || edt.busy) return;
-    var q = edt.q, t, nq, first, doc = pdfDoc;
-    edFlush(); t = edNorm(edt.ta.value);
-    if (t === edt.base) { edClose(); if (mv) { nq = edNb(q, mv); if (nq) edOpen(nq); else status('صفحهٔ دیگری با متن برای ویرایش نیست.'); } return; }
-    edt.busy = true; edUi(); edSt('در حال ذخیره…');
-    try {
-      if (!(ocrMeta[q] && ocrMeta[q].man)) await kvSet(edKey(q), ocrPages[q] != null ? { s: 'o', t: ocrPages[q], m: ocrMeta[q] || null } : { s: 'p' });
-      ocrPages[q] = t; ocrMeta[q] = { w: 'ok', v: ocrVer(), har: 1, man: 1 }; ocrDirtyC[q] = 1;
-      await ocrSaveD(ocrKey, ocrPages, ocrGeo, ocrMeta);
-    } catch (e) { edt.busy = false; edUi(); edSt('ذخیره ناموفق بود: ' + em(e)); return; }
-    if (pdfDoc !== doc) return;
-    first = pageParas[q] && pageParas[q][0] ? pageParas[q][0][0] : -1;
-    edClose(true); if (first >= 0) idx = first;
-    await Promise.resolve(process(true));
-    if (pdfDoc !== doc) return;
-    if (mv) { nq = edNb(q, mv); if (nq) edOpen(nq); else status('صفحهٔ دیگری با متن برای ویرایش نیست.'); }
-    else status('ویرایش صفحهٔ ' + nf.format(q) + ' ذخیره شد.');
-  }
-  async function edRevert(){
-    if (!edt.q || edt.busy) return;
-    var q = edt.q, b = null, first, doc = pdfDoc;
-    try { b = await kvGet0(edKey(q)); } catch (e) { b = null; }
-    if (!edt.q || edt.q !== q) return;
-    if (!b) { edSt('نسخهٔ پیش از ویرایش دستی برای این صفحه ذخیره نشده است.'); return; }
-    if (!edt.rv) { edt.rv = setTimeout(function(){ edt.rv = 0; edUi(); }, 3500); edUi(); edSt('برای بازگرداندن متن اصلی صفحه دوباره بزنید؛ ویرایش‌های ذخیره‌شدهٔ این صفحه از بین می‌رود.'); return; }
-    clearTimeout(edt.rv); edt.rv = 0; edt.busy = true; edUi();
-    try {
-      if (b.s === 'o') { ocrPages[q] = b.t; if (b.m) ocrMeta[q] = b.m; else delete ocrMeta[q]; } else { delete ocrPages[q]; delete ocrMeta[q]; }
-      ocrDirtyC[q] = 1; await ocrSaveD(ocrKey, ocrPages, ocrGeo, ocrMeta); await kvSet(edKey(q), null);
-    } catch (e) { edt.busy = false; edUi(); edSt('بازگردانی ناموفق بود: ' + em(e)); return; }
-    if (pdfDoc !== doc) return;
-    first = pageParas[q] && pageParas[q][0] ? pageParas[q][0][0] : -1;
-    edClose(true); if (first >= 0) idx = first;
-    await Promise.resolve(process(true));
-    status('متن اصلی صفحهٔ ' + nf.format(q) + ' بازگردانده شد.');
-  }
-  function edOpen(q, draft){
-    var d = pgEls[q], t, w, hd, bar, r1, r2, r3, r4, act, act2, ta, fq, fr, fd, fl, fb;
-    if (!d || !pageParas[q]) { status('متنی برای ویرایش در این صفحه نیست.'); return false; }
-    if (edt.q) edClose();
-    if (playing) { try { pause(); } catch (e) {} }
-    t = edText(q);
-    edt.q = q; edQ = q; edt.doc = pdfDoc; edt.base = edNorm(t); edt.h = []; edt.p = 0; edt.all = []; edt.warn = false; edt.busy = false; edt.rv = 0; edt.pv = null; edt.fr = null;
-    pageParas[q].forEach(function(ids){ ids.forEach(function(i){ if (sents[i].el && sents[i].el === curEl) curEl = null; sents[i].el = null; }); });
-    d.textContent = '';
-    function B(row, label, cls, title, fn){ var b = edMk('button', cls, label); b.type = 'button'; if (title) { b.title = title; b.setAttribute('aria-label', title); } b.addEventListener('click', fn); row.appendChild(b); edt.all.push(b); return b; }
-    w = edMk('div', 'pged'); hd = edMk('div', 'pgedh'); hd.appendChild(edMk('b', '', 'ویرایش دستی · صفحهٔ ' + nf.format(q))); edt.sc = edMk('span', '', ''); hd.appendChild(edt.sc);
-    bar = edMk('div', 'pgedbar'); r1 = edMk('div', 'pgedr'); r2 = edMk('div', 'pgedr'); r3 = edMk('div', 'pgedr');
-    edt.bU = B(r1, '↶', 'pgedk', 'واگرد', function(){ edHist(-1); });
-    edt.bR = B(r1, '↷', 'pgedk', 'از نو', function(){ edHist(1); });
-    ED_CH.forEach(function(c){ B(r1, c, 'pgedk', null, function(){ edIns(c, false); }); });
-    B(r1, 'نیم‌فاصله', 'pgedk t', 'درج نیم‌فاصله', function(){ edIns('\u200c', false); });
-    ED_DG.forEach(function(c, i){ B(r2, '\u25CC' + c, 'pgedk', ED_DGN[i], function(){ edIns(c, true); }); });
-    ED_ACT.forEach(function(a){ B(r3, a[1], 'pgedk t', a[2], function(){ edAct(a[0]); }); });
-    fb = B(r3, 'جست‌وجو', 'pgedk t', 'جست‌وجو و جایگزینی در این صفحه', edFToggle);
-    r4 = edMk('div', 'pgedr'); r4.hidden = true;
-    function IN(ph, lb){ var x = edMk('input', 'pgedi'); x.type = 'text'; x.dir = 'rtl'; x.placeholder = ph; x.setAttribute('aria-label', lb); x.autocomplete = 'off'; x.spellcheck = false; r4.appendChild(x); edt.all.push(x); return x; }
-    fq = IN('جست‌وجو', 'عبارت جست‌وجو'); fr = IN('جایگزین', 'عبارت جایگزین');
-    fl = edMk('label', 'pgedc'); fd = edMk('input'); fd.type = 'checkbox'; fd.checked = true; fl.appendChild(fd); fl.appendChild(document.createTextNode('بی‌اعراب')); r4.appendChild(fl); edt.all.push(fd);
-    B(r4, 'قبلی', 'pgedk t', null, function(){ edFGo(-1); });
-    B(r4, 'بعدی', 'pgedk t', null, function(){ edFGo(1); });
-    B(r4, 'جایگزینی', 'pgedk t', null, function(){ edFRep(false); });
-    B(r4, 'همه', 'pgedk t', 'جایگزینی همه (با پیش‌نمایش)', function(){ edFRep(true); });
-    edt.fr = { row: r4, q: fq, r: fr, d: fd, btn: fb };
-    fq.addEventListener('keydown', function(ev){ if (ev.key === 'Enter') { ev.preventDefault(); edFGo(ev.shiftKey ? -1 : 1); } });
-    fr.addEventListener('keydown', function(ev){ if (ev.key === 'Enter') { ev.preventDefault(); edFRep(false); } });
-    bar.appendChild(r1); bar.appendChild(r2); bar.appendChild(r3); bar.appendChild(r4);
+    var r1 = row(), r2 = row();
+    CH.forEach(function(c){ mk(r1, c, '', null, function(){ ins(c, false); }); });
+    mk(r1, 'نیم‌فاصله', 't', 'درج نیم‌فاصله', function(){ ins('\u200c', false); });
+    DG.forEach(function(c, i){ mk(r1, '\u25CC' + c, '', DGN[i], function(){ ins(c, true); }); });
+    ACT.forEach(function(a){ mk(r2, a[1], 't', a[2], function(){ act(a[0]); }); });
     bar.addEventListener('mousedown', function(e){ if (e.target.closest && e.target.closest('button')) e.preventDefault(); });
-    ta = edMk('textarea'); ta.id = 'pgEdTx'; ta.dir = 'rtl'; ta.lang = 'fa'; ta.spellcheck = false; ta.setAttribute('aria-label', 'متن صفحه'); ta.setAttribute('autocapitalize', 'off');
-    edt.ta = ta; edt.st = edMk('p', 'hint', ''); edt.st.setAttribute('aria-live', 'polite');
-    act = edMk('div', 'pgedact'); act2 = edMk('div', 'pgedact');
-    B(act, 'ذخیره', 'btn primary', 'ذخیرهٔ ویرایش این صفحه', function(){ edSave(0); });
-    B(act, 'ذخیره و صفحهٔ بعد', 'btn', null, function(){ edSave(1); });
-    B(act, 'انصراف', 'btn', null, edCancel);
-    B(act2, 'ذخیره و صفحهٔ قبل', 'btn sm', null, function(){ edSave(-1); });
-    edt.bV = B(act2, 'بازگردانی اصل', 'btn sm', 'برگرداندن متن پیش از ویرایش دستی', edRevert);
-    [w, hd, bar, ta, edt.st, act, act2].forEach(function(x){ if (x !== w) w.appendChild(x); });
-    d.appendChild(w); edt.el = w;
-    ta.value = draft != null ? draft : t; edt.cur = ta.value; edPush(ta.value);
-    ta.addEventListener('input', function(){ edt.cur = ta.value; edt.warn = false; clearTimeout(edt.tm); edt.tm = setTimeout(function(){ edt.tm = 0; if (edt.ta === ta) edPush(ta.value); }, 800); edFit(); edStat(); });
-    edFit(); edStat(); edUi();
-    setTimeout(function(){ try { if (edt.el === w) w.scrollIntoView({ block: 'start' }); } catch (e) {} }, 40);
-    return true;
-  }
-  function edPick(){
-    var st = $('#stage'), top = st.getBoundingClientRect().top + 40, q, best = 0, r;
-    for (q in pgEls) { if (!pgEls[q].firstChild) continue; r = pgEls[q].getBoundingClientRect(); if (r.bottom > top && (!best || +q < best)) best = +q; }
-    return best || (sents[idx] ? sents[idx].page : 0);
-  }
-  function edSync(){
-    if (!edt) return;
-    var b = $('#rdEdit'), q, cur;
-    if (b) { b.hidden = !(sents.length && pdfDoc); b.classList.toggle('on', !!edt.q); b.setAttribute('aria-pressed', edt.q ? 'true' : 'false'); }
-    if (edt.q && !(edt.el && edt.el.isConnected)) {                    /* خوانش بازسازی شد و ویرایشگر را برد: پیش‌نویس همان صفحه برمی‌گردد */
-      q = edt.q; cur = edt.cur; var same = edt.doc === pdfDoc, dirty = cur != null && edNorm(cur) !== edt.base;
-      clearTimeout(edt.tm); clearTimeout(edt.rv); if (edt.fit) { cancelAnimationFrame(edt.fit); edt.fit = 0; }
-      edt.q = 0; edQ = 0; edt.el = edt.ta = edt.st = edt.sc = edt.bU = edt.bR = edt.bV = edt.pv = edt.fr = null; edt.all = []; edt.rv = 0; edt.busy = false;
-      if (same && dirty && pageParas[q]) edOpen(q, cur);
-    }
-  }
-  function edLeave(){                                                  /* خروج از خوانش با ویرایش ذخیره‌نشده: بار اول هشدار */
-    if (!edt.q) return true;
-    if (edDirty() && !edt.warn) { edt.warn = true; edSt('تغییرات ذخیره‌نشده دارید؛ برای رفتن دوباره بزنید.'); return false; }
-    edClose(); return true;
-  }
-  $('#rdEdit').onclick = function(){
-    if (edt.q) { edCancel(); return; }
-    if (!sents.length) return;
-    if (pvOn()) { $('#rdMode').click(); setTimeout(function(){ edOpen(edPick()); }, 90); return; }
-    edOpen(edPick());
-  };
-  $('#rdBack').onclick = function(){ if (edLeave()) showHome(); };
+  })();
+  $('#rdBack').onclick = showHome;
   $('#rdSearch').onclick = function(){
     var g = $('#navGrp');
     if (!g || g.hidden) { setAppTab('read'); status('ابتدا یک PDF باز کنید.'); return; }
@@ -9516,9 +9151,9 @@ var ocrSpell = (function(){
   $('#rdBm').onclick = bmOpen;
   document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape') bmClose(); });
   $('#rdFav').onclick = function(){ var e = curEnt(); if (e) { favToggle(e); rdSync(); } };
-  $('#rdMore').onclick = function(ev){ ev.stopPropagation(); menuBtn.click(); };
-  $('#hGear').onclick = function(ev){ ev.stopPropagation(); menuBtn.click(); };
-  $('#dTools').onclick = function(ev){ ev.stopPropagation(); menuBtn.click(); };
+  $('#rdMore').onclick = function(ev){ ev.stopPropagation(); if (toolsOn) closeTools(); else openTools('gear'); };
+  $('#hGear').onclick = function(ev){ ev.stopPropagation(); if (toolsOn) closeTools(); else openTools('gear'); };
+  $('#dTools').onclick = function(ev){ ev.stopPropagation(); if (toolsOn) closeTools(); else openTools('set'); };
   $('#dListen').onclick = function(){ $('#play').click(); };
   /* ---------- برگهٔ گوینده و سبک گفتار (دکمهٔ کاربر): آواتار هر گوینده + انتخاب سبک ---------- */
   var VS = (function(){
