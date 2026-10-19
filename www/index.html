@@ -330,6 +330,29 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
 .mfrow3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .mfrow3 .btn{min-width:0;padding-inline:6px}
 #mfStat{text-align:end}
+.rdb[hidden]{display:none}
+.pged{display:grid;gap:8px;font-family:var(--font);font-size:.95rem;line-height:1.6}
+.pgedh{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.8rem;color:var(--muted);font-weight:600}
+.pgedbar{position:sticky;top:6px;z-index:5;display:grid;gap:6px;padding:8px;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.1)}
+.pgedr{display:flex;flex-wrap:wrap;gap:6px}
+.pgedk{min-width:38px;height:38px;padding:0 9px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:1.05rem;line-height:1;cursor:pointer;touch-action:manipulation}
+.pgedk.t{font-size:.78rem;font-weight:600}
+.pgedk:active{background:color-mix(in srgb,var(--accent) 18%,transparent)}
+.pgedk:disabled{opacity:.4}
+#pgEdTx{width:100%;box-sizing:border-box;min-height:200px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink);font-family:var(--rfont);font-size:inherit;line-height:2.05;resize:none;overflow:hidden;direction:rtl}
+#pgEdTx:focus{outline:2px solid var(--accent);outline-offset:1px}
+.pgedact{display:flex;flex-wrap:wrap;gap:8px}
+.pgedact .btn{flex:1 1 auto}
+.pgedi{flex:1 1 110px;min-width:0;height:38px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:inherit;font-size:.9rem;direction:rtl}
+.pgedi:focus{outline:2px solid var(--accent);outline-offset:1px}
+.pgedc{display:inline-flex;align-items:center;gap:4px;font-size:.78rem;color:var(--muted);white-space:nowrap}
+.pgedpv{display:grid;gap:6px;padding:8px;border:1px solid var(--accent);border-radius:12px;background:var(--paper);font-family:var(--font)}
+.pgedpvh{font-size:.8rem;font-weight:600;color:var(--muted)}
+.pgedpv .pvb{max-height:42vh;overflow:auto;white-space:pre-wrap;direction:rtl;line-height:2;font-family:var(--rfont);overscroll-behavior:contain}
+.pgedpv del{background:color-mix(in srgb,#e5484d 24%,transparent);text-decoration:line-through;border-radius:3px}
+.pgedpv ins{background:color-mix(in srgb,#30a46c 26%,transparent);text-decoration:none;border-radius:3px}
+.pgedpv .pvg{color:var(--muted)}
+.pged .hint{margin:0;min-height:1.4em}
 
 /* ===== جلوه‌های بصری: کامل | سبک | بهینه | فوق‌ساده (html[data-fx]) ===== */
 /* سبک: پس‌زمینهٔ ثابت، بدون تاری شیشه‌ای، بدون درخشش و نبض متحرک */
@@ -943,6 +966,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
       <b class="rdt" id="rdTitle" dir="auto"></b>
       <button class="rdb" id="rdSearch" type="button" aria-label="جستجو در متن" title="جستجو"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"/></svg></button>
       <button class="rdb" id="rdMode" type="button" aria-label="نمایش متن" aria-pressed="true" title="نمای صفحه / متن"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h7"/></svg></button>
+      <button class="rdb" id="rdEdit" type="button" aria-label="ویرایش دستی صفحه" aria-pressed="false" title="ویرایش دستی صفحه" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg></button>
       <button class="rdb" id="rdFav" type="button" aria-label="افزودن به مورد علاقه" aria-pressed="false" title="مورد علاقه"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"/></svg></button>
       <button class="rdb" id="rdBm" type="button" aria-label="نشانه‌ها و یادداشت" title="نشانه‌ها"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4zM12 7v6M9 10h6"/></svg></button>
       <button class="rdb" id="rdMore" type="button" aria-label="تنظیمات و ابزارها" title="تنظیمات"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
@@ -1562,14 +1586,15 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             <label class="chk"><input type="checkbox" id="mfNorm" checked><span class="st"><b>یکدست‌سازی حروف و ارقام</b><small>ي ك ى ← ی ک؛ ارقام عربی و لاتین ← فارسی؛ حذف کشیده.</small></span></label>
             <label class="chk"><input type="checkbox" id="mfSp" checked><span class="st"><b>فاصله و نیم‌فاصله</b><small>می‌کنم، کتاب‌ها، خانه‌ام؛ جداکردن واژه‌های چسبیده و حذف فاصلهٔ اضافه.</small></span></label>
             <label class="chk"><input type="checkbox" id="mfSpell" checked><span class="st"><b>اصلاح املای OCR</b><small>خطاهای نقطه‌ای و نویسه‌ای با دیکشنری آفلاین.</small></span></label>
-            <label class="chk"><input type="checkbox" id="mfPun" checked><span class="st"><b>علائم نگارشی و فاصله‌هایشان</b><small>، ؛ ؟ « » … و فاصلهٔ پیش و پس از آن‌ها.</small></span></label>
-            <label class="chk"><input type="checkbox" id="mfCom" checked><span class="st"><b>ویرگول هوشمند</b><small>پیش از اما، ولی، زیرا… و پس از بنابراین، همچنین، البته…</small></span></label>
-            <label class="chk"><input type="checkbox" id="mfDot" checked><span class="st"><b>نقطهٔ پایان بند</b><small>فقط برای بند یا سطر کاملِ بی‌نقطه؛ عنوان، شعر و فهرست دست نمی‌خورد.</small></span></label>
+            <label class="chk"><input type="checkbox" id="mfPun" checked><span class="st"><b>علائم نگارشی و فاصله‌هایشان</b><small>، ؛ ؟ « » … و فاصلهٔ آن‌ها؛ خط تیره، گیومهٔ جفت و «؟»ی جمله‌های پرسشی.</small></span></label>
+            <label class="chk"><input type="checkbox" id="mfCom" checked><span class="st"><b>ویرگول هوشمند</b><small>پیش از اما، ولی، زیرا…؛ پس از بنابراین، البته…؛ پایان بند شرطی «اگر … باشد،»؛ فهرست «الف، ب و ج».</small></span></label>
+            <label class="chk"><input type="checkbox" id="mfDot" checked><span class="st"><b>نقطهٔ پایان بند</b><small>فقط برای بند یا سطر کاملِ بی‌نقطه؛ جملهٔ پرسشی با «؟» بسته می‌شود؛ عنوان، شعر و فهرست دست نمی‌خورد.</small></span></label>
             <label class="chk"><input type="checkbox" id="mfJoin"><span class="st"><b>پیوند سطرهای شکستهٔ هر بند</b><small>سطرهایی که وسط جمله شکسته‌اند به هم می‌پیوندند.</small></span></label>
+            <label class="chk"><input type="checkbox" id="mfTs"><span class="st"><b>تدوین صفحه</b><small>حذف شمارهٔ بالا و پایینِ صفحه و خط‌های جداکننده؛ فشرده‌کردن سطرهای خالی.</small></span></label>
           </div>
           <div class="two">
             <div class="field"><label for="mfHar"><span>اعراب‌گذاری</span></label>
-              <select id="mfHar"><option value="none">بدون تغییر</option><option value="common">واژه‌های رایج و چندتلفظی‌ها</option><option value="full">کامل‌تر (+ تنوین، تشدید، حروف ربط)</option><option value="strip">حذف همهٔ اعراب</option></select></div>
+              <select id="mfHar"><option value="none">بدون تغییر</option><option value="common">واژه‌های رایج و چندتلفظی‌ها</option><option value="full">کامل‌تر (+ تنوین، تشدید، حروف ربط)</option><option value="smart">هوشمند (+ کسرهٔ اضافه)</option><option value="strip">حذف همهٔ اعراب</option></select></div>
             <div class="field"><label for="mfScope"><span>دامنه</span></label>
               <select id="mfScope"><option value="page">همین صفحه (یا متن انتخاب‌شده)</option><option value="all">همهٔ صفحه‌های OCR‌شده</option></select></div>
           </div>
@@ -1587,7 +1612,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             <button class="btn sm" id="mfRep1" type="button">جایگزینی</button>
             <button class="btn sm" id="mfRepAll" type="button">جایگزینی همه</button>
           </div>
-          <p class="hint">اعراب‌گذاری آفلاین است و واژه‌های رایج و چندتلفظی را پوشش می‌دهد؛ برای متن فنی یا ادبی پس از اعمال، مرور کنید. اگر متنی را انتخاب کنید، ویرایش فقط روی همان اعمال می‌شود.</p>
+          <p class="hint">اعراب‌گذاری آفلاین است؛ حالت «هوشمند» کسرهٔ اضافه را با قاعده و تقریبی می‌گذارد، پس برای متن فنی یا ادبی پس از اعمال مرور کنید. اگر متنی را انتخاب کنید، ویرایش فقط روی همان اعمال می‌شود.</p>
         </div>
       </details>
       <textarea id="manTx" dir="rtl" spellcheck="false" aria-label="متن صفحه"></textarea>
@@ -2292,7 +2317,7 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
   window.addEventListener('pagehide', function(){ if (ocrBusy && ocrFlush) ocrFlush(); });                  /* ocrMeta[p] = {w: ok|blank_contrast|no_boxes|filtered, v: نسخهٔ موتور+کیفیت, q: اطمینان} */
   function ocrVer(){ var q = $('#ocrQ'); return OCR_VER + ':' + (q ? q.value : ''); }
   function ocrDone(p){ if (ocrPages[p] == null) return false; var m = ocrMeta[p]; return !(m && m.w !== 'ok' && m.v !== ocrVer()); }   /* صفحهٔ خالی/بی‌خط فقط تا همان نسخهٔ موتور «انجام‌شده» است */
-  function ocrHarMap(){ var o = {}, p; for (p in ocrMeta) if (ocrMeta[p] && ocrMeta[p].har && ocrDone(+p)) o[p] = 1; return o; }
+  function ocrHarMap(){ var o = {}, p; for (p in ocrMeta) if (ocrMeta[p] && (ocrMeta[p].har || ocrMeta[p].man) && ocrDone(+p)) o[p] = ocrMeta[p].man ? 2 : 1; return o; }   /* ۲ = صفحهٔ ویرایش‌شدهٔ دستی: بدون پاک‌سازی OCR/املا/چسبیدگی و با حفظ سطرها */
   function ocrEdMap(){ var o = {}, p; for (p in ocrMeta) if (ocrMeta[p].ed && ocrDone(+p)) o[p] = ocrMeta[p].ed; return o; }
   function ocrActive(){ var o = {}, p; for (p in ocrPages) if (ocrDone(+p)) o[p] = ocrPages[p]; return o; }
   function ocrTodo(){ return need.filter(function(p){ return !ocrDone(p); }); }
@@ -3524,7 +3549,7 @@ var ocrSpell = (function(){
         if (!inR(i + 1)) { pre[i] = []; return; }
         var hp = har[i + 1], ky = lite ? (ocrPages[i + 1] != null ? 1 : 0) + '|' + (hp ? JSON.stringify(hp) : '') + '|' + t : '', h = pm && pm[i];
         if (h && h.k === ky) { pre[i] = h.p; dropped += h.d; return; }
-        var s = normL(clean(prep(ocrPages[i + 1] != null ? ocrPurge(tocFx(t)) : tocFx(t)), O.ln), hp);
+        var s = normL(clean(prep(ocrPages[i + 1] != null && hp !== 2 ? ocrPurge(tocFx(t)) : tocFx(t)), hp === 2 ? 'line' : O.ln), hp);
         if (O.glue && !hp) s = glueFix(s);
         if (O.spell && ocrPages[i + 1] != null && !hp) s = ocrSpell(s, fq);
         if (ocrPages[i + 1] != null && ocrFx.length) s = ocrFxApply(s);
@@ -3606,7 +3631,7 @@ var ocrSpell = (function(){
     var fq = O.spell ? ocrSpell.freq(pg.filter(function(t, i){ return ocrPages[i + 1] != null; })) : null;
     pg = pg.map(function(t, i){
       if (!inR(i + 1)) return '';
-      var s = normL(clean(prep(ocrPages[i + 1] != null ? ocrPurge(tocFx(t)) : tocFx(t)), O.ln), har[i + 1]);
+      var s = normL(clean(prep(ocrPages[i + 1] != null && har[i + 1] !== 2 ? ocrPurge(tocFx(t)) : tocFx(t)), har[i + 1] === 2 ? 'line' : O.ln), har[i + 1]);
       if (O.glue && !har[i + 1]) s = glueFix(s);
       if (O.spell && ocrPages[i + 1] != null && !har[i + 1]) s = ocrSpell(s, fq);
         if (ocrPages[i + 1] != null && ocrFx.length) s = ocrFxApply(s);
@@ -4101,10 +4126,10 @@ var ocrSpell = (function(){
     ta.value = pre + a + t + b + post; pos = (pre + a + t).length; try { ta.setSelectionRange(pos, pos); } catch (x) {}
   }
   /* ===== ویرایش هوشمند متن دستی: یکدست‌سازی، فاصله/نیم‌فاصله، املا، نگارشی، ویرگول/نقطه و اعراب‌گذاری (آفلاین) ===== */
-  var MF_DEF = { mfNorm: 1, mfSp: 1, mfSpell: 1, mfPun: 1, mfCom: 1, mfDot: 1, mfJoin: 0, mfAuto: 0 };
-  var MF_SRC = 'اaز بeه کeه دaر هaر هaم یaک مaن چeه اaگaر اaمxا وaلی لیکeن بaلکه پaس بaر بaرای بaعد قaبل هaمه هaمین هaمان بeسیار بیشتaر کaمتaر چaند چoنین هaمچoنین بeنابaراین هaمیشه هaرگز مeثل طaبق عaلیه نaزد جoز شoما فaقط حaتxی اaکنون بeدون مaگaر خoد خoدش دیگaر بaعضی بaرخی چaنان اaکثaر اaغلaب کaم سeپaس پoشت کaنار حoدود نeسبaت طaور نaظaر جeهaت خاطeر سaمت نaه';
+  var MF_DEF = { mfNorm: 1, mfSp: 1, mfSpell: 1, mfPun: 1, mfCom: 1, mfDot: 1, mfJoin: 0, mfTs: 0, mfAuto: 0 };
+  var MF_SRC = 'اaز بeه کeه دaر هaر هaم یaک مaن چeه اaگaر اaمxا وaلی لیکeن بaلکه پaس بaر بaرای بaعد قaبل هaمه هaمین هaمان بeسیار بیشتaر کaمتaر چaند چoنین هaمچoنین بeنابaراین هaمیشه هaرگز مeثل طaبق عaلیه نaزد جoز شoما فaقط حaتxی اaکنون بeدون مaگaر خoد خoدش دیگaر بaعضی بaرخی چaنان اaکثaر اaغلaب کaم سeپaس پoشت کaنار حoدود نeسبaت طaور نaظaر جeهaت خاطeر سaمت نaه دaرباره نaزدیک دaرون مانaند اeینکه آنکeه چoنانکه اaگaرچه هaرچaند چeنانچه لeذا وaلو هaمراه';
   var MF = null, MF_TK = /[\u0621-\u06D3\u200c\u064B-\u0652\u0670\u0654]+/g;
-  var MF_INTRO = /^(بنابراین|همچنین|علاوه بر این|به علاوه|به عبارت دیگر|به عبارتی|در نتیجه|در واقع|به طور کلی|به هر حال|با این حال|با این وجود|از این رو|البته|مثلاً|مثلا|برای مثال|به عنوان مثال|از سوی دیگر|از طرف دیگر|متأسفانه|خوشبختانه)(?=[ \t]+[^\s،,])/;
+  var MF_INTRO = /^((?:[«"(]\s*)?(?:بنابراین|همچنین|علاوه بر این|علاوه بر آن|به علاوه|به‌علاوه|به عبارت دیگر|به عبارتی|در نتیجه|در واقع|در حقیقت|به طور کلی|به‌طور کلی|به طور خلاصه|به‌طور خلاصه|به هر حال|به‌هرحال|به هر ترتیب|با این حال|با این وجود|از این رو|از این‌رو|البته|مثلاً|مثلا|برای مثال|برای نمونه|به عنوان مثال|به‌عنوان مثال|به عنوان نمونه|از سوی دیگر|از طرف دیگر|از این گذشته|در عوض|در عین حال|در ضمن|ضمناً|ضمنا|لذا|نتیجتاً|اتفاقاً|بدین ترتیب|به این ترتیب|به همین دلیل|به همین علت|به همین خاطر|متأسفانه|خوشبختانه|اولاً|ثانیاً|ثالثاً|اولا|ثانیا|ثالثا))(?=[ \t]+[^\s،,؛;:.!?؟\d۰-۹])/;
   var MF_CONJ = /(\S)[ \t]+(اما|ولی|لیکن|بلکه|زیرا|درحالی\u200cکه|در حالی که)(?=[ \t])/g;
   var MF_NOPRE = new Set(['و', 'که', 'یا', 'اگر', 'اما', 'ولی', 'بلکه', 'چه', 'نه', 'هم', 'تا', 'چون', 'زیرا', 'بنابراین']);
   function mfInit(){
@@ -4113,7 +4138,7 @@ var ocrSpell = (function(){
   }
   function manHar(t, mode){
     if (mode === 'strip') return t.replace(/[\u0640\u064B-\u0653\u0655-\u065F\u0670]/g, '');
-    if (mode !== 'common' && mode !== 'full') return t;
+    if (mode !== 'common' && mode !== 'full' && mode !== 'smart') return t;
     if (!MF) mfInit();
     return t.split('\n').map(function(l){
       if (!/[\u0621-\u064A\u066E-\u06D3]/.test(l)) return l;
@@ -4122,12 +4147,13 @@ var ocrSpell = (function(){
         if (/[\u064B-\u0652\u0670]/.test(w)) return w;
         var r = lexApply(w);
         if (r !== w) return r;
-        return mode === 'full' && MF[w] ? MF[w] : w;
+        return mode !== 'common' && MF[w] ? MF[w] : w;
       });
-      if (mode === 'full') {
+      if (mode !== 'common') {
         l = l.replace(ADV_N, function(m, g, off, str){ return str.charAt(off + m.length) === '\u064B' ? m : m + '\u064B'; });
         l = l.replace(/(?<![\p{L}\u200c])الله(?![\p{L}\u200c\u0651])/gu, '\u0627\u0644\u0644\u0651\u0670\u0647');
       }
+      if (mode === 'smart') { try { l = manEz(l); } catch (e) {} }
       return l;
     }).join('\n');
   }
@@ -4143,22 +4169,91 @@ var ocrSpell = (function(){
     }
     l = l.replace(/(?<!\.)\.\.(?!\.)/g, '.').replace(/(?<!\.)\.{3}(?!\.)/g, '…').replace(/…{2,}/g, '…');
     l = fixPunct(l);
-    return l.replace(/،{2,}/g, '،').replace(/؟{2,}/g, '؟')
+    if (MF_PERS.test(l)) { l = l.replace(/(?<=[\u0621-\u06D3\u200c\u064B-\u0652)»])[ \t]+[-–—][ \t]+(?=[\u0621-\u06D3«(\d۰-۹])/g, ' – '); l = manQuest(l); }
+    return l.replace(/([؟!…])\.+/g, '$1').replace(/!{2,}/g, '!').replace(/،{2,}/g, '،').replace(/؟{2,}/g, '؟')
       .replace(/\([ \t]+/g, '(').replace(/[ \t]+\)/g, ')').replace(/«[ \t]+/g, '«').replace(/[ \t]+»/g, '»')
       .replace(/(?<=[\u0621-\u064A\u066E-\u06D3])(?=[«(])/g, ' ')
       .replace(/(?<=[»)])(?=[\u0621-\u064A\u066E-\u06D3])/g, ' ');
   }
+  /* ===== هستهٔ نگارش هوشمند (آفلاین و بدون مدل): پرسش/نقطه، ویرگول بندها و فهرست‌ها، کسرهٔ اضافه، تدوین صفحه ===== */
+  var MF_PERS = /[\u0621-\u064A\u066E-\u06D3]/;
+  var MF_QW = /^[«"(\[\s]*(?:آیا|چرا(?![ \t]+که)|چگونه|چطور|کجا|کی|مگر(?![ \t]+(?:آنکه|اینکه|این که|آن که))|چقدر|به کجا|از کجا|تا کی|چه کسی|چه کسانی|چه زمانی|چه چیزی|چه کاری|برای چه|به چه دلیل|کدام یک)(?=[ \t،]|$)/;
+  var EZ_COP = /^(?:است|نیست|بود|بودند|نبود|هست|هستند|هستم|نیستند|شد|شدند|باشد|باشند|می\u200cشود|نمی\u200cشود|می\u200cباشد|شده|بوده)$/;
+  var EZ_ADJ = {}, MF_H = {};
+  'خوب بد زیبا بزرگ کوچک مهم لازم ضروری ممکن مناسب سخت آسان ساده سرد گرم تازه قدیمی جدید زیاد کم کافی روشن تاریک شلوغ خلوت دشوار عالی درست غلط واضح مشخص روان آرام تمیز کثیف سنگین سبک بلند کوتاه ارزان گران'.split(' ').forEach(function(w){ EZ_ADJ[w] = 1; });
+  'فقیه شبیه وجیه نبیه سفیه نزیه تنبیه تشبیه توجیه تنزیه تمویه'.split(' ').forEach(function(w){ MF_H[w] = 1; });
+  var EZ_LV = {}, MF_P3 = {};                                       /* اسم‌های فعل مرکب («اعلام شد»، «اهمیت دارد») و گذشتهٔ سوم‌شخص برای تشخیص پایان بند */
+  'اعلام انجام تصویب ارائه اجرا ایجاد تهیه تدوین تأیید تایید ثبت حذف تمام آغاز شروع تکمیل منتشر پخش برگزار تعیین مشخص معلوم مطرح اهمیت نیاز وجود تأثیر تاثیر امکان قصد اجازه دعوت توجه استفاده کمک حمایت شرکت پیروی عمل حرکت صحبت بحث تلاش سعی کوشش فرصت حق قول انتخاب پیشنهاد'.split(' ').forEach(function(w){ EZ_LV[w] = 1; });
+  'کرد بود شد رفت گفت داشت دید داد گرفت آمد خورد خواست خاست توانست خواند ماند نوشت شنید پرسید فهمید رسید آورد ساخت یافت دانست نشست ایستاد افتاد گذشت خرید دوید خوابید کشید ریخت سوخت ترسید پرید چسبید بخشید پذیرفت شناخت فرستاد پرداخت آموخت'.split(' ').forEach(function(w){ ['', 'ند'].forEach(function(e){ MF_P3[w + e] = 1; MF_P3['ن' + w + e] = 1; }); });
+  var EZ_P = /^([«"(\[]*)([\u0621-\u06D3\u200c]+)([^\u0621-\u06D3\u200c]*)$/, EZ_HAS = /(?:\u0650|\u06C0|\u0647\u0654)$/, EZ_FIN = /[\u064B-\u0652\u0654\u0670\u200c]$/;
+  function ezMark(w){                                               /* شکل دارای کسرهٔ اضافه: کتابِ، خانهٔ، راهِ، دنیایِ، دانشجویِ */
+    var c = w.charAt(w.length - 1), p = w.charAt(w.length - 2);
+    if (c === '\u0647') {
+      if (p === '\u0627' || (p === '\u0648' && !/[\u06CC\u0644]\u0648\u0647$/.test(w)) || MF_H[w]) return w + '\u0650';   /* «ه» ملفوظ: ماهِ، کوهِ، گروهِ، فقیهِ */
+      return w.slice(0, -1) + '\u06C0';                              /* «ه» ناملفوظ: خانهٔ، جامعهٔ، پایهٔ */
+    }
+    if (c === '\u0627' || c === '\u0648') return w + '\u06CC\u0650';
+    return w + '\u0650';
+  }
+  function ezStrip(w){
+    if (/\u06C0$/.test(w)) return w.slice(0, -1) + '\u0647';
+    if (/\u0647\u0654$/.test(w)) return w.slice(0, -2) + '\u0647';
+    return /\u0650$/.test(w) ? w.slice(0, -1) : w;
+  }
+  function ezVerb(k){ return EZ_COP.test(k) || PZ_VERB.test(k) || !!EZ_V[k] || !!EZ_VBX[k] || !!MF_P3[k]; }
+  function ezBad(k){ return !k || EZ_STOP[k] || EZ_STOP2[k] || EZ_V[k] || EZ_VBX[k] || PZ_VERB.test(k) || /^ن?می\u200c/.test(k); }
+  function manEz(l){                                                /* کسرهٔ اضافهٔ محافظه‌کار: فقط میان دو واژهٔ پیاپی بی‌نشانه که فعل/حرف/ضمیر/قید نیستند */
+    if (!MF_PERS.test(l)) return l;
+    var tk = l.split(' '), n = tk.length, P = new Array(n), i, a, b, m, c2;
+    for (i = 0; i < n; i++) { m = EZ_P.exec(tk[i]); P[i] = m ? { lead: m[1], w: m[2], trail: m[3], k: m[2].replace(/[\u064B-\u0652\u0654\u0670\u0640]/g, '') } : null; }
+    for (i = 0; i < n - 1; i++) {
+      a = P[i]; b = P[i + 1];
+      if (!a || !b || a.trail || b.lead.indexOf('(') >= 0 || a.k.length < 2 || EZ_FIN.test(a.w) || EZ_HAS.test(a.w) || ezBad(a.k) || ezBad(b.k)) continue;
+      c2 = P[i + 2];
+      if (c2 && ezVerb(c2.k) && (EZ_LV[b.k] || (EZ_COP.test(c2.k) && EZ_ADJ[b.k]))) continue;   /* «هوا خوب است» مسند؛ «اهمیت دارد»، «اعلام شد» فعل مرکب */
+      tk[i] = a.lead + ezMark(a.w);
+    }
+    return tk.join(' ');
+  }
+  function mfSub(seg){                                              /* «اگر … باشد، …»: ویرگول پس از نخستین فعل بند پیرو */
+    var re = /\S+/g, m, T = [], n, v, vc;
+    while ((m = re.exec(seg))) T.push({ w: m[0], e: m.index + m[0].length });
+    n = T.length; if (n < 7 || !PZ_SUB.has(T[0].w.replace(/^[«"(\[]+/, ''))) return seg;
+    for (v = 1; v < n - 3 && v <= 13; v++) {
+      if (PZ_END.test(T[v].w)) return seg;
+      vc = wcore(T[v].w);
+      if (PZ_VERB.test(vc) || EZ_V[vc] || EZ_VBX[vc] || MF_P3[vc]) {
+        if (v < 3 || /^(?:و|یا|که|تا|را|اما|ولی)$/.test(wcore(T[v + 1].w))) return seg;
+        return seg.slice(0, T[v].e) + '،' + seg.slice(T[v].e);
+      }
+    }
+    return seg;
+  }
+  var MF_ENUM = /(?<![\p{L}\u200c])[\u0621-\u06D3\u200c]{2,}(?: و [\u0621-\u06D3\u200c]{2,}){2,}(?![\p{L}\u200c])/gu;
+  function mfEnum(seg){                                             /* «الف و ب و ج» ← «الف، ب و ج» (فقط واژه‌های تک‌کلمه‌ای و غیرفعل) */
+    return seg.replace(MF_ENUM, function(m, off, str){
+      var a = m.split(' و '), i, k;
+      for (i = 0; i < a.length; i++) { k = a[i].replace(/[\u064B-\u0652\u0654\u0670]/g, ''); if (ezBad(k)) return m; }
+      if (/(?:^|\s)(?:هم|چه|نه|هر)\s*$/.test(str.slice(Math.max(0, off - 8), off))) return m;
+      return a.slice(0, -1).join('، ') + ' و ' + a[a.length - 1];
+    });
+  }
+  function manQuest(l){                                             /* جملهٔ پرسشی که با «.» بسته شده ← «؟» */
+    return l.replace(/(?<=^|[.!?؟…][»”"')\]]*[ \t]+)([^.!?؟…\n]{6,220})\.(?=[»”"')\]]*(?:[ \t]|$))/g, function(m, body){ return MF_QW.test(body) ? body + '؟' : m; });
+  }
+  function mfMark(t){ var m = /(?:^|[.!?؟…][»”"')\]]*[ \t]+)([^.!?؟…]*)$/.exec(t); return m && MF_QW.test(m[1]) ? '؟' : '.'; }
   function manComma(l){
-    if (!l || !/[\u0621-\u064A\u066E-\u06D3]/.test(l)) return l;
+    if (!l || !MF_PERS.test(l)) return l;
     return l.split(/([.!?؟…؛:][ \t]+)/).map(function(seg, i){
       if (i % 2) return seg;
       seg = seg.replace(MF_INTRO, '$1،');
-      return seg.replace(MF_CONJ, function(m, a, w, off){
+      seg = seg.replace(MF_CONJ, function(m, a, w, off){
         if (/[،,؛;:]$/.test(a)) return m;
         var tk = seg.slice(0, off + 1).split(/\s+/), prev = tk[tk.length - 1].replace(/^[«"(]+/, '');
         if (tk.length < 3 || MF_NOPRE.has(prev)) return m;
         return a + '، ' + w;
       });
+      return mfEnum(mfSub(seg));
     }).join('');
   }
   function manDot(s){
@@ -4171,12 +4266,22 @@ var ocrSpell = (function(){
       if (t.indexOf('\u001f') >= 0 || /\.{3,}|…/.test(t) || JB_ITEM.test(t)) return l;
       wc = t.split(/\s+/).length; if (wc < 5) return l;
       endB = nx === undefined || !nx.trim();
-      return endB || (t.length < mx * 0.6 && wc >= 6) ? t + '.' : l;
+      return endB || (t.length < mx * 0.6 && wc >= 6) ? t + mfMark(t) : l;
     }).join('\n');
+  }
+  function manTypeset(s){                                           /* تدوین صفحه: شمارهٔ صفحهٔ بالا/پایین، خط‌های جداکننده، سطر خالی اضافی */
+    var ls = s.split('\n').map(function(l){ return l.replace(/[ \t\u00a0]+/g, ' ').trim(); }), a, b, k, out = [],
+        pn = /^[\s\-–—_=*·.•|()\[\]]*[\d۰-۹٠-٩]{1,4}[\s\-–—_=*·.•|()\[\]]*$/, sp = /^[\s\-–—_=*~·.•|]{4,}$/;
+    for (a = 0; a < ls.length && !ls[a]; a++);
+    for (b = ls.length - 1; b > a && !ls[b]; b--);
+    if (b - a >= 3) { if (pn.test(ls[a])) ls[a] = ''; if (pn.test(ls[b])) ls[b] = ''; }
+    for (k = 0; k < ls.length; k++) { if (sp.test(ls[k])) continue; if (!ls[k] && (!out.length || !out[out.length - 1])) continue; out.push(ls[k]); }
+    return out.join('\n');
   }
   function manPolish(t, o){
     var s = String(t == null ? '' : t).replace(/\r\n?/g, '\n'), Z = '\u200c';
     if (o.join) s = clean(s, 'auto');
+    if (o.ts) s = manTypeset(s);
     if (o.norm) {
       s = persianize(s).replace(/[\u0647\u06D5]\u0654/g, '\u06C0').replace(/[\u0640\u06D6-\u06ED]/g, '');
       s = s.split('\n').map(function(l){
@@ -4195,7 +4300,7 @@ var ocrSpell = (function(){
     if (o.har && o.har !== 'none') s = manHar(s, o.har);
     return s.replace(/[ \t]+$/gm, '').replace(/\n{3,}/g, '\n\n').trim();
   }
-  function mfOpts(){ var g = function(i){ return $('#' + i).checked; }; return { norm: g('mfNorm'), sp: g('mfSp'), spell: g('mfSpell'), pun: g('mfPun'), com: g('mfCom'), dot: g('mfDot'), join: g('mfJoin'), har: $('#mfHar').value }; }
+  function mfOpts(){ var g = function(i){ return $('#' + i).checked; }; return { norm: g('mfNorm'), sp: g('mfSp'), spell: g('mfSpell'), pun: g('mfPun'), com: g('mfCom'), dot: g('mfDot'), join: g('mfJoin'), ts: g('mfTs'), har: $('#mfHar').value }; }
   function mfLoad(){ Object.keys(MF_DEF).forEach(function(id){ $('#' + id).checked = sget(id, String(MF_DEF[id])) === '1'; }); $('#mfHar').value = sget('mfHar', 'none'); $('#mfScope').value = 'page'; }
   function mfStat(){
     var v = $('#manTx').value, w = (v.match(/\S+/g) || []).length, h = (v.match(/[\u064B-\u0652\u0670]/g) || []).length;
@@ -5118,8 +5223,9 @@ var ocrSpell = (function(){
     });
     d.style.minHeight = '';
   }
+  var edQ = 0;                                                       /* صفحه‌ای که ویرایشگر دستی در آن باز است؛ پاک نمی‌شود */
   function unrenderPage(q){
-    var d = pgEls[q]; if (!d || !d.firstChild || (sents[idx] && sents[idx].page === q)) return;
+    var d = pgEls[q]; if (!d || !d.firstChild || q === edQ || (sents[idx] && sents[idx].page === q)) return;
     d.style.minHeight = d.offsetHeight + 'px'; d.textContent = '';
     pageParas[q].forEach(function(ids){ ids.forEach(function(i){ sents[i].el = null; }); });
   }
@@ -6035,7 +6141,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r38 · 2026-10-19 · audio-cachestorage', npBuild = '';
+  var APP_BUILD = 'html-r40 · 2026-10-19 · page-editor-find+diff', npBuild = '';
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r17: عیب‌یابی crossOriginIsolated — هدرهای واقعی سند را می‌خواند؛ اگر هدرها هست ولی coi=false (سند پیش از تعویض WebViewClient بار شده) یک‌بار صفحه را بازبارگذاری می‌کند */
   try { if (!window.crossOriginIsolated && window.fetch) fetch(location.href, { cache: 'no-store' }).then(function(r){
@@ -7265,7 +7371,7 @@ var ocrSpell = (function(){
     try { Promise.resolve(NP.keepAwake({ on: kw, cpu: kw })).catch(function(){ kaBad = true; }); } catch (e) { kaBad = true; }
   }
   function ui(){
-    kaSync();
+    kaSync(); edSync();
     var has = sents.length > 0 && canSpeak();
     $('#play').disabled = !has;
     $('#prev').disabled = !has;
@@ -8072,7 +8178,7 @@ var ocrSpell = (function(){
     var s = window.getSelection ? window.getSelection() : null;
     if (!s || s.isCollapsed || !s.rangeCount) return '';
     var n = s.getRangeAt(0).commonAncestorContainer; n = n.nodeType === 1 ? n : n.parentNode;
-    if (!n || !$('#reader').contains(n)) return '';
+    if (!n || !$('#reader').contains(n) || (n.closest && n.closest('.pged'))) return '';
     return String(s).replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
   }
   function selUpdate(){
@@ -8115,6 +8221,7 @@ var ocrSpell = (function(){
     return String(s).replace(/[\u064B-\u065F\u0670]/g, '').replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '').trim();
   }
   $('#reader').addEventListener('dblclick', function(e){
+    if (e.target.closest && e.target.closest('.pged')) return;
     var w = wordAt(e); if (!w || /\s/.test(w) || w.indexOf('=') >= 0) return;
     try { window.getSelection().removeAllRanges(); } catch (x) {}
     $('#selBar').hidden = true;
@@ -8220,7 +8327,7 @@ var ocrSpell = (function(){
 
   document.addEventListener('keydown', function(e){
     var tag = (e.target.tagName || '').toLowerCase();
-    if (e.code === 'Space' && tag !== 'input' && tag !== 'select' && tag !== 'button' && !$('#play').disabled) {
+    if (e.code === 'Space' && tag !== 'input' && tag !== 'select' && tag !== 'button' && tag !== 'textarea' && !e.target.isContentEditable && !$('#play').disabled) {
       e.preventDefault();
       playing ? pause() : start();
     }
@@ -8974,7 +9081,316 @@ var ocrSpell = (function(){
   }
   function tileClick(sel){ var b = document.querySelector('#toolsMenu .tile[' + sel + ']'); if (b) b.click(); }
   document.getElementById('appHeader').appendChild(toolsEl);   /* منو به کل هدر لنگر می‌شود تا با هر دو نوار کار کند */
-  $('#rdBack').onclick = showHome;
+  /* ===== حالت دستی تدوین و ویرایش صفحه در صفحهٔ خوانش (r39) ===== */
+  var edt = { q: 0, doc: null, el: null, ta: null, st: null, sc: null, base: '', cur: null, h: [], p: 0, tm: 0, busy: false, warn: false, rv: 0, fit: 0, all: [], bU: null, bR: null, bV: null, pv: null, fr: null };
+  var ED_CH = ['،', '؛', '؟', '!', '.', ':', '«', '»', '(', ')', '…', '–'];
+  var ED_DG = ['\u064E', '\u0650', '\u064F', '\u0651', '\u0652', '\u064B', '\u064C', '\u064D'];
+  var ED_DGN = ['فتحه', 'کسره', 'ضمه', 'تشدید', 'سکون', 'تنوین نصب', 'تنوین رفع', 'تنوین جر'];
+  var ED_ACT = [['pun', 'نگارشی', 'اصلاح علائم نگارشی و فاصله‌ها'], ['com', 'ویرگول', 'ویرگول هوشمند'], ['dot', 'نقطه و ؟', 'نقطهٔ پایان بند و علامت پرسش'], ['har', 'اعراب', 'اعراب‌گذاری هوشمند (با کسرهٔ اضافه)'], ['unh', 'بی‌اعراب', 'حذف همهٔ اعراب'], ['ez', 'کسرهٔ اضافه ±', 'افزودن یا حذف کسرهٔ اضافه برای واژهٔ زیر مکان‌نما'], ['ts', 'تدوین', 'پیوند سطرهای شکسته و پاک‌کردن شمارهٔ صفحه'], ['all', 'همه', 'نگارشی + ویرگول + نقطه + فاصله‌ها']];
+  var ED_PV = { all: 1 };                                             /* کنش‌هایی که پیش از اعمال، پیش‌نمایش تفاوت دارند */
+  var ED_OPT = { pun: { pun: 1 }, com: { com: 1 }, dot: { dot: 1 }, har: { har: 'smart' }, unh: { har: 'strip' }, ts: { join: 1, ts: 1 }, all: { norm: 1, sp: 1, pun: 1, com: 1, dot: 1 } };
+  function edKey(q){ return ocrKey.replace(/^ocr:/, 'ocro:') + ':' + q; }               /* نسخهٔ پیش از ویرایش دستی، برای «بازگردانی اصل» */
+  function edNorm(v){ return String(v == null ? '' : v).replace(/\r\n?/g, '\n').replace(/[ \t]+$/gm, '').replace(/\n{3,}/g, '\n\n').trim(); }
+  function edText(q){ return (pageParas[q] || []).map(function(ids){ return ids.map(function(i){ return sents[i].text; }).join(' '); }).join('\n'); }
+  function edDirty(){ return !!edt.q && !!edt.ta && edNorm(edt.ta.value) !== edt.base; }
+  function edSt(t){ if (edt.st) edt.st.textContent = t || ''; }
+  function edStat(){ if (!edt.ta || !edt.sc) return; var v = edt.ta.value, h = (v.match(/[\u064B-\u0652\u0670]/g) || []).length; edt.sc.textContent = nf.format((v.match(/\S+/g) || []).length) + ' واژه' + (h ? ' · ' + nf.format(h) + ' اعراب' : ''); }
+  function edFit(){ if (edt.fit) return; edt.fit = requestAnimationFrame(function(){ edt.fit = 0; var t = edt.ta; if (!t) return; t.style.height = 'auto'; t.style.height = Math.max(200, t.scrollHeight + 6) + 'px'; }); }
+  function edMk(tag, cls, txt){ var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+  function edUi(){
+    if (!edt.q || !edt.bU) return;
+    var d = edt.busy || !!edt.pv;
+    edt.all.forEach(function(b){ b.disabled = d; });
+    if (!d) { edt.bU.disabled = edt.p <= 0; edt.bR.disabled = edt.p >= edt.h.length - 1; }
+    edt.bV.textContent = edt.rv ? 'تأیید بازگردانی؟' : 'بازگردانی اصل';
+  }
+  function edPush(v){ if (edt.h[edt.p] === v) return; edt.h.length = edt.p + 1; edt.h.push(v); if (edt.h.length > 40) edt.h.shift(); edt.p = edt.h.length - 1; edUi(); }
+  function edFlush(){ clearTimeout(edt.tm); edt.tm = 0; if (edt.ta) edPush(edt.ta.value); }
+  function edPut(v, s, e){ var t = edt.ta; t.value = v; try { t.setSelectionRange(s, e == null ? s : e); } catch (x) {} edPush(v); edt.cur = v; edt.warn = false; edFit(); edStat(); }
+  function edHist(d){ edFlush(); var n = edt.p + d; if (n < 0 || n >= edt.h.length) return; edt.p = n; edt.ta.value = edt.h[n]; edt.cur = edt.h[n]; edFit(); edStat(); edUi(); }
+  function edIns(c, after){
+    var t = edt.ta, v = t.value, s = t.selectionStart, e = t.selectionEnd, focus = document.activeElement === t, p;
+    if (s == null) { s = e = v.length; }
+    if (after) s = e;                                                  /* اعراب پس از متن انتخاب‌شده می‌آید و آن را جایگزین نمی‌کند */
+    edFlush(); p = s + c.length; edPut(v.slice(0, s) + c + v.slice(e), p);
+    if (focus) { try { t.focus({ preventScroll: true }); t.setSelectionRange(p, p); } catch (x) {} }
+  }
+  function edWordAt(v, pos){ var re = /[\u0621-\u06D3\u200c]+/g, m; while ((m = re.exec(v))) { if (m.index > pos) break; if (pos <= m.index + m[0].length) return m; } return null; }
+
+  /* ---- پیش‌نمایش تفاوت (diff واژه‌ای، LCS سبک) ---- */
+  var ED_TK = /[\p{L}\p{M}\p{N}\u200c]+|\s+|[^\s]/gu;
+  function edWk(t){ return /^\s/.test(t) ? (t.indexOf('\n') < 0 ? ' ' : '\n') : t; }
+  function edDiff(a, b){
+    var A = a.match(ED_TK) || [], B = b.match(ED_TK) || [], ka = A.map(edWk), kb = B.map(edWk), s = 0, e = 0, n, m, i, j, W, L, o = [], d = [], ad = [], k, ps = 0, pd = 0;
+    while (s < A.length && s < B.length && ka[s] === kb[s]) s++;
+    while (e < A.length - s && e < B.length - s && ka[A.length - 1 - e] === kb[B.length - 1 - e]) e++;
+    n = A.length - s - e; m = B.length - s - e;
+    if (n * m > 6e6) return null;
+    function flush(){ if (d.length) { o.push(['-', d]); d = []; } if (ad.length) { o.push(['+', ad]); ad = []; } }
+    function eq(x){ flush(); if (o.length && o[o.length - 1][0] === '=') o[o.length - 1][1].push(x); else o.push(['=', [x]]); }
+    for (k = 0; k < s; k++) eq(B[k]);
+    if (n || m) {
+      W = m + 1; L = new Uint16Array((n + 1) * W);
+      for (i = n - 1; i >= 0; i--) for (j = m - 1; j >= 0; j--) L[i * W + j] = ka[s + i] === kb[s + j] ? L[(i + 1) * W + j + 1] + 1 : Math.max(L[(i + 1) * W + j], L[i * W + j + 1]);
+      i = j = 0;
+      while (i < n && j < m) {
+        if (ka[s + i] === kb[s + j]) { eq(B[s + j]); i++; j++; }
+        else if (L[(i + 1) * W + j] >= L[i * W + j + 1]) d.push(A[s + i++]); else ad.push(B[s + j++]);
+      }
+      while (i < n) d.push(A[s + i++]);
+      while (j < m) ad.push(B[s + j++]);
+      flush();
+    }
+    for (k = B.length - e; k < B.length; k++) eq(B[k]);
+    return o;
+  }
+  function edPvClose(){
+    if (edt.pv) { edt.pv.remove(); edt.pv = null; }
+    if (edt.ta) edt.ta.readOnly = false;
+    edUi();
+  }
+  function edPrev(src, out, lab, fn){
+    if (edt.pv || !edt.ta) return;
+    var df = edDiff(src, out), pv = edMk('div', 'pgedpv'), h = edMk('div', 'pgedpvh'), bx = edMk('div', 'pvb'), ac = edMk('div', 'pgedact'), b1, b2, na = 0, nd = 0;
+    if (!df) { h.textContent = lab + ' · تغییر بسیار گسترده؛ پیش‌نمایش تفصیلی نشان داده نمی‌شود.'; }
+    else {
+      df.forEach(function(g, gi){
+        var t = g[1], x;
+        if (g[0] === '=') {
+          if (t.length > 24) t = gi === 0 ? ['… '].concat(t.slice(-8)) : gi === df.length - 1 ? t.slice(0, 8).concat([' …']) : t.slice(0, 8).concat([' … ']).concat(t.slice(-8));
+          x = edMk('span', g[1].length > 24 ? 'pvg' : '', t.join('')); bx.appendChild(x); return;
+        }
+        t.forEach(function(w){ if (/\S/.test(w)) { if (g[0] === '+') na++; else nd++; } });
+        x = edMk(g[0] === '+' ? 'ins' : 'del', '', t.join('').replace(/^\s+$/, '␣'));
+        bx.appendChild(x);
+      });
+      h.textContent = lab + ' · ' + nf.format(na) + ' افزوده · ' + nf.format(nd) + ' حذف';
+    }
+    b1 = edMk('button', 'btn primary', 'اعمال تغییرات'); b1.type = 'button';
+    b2 = edMk('button', 'btn', 'انصراف'); b2.type = 'button';
+    b1.addEventListener('click', function(){ if (!edt.pv || edt.pv !== pv) return; edPvClose(); fn(); });
+    b2.addEventListener('click', function(){ if (edt.pv !== pv) return; edPvClose(); edSt('تغییری اعمال نشد.'); });
+    ac.appendChild(b1); ac.appendChild(b2); pv.appendChild(h); if (df) pv.appendChild(bx); pv.appendChild(ac);
+    edt.el.insertBefore(pv, edt.ta); edt.pv = pv; edt.ta.readOnly = true; edUi();
+    try { pv.scrollIntoView({ block: 'center' }); } catch (x) {}
+  }
+  /* ---- جست‌وجو و جایگزینی درون صفحه (بی‌اعراب و هم‌ارزی ی/ک عربی) ---- */
+  function edFold(c){ return c === 0x64A || c === 0x649 ? 0x6CC : c === 0x643 ? 0x6A9 : c >= 0x660 && c <= 0x669 ? c + 0x690 : c; }
+  function edFR(v, q, dia){
+    var f = [], mp = new Int32Array(v.length + 1), n = 0, i, c, qs = [], r = [], j, k, ql;
+    for (i = 0; i < v.length; i++) {
+      c = v.charCodeAt(i);
+      if (dia && ((c >= 0x64B && c <= 0x652) || c === 0x670 || c === 0x640)) continue;
+      mp[n] = i; f.push(String.fromCharCode(edFold(c))); n++;
+    }
+    mp[n] = v.length; f = f.join('');
+    for (i = 0; i < q.length; i++) { c = q.charCodeAt(i); if (dia && ((c >= 0x64B && c <= 0x652) || c === 0x670 || c === 0x640)) continue; qs.push(String.fromCharCode(edFold(c))); }
+    qs = qs.join(''); ql = qs.length;
+    if (!ql) return r;
+    for (j = f.indexOf(qs); j >= 0; j = f.indexOf(qs, j + ql)) r.push([mp[j], mp[j + ql]]);
+    return r;
+  }
+  function edYOf(t, pos){
+    var m = document.createElement('div'), cs = getComputedStyle(t), sp = document.createElement('span'), y;
+    m.style.cssText = 'position:absolute;visibility:hidden;top:0;left:-9999px;white-space:pre-wrap;overflow-wrap:break-word;box-sizing:border-box;';
+    ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'wordSpacing', 'direction', 'textAlign', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth', 'borderTopStyle', 'borderRightStyle', 'borderBottomStyle', 'borderLeftStyle'].forEach(function(k){ m.style[k] = cs[k]; });
+    m.style.width = t.offsetWidth + 'px'; m.textContent = t.value.slice(0, pos); sp.textContent = '.'; m.appendChild(sp);
+    document.body.appendChild(m); y = sp.offsetTop; m.remove(); return y;
+  }
+  function edScroller(e){ for (e = e.parentElement; e && e !== document.body; e = e.parentElement) { var o = getComputedStyle(e).overflowY; if ((o === 'auto' || o === 'scroll') && e.scrollHeight > e.clientHeight + 2) return e; } return document.scrollingElement || document.documentElement; }
+  function edReveal(pos){
+    var t = edt.ta, bar = edt.el && edt.el.querySelector('.pgedbar'), tr, y, top, bot, sc, vh;
+    if (!t || !bar) return;
+    try {
+      tr = t.getBoundingClientRect(); y = tr.top + edYOf(t, pos); top = bar.getBoundingClientRect().bottom + 16;
+      vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight; bot = vh - 90;
+      if (y < top || y > bot) { sc = edScroller(t); sc.scrollTop += y - top - 40; }
+    } catch (x) {}
+  }
+  function edFSel(i, n, c){ var t = edt.ta; try { t.focus({ preventScroll: true }); t.setSelectionRange(c[i][0], c[i][1]); } catch (x) {} edReveal(c[i][0]); edSt('مورد ' + nf.format(i + 1) + ' از ' + nf.format(n)); }
+  function edFGo(dir){
+    if (edt.busy || edt.pv || !edt.ta || !edt.fr) return;
+    var t = edt.ta, q = edt.fr.q.value, c, i, s, e;
+    if (!q) { edSt('عبارت جست‌وجو را بنویسید.'); return; }
+    c = edFR(t.value, q, edt.fr.d.checked);
+    if (!c.length) { edSt('موردی پیدا نشد.'); return; }
+    s = t.selectionStart; e = t.selectionEnd;
+    if (dir > 0) { for (i = 0; i < c.length && c[i][0] < (e > s ? e : s); i++); if (i >= c.length) i = 0; }
+    else { for (i = c.length - 1; i >= 0 && c[i][1] > s; i--); if (i < 0) i = c.length - 1; }
+    edFSel(i, c.length, c);
+  }
+  function edFRep(all){
+    if (edt.busy || edt.pv || !edt.ta || !edt.fr) return;
+    var t = edt.ta, q = edt.fr.q.value, r = edt.fr.r.value, v, c, i, s0, e0, p, out, k;
+    if (!q) { edSt('عبارت جست‌وجو را بنویسید.'); return; }
+    edFlush(); v = t.value; c = edFR(v, q, edt.fr.d.checked); s0 = t.selectionStart; e0 = t.selectionEnd;
+    if (!c.length) { edSt('موردی پیدا نشد.'); return; }
+    if (all) {
+      for (out = '', p = 0, k = 0; k < c.length; k++) { out += v.slice(p, c[k][0]) + r; p = c[k][1]; }
+      out += v.slice(p);
+      edPrev(v, out, 'جایگزینی ' + nf.format(c.length) + ' مورد', function(){ if (!edt.ta || edt.ta.value !== v) return; edPut(out, Math.min(s0, out.length)); edSt(nf.format(c.length) + ' مورد جایگزین شد.'); });
+      return;
+    }
+    for (i = 0; i < c.length && !(c[i][0] === s0 && c[i][1] === e0); i++);
+    if (i < c.length) { out = v.slice(0, s0) + r + v.slice(e0); p = s0 + r.length; edPut(out, p); edFGo(1); }
+    else edFGo(1);
+  }
+  function edFToggle(){
+    var f = edt.fr; if (!f) return;
+    f.row.hidden = !f.row.hidden; f.btn.classList.toggle('on', !f.row.hidden);
+    if (!f.row.hidden) setTimeout(function(){ try { f.q.focus(); } catch (x) {} }, 30);
+  }
+  function edAct(k){
+    if (edt.busy || edt.pv || !edt.ta) return;
+    var t = edt.ta, v = t.value, s0 = t.selectionStart, e0 = t.selectionEnd, sel = e0 > s0, src, out, o, m, w, r, has;
+    edFlush();
+    try {
+      if (k === 'ez') {
+        m = edWordAt(v, s0); if (!m) { edSt('مکان‌نما را روی یک واژه بگذارید.'); return; }
+        w = m[0]; has = EZ_HAS.test(w);
+        if (!has && EZ_FIN.test(w)) { edSt('این واژه از پیش اعراب پایانی دارد.'); return; }
+        r = has ? ezStrip(w) : ezMark(w);
+        edPut(v.slice(0, m.index) + r + v.slice(m.index + w.length), m.index + r.length);
+        edSt(has ? 'کسرهٔ اضافه برداشته شد.' : 'کسرهٔ اضافه گذاشته شد.'); return;
+      }
+      o = { norm: 0, sp: 0, spell: 0, pun: 0, com: 0, dot: 0, join: 0, ts: 0, har: 'none' };
+      Object.keys(ED_OPT[k]).forEach(function(x){ o[x] = ED_OPT[k][x]; });
+      src = sel ? v.slice(s0, e0) : v; out = manPolish(src, o);
+      if (out === src) { edSt('تغییری لازم نبود.'); return; }
+      var go = function(){
+        if (!edt.ta || edt.ta.value !== v) return;
+        edPut(sel ? v.slice(0, s0) + out + v.slice(e0) : out, sel ? s0 : Math.min(s0, out.length), sel ? s0 + out.length : null);
+        edSt(nf.format(mfDiff(src, out)) + ' تغییر' + (sel ? ' در متن انتخاب‌شده' : '') + ' اعمال شد.');
+      };
+      if (ED_PV[k]) { edPrev(src, out, sel ? 'متن انتخاب‌شده' : 'کل صفحه', go); return; }
+      go();
+    } catch (e) { edSt('ناموفق بود: ' + em(e)); }
+  }
+  function edNb(q, mv){ for (var p = q + mv; p >= 1 && p <= rawItems.length; p += mv) if (pgEls[p] && pageParas[p]) return p; return 0; }
+  function edClose(noRender){
+    var q = edt.q, d = q ? pgEls[q] : null;
+    clearTimeout(edt.tm); clearTimeout(edt.rv); if (edt.fit) { cancelAnimationFrame(edt.fit); edt.fit = 0; }
+    edt.q = 0; edQ = 0; edt.doc = edt.el = edt.ta = edt.st = edt.sc = edt.bU = edt.bR = edt.bV = edt.pv = edt.fr = null; edt.all = []; edt.h = []; edt.p = 0; edt.rv = 0; edt.warn = false; edt.cur = null; edt.busy = false;
+    if (d && !noRender) { d.textContent = ''; renderPage(q); try { mark(false); } catch (e) {} }
+    edSync();
+  }
+  function edCancel(){
+    if (edDirty() && !edt.warn) { edt.warn = true; edSt('تغییرات ذخیره‌نشده دارید؛ برای رها کردن دوباره «انصراف» را بزنید.'); return; }
+    edClose();
+  }
+  async function edSave(mv){
+    if (!edt.q || edt.busy) return;
+    var q = edt.q, t, nq, first, doc = pdfDoc;
+    edFlush(); t = edNorm(edt.ta.value);
+    if (t === edt.base) { edClose(); if (mv) { nq = edNb(q, mv); if (nq) edOpen(nq); else status('صفحهٔ دیگری با متن برای ویرایش نیست.'); } return; }
+    edt.busy = true; edUi(); edSt('در حال ذخیره…');
+    try {
+      if (!(ocrMeta[q] && ocrMeta[q].man)) await kvSet(edKey(q), ocrPages[q] != null ? { s: 'o', t: ocrPages[q], m: ocrMeta[q] || null } : { s: 'p' });
+      ocrPages[q] = t; ocrMeta[q] = { w: 'ok', v: ocrVer(), har: 1, man: 1 }; ocrDirtyC[q] = 1;
+      await ocrSaveD(ocrKey, ocrPages, ocrGeo, ocrMeta);
+    } catch (e) { edt.busy = false; edUi(); edSt('ذخیره ناموفق بود: ' + em(e)); return; }
+    if (pdfDoc !== doc) return;
+    first = pageParas[q] && pageParas[q][0] ? pageParas[q][0][0] : -1;
+    edClose(true); if (first >= 0) idx = first;
+    await Promise.resolve(process(true));
+    if (pdfDoc !== doc) return;
+    if (mv) { nq = edNb(q, mv); if (nq) edOpen(nq); else status('صفحهٔ دیگری با متن برای ویرایش نیست.'); }
+    else status('ویرایش صفحهٔ ' + nf.format(q) + ' ذخیره شد.');
+  }
+  async function edRevert(){
+    if (!edt.q || edt.busy) return;
+    var q = edt.q, b = null, first, doc = pdfDoc;
+    try { b = await kvGet0(edKey(q)); } catch (e) { b = null; }
+    if (!edt.q || edt.q !== q) return;
+    if (!b) { edSt('نسخهٔ پیش از ویرایش دستی برای این صفحه ذخیره نشده است.'); return; }
+    if (!edt.rv) { edt.rv = setTimeout(function(){ edt.rv = 0; edUi(); }, 3500); edUi(); edSt('برای بازگرداندن متن اصلی صفحه دوباره بزنید؛ ویرایش‌های ذخیره‌شدهٔ این صفحه از بین می‌رود.'); return; }
+    clearTimeout(edt.rv); edt.rv = 0; edt.busy = true; edUi();
+    try {
+      if (b.s === 'o') { ocrPages[q] = b.t; if (b.m) ocrMeta[q] = b.m; else delete ocrMeta[q]; } else { delete ocrPages[q]; delete ocrMeta[q]; }
+      ocrDirtyC[q] = 1; await ocrSaveD(ocrKey, ocrPages, ocrGeo, ocrMeta); await kvSet(edKey(q), null);
+    } catch (e) { edt.busy = false; edUi(); edSt('بازگردانی ناموفق بود: ' + em(e)); return; }
+    if (pdfDoc !== doc) return;
+    first = pageParas[q] && pageParas[q][0] ? pageParas[q][0][0] : -1;
+    edClose(true); if (first >= 0) idx = first;
+    await Promise.resolve(process(true));
+    status('متن اصلی صفحهٔ ' + nf.format(q) + ' بازگردانده شد.');
+  }
+  function edOpen(q, draft){
+    var d = pgEls[q], t, w, hd, bar, r1, r2, r3, r4, act, act2, ta, fq, fr, fd, fl, fb;
+    if (!d || !pageParas[q]) { status('متنی برای ویرایش در این صفحه نیست.'); return false; }
+    if (edt.q) edClose();
+    if (playing) { try { pause(); } catch (e) {} }
+    t = edText(q);
+    edt.q = q; edQ = q; edt.doc = pdfDoc; edt.base = edNorm(t); edt.h = []; edt.p = 0; edt.all = []; edt.warn = false; edt.busy = false; edt.rv = 0; edt.pv = null; edt.fr = null;
+    pageParas[q].forEach(function(ids){ ids.forEach(function(i){ if (sents[i].el && sents[i].el === curEl) curEl = null; sents[i].el = null; }); });
+    d.textContent = '';
+    function B(row, label, cls, title, fn){ var b = edMk('button', cls, label); b.type = 'button'; if (title) { b.title = title; b.setAttribute('aria-label', title); } b.addEventListener('click', fn); row.appendChild(b); edt.all.push(b); return b; }
+    w = edMk('div', 'pged'); hd = edMk('div', 'pgedh'); hd.appendChild(edMk('b', '', 'ویرایش دستی · صفحهٔ ' + nf.format(q))); edt.sc = edMk('span', '', ''); hd.appendChild(edt.sc);
+    bar = edMk('div', 'pgedbar'); r1 = edMk('div', 'pgedr'); r2 = edMk('div', 'pgedr'); r3 = edMk('div', 'pgedr');
+    edt.bU = B(r1, '↶', 'pgedk', 'واگرد', function(){ edHist(-1); });
+    edt.bR = B(r1, '↷', 'pgedk', 'از نو', function(){ edHist(1); });
+    ED_CH.forEach(function(c){ B(r1, c, 'pgedk', null, function(){ edIns(c, false); }); });
+    B(r1, 'نیم‌فاصله', 'pgedk t', 'درج نیم‌فاصله', function(){ edIns('\u200c', false); });
+    ED_DG.forEach(function(c, i){ B(r2, '\u25CC' + c, 'pgedk', ED_DGN[i], function(){ edIns(c, true); }); });
+    ED_ACT.forEach(function(a){ B(r3, a[1], 'pgedk t', a[2], function(){ edAct(a[0]); }); });
+    fb = B(r3, 'جست‌وجو', 'pgedk t', 'جست‌وجو و جایگزینی در این صفحه', edFToggle);
+    r4 = edMk('div', 'pgedr'); r4.hidden = true;
+    function IN(ph, lb){ var x = edMk('input', 'pgedi'); x.type = 'text'; x.dir = 'rtl'; x.placeholder = ph; x.setAttribute('aria-label', lb); x.autocomplete = 'off'; x.spellcheck = false; r4.appendChild(x); edt.all.push(x); return x; }
+    fq = IN('جست‌وجو', 'عبارت جست‌وجو'); fr = IN('جایگزین', 'عبارت جایگزین');
+    fl = edMk('label', 'pgedc'); fd = edMk('input'); fd.type = 'checkbox'; fd.checked = true; fl.appendChild(fd); fl.appendChild(document.createTextNode('بی‌اعراب')); r4.appendChild(fl); edt.all.push(fd);
+    B(r4, 'قبلی', 'pgedk t', null, function(){ edFGo(-1); });
+    B(r4, 'بعدی', 'pgedk t', null, function(){ edFGo(1); });
+    B(r4, 'جایگزینی', 'pgedk t', null, function(){ edFRep(false); });
+    B(r4, 'همه', 'pgedk t', 'جایگزینی همه (با پیش‌نمایش)', function(){ edFRep(true); });
+    edt.fr = { row: r4, q: fq, r: fr, d: fd, btn: fb };
+    fq.addEventListener('keydown', function(ev){ if (ev.key === 'Enter') { ev.preventDefault(); edFGo(ev.shiftKey ? -1 : 1); } });
+    fr.addEventListener('keydown', function(ev){ if (ev.key === 'Enter') { ev.preventDefault(); edFRep(false); } });
+    bar.appendChild(r1); bar.appendChild(r2); bar.appendChild(r3); bar.appendChild(r4);
+    bar.addEventListener('mousedown', function(e){ if (e.target.closest && e.target.closest('button')) e.preventDefault(); });
+    ta = edMk('textarea'); ta.id = 'pgEdTx'; ta.dir = 'rtl'; ta.lang = 'fa'; ta.spellcheck = false; ta.setAttribute('aria-label', 'متن صفحه'); ta.setAttribute('autocapitalize', 'off');
+    edt.ta = ta; edt.st = edMk('p', 'hint', ''); edt.st.setAttribute('aria-live', 'polite');
+    act = edMk('div', 'pgedact'); act2 = edMk('div', 'pgedact');
+    B(act, 'ذخیره', 'btn primary', 'ذخیرهٔ ویرایش این صفحه', function(){ edSave(0); });
+    B(act, 'ذخیره و صفحهٔ بعد', 'btn', null, function(){ edSave(1); });
+    B(act, 'انصراف', 'btn', null, edCancel);
+    B(act2, 'ذخیره و صفحهٔ قبل', 'btn sm', null, function(){ edSave(-1); });
+    edt.bV = B(act2, 'بازگردانی اصل', 'btn sm', 'برگرداندن متن پیش از ویرایش دستی', edRevert);
+    [w, hd, bar, ta, edt.st, act, act2].forEach(function(x){ if (x !== w) w.appendChild(x); });
+    d.appendChild(w); edt.el = w;
+    ta.value = draft != null ? draft : t; edt.cur = ta.value; edPush(ta.value);
+    ta.addEventListener('input', function(){ edt.cur = ta.value; edt.warn = false; clearTimeout(edt.tm); edt.tm = setTimeout(function(){ edt.tm = 0; if (edt.ta === ta) edPush(ta.value); }, 800); edFit(); edStat(); });
+    edFit(); edStat(); edUi();
+    setTimeout(function(){ try { if (edt.el === w) w.scrollIntoView({ block: 'start' }); } catch (e) {} }, 40);
+    return true;
+  }
+  function edPick(){
+    var st = $('#stage'), top = st.getBoundingClientRect().top + 40, q, best = 0, r;
+    for (q in pgEls) { if (!pgEls[q].firstChild) continue; r = pgEls[q].getBoundingClientRect(); if (r.bottom > top && (!best || +q < best)) best = +q; }
+    return best || (sents[idx] ? sents[idx].page : 0);
+  }
+  function edSync(){
+    if (!edt) return;
+    var b = $('#rdEdit'), q, cur;
+    if (b) { b.hidden = !(sents.length && pdfDoc); b.classList.toggle('on', !!edt.q); b.setAttribute('aria-pressed', edt.q ? 'true' : 'false'); }
+    if (edt.q && !(edt.el && edt.el.isConnected)) {                    /* خوانش بازسازی شد و ویرایشگر را برد: پیش‌نویس همان صفحه برمی‌گردد */
+      q = edt.q; cur = edt.cur; var same = edt.doc === pdfDoc, dirty = cur != null && edNorm(cur) !== edt.base;
+      clearTimeout(edt.tm); clearTimeout(edt.rv); if (edt.fit) { cancelAnimationFrame(edt.fit); edt.fit = 0; }
+      edt.q = 0; edQ = 0; edt.el = edt.ta = edt.st = edt.sc = edt.bU = edt.bR = edt.bV = edt.pv = edt.fr = null; edt.all = []; edt.rv = 0; edt.busy = false;
+      if (same && dirty && pageParas[q]) edOpen(q, cur);
+    }
+  }
+  function edLeave(){                                                  /* خروج از خوانش با ویرایش ذخیره‌نشده: بار اول هشدار */
+    if (!edt.q) return true;
+    if (edDirty() && !edt.warn) { edt.warn = true; edSt('تغییرات ذخیره‌نشده دارید؛ برای رفتن دوباره بزنید.'); return false; }
+    edClose(); return true;
+  }
+  $('#rdEdit').onclick = function(){
+    if (edt.q) { edCancel(); return; }
+    if (!sents.length) return;
+    if (pvOn()) { $('#rdMode').click(); setTimeout(function(){ edOpen(edPick()); }, 90); return; }
+    edOpen(edPick());
+  };
+  $('#rdBack').onclick = function(){ if (edLeave()) showHome(); };
   $('#rdSearch').onclick = function(){
     var g = $('#navGrp');
     if (!g || g.hidden) { setAppTab('read'); status('ابتدا یک PDF باز کنید.'); return; }
