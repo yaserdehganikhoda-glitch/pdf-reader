@@ -1226,6 +1226,7 @@ body.view-page .stage{touch-action:pan-x pan-y}
             </div>
             <div class="tpanel" id="tpanel-device" role="tabpanel" aria-labelledby="ttab-device" data-tp="device">
 <button type="button" class="tile t-g" data-go="voice" data-only="#advBox" data-click="#logShow"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6"/></svg></span><span class="tx"><b>گزارش خطا</b><small>برای عیب‌یابی</small></span></button>
+<button type="button" class="tile t-g" data-go="lib" data-only="#stBox" data-title="ذخیره‌سازی و پشتیبان" data-sub="حافظه، مسیر ذخیره و تنظیمات"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span><span class="tx"><b>ذخیره‌سازی و پشتیبان</b><small>مسیر ذخیره، تنظیمات، ZIP</small></span></button>
 <button type="button" class="tile t-b exitB" ><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></span><span class="tx"><b>خروج</b><small>بستن برنامه</small></span></button>
             </div>
           </div>
@@ -4866,7 +4867,7 @@ var ocrSpell = (function(){
   /* ===== ذخیرهٔ تغییرات اسکن دستی در مسیر دلخواه کاربر ===== */
   /* اولویت: پوشهٔ ماندگار (showDirectoryPicker) ← پنجرهٔ «ذخیره به‌عنوان» (showSaveFilePicker) ← برگهٔ اشتراک‌گذاری سیستم (اندروید: Files/Drive و …) ← دانلود.
      پنجره‌های انتخاب مسیر لمس تازه می‌خواهند؛ پس مقصد پیش از ساخت متن سنگین گرفته می‌شود. */
-  var ms = { dir: null, nat: null, busy: false, pend: null, init: false };
+  var ms = { dir: null, nat: null, busy: false, pend: null, init: false, abf: null };   /* abf: دستگیرهٔ فایل پشتیبان (showSaveFilePicker) برای ذخیرهٔ بی‌صدای هنگام خروج */
   function msUnimpl(e){ return /not implemented|unimplemented|not available|not supported/i.test(String((e && (e.code || e.message)) || e)); }
   function msCancel(e){ return !!e && (e.name === 'AbortError' || /cancel/i.test(String(e.code || e.message || ''))); }
   function msFsPlug(){ var C = window.Capacitor; return (onNative && C && C.Plugins && C.Plugins.Filesystem && C.Plugins.Filesystem.writeFile) ? C.Plugins.Filesystem : null; }
@@ -4883,7 +4884,7 @@ var ocrSpell = (function(){
       : (navigator.share && navigator.canShare) ? 'مسیر از برگهٔ اشتراک‌گذاری سیستم انتخاب می‌شود (Files، Drive و …).'
       : 'فایل در پوشهٔ دانلودها ذخیره می‌شود.';
     $('#msPath').textContent = t; $('#msClr').hidden = !(ms.dir || ms.nat);
-    var ap = $('#abPath'); if (ap) { ap.textContent = (ms.dir || ms.nat) ? t : 'مسیر تعیین نشده؛ بدون مسیر، ذخیرهٔ خودکار هنگام خروج انجام نمی‌شود.'; $('#abClr').hidden = !(ms.dir || ms.nat); }
+    var ap = $('#abPath'); if (ap) { ap.textContent = (ms.dir || ms.nat) ? t : ms.abf ? 'فایل پشتیبان: ' + ms.abf.name : 'مسیر تعیین نشده؛ بدون مسیر، ذخیرهٔ خودکار هنگام خروج انجام نمی‌شود.'; $('#abClr').hidden = !(ms.dir || ms.nat || ms.abf); }
     ms.pend = null; $('#msSave').textContent = 'ذخیره در مسیر انتخابی';
   }
   function msOpen(){
@@ -4894,7 +4895,7 @@ var ocrSpell = (function(){
     if (ms.ld) return ms.ld;
     ms.ld = (window.showDirectoryPicker ? kvGet0('ms:dir').then(function(h){ if (h && h.kind === 'directory') ms.dir = h; })
       : onNative ? kvGet0('ms:nat').then(function(h){ if (h && typeof h === 'object' && h.name) ms.nat = h; })
-      : Promise.resolve()).catch(function(){}).then(function(){ ms.init = true; msPathUi(); });
+      : Promise.resolve()).catch(function(){}).then(function(){ return window.showSaveFilePicker ? kvGet0('ab:file').then(function(h){ if (h && h.kind === 'file') ms.abf = h; }) : null; }).catch(function(){}).then(function(){ ms.init = true; msPathUi(); });
     return ms.ld;
   }
   async function msText(scope){
@@ -4995,24 +4996,28 @@ var ocrSpell = (function(){
   $('#msScope').onchange = msNameSync;
   $('#msName').addEventListener('input', function(){ this.dataset.u = this.value.trim() ? '1' : ''; });
   async function msPickRun(){
-    var h, r, FS;
+    var h, r, FS, t0 = Date.now();
     try {
       if (window.showDirectoryPicker) {
-        h = await window.showDirectoryPicker({ id: 'pdfreader-text', mode: 'readwrite' });
-        ms.dir = h; ms.nat = null; await kvSet('ms:dir', h); kvDel('ms:nat'); msPathUi(); msSt('مسیر ذخیره تعیین شد.'); return;
+        try {
+          h = await window.showDirectoryPicker({ id: 'pdfreader-text', mode: 'readwrite' });
+          ms.dir = h; ms.nat = null; await kvSet('ms:dir', h); kvDel('ms:nat'); msPathUi(); msSt('مسیر ذخیره تعیین شد.'); return;
+        } catch (e) { if (!(onNative && NP && msCancel(e) && Date.now() - t0 < 800)) throw e; }   /* لغوِ آنی = پنجره باز نشده؛ ادامه با افزونهٔ بومی */
       }
       if (onNative && NP) {
+        var t1 = Date.now(), pe = null;
         try {
           r = await NP.pickTextFolder();
           if (r && r.uri) { ms.nat = { uri: r.uri, name: r.name || 'پوشهٔ انتخابی' }; ms.dir = null; await kvSet('ms:nat', ms.nat); kvDel('ms:dir'); msPathUi(); msSt('مسیر ذخیره تعیین شد.'); return; }
           msSt('پوشه‌ای انتخاب نشد.'); return;
         } catch (e) {
-          if (msCancel(e)) { msSt('انتخاب مسیر لغو شد.'); return; }
-          if (!msUnimpl(e)) throw e;
+          pe = e;
+          if (msCancel(e) && Date.now() - t1 > 800) { msSt('انتخاب مسیر لغو شد.'); return; }   /* لغوِ زیر ۰٫۸ ثانیه یعنی پنجره اصلاً باز نشده */
+          if (!msCancel(e) && !msUnimpl(e)) throw e;
         }
         FS = msFsPlug();
         if (FS) { ms.nat = { uri: '', name: 'Documents/PDFReader', fs: 1 }; ms.dir = null; await kvSet('ms:nat', ms.nat); msPathUi(); msSt('مسیر ثابت: Documents/PDFReader (برای پوشهٔ دلخواه، افزونهٔ بومی را به‌روز کنید).'); return; }
-        msSt('این نسخه هنوز انتخاب پوشه ندارد (افزونهٔ بومی باید به‌روز شود). تا آن زمان هنگام ذخیره، پنجرهٔ سیستم یا کپی متن استفاده می‌شود.'); return;
+        msSt('پنجرهٔ انتخاب پوشه باز نشد' + (pe ? ' (' + String(pe.code || pe.message || pe).slice(0, 80) + ')' : '') + '؛ تابع pickTextFolder در افزونهٔ بومی باید بررسی شود (راهنما: native-folder-picker.md).'); return;
       }
       msSt('این مرورگر انتخاب پوشهٔ ماندگار را پشتیبانی نمی‌کند؛ مسیر هنگام ذخیره از پنجرهٔ سیستم انتخاب می‌شود.');
     } catch (e) { msSt(msCancel(e) ? 'انتخاب مسیر لغو شد.' : 'انتخاب مسیر انجام نشد: ' + em(e)); }
@@ -5045,10 +5050,17 @@ var ocrSpell = (function(){
     if (sget('abOn', '1') === '0') return { ok: true };
     try {
       await msLoad();
-      if (!(ms.dir || ms.nat)) return { ok: true };
+      if (!(ms.dir || ms.nat || ms.abf)) return { ok: true };
       try { posFlush(); } catch (x) {}
       status('در حال ذخیرهٔ خودکار داده‌ها…');
-      var t = await msTarget(AB_NAME), txt, r;
+      var t, txt, r, w = null;
+      if (!(ms.dir || ms.nat)) {                                      /* فایل پشتیبانِ از پیش انتخاب‌شده: با لمس دکمهٔ خروج دسترسی دوباره گرفته می‌شود */
+        if (!((await ms.abf.queryPermission({ mode: 'readwrite' })) === 'granted' || (await ms.abf.requestPermission({ mode: 'readwrite' })) === 'granted')) return { ok: false, msg: 'دسترسی به فایل پشتیبان داده نشد.' };
+        txt = JSON.stringify(await abSnapshot());
+        try { w = await ms.abf.createWritable(); await w.write(new Blob([txt], { type: 'application/json' })); await w.close(); w = null; } catch (e) { try { if (w) await w.abort(); } catch (x) {} throw e; }
+        return { ok: true, msg: 'ذخیره شد: ' + ms.abf.name };
+      }
+      t = await msTarget(AB_NAME);
       if (!(t.k === 'dir' || (t.k === 'nat' && ms.nat))) return { ok: false, msg: 'دسترسی به مسیر ذخیره داده نشد.' };
       txt = JSON.stringify(await abSnapshot());
       r = await msWrite(t, new Blob([txt], { type: 'application/json' }), AB_NAME, txt, true);
@@ -5108,7 +5120,16 @@ var ocrSpell = (function(){
   };
   $('#abOn').checked = sget('abOn', '1') !== '0';
   $('#abOn').onchange = function(){ sset('abOn', this.checked ? '1' : '0'); };
-  $('#abPick').onclick = msPickRun; $('#abClr').onclick = $('#msClr').onclick;
+  async function abPickRun(){
+    await msPickRun();
+    if (ms.dir || ms.nat || !window.showSaveFilePicker) return;      /* پوشهٔ ماندگار ممکن نبود ← یک فایل پشتیبان ثابت انتخاب می‌شود (یک‌بار؛ ذخیره‌های بعدی بی‌صدا) */
+    try {
+      var h = await window.showSaveFilePicker({ suggestedName: AB_NAME, types: [{ description: 'پشتیبان JSON', accept: { 'application/json': ['.json'] } }] });
+      ms.abf = h; await kvSet('ab:file', h); msPathUi(); msSt('فایل پشتیبان تعیین شد: ' + h.name + ' — هنگام خروج در همین فایل ذخیره می‌شود.');
+    } catch (e) { if (!msCancel(e)) msSt('انتخاب فایل انجام نشد: ' + em(e)); }
+  }
+  $('#abPick').onclick = abPickRun;
+  $('#abClr').onclick = function(){ ms.abf = null; kvDel('ab:file'); $('#msClr').onclick(); };
   setTimeout(msLoad, 1200);
 
   /* ---------- OCR storage (IndexedDB, fallback localStorage) ---------- */
