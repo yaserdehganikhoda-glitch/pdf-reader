@@ -45,6 +45,7 @@ import java.util.concurrent.Executors
  * Piper (VITS) فارسی به‌صورت بومی با sherpa-onnx.
  * متدها: ping, stored, bundled, download({id}) = نصب صدا از فایل همراه برنامه (بدون اینترنت), synthesize({id, text, noiseScale?, noiseScaleW?, speed?}), remove({id})
  * فهرست PDFهای دستگاه (صفحهٔ اصلی): listPdfs, pdfRequest
+ * ذخیرهٔ متن: pickTextFolder, saveText({name,text,uri?})
  * پوشهٔ دلخواه کاربر: pickFolder, folder, exportVoices({ids?}), importVoices({ids?, overwrite?})
  * رویداد: "progress" {loaded, total}
  * کیفیت صدا: synthesize({..., clean?: 0..3, clarity?: 0..3}) → حذف نویز و ارتقای شفافیت/رسایی؛ ۰ خاموش، ۲ متعادل (پیش‌فرض)؛ جزئیات در SpeechClean (انتهای فایل)
@@ -290,6 +291,72 @@ class PiperNativePlugin : Plugin() {
         } catch (e: Exception) { call.reject("دسترسی دائمی به پوشه داده نشد"); return }
         prefs.edit().putString("tree", u.toString()).apply()
         io.execute { call.resolve(folderInfo()) }
+    }
+
+    // ---------- ذخیرهٔ فایل متنی (اسکن دستی و اصلاح، برون‌بری واژه‌نامه): پوشهٔ دلخواه (SAF) یا «ذخیره به‌عنوان» ----------
+    private var pendText = ""
+
+    @PluginMethod
+    fun pickTextFolder(call: PluginCall) {
+        val i = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).addFlags(
+            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+        )
+        startActivityForResult(call, i, "textFolderResult")
+    }
+
+    @ActivityCallback
+    private fun textFolderResult(call: PluginCall?, result: ActivityResult) {
+        if (call == null) return
+        val u = result.data?.data
+        if (result.resultCode != Activity.RESULT_OK || u == null) { call.reject("CANCELLED"); return }
+        try {
+            context.contentResolver.takePersistableUriPermission(
+                u, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+        } catch (e: Exception) { call.reject("دسترسی دائمی به پوشه داده نشد"); return }
+        val name = DocumentFile.fromTreeUri(context, u)?.name ?: "پوشهٔ انتخابی"
+        call.resolve(JSObject().put("uri", u.toString()).put("name", name))
+    }
+
+    @PluginMethod
+    fun saveText(call: PluginCall) {
+        val name = (call.getString("name") ?: "text.txt").map { c -> if (c in "/\\:*?\"<>|") '_' else c }.joinToString("")
+        val text = call.getString("text") ?: ""
+        val uri = call.getString("uri") ?: ""
+        if (uri.isNotEmpty()) {
+            io.execute {
+                try {
+                    val u = Uri.parse(uri)
+                    val ok = context.contentResolver.persistedUriPermissions.any { it.uri == u && it.isWritePermission }
+                    if (!ok) { call.reject("دسترسی به پوشه از بین رفته؛ مسیر را دوباره انتخاب کنید"); return@execute }
+                    val dir = DocumentFile.fromTreeUri(context, u)
+                    if (dir == null || !dir.canWrite()) { call.reject("پوشه قابل نوشتن نیست؛ مسیر را دوباره انتخاب کنید"); return@execute }
+                    val f = dir.findFile(name) ?: dir.createFile("text/plain", name.removeSuffix(".txt"))
+                    if (f == null) { call.reject("ساخت فایل ناموفق بود"); return@execute }
+                    context.contentResolver.openOutputStream(f.uri, "wt")!!.use { it.write(text.toByteArray(Charsets.UTF_8)) }
+                    call.resolve(JSObject().put("name", f.name ?: name))
+                } catch (e: Exception) { call.reject("ذخیره ناموفق بود: " + (e.message ?: "")) }
+            }
+            return
+        }
+        pendText = text
+        val i = Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
+            .setType("text/plain").putExtra(Intent.EXTRA_TITLE, name)
+        startActivityForResult(call, i, "textSaveResult")
+    }
+
+    @ActivityCallback
+    private fun textSaveResult(call: PluginCall?, result: ActivityResult) {
+        if (call == null) return
+        val u = result.data?.data
+        val txt = pendText; pendText = ""
+        if (result.resultCode != Activity.RESULT_OK || u == null) { call.reject("CANCELLED"); return }
+        io.execute {
+            try {
+                context.contentResolver.openOutputStream(u, "wt")!!.use { it.write(txt.toByteArray(Charsets.UTF_8)) }
+                call.resolve(JSObject().put("name", DocumentFile.fromSingleUri(context, u)?.name ?: ""))
+            } catch (e: Exception) { call.reject("ذخیره ناموفق بود: " + (e.message ?: "")) }
+        }
     }
 
     @PluginMethod
