@@ -94,7 +94,7 @@ linear-gradient(180deg,var(--bg1),var(--bg0));animation:drift 50s ease-in-out in
 .frame::after{bottom:0;height:calc(var(--dock-h) + 18px);background:linear-gradient(to top,var(--paper) 52%,transparent)}
 @keyframes rise{from{opacity:0;transform:translateY(18px)}}
 .stage{position:absolute;inset:0;z-index:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:28px clamp(16px,5vw,48px) calc(var(--dock-h) + 34px);scroll-padding-top:56px;scroll-padding-bottom:var(--dock-h);scrollbar-width:thin;scrollbar-color:var(--line) transparent}
-#reader{max-width:42rem;margin:0 auto;font-family:var(--rfont);font-size:1.15rem;line-height:2.15;overflow-wrap:anywhere}
+#reader{max-width:42rem;margin:0 auto;font-family:var(--rfont);font-size:1.15rem;line-height:var(--rlh,2.15);text-align:var(--ralign,start);overflow-wrap:anywhere}
 #reader p{margin:0 0 .9em}
 .pgc+.pgc{margin-top:2.4em}
 .pg{display:flex;align-items:center;gap:14px;margin:0 0 1.1em;color:var(--muted);font-family:var(--font);font-size:.76rem;font-weight:600;line-height:1.4}
@@ -293,7 +293,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
 .sw button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);font-weight:700}
 .fsrow{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
 .fsrow output{text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
-.sample{margin:0;padding:8px 12px;font-size:.92rem;border-radius:12px;border:1px dashed var(--line);font-family:var(--rfont);line-height:2.1}
+.sample{margin:0;padding:8px 12px;font-size:.92rem;border-radius:12px;border:1px dashed var(--line);font-family:var(--rfont);line-height:var(--rlh,2.1);text-align:var(--ralign,start)}
 .navrow{display:flex;gap:6px;align-items:center}
 .navrow input{flex:1;min-width:0}
 .navrow .btn{flex:none}
@@ -547,14 +547,6 @@ body.mini-on .panel{padding-bottom:88px}
 
 .tile.exitB{grid-column:1/-1;margin-top:4px;border:1px solid color-mix(in srgb,#c0392b 35%,var(--line))}
 .exitB .tic{background:color-mix(in srgb,#c0392b 14%,transparent);color:#c0392b}
-.tsearch{padding:0 0 8px}
-.tsearch input{width:100%;min-height:44px;font:inherit;font-size:.84rem;padding:8px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
-.tres{display:grid;gap:4px}
-.tres button{display:flex;flex-direction:column;align-items:flex-start;gap:0;min-height:48px;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;text-align:start;cursor:pointer}
-.tres button b{font-size:.82rem;font-weight:800}.tres button small{font-size:.7rem;color:var(--muted)}
-.tres button:active{background:color-mix(in srgb,currentColor 10%,transparent)}
-.tres p{margin:6px 4px;font-size:.78rem;color:var(--muted)}
-.tmenu.sq-on .ttabs,.tmenu.sq-on .tpanel{display:none!important}
 .rsb{display:none;flex:none;margin-inline-start:auto;min-height:32px;padding:4px 10px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);font:inherit;font-size:.7rem;font-weight:700;cursor:pointer}
 .chg>h3>.rsb,.chg>summary>.rsb{display:inline-flex;align-items:center}
 .grp.chg>h3{display:flex;align-items:center;gap:6px}
@@ -597,7 +589,7 @@ body.mini-on .panel{padding-bottom:88px}
 .tbody{padding:10px}
 .tpanel{display:none;grid-template-columns:1fr 1fr;gap:6px}
 .tpanel.on{display:grid}
-.tmenu.gm .ttabs,.tmenu.gm .tsearch,.tmenu.gm .tres,.tmenu.gm .tpanel:not(#tpanel-device){display:none!important}
+.tmenu.gm .ttabs,.tmenu.gm .tpanel:not(#tpanel-device){display:none!important}
 .tmenu.gm #tpanel-device{display:grid}
 .tmenu:not(.gm) #tpanel-device{display:none!important}
 .tmenu.sheet.gm{inset:0 0 auto 0;top:0;bottom:auto;max-height:min(60vh,420px);max-height:min(60dvh,420px);border-radius:0 0 22px 22px;padding:env(safe-area-inset-top,0px) 0 0;animation:sheetdown .22s ease both}
@@ -984,11 +976,62 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 .mfs{display:grid;gap:6px}
 .mfs input{min-height:36px;font-size:.88rem;padding:4px 10px;border-radius:10px}
 .mfx .btnrow .btn,.mfrow3 .btn{min-height:34px;padding:2px 8px;font-size:.78rem;border-radius:10px}
+.mfx>summary{cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+.mfx>summary::after{content:"";flex:none;width:8px;height:8px;margin-inline-start:6px;border:solid var(--muted);border-width:0 2px 2px 0;transform:rotate(45deg) translateY(-2px);transition:transform .2s}
+.mfx[open]>summary::after{transform:rotate(-135deg) translateY(-2px)}
+.msrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.msrow .hint{flex:1 1 140px;min-width:0}
+.mfx input[type=text]{min-height:36px;font-size:.8rem;padding:4px 10px;border-radius:10px}
 .manft{flex:none;display:grid;gap:4px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--paper)}
 .manft .hint{margin:0;text-align:center;font-size:.72rem;line-height:1.5}
 .manft .hint:empty{display:none}
 .manacts{display:grid;grid-template-columns:1.2fr 1fr;gap:8px}
 .manacts .btn{min-height:40px;padding:2px 8px;border-radius:12px;font-size:.86rem;font-weight:700}
+/* ===== r49: پخش از متن ویرایشگر + تمام‌صفحهٔ کادر متن (اسکن و اصلاح دستی) ===== */
+.mtxh{display:none;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;border-bottom:1px solid var(--line);background:var(--paper)}
+.mtxpn{min-width:50px;text-align:center;font-size:.74rem;font-weight:800;color:var(--ink);white-space:nowrap}
+.mtxh .mfz{font-size:.74rem;font-weight:800;line-height:1}
+.mtxh .mib[aria-pressed="true"]{color:var(--accent);border-color:var(--accent)}
+.mtxe{position:relative;border-radius:14px;background:var(--card)}
+#manTx,.mpmir{box-sizing:border-box;font-size:var(--mtxfs,16px);line-height:1.95;white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;text-align:start;direction:rtl;tab-size:4;letter-spacing:normal}
+#manTx{position:relative;z-index:1;display:block;background:transparent}
+.mpmir{position:absolute;top:0;right:0;bottom:0;left:0;margin:0;padding:10px 12px;border:1px solid transparent;border-radius:14px;overflow:hidden;color:transparent;pointer-events:none;-webkit-user-select:none;user-select:none}
+.mpmir:empty{display:none}
+.mpmir mark{color:transparent;background:color-mix(in srgb,var(--accent-2) 20%,transparent);border-radius:5px;box-shadow:0 0 0 2px color-mix(in srgb,var(--accent-2) 20%,transparent);-webkit-box-decoration-break:clone;box-decoration-break:clone}
+#manOv.mpp .mpmir mark{background:color-mix(in srgb,var(--accent) 32%,transparent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 32%,transparent)}
+.mtxdk{display:contents}
+.mtxdk>.mfqk{order:-1}
+.mtxdk>.mtxf{order:1}
+.mtxw:not(.fs) #mtxFd,.mtxw:not(.fs) #mtxSt,.mtxw:not(.fs) .mtxonly{display:none}
+#mtxSt{margin:0;text-align:center;font-size:.72rem;line-height:1.5}
+#mtxSt:empty{display:none}
+.mfqk .mpb{display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px}
+.mfqk .mpb .mpi{flex:none;display:grid;place-items:center;width:38px;min-width:38px;height:38px;padding:0;border:0;border-radius:50%;background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--ink)}
+.mfqk .mpb .mpi svg{width:20px;height:20px;fill:currentColor;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.mfqk .mpb .mpi.o{margin-inline-start:2px}
+.mfqk .mpb .mpi.o svg{fill:none;stroke-width:2}
+.mfqk .mpb .mpi:disabled{opacity:.35;pointer-events:none}
+.mfqk .mpb .mpplay{flex:none;position:relative;display:grid;place-items:center;width:46px;min-width:46px;height:46px;padding:0;border:0;border-radius:50%;color:var(--accent-ink);background:linear-gradient(145deg,var(--accent-2),var(--accent));box-shadow:0 8px 16px -8px var(--accent),inset 0 1px 0 rgba(255,255,255,.35)}
+.mfqk .mpb .mpplay:active{transform:scale(.93)}
+.mfqk .mpb .mpplay:disabled{filter:grayscale(.75);opacity:.5;pointer-events:none}
+.mfqk .mpb .mpplay svg{width:22px;height:22px;fill:currentColor;stroke:currentColor;stroke-width:2.2;stroke-linejoin:round;pointer-events:none}
+.mfqk .mpb .mpplay .i-pause,.mfqk .mpb #mpFs .i-col{display:none}
+#manOv.mpp .mpplay .i-play{display:none}
+#manOv.mpp .mpplay .i-pause{display:block}
+.is-prep #manOv.mpp .mpplay::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid transparent;border-top-color:var(--gold);animation:spin 1s linear infinite}
+.mfqk .mpb .mpt{flex:none;min-width:0;height:30px;padding:0 10px;border-radius:999px;color:var(--muted);font-size:.72rem;font-weight:600;white-space:nowrap}
+.mfqk .mpb .mpt[aria-pressed="true"]{color:var(--accent);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.mtxw.fs{position:fixed;top:var(--vvt,0px);left:0;right:0;height:var(--vvh,100dvh);z-index:80;display:flex;flex-direction:column;gap:0;background:var(--paper);padding-top:env(safe-area-inset-top,0px)}
+.mtxw.fs .mtxh{display:flex;order:-3}
+.mtxw.fs .mtxe{order:-2;flex:1 1 auto;min-height:0;display:flex;margin:6px 8px 0}
+.mtxw.fs #manTx{flex:1;width:100%;height:100%;min-height:0;resize:none}
+.mtxw.fs .mtxdk{display:flex;flex-direction:column;gap:6px;order:0;flex:none;max-height:52%;overflow-y:auto;overscroll-behavior:contain;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--paper);box-shadow:0 -6px 16px rgba(0,0,0,.1)}
+.mtxw.fs .mtxdk>.mfqk,.mtxw.fs .mtxdk>.mtxf{order:0}
+.mtxw.fs .mfqk{position:static;padding:0;border:0;box-shadow:none;background:transparent}
+.mtxw.fs .mfqk .mpb #mpFs .i-exp{display:none}
+.mtxw.fs .mfqk .mpb #mpFs .i-col{display:block}
+.mtxw.nodk .mfqr,.mtxw.nodk .mtxf,.mtxw.nodk #mtxFd{display:none}
+
 
 /* ===== r41: نوار پخش — ردیف پیشرفت، گروه‌بندی کنترل‌ها ===== */
 .dock{gap:4px;padding:6px 12px calc(8px + env(safe-area-inset-bottom,0px))}
@@ -1024,6 +1067,106 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 .dvoice>svg{width:19px;height:19px}
 @media (max-width:360px){.dcM{gap:6px}.drC .dsk{width:38px;height:38px;min-width:38px;min-height:38px}.drC .pill{padding:0 8px}.drC{gap:4px}}
 
+/* ===== r42: آواتار سه‌بعدی، برگهٔ گوینده جمع‌وجور، لایهٔ جزئیات PDF و پینچ‌زوم ===== */
+.vav{position:relative;box-shadow:0 3px 8px -2px rgba(0,0,0,.45)}
+.vav::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;box-shadow:inset 0 -5px 9px rgba(0,0,0,.26),inset 0 2px 3px rgba(255,255,255,.45),inset 0 0 0 .5px rgba(255,255,255,.25)}
+.dvoice .vav{box-shadow:none}
+.vs{width:min(296px,calc(100vw - 20px));border-radius:18px}
+.vs-in{padding:2px 8px 8px;border-radius:18px}
+.vs-sec{font-size:.68rem;margin:8px 4px 4px;letter-spacing:0}
+.vs-voices{gap:5px}
+.vs-v,.vs .vs-v{padding:5px 8px;gap:9px;border-radius:14px;border-width:1px}
+.vs-v .vav,.vs .vs-v .vav{width:40px;height:40px;box-shadow:0 3px 7px -2px var(--a2,#2b3fa8)}
+.vs-v[aria-checked="true"] .vav{outline-width:2px;outline-offset:1px}
+.vs-t{gap:0}
+.vs-t b{font-size:.84rem;line-height:1.45}
+.vs-t em{font-size:.66rem}
+.vs-t small{font-size:.62rem;line-height:1.5;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.vs-tag{font-size:.6rem;padding:2px 7px}
+.vs-styles{gap:5px}
+.vs-s{gap:3px;padding:6px 2px 5px;border-radius:12px;border-width:1px;font-size:.68rem}
+.vs-s i{width:28px;height:28px}
+.vs-s svg{width:15px;height:15px}
+.vs-desc{margin:6px 4px 0;font-size:.68rem;line-height:1.7;min-height:2.6em}
+.vfx{margin-top:8px;padding-top:8px;gap:6px}
+.vfr{padding:6px 8px}
+.pv{touch-action:pan-x pan-y}
+body.view-page .stage{touch-action:pan-x pan-y}
+.pvp canvas,.pvn canvas{image-rendering:auto}
+.pvd{position:absolute;display:block;pointer-events:none;z-index:0}
+.pvh{z-index:1}
+#pvZb{position:fixed;z-index:90;inset-inline:0;margin:0 auto;width:max-content;top:calc(env(safe-area-inset-top,0px) + 66px);padding:5px 14px;border-radius:999px;background:rgba(15,20,40,.78);color:#fff;font-size:.82rem;font-weight:800;font-variant-numeric:tabular-nums;pointer-events:none}
+#pvZb[hidden]{display:none}
+
+/* ===== r43: صفحهٔ گوینده و گفتار — فشرده و امروزی ===== */
+[data-panel="voice"]{gap:8px;padding:8px 10px 18px}
+[data-panel="voice"] .grp{gap:6px}
+[data-panel="voice"]>.grp,[data-panel="voice"] .cfgv>.grp{padding:8px 10px 10px;border-radius:14px}
+[data-panel="voice"] .grp>h3{font-size:.84rem}
+[data-panel="voice"] .field{gap:3px}
+[data-panel="voice"] .field>label,[data-panel="voice"] .flab{font-size:.7rem}
+[data-panel="voice"] select{min-height:34px;padding-top:3px;padding-bottom:3px;border-radius:10px;font-size:.82rem}
+[data-panel="voice"] .btn{min-height:32px;padding:2px 12px;border-radius:10px;font-size:.78rem}
+[data-panel="voice"] .btn.sm{min-height:30px}
+[data-panel="voice"] .btn.xs{min-height:26px;padding:0 10px;border-radius:999px;font-size:.7rem;font-weight:600;box-shadow:none}
+[data-panel="voice"] .btnrow{gap:6px}
+[data-panel="voice"] .hint{font-size:.68rem;line-height:1.6}
+[data-panel="voice"] .slist{border-radius:12px}
+[data-panel="voice"] .slist>.chk{padding:6px 10px;gap:10px}
+[data-panel="voice"] .chk .st b{font-size:.78rem;line-height:1.5}
+[data-panel="voice"] .chk .st small{font-size:.66rem;line-height:1.55}
+[data-panel="voice"] input[type=checkbox]{width:34px;height:20px}
+[data-panel="voice"] input[type=checkbox]::after{top:3px;width:14px;height:14px}
+[data-panel="voice"] input[type=checkbox]:checked::after{transform:translateX(-14px)}
+[data-panel="voice"] .chips{gap:5px}
+[data-panel="voice"] .chip{min-height:28px;padding:1px 10px;font-size:.74rem}
+[data-panel="voice"] .rstep{min-width:30px;min-height:30px;padding:0}
+[data-panel="voice"] .rng::-webkit-slider-runnable-track{height:6px}
+[data-panel="voice"] .rng::-webkit-slider-thumb{width:20px;height:20px;margin-top:-7px}
+[data-panel="voice"] #pbar,[data-panel="voice"] #vfBar{width:100%;height:5px;border-radius:999px;overflow:hidden;accent-color:var(--accent)}
+.vfx{gap:6px;margin-top:4px;padding-top:6px}
+.vfh{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.vfh>b{font-size:.76rem;line-height:1.4}
+[data-panel="voice"] #piperbox .btnrow .btn#pRef{flex:0 0 auto;min-width:96px;margin-inline-start:auto}
+.vfhb{display:flex;gap:4px;flex:none}
+.vfl{border-radius:12px}
+.vfl:empty{display:none}
+.vfr{padding:5px 8px;gap:8px}
+.vfr::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:color-mix(in srgb,var(--ink) 22%,transparent)}
+.vfr.ok::before{background:#2fb67c;box-shadow:0 0 0 3px rgba(47,182,124,.2)}
+.vfr .vn{gap:0}
+.vfr .vn b{font-size:.76rem}
+.vfr .vn small{font-size:.64rem}
+.vfr .btn.xs{min-height:26px;padding:0 10px}
+.vfr .btn[data-a="l"]:not(:disabled){color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line));font-weight:700}
+.vfb2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.vfb2 .btn{width:100%}
+#pbar,#vfBar{-webkit-appearance:none;appearance:none;border:0;background:var(--line)}
+#pbar::-webkit-progress-bar,#vfBar::-webkit-progress-bar{background:var(--line);border-radius:999px}
+#pbar::-webkit-progress-value,#vfBar::-webkit-progress-value{background:linear-gradient(90deg,var(--accent-2),var(--accent));border-radius:999px;transition:width .2s}
+#pbar::-moz-progress-bar,#vfBar::-moz-progress-bar{background:var(--accent);border-radius:999px}
+/* ===== r44: منوی تنظیمات فشرده (بدون جستجو) ===== */
+.tmenu{border-radius:18px}
+.tbody{padding:6px 8px 8px}
+.ttabs{padding:6px 8px 0;gap:2px}
+.tmenu.sheet .ttabs{padding-top:14px}
+.ttab{min-height:34px;padding:5px 4px;font-size:.74rem}
+.tpanel{gap:4px}
+.tlbl{margin:2px 4px 0;font-size:.68rem}
+.cfgrow{gap:4px}
+.tile{min-height:44px;padding:5px 8px;border-radius:12px}
+.tic{width:30px;height:30px}
+.tic svg{width:15px;height:15px}
+.tx b{font-size:.78rem}
+.tx small{font-size:.64rem;line-height:1.3}
+.cfgrow.c2 .tile{flex-direction:row;justify-content:flex-start;text-align:start;gap:8px;min-height:46px;padding:5px 8px}
+.cfgrow:not(.c2) .tile{min-height:54px;padding:6px 3px;gap:2px}
+.tpanel .cfgrow .tile:last-child:nth-child(odd){grid-column:1/-1}
+.tile.exitB{margin-top:2px}
+.tbanner{padding:6px 8px 6px 10px;margin-bottom:0}
+.tbanner>svg{width:26px;height:26px;padding:5px}
+.tmenu.sheet.gm .tbody::after{margin:6px auto 0}
+.tmenu.sheet .ttabs::before{top:5px}
 </style>
 </head>
 <body data-apptab="read">
@@ -1078,8 +1221,6 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-view" aria-controls="tpanel-view" tabindex="-1" data-tt="view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg><span>نمایش</span></button>
           </div>
           <div class="tbody">
-            <div class="tsearch"><input id="sqIn" type="search" enterkeyhint="search" autocomplete="off" placeholder="جستجو در تنظیمات…" aria-label="جستجو در تنظیمات"></div>
-            <div class="tres" id="sqRes" hidden></div>
             <div class="tpanel on" id="tpanel-voice" role="tabpanel" aria-labelledby="ttab-voice" data-tp="voice">
 <p class="tlbl">تنظیمات صدا</p>
 <div class="cfgrow c2"><button type="button" class="tile t-a" data-go="voice" data-only="#spkBox,#styleBox,#rateBox,#paceBox" data-title="گوینده و گفتار" data-sub="سبک، سرعت و مکث"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg></span><span class="tx"><b>گوینده و گفتار</b><small>سبک، سرعت و مکث</small></span></button><button type="button" class="tile t-b" data-go="voice" data-only="#qualBox,#bgmBox" data-title="کیفیت و موسیقی" data-sub="نویز، شفافیت و موسیقی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8v8M8 5v14M12 9v6M16 6v12M20 10v4"/></svg></span><span class="tx"><b>کیفیت و موسیقی</b><small>نویز، شفافیت و موسیقی</small></span></button><button type="button" class="tile t-g" data-go="voice" data-only="#sleepBox,#advBox" data-title="تایمر و پیشرفته" data-sub="خواب و اطلاعات فنی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/></svg></span><span class="tx"><b>تایمر و پیشرفته</b><small>خواب و اطلاعات فنی</small></span></button></div>
@@ -1090,7 +1231,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             </div>
             <div class="tpanel" id="tpanel-view" role="tabpanel" aria-labelledby="ttab-view" data-tp="view">
 <p class="tlbl">تنظیمات نمایش</p>
-<div class="cfgrow c2"><button type="button" class="tile t-g" data-go="view" data-only="#presetBox,#themeBox,#fxBox" data-title="ظاهر و جلوه‌ها" data-sub="آماده، پوسته و جلوه‌ها"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg></span><span class="tx"><b>ظاهر و جلوه‌ها</b><small>آماده، پوسته و جلوه‌ها</small></span></button><button type="button" class="tile t-a" data-go="view" data-only="#fontBox,#navGrp" data-title="قلم و پیمایش" data-sub="اندازهٔ متن و رفتن به صفحه"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20l7-16 7 16M8 14h8"/></svg></span><span class="tx"><b>قلم و پیمایش</b><small>اندازهٔ متن و رفتن به صفحه</small></span></button></div>
+<div class="cfgrow c2"><button type="button" class="tile t-g" data-go="view" data-only="#presetBox,#themeBox,#fxBox" data-title="ظاهر و جلوه‌ها" data-sub="آماده، پوسته و جلوه‌ها"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg></span><span class="tx"><b>ظاهر و جلوه‌ها</b><small>آماده، پوسته و جلوه‌ها</small></span></button><button type="button" class="tile t-a" data-go="view" data-only="#fontBox,#scrollBox" data-title="قلم و پیمایش" data-sub="اندازه، قلم و دنبال‌کردن متن"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20l7-16 7 16M8 14h8"/></svg></span><span class="tx"><b>قلم و پیمایش</b><small>اندازه، قلم و دنبال‌کردن متن</small></span></button></div>
             </div>
             <div class="tpanel" id="tpanel-device" role="tabpanel" aria-labelledby="ttab-device" data-tp="device">
 <button type="button" class="tile t-g" data-go="voice" data-only="#advBox" data-click="#logShow"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6"/></svg></span><span class="tx"><b>گزارش خطا</b><small>برای عیب‌یابی</small></span></button>
@@ -1239,23 +1380,20 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         </div>
         <div id="piperbox" class="grp" hidden>
           <p class="hint" id="pstat"></p>
-          <progress id="pbar" max="100" value="0" hidden style="width:100%;height:8px"></progress>
+          <progress id="pbar" max="100" value="0" hidden style="width:100%;height:6px"></progress>
           <div class="btnrow">
             <button class="btn primary" id="pdl" type="button">نصب صدای فارسی</button>
             <button class="btn" id="pRef" type="button" title="بررسی دوبارهٔ فایل‌های صدا">تازه‌سازی</button>
           </div>
         </div>
         <div class="vfx" id="vfbox">
-          <b>ذخیره و بارگذاری صداها</b>
-          <p class="hint" id="vfName">ذخیره و بارگذاری صداها فقط در اپ اندروید (موتور بومی) کار می‌کند.</p>
-          <div class="two">
-            <button class="btn" id="vfPick" type="button" disabled>انتخاب مسیر ذخیره</button>
-            <button class="btn" id="vfRef" type="button">تازه‌سازی</button>
-          </div>
+          <div class="vfh"><b>ذخیره و دانلود صداها</b><span class="vfhb"><button class="btn xs" id="vfPick" type="button" disabled>مسیر ذخیره</button><button class="btn xs" id="vfRef" type="button">تازه‌سازی</button></span></div>
+          <p class="hint" id="vfName">دانلود هر صدا با دکمهٔ «دانلود» انجام می‌شود؛ ذخیره و بارگذاری از مسیر فقط در اپ اندروید (موتور بومی) کار می‌کند.</p>
           <div class="vfl" id="vfList"></div>
-          <div class="two">
-            <button class="btn" id="vfSave" type="button" disabled>ذخیرهٔ همهٔ صداها</button>
-            <button class="btn" id="vfLoad" type="button" disabled>بارگذاری همه از مسیر</button>
+          <progress id="vfBar" max="100" value="0" hidden></progress>
+          <div class="vfb2">
+            <button class="btn xs" id="vfSave" type="button" disabled>ذخیرهٔ همهٔ صداها</button>
+            <button class="btn xs" id="vfLoad" type="button" disabled>بارگذاری همه از مسیر</button>
           </div>
           <div class="slist"><label class="chk"><input type="checkbox" id="vfAuto" checked><span class="st"><b>ذخیرهٔ خودکار</b><small>هر صدای تازه‌نصب‌شده در مسیر انتخابی ذخیره می‌شود و صداهای گم‌شده خودکار از آن بارگذاری می‌شوند.</small></span></label></div>
           <p class="hint" id="vfMsg" aria-live="polite"></p>
@@ -1476,8 +1614,6 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
           <button class="btn primary wide" id="ocrBtn" type="button" disabled>اجرای OCR (از صفحهٔ فعلی)</button>
           <p class="hint" id="ocrStat" aria-live="polite"></p>
           <p class="hint" id="ocrSrc"></p>
-          <button class="btn wide" id="manBtn" type="button" disabled>اسکن و اصلاح دستی صفحه…</button>
-          <p class="hint">اسکن دوبارهٔ یک صفحه یا فقط یک ناحیه، با تنظیمات دلخواه، و اصلاح دستی متن؛ نتیجه برای همین فایل ذخیره می‌شود.</p>
           <details class="sub hintbox"><summary>راهنما</summary><div class="in"><p class="hint">با وجود پوشه‌های ocr و lib کنار برنامه (ساختهٔ fetch-offline.sh)، OCR و نمایش PDF کاملاً آفلاین کار می‌کنند. نتیجهٔ OCR روی دستگاه ذخیره می‌شود. فایل‌های لازم OCR: ocr/ort/ort.min.js و ocr/ort/ort-wasm-simd.wasm (onnxruntime-web 1.17.3) و ocr/paddle/PP-OCRv5_mobile_det.onnx و arabic_PP-OCRv5_mobile_rec.onnx و arabic_PP-OCRv5_mobile_rec_dict.txt. برای شتاب WebGPU (اختیاری) این دو فایل را هم در ocr/ort بگذارید: ort.webgpu.min.js و ort-wasm-simd.jsep.wasm (همان نسخهٔ ۱٫۱۷٫۳).</p></div></details>
         </div>
       </details>
@@ -1586,7 +1722,49 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             <option value="naskh">نسخ (کتابی)</option>
           </select>
         </div>
+        <div class="field">
+          <label for="rLh"><span>فاصلهٔ خطوط</span></label>
+          <select id="rLh" data-seg aria-label="فاصلهٔ خطوط">
+            <option value="1.8" data-short="فشرده">فشرده</option>
+            <option value="2.15" data-short="متعادل">متعادل</option>
+            <option value="2.5" data-short="باز">باز</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="rAlign"><span>ترازبندی متن</span></label>
+          <select id="rAlign" data-seg aria-label="ترازبندی متن">
+            <option value="start" data-short="عادی">عادی</option>
+            <option value="justify" data-short="دوطرفه">دوطرفه</option>
+          </select>
+        </div>
         <p class="sample" id="fsSample">نمونهٔ متن: صدای کتاب، جمله به جمله، دنبال می‌شود.</p>
+      </section>
+
+      <section class="grp" id="scrollBox">
+        <h3>پیمایش</h3>
+        <div class="field">
+          <label for="rFollow"><span>دنبال‌کردن جملهٔ در حال خواندن</span></label>
+          <select id="rFollow" data-seg aria-label="دنبال‌کردن جملهٔ در حال خواندن">
+            <option value="out" data-short="هوشمند" data-desc="فقط وقتی جمله از دید خارج شد، صفحه جابه‌جا می‌شود.">هوشمند</option>
+            <option value="always" data-short="همیشه" data-desc="جملهٔ فعال همیشه در جایگاه انتخابی می‌ماند.">همیشه</option>
+            <option value="off" data-short="خاموش" data-desc="هنگام خواندن، صفحه خودکار جابه‌جا نمی‌شود.">خاموش</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="rFlPos"><span>جایگاه جملهٔ فعال روی صفحه</span></label>
+          <select id="rFlPos" data-seg aria-label="جایگاه جملهٔ فعال">
+            <option value="start" data-short="بالا">بالا</option>
+            <option value="center" data-short="وسط">وسط</option>
+            <option value="end" data-short="پایین">پایین</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="rSmooth"><span>حرکت صفحه</span></label>
+          <select id="rSmooth" data-seg aria-label="حرکت صفحه">
+            <option value="1" data-short="نرم" data-desc="در حالت‌های «بهینه» و «فوق‌ساده» همیشه فوری است.">نرم</option>
+            <option value="0" data-short="فوری">فوری</option>
+          </select>
+        </div>
       </section>
 
       <section class="grp" id="navGrp" hidden>
@@ -1619,6 +1797,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 <div id="fixTip" hidden></div>
 <div id="seekTip" hidden></div>
 <input type="file" id="file" accept="application/pdf,.pdf" hidden>
+<button id="manBtn" type="button" hidden disabled aria-hidden="true" tabindex="-1"></button>
 <div class="manov" id="manOv" hidden role="dialog" aria-modal="true" aria-label="اسکن و اصلاح دستی">
   <div class="manin">
     <div class="manhd">
@@ -1648,13 +1827,44 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
         </div>
         <button class="btn primary mgo" id="manScan" type="button">اسکن مجدد صفحه</button>
       </section>
-      <div class="mtxw">
-        <div class="mfqk" id="mfQk" role="toolbar" aria-label="ابزار سریع ویرایش متن"></div>
-        <textarea id="manTx" dir="rtl" spellcheck="false" aria-label="متن صفحه"></textarea>
-        <div class="mtxf">
-          <p class="hint" id="mfStat" aria-live="off"></p>
-          <button class="btn xs" id="manUndo" type="button">واگرد</button>
-          <button class="btn xs dgr" id="manDel" type="button">حذف نتیجهٔ OCR</button>
+      <div class="mtxw" id="mtxw">
+        <div class="mtxh" id="mtxH">
+          <button class="mib" id="mtxFsX" type="button" aria-label="خروج از تمام‌صفحه" title="خروج از تمام‌صفحه"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
+          <div class="manpg">
+            <button class="mib" id="mtxPrev" type="button" aria-label="صفحهٔ قبل" title="صفحهٔ قبل"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+            <span class="mtxpn" id="mtxPn"></span>
+            <button class="mib" id="mtxNext" type="button" aria-label="صفحهٔ بعد" title="صفحهٔ بعد"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+          </div>
+          <button class="mib mfz" id="mtxFa" type="button" aria-label="کوچک‌کردن قلم" title="کوچک‌کردن قلم">A−</button>
+          <button class="mib mfz" id="mtxFb" type="button" aria-label="بزرگ‌کردن قلم" title="بزرگ‌کردن قلم">A+</button>
+          <button class="mib" id="mtxTools" type="button" aria-pressed="false" aria-label="نمایش/پنهان‌کردن ابزارها" title="نمایش/پنهان‌کردن ابزارها"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9M15 4v6M9 14v6"/></svg></button>
+          <button class="btn xs primary" id="mtxSave" type="button">ذخیره</button>
+        </div>
+        <div class="mtxe" id="mtxE">
+          <div class="mpmir" id="mpMir" aria-hidden="true"></div>
+          <textarea id="manTx" dir="rtl" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" aria-label="متن صفحه"></textarea>
+        </div>
+        <div class="mtxdk" id="mtxDk">
+          <div class="mfqk" id="mfQk" role="toolbar" aria-label="ابزار سریع ویرایش متن">
+            <div class="mpb" id="mpBar">
+              <button class="mpi" id="mpNext" type="button" aria-label="جملهٔ بعد" title="جملهٔ بعد"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M5 5l10 7-10 7z"/></svg></button>
+              <button class="mpplay" id="mpPlay" type="button" aria-label="پخش از جای انتخابی" title="پخش از جای انتخابی (مکان‌نما یا متن انتخاب‌شده)">
+                <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4L18.2 12z"/></svg>
+                <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.2" y="5" width="4.1" height="14" rx="1.5"/><rect x="13.7" y="5" width="4.1" height="14" rx="1.5"/></svg>
+              </button>
+              <button class="mpi" id="mpPrev" type="button" aria-label="جملهٔ قبل" title="جملهٔ قبل"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14M19 5L9 12l10 7z"/></svg></button>
+              <button class="mpt" id="mpSo" type="button" aria-pressed="false" title="فقط متن انتخاب‌شده خوانده شود (نه تا پایان صفحه)">فقط انتخاب</button>
+              <button class="mpi o" id="mpFs" type="button" aria-label="تمام‌صفحه" title="تمام‌صفحه"><svg class="i-exp" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><svg class="i-col" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
+            </div>
+          </div>
+          <div id="mtxFd" hidden></div>
+          <p class="hint" id="mtxSt" aria-live="polite"></p>
+          <div class="mtxf">
+            <p class="hint" id="mfStat" aria-live="off"></p>
+            <button class="btn xs mtxonly" id="mtxFind" type="button" aria-pressed="false">جست‌وجو</button>
+            <button class="btn xs" id="manUndo" type="button">واگرد</button>
+            <button class="btn xs dgr" id="manDel" type="button">حذف نتیجهٔ OCR</button>
+          </div>
         </div>
       </div>
       <details class="acc mfx" id="manFxBox">
@@ -1694,6 +1904,20 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
             </div>
           </div>
           <p class="hint">اعراب‌گذاری آفلاین است؛ حالت «هوشمند» کسرهٔ اضافه را تقریبی می‌گذارد، پس برای متن فنی یا ادبی پس از اعمال مرور کنید. اگر متنی را انتخاب کنید، ویرایش فقط روی همان اعمال می‌شود.</p>
+        </div>
+      </details>
+      <details class="acc mfx" id="manSvBox">
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6"/></svg></i><span class="stt"><b>ذخیرهٔ تغییرات در مسیر دلخواه</b><small>خروجی متن اصلاح‌شده با مسیر و نام انتخابی شما</small></span></summary>
+        <div class="in">
+          <div class="msrow"><button class="btn xs" id="msPick" type="button">انتخاب مسیر</button><button class="btn xs" id="msClr" type="button" hidden>حذف مسیر</button><p class="hint" id="msPath"></p></div>
+          <div class="two">
+            <div class="field"><label for="msScope"><span>محتوا</span></label>
+              <select id="msScope"><option value="page">همین صفحه (متن ویرایشگر)</option><option value="fixed">همهٔ صفحه‌های اصلاح‌شده</option><option value="all">کل فایل</option></select></div>
+            <div class="field"><label for="msName"><span>نام فایل</span></label>
+              <input type="text" id="msName" dir="auto" autocomplete="off" aria-label="نام فایل"></div>
+          </div>
+          <button class="btn primary sm" id="msSave" type="button">ذخیره در مسیر انتخابی</button>
+          <p class="hint" id="msSt" aria-live="polite"></p>
         </div>
       </details>
     </div>
@@ -1739,6 +1963,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
     e.title = 'صفحهٔ ' + nf.format(p) + ' از ' + nf.format(t || p);
   }
   var sents = [], idx = 0, playing = false, token = 0, voices = [], curEl = null;
+  var MP = { on: false, bak: null, L: [], cur: -1, txt: '', moved: false, so: false, fs: false, fz: 16 };   /* r49: پخش از متن ویرایشگر اسکن دستی (جعبه‌شنی؛ on=true یعنی sents موقتاً متن ویرایشگر است) */
 
   if (window.pdfjsLib) {
     pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('lib/pdf.worker.min.js', location.href).href;
@@ -1760,7 +1985,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
   }
   showVals();
 
-  function status(t){ $('#status').textContent = t || ''; document.body.classList.toggle('is-prep', /^در حال آماده‌سازی/.test(t || '')); }
+  function status(t){ $('#status').textContent = t || ''; if (MP.on) manSt(t || mpPosTxt()); document.body.classList.toggle('is-prep', /^در حال آماده‌سازی/.test(t || '')); }
 
   /* ---------- voices ---------- */
   var piperVoices = [
@@ -1972,23 +2197,30 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
       });
     }).catch(function(){ st.textContent = ''; });
   }
-  $('#pdl').onclick = function(){
-    var v = engVoice(), btn = $('#pdl'), st = $('#pstat');
-    if (!v) return;
-    btn.disabled = true;
-    var bar = $('#pbar'); bar.value = 0; bar.hidden = false;
-    if (navigator.onLine === false) st.textContent = 'اینترنت قطع است؛ با وصل‌شدن، دانلود خودکار شروع می‌شود…';
-    ensurePiper().then(function(ok){ if (!ok) throw new Error('موتور Piper بارگذاری نشد.'); return PiperTTS.download(v.id, function(pr){
-      if (pr && pr.stage === 'retry') { st.textContent = 'اتصال قطع شد؛ تلاش مجدد ' + nf.format(pr.n) + ' از ۶ (پس از وصل‌شدن اینترنت ادامه می‌یابد)…'; return; }
-      if (pr && pr.stage === 'extract') { st.textContent = 'در حال آماده‌سازی فایل‌های صدا… (فایل ' + nf.format(pr.n || 0) + ') — تا چند دقیقه صبر کنید'; return; }
-      if (pr && pr.total) { var pc = Math.round(pr.loaded * 100 / pr.total); bar.value = pc; st.textContent = 'در حال نصب: ' + nf.format(pc) + '٪ (' + nf.format(Math.round(pr.loaded / 1048576)) + ' از ' + nf.format(Math.round(pr.total / 1048576)) + ' مگابایت)'; }
-    }); }).then(function(){
-      st.textContent = 'در حال آزمایش صدا…';
-      return piperPredict('سلام.', v.id);
-    }).then(function(){ updatePiperStatus(); warmPiper(); vfAuto(v.id); }).catch(function(e){
-      st.textContent = 'نصب صدا ناموفق بود: ' + (e && e.message ? e.message : e);
-    }).then(function(){ btn.disabled = false; $('#pbar').hidden = true; });
-  };
+  var dlBusy = false;
+  function installVoice(id){                                       /* دانلود و نصب یک صدای مشخص؛ پیشرفت در نوار و ردیف همان صدا */
+    if (dlBusy || !id) return Promise.resolve();
+    var st = $('#pstat'), bar = $('#pbar'), vb = $('#vfBar'), btn = $('#pdl'), nm = vfVName(id), row, say = function(t){ vfMsg(t); var c = engVoice(); if (c && c.id === id) st.textContent = t; };
+    dlBusy = true; btn.disabled = true; bar.value = 0; bar.hidden = false; vb.value = 0; vb.hidden = false; vfBtns(); vfDraw();
+    row = function(){ return document.querySelector('#vfList .vfr[data-id="' + id + '"] small'); };
+    if (navigator.onLine === false) say('اینترنت قطع است؛ با وصل‌شدن، دانلود «' + nm + '» خودکار شروع می‌شود…');
+    return ensurePiper().then(function(ok){
+      if (!ok) throw new Error('دانلود صدا فقط در اپ اندروید (موتور بومی) انجام می‌شود.');
+      say('در حال شروع دانلود «' + nm + '»…');
+      return PiperTTS.download(id, function(pr){
+        var r = row(), t;
+        if (pr && pr.stage === 'retry') { say('اتصال قطع شد؛ تلاش مجدد ' + nf.format(pr.n) + ' از ۶ (پس از وصل‌شدن اینترنت ادامه می‌یابد)…'); return; }
+        if (pr && pr.stage === 'extract') { say('در حال آماده‌سازی فایل‌های صدا… (فایل ' + nf.format(pr.n || 0) + ') — تا چند دقیقه صبر کنید'); return; }
+        if (pr && pr.total) { var pc = Math.round(pr.loaded * 100 / pr.total); bar.value = pc; vb.value = pc; t = 'در حال دانلود: ' + nf.format(pc) + '٪ (' + nf.format(Math.round(pr.loaded / 1048576)) + ' از ' + nf.format(Math.round(pr.total / 1048576)) + ' مگابایت)'; vfMsg(t); var c = engVoice(); if (c && c.id === id) st.textContent = t; if (r) r.textContent = 'در حال دانلود ' + nf.format(pc) + '٪'; }
+      });
+    }).then(function(){
+      say('در حال آزمایش صدا…');
+      return piperPredict('سلام.', id);
+    }).then(function(){ say('«' + nm + '» نصب شد و آفلاین کار می‌کند.'); warmPiper(); vfAuto(id); }).catch(function(e){
+      say('نصب صدا ناموفق بود: ' + em(e));
+    }).then(function(){ dlBusy = false; btn.disabled = false; bar.hidden = true; vb.hidden = true; vfBtns(); updatePiperStatus(); });
+  }
+  $('#pdl').onclick = function(){ var v = engVoice(); if (v) installVoice(v.id); };
   window.addEventListener('offline', function(){ if (!$('#pbar').hidden) $('#pstat').textContent = 'اینترنت قطع شد؛ دانلود تا وصل‌شدن مجدد منتظر می‌ماند.'; });
   /* ---------- وضعیت آفلاین: بررسی وجود فایل‌های داخل برنامه ---------- */
   function offDiag(){
@@ -2030,29 +2262,29 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
   setTimeout(loadVoices, 600);
 
   /* ---------- ذخیره/بارگذاری صداهای گوینده در مسیر دلخواه کاربر (Android SAF) ---------- */
-  var vfFirst = true, vfIds = [], vfSet = false, vfBusy = false;
+  var vfFirst = true, vfIds = [], vfSet = false, vfBusy = false;   /* dlBusy در بخش نصب صدا */
   function em(e){ return (e && (e.message || e.errorMessage)) || String(e); }
   function vfMsg(t){ $('#vfMsg').textContent = t || ''; }
   function vfVName(id){ var a = allVoices(), i; for (i = 0; i < a.length; i++) if (a[i].id === id) return a[i].name; return id; }
   function vfBtns(){
     var ok = npOK && !!NP;
-    $('#vfPick').disabled = !ok || vfBusy;
-    $('#vfSave').disabled = !ok || !vfSet || vfBusy;
-    $('#vfLoad').disabled = !ok || !vfSet || vfBusy;
-    $('#vfRef').disabled = vfBusy;
+    $('#vfPick').disabled = !ok || vfBusy || dlBusy;
+    $('#vfSave').disabled = !ok || !vfSet || vfBusy || dlBusy;
+    $('#vfLoad').disabled = !ok || !vfSet || vfBusy || dlBusy;
+    $('#vfRef').disabled = vfBusy || dlBusy;
   }
   function vfDraw(){
-    var box = $('#vfList'), a = allVoices(), ok = npOK && !!NP && vfSet && !vfBusy, f = document.createDocumentFragment(), i, v, have, inF, r, n, b1, b2, t;
+    var box = $('#vfList'), a = allVoices(), ok = npOK && !!NP && vfSet && !vfBusy && !dlBusy, idle = !vfBusy && !dlBusy, f = document.createDocumentFragment(), i, v, have, inF, r, n, b1, b2, t;
     box.textContent = '';
     for (i = 0; i < a.length; i++) {
       v = a[i]; if (v.gender === 'f' || FEM_ID.test(v.id)) continue;
       have = HAVE.indexOf(v.id) >= 0; inF = (vfIds || []).indexOf(v.id) >= 0;
-      r = document.createElement('div'); r.className = 'vfr';
+      r = document.createElement('div'); r.className = 'vfr' + (have ? ' ok' : ''); r.dataset.id = v.id;
       n = document.createElement('span'); n.className = 'vn';
       t = document.createElement('b'); t.textContent = v.name; n.appendChild(t);
-      t = document.createElement('small'); t.textContent = (have ? 'نصب‌شده' : 'نصب‌نشده') + (vfSet ? ' · ' + (inF ? 'در مسیر ذخیره هست' : 'در مسیر نیست') : ''); n.appendChild(t);
-      b1 = document.createElement('button'); b1.type = 'button'; b1.className = 'btn'; b1.textContent = 'ذخیره'; b1.dataset.a = 's'; b1.dataset.id = v.id; b1.disabled = !ok || !have;
-      b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'btn'; b2.textContent = 'بارگذاری'; b2.dataset.a = 'l'; b2.dataset.id = v.id; b2.disabled = !ok || !inF;
+      t = document.createElement('small'); t.textContent = (have ? 'نصب‌شده' : 'نصب‌نشده' + (v.mb ? ' · ' + nf.format(v.mb) + ' مگابایت' : '')) + (vfSet ? ' · ' + (inF ? 'در مسیر ذخیره هست' : 'در مسیر نیست') : ''); n.appendChild(t);
+      b1 = document.createElement('button'); b1.type = 'button'; b1.className = 'btn xs'; b1.textContent = 'ذخیره'; b1.dataset.a = 's'; b1.dataset.id = v.id; b1.disabled = !ok || !have;
+      b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'btn xs'; b2.textContent = have ? 'بارگذاری' : 'دانلود'; b2.dataset.a = 'l'; b2.dataset.id = v.id; b2.disabled = have ? (!ok || !inF) : !idle;
       r.appendChild(n); r.appendChild(b1); r.appendChild(b2); f.appendChild(r);
     }
     box.appendChild(f);
@@ -2092,6 +2324,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
     var b = ev.target.closest ? ev.target.closest('button[data-a]') : null, id, sv;
     if (!b || b.disabled) return;
     id = b.dataset.id; sv = b.dataset.a === 's';
+    if (!sv && HAVE.indexOf(id) < 0) { installVoice(id); return; }   /* صدا نصب نیست: «بارگذاری» یعنی شروع دانلود */
     vfRun(sv ? 'در حال ذخیرهٔ «' + vfVName(id) + '»…' : 'در حال بارگذاری «' + vfVName(id) + '»…',
       function(){ return sv ? NP.exportVoices({ ids: [id] }) : NP.importVoices({ ids: [id] }); },
       function(r){ return r.count ? '«' + vfVName(id) + (sv ? '» در مسیر ذخیره شد.' : '» بارگذاری شد.') : (sv ? 'ذخیره انجام نشد؛ ابتدا صدا را نصب کنید.' : 'این صدا در مسیر پیدا نشد.'); });
@@ -4180,7 +4413,7 @@ var ocrSpell = (function(){
 
   /* ===== اسکن و اصلاح دستی: پیش‌نمایش صفحه، اسکن مجدد (کل صفحه یا ناحیه) و ویرایش/ذخیرهٔ متن ===== */
   var man = { pn: 1, doc: null, base: '', undo: [], rect: null, busy: false, stop: false, ow: null, tok: 0, rt: null, warn: false, del: 0 };
-  function manSt(t){ $('#manSt').textContent = t || ''; }
+  function manSt(t){ $('#manSt').textContent = t || ''; var q = $('#mtxSt'); if (q) q.textContent = t || ''; }
   function manText(pn){
     if (ocrPages[pn] != null) return { t: ocrPages[pn], s: 'منبع متن: نتیجهٔ OCR ذخیره‌شده' };
     var it = rawItems[pn - 1], t = '';
@@ -4199,7 +4432,8 @@ var ocrSpell = (function(){
     var b = man.busy, d = b || man.fx, reg = $('#manMode').value === 'region';
     $('#manScan').textContent = b ? 'توقف اسکن' : reg ? 'اسکن ناحیهٔ انتخاب‌شده' : 'اسکن مجدد صفحه';
     $('#manScan').disabled = !!man.fx;
-    ['manPrev', 'manNext', 'manNo', 'manSave', 'manSaveNext', 'manUndo', 'manDel', 'manX', 'manMode', 'manQ', 'mfRun', 'mfUnAll', 'mfNext', 'mfRep1', 'mfRepAll'].forEach(function(id){ $('#' + id).disabled = d; });
+    ['manPrev', 'manNext', 'manNo', 'manSave', 'manSaveNext', 'manUndo', 'manDel', 'manX', 'manMode', 'manQ', 'mfRun', 'mfUnAll', 'mfNext', 'mfRep1', 'mfRepAll', 'msSave', 'mpPlay', 'mpNext', 'mpPrev', 'mtxPrev', 'mtxNext', 'mtxSave'].forEach(function(id){ $('#' + id).disabled = d; });
+    if (d) mpStop();
     $('#manPv').classList.toggle('reg', reg);
     if (!reg) { man.rect = null; manSel(); }
     segSync();
@@ -4229,21 +4463,22 @@ var ocrSpell = (function(){
   }
   function manGo(pn){
     var n = rawItems.length, x;
-    pn = Math.max(1, Math.min(n, pn | 0 || 1)); man.pn = pn; man.rect = null; man.undo = []; man.warn = false;
+    mpStop(); pn = Math.max(1, Math.min(n, pn | 0 || 1)); man.pn = pn; man.rect = null; man.undo = []; man.warn = false;
     x = manText(pn); man.base = x.t; $('#manTx').value = x.t; $('#manSrc').textContent = x.s;
-    $('#manNo').value = pn; $('#manNo').max = n; $('#manOf').textContent = 'از ' + nf.format(n);
-    manSt(''); manUi(); manSel(); manRender(pn); mfStat();
+    $('#manNo').value = pn; $('#manNo').max = n; $('#manOf').textContent = 'از ' + nf.format(n); $('#mtxPn').textContent = nf.format(pn) + ' / ' + nf.format(n);
+    manSt(''); manUi(); manSel(); manRender(pn); mfStat(); msNameSync();
   }
   function manOpen(){
     if (!pdfDoc || !rawItems.length) return;
     man.doc = pdfDoc;
     $('#manQ').value = $('#ocrQ').value; $('#manDsk').checked = $('#ocrDsk').checked; $('#manLex').checked = $('#ocrLex').checked; $('#manDn').checked = $('#ocrDn').checked;
-    $('#manMode').value = 'page'; man.allBak = null; mfLoad();
+    $('#manMode').value = 'page'; man.allBak = null; mfLoad(); msOpen();
     $('#manOv').hidden = false;
     manGo(sents[idx] ? sents[idx].page : 1);
   }
   function manClose(){
     if (man.busy) return;
+    mtxFs(false); mpStop();
     man.tok++; if (man.rt) { try { man.rt.cancel(); } catch (e) {} man.rt = null; }
     $('#manOv').hidden = true; $('#manCv').width = 2; $('#manCv').height = 2; $('#manTx').value = ''; man.undo = []; man.doc = null; man.rect = null;
   }
@@ -4436,6 +4671,7 @@ var ocrSpell = (function(){
   function mfOpts(){ var g = function(i){ return $('#' + i).checked; }; return { norm: g('mfNorm'), sp: g('mfSp'), spell: g('mfSpell'), pun: g('mfPun'), com: g('mfCom'), dot: g('mfDot'), join: g('mfJoin'), ts: g('mfTs'), har: $('#mfHar').value }; }
   function mfLoad(){ Object.keys(MF_DEF).forEach(function(id){ $('#' + id).checked = sget(id, String(MF_DEF[id])) === '1'; }); $('#mfHar').value = sget('mfHar', 'none'); $('#mfScope').value = 'page'; }
   function mfStat(){
+    mpStale();
     var v = $('#manTx').value, w = (v.match(/\S+/g) || []).length, h = (v.match(/[\u064B-\u0652\u0670]/g) || []).length;
     $('#mfStat').textContent = nf.format(w) + ' واژه · ' + nf.format(v.length) + ' نویسه' + (h ? ' · ' + nf.format(h) + ' علامت اعراب' : '');
   }
@@ -4576,6 +4812,7 @@ var ocrSpell = (function(){
   }
   async function manSave(){
     if (!manAlive()) return;
+    mpStop();
     var pn = man.pn, t = $('#manTx').value.replace(/\r\n?/g, '\n').replace(/[ \t]+$/gm, '').trim();
     ocrPages[pn] = t; mfHarMeta(pn, t); ocrDirtyC[pn] = 1; await ocrSaveD(ocrKey, ocrPages, ocrGeo, ocrMeta);
     if (man.geoNew && man.geoNew.pn === pn) { ocrGeo[pn] = man.geoNew.g; man.geoNew = null; ocrDirtyC[pn] = 1; await ocrSaveD(ocrKey, ocrPages, ocrGeo, ocrMeta); }
@@ -4624,7 +4861,7 @@ var ocrSpell = (function(){
   $('#manSave').onclick = manSave;
   $('#manDel').onclick = manDel;
   $('#manUndo').onclick = function(){
-    var v = man.undo.pop();
+    mpStop(); var v = man.undo.pop();
     if (v == null) { $('#manTx').value = man.base; manSt('به آخرین متن ذخیره‌شده برگشت.'); } else { $('#manTx').value = v; manSt('واگرد انجام شد.'); }
   };
   (function(){                                                       /* انتخاب ناحیه با لمس/ماوس روی تصویر صفحه */
@@ -4641,8 +4878,265 @@ var ocrSpell = (function(){
     function up(){ if (!st) return; st = null; if (man.rect && (man.rect.x1 - man.rect.x0 < 0.03 || man.rect.y1 - man.rect.y0 < 0.01)) { man.rect = null; manSel(); manSt('ناحیه خیلی کوچک بود؛ دوباره انتخاب کنید.'); } }
     pv.addEventListener('pointerup', up); pv.addEventListener('pointercancel', up);
   })();
-  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !$('#manOv').hidden && !man.busy && manLeave()) manClose(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !$('#manOv').hidden && !man.busy) { if (MP.fs) { mtxFs(false); return; } if (manLeave()) manClose(); } });
   window.addEventListener('resize', function(){ if (!$('#manOv').hidden) manSel(); });
+  /* ===== r49: پخش گوینده از متن ویرایشگر (پخش/جملهٔ قبل/بعد) و تمام‌صفحهٔ کادر متن =====
+     طراحی: وقتی کاربر پخش را می‌زند، sents موقتاً به جمله‌های متن ویرایشگر (با آفست) تبدیل می‌شود و همان موتور پخش (Piper/بومی/…)
+     بدون هیچ تغییر دیگر کار می‌کند؛ با توقف/خروج/تغییر متن، sents و idx اصلی برگردانده می‌شود (mark/posFlush در حالت جعبه‌شنی بی‌اثرند). */
+  var mta = $('#manTx'), mmir = $('#mpMir');
+  function mpPosTxt(){ return MP.on && MP.cur >= 0 ? 'جملهٔ ' + nf.format(MP.cur + 1) + ' از ' + nf.format(sents.length) : ''; }
+  function mpBuild(v){                                               /* جمله‌های متن با آفست a..b (همان تقسیم‌کنندهٔ خوانش اصلی) */
+    var out = [], re = /[^\n]+/g, m, ss, k, o, p, cur = 0;
+    while ((m = re.exec(v))) {
+      ss = splitSentences(m[0]); if (O.script) ss = ss.filter(keepScript);
+      for (k = 0; k < ss.length; k++) {
+        o = ss[k]; p = v.indexOf(o.t, Math.max(cur, m.index));
+        if (p < 0 || p >= m.index + m[0].length) p = Math.max(cur, m.index);
+        cur = p + o.t.length;
+        out.push({ text: o.t, cont: o.c, page: man.pn, el: null, pe: k === ss.length - 1, a: p, b: cur });
+      }
+    }
+    return out;
+  }
+  function mpAt(L, off){ var i; for (i = 0; i < L.length; i++) if (L[i].b > off) return i; return L.length - 1; }
+  function mpHl(q){                                                  /* هایلایت جمله روی کادر متن با آینهٔ پشت textarea و اسکرول به آن */
+    var v = MP.txt, mk, y, h, w;
+    if (!q || v !== mta.value) { mmir.textContent = ''; return; }
+    mmir.textContent = '';
+    mmir.appendChild(document.createTextNode(v.slice(0, q.a)));
+    mk = document.createElement('mark'); mk.textContent = v.slice(q.a, q.b); mmir.appendChild(mk);
+    mmir.appendChild(document.createTextNode(v.slice(q.b)));
+    w = mta.offsetWidth - mta.clientWidth - 2; mmir.style.left = (w > 2 ? w : 0) + 'px';
+    y = mk.offsetTop; h = mk.offsetHeight;
+    if (y < mta.scrollTop + 6 || y + h > mta.scrollTop + mta.clientHeight - 6) mta.scrollTop = Math.max(0, y - mta.clientHeight * 0.3);
+    mmir.scrollTop = mta.scrollTop;
+  }
+  function mpMark(){                                                 /* جایگزین mark() اصلی در حالت جعبه‌شنی */
+    var q = sents[idx];
+    if (rsm && rsm.i !== idx) rsm = null;
+    if (!q) return;
+    MP.cur = idx; mpHl(q); manSt(mpPosTxt());
+  }
+  function mpSync(){
+    var o = $('#manOv'), t = $('#manTx'), on = !!(MP.on && playing), b;
+    if (!o || !t) return;
+    o.classList.toggle('mpp', on); t.readOnly = on;
+    b = $('#mpPlay'); if (b) { b.setAttribute('aria-label', on ? 'توقف موقت' : 'پخش از جای انتخابی'); b.title = on ? 'توقف موقت' : 'پخش از جای انتخابی (مکان‌نما یا متن انتخاب‌شده)'; }
+  }
+  function mpLeave(){                                                /* بازگرداندن متن اصلی خوانش */
+    var b = MP.bak;
+    if (!MP.on) return;
+    if (playing) pause();
+    MP.on = false; MP.bak = null; sents = b.s; idx = b.i; rsm = b.r; plan = {};
+    ui();
+  }
+  function mpStop(){
+    if (!MP.on && !MP.txt) { MP.moved = false; return; }
+    mpLeave(); MP.txt = ''; MP.L = []; MP.cur = -1; MP.moved = false;
+    $('#mpMir').textContent = ''; $('#manTx').readOnly = false;
+  }
+  function mpStale(){ if (MP.txt && $('#manTx').value !== MP.txt) mpStop(); }
+  function mpEnd(){ mpLeave(); MP.cur = -1; $('#mpMir').textContent = ''; manSt('پخش متن تمام شد.'); }
+  function mpEnsure(){
+    var v = mta.value, mv = MP.moved;
+    if (MP.txt !== v) { mpStop(); MP.txt = v; MP.L = mpBuild(v); MP.moved = mv; }
+    return MP.L;
+  }
+  function mpRun(from, to){
+    var v = MP.txt, L = MP.L, i, q, k, n;
+    if (to > from && MP.so) L = L.filter(function(x){ return x.b > from && x.a < to; });
+    if (!L.length) { manSt('جمله‌ای در انتخاب نیست.'); return; }
+    i = mpAt(L, from);
+    if (playing) pause();
+    if (!MP.on) { MP.bak = { s: sents, i: idx, r: rsm }; MP.on = true; }
+    sents = L; idx = i; plan = {}; rsm = null; MP.moved = false;
+    q = L[i];
+    if (from > q.a && from < q.b) {                                  /* شروع از میانهٔ جمله: از واژهٔ انتخابی (سازوکار rsm موتور) */
+      k = (v.slice(q.a, from).match(/\S+\s+/g) || []).length; n = (q.text.match(/\S+/g) || []).length;
+      if (k > 0 && k < n - 1) rsm = { i: i, f: (k + 0.5) / n };
+    }
+    if (!MP.fs) { try { $('#mtxE').scrollIntoView({ block: 'nearest' }); } catch (x) {} }
+    start(i);
+  }
+  function mpPlay(){
+    var L, s, e, from, to = -1;
+    if (man.busy || man.fx) return;
+    if (MP.on && playing) { pause(); return; }
+    if (!mta.value.trim()) { manSt('متنی برای خواندن نیست.'); return; }
+    L = mpEnsure();
+    if (!L.length) { manSt('جمله‌ای برای خواندن پیدا نشد.'); return; }
+    if (MP.on && !MP.moved && MP.cur >= 0) { rsm = null; start(MP.cur); return; }   /* ادامه از همان جمله */
+    if (MP.moved) { s = mta.selectionStart; e = mta.selectionEnd; from = s; if (e > s) to = e; if (from >= L[L.length - 1].b) from = L[L.length - 1].a; }
+    else from = MP.cur >= 0 ? L[MP.cur].a : 0;
+    mpRun(from, to);
+  }
+  function mpSkip(d){
+    var L, i;
+    if (man.busy || man.fx) return;
+    L = mpEnsure();
+    if (!L.length) { manSt('جمله‌ای در متن نیست.'); return; }
+    if (MP.on) L = sents;
+    if (MP.on && playing) { seekTo(idx + d); return; }
+    if (MP.moved) i = mpAt(L, mta.selectionStart); else if (MP.cur < 0) i = 0; else i = Math.max(0, Math.min(L.length - 1, MP.cur + d));
+    MP.cur = i; MP.moved = false; if (MP.on) idx = i;
+    mpHl(L[i]); manSt('جملهٔ ' + nf.format(i + 1) + ' از ' + nf.format(L.length));
+    if (document.activeElement === mta) { try { mta.setSelectionRange(L[i].a, L[i].a); } catch (x) {} }
+  }
+  function mpSel(k){                                                 /* انتخاب جمله/بند زیر مکان‌نما (برای ویرایش یا پخش فقط همان) */
+    var v = mta.value, s = mta.selectionStart || 0, e = mta.selectionEnd || s, a, b, L;
+    if (man.busy || man.fx) return;
+    if (!v) return;
+    if (k === 'p') { a = s ? v.lastIndexOf('\n', s - 1) + 1 : 0; b = v.indexOf('\n', e); if (b < 0) b = v.length; }
+    else { L = mpBuild(v); if (!L.length) return; L = L[mpAt(L, s)]; a = L.a; b = L.b; }
+    try { mta.focus({ preventScroll: true }); mta.setSelectionRange(a, b); } catch (x) {}
+    manSt((k === 'p' ? 'بند' : 'جمله') + ' انتخاب شد' + ' (' + nf.format(b - a) + ' نویسه).');
+  }
+  function mtxFz(d){
+    var z = Math.max(16, Math.min(32, d ? MP.fz + d * 2 : MP.fz));
+    MP.fz = z; $('#mtxw').style.setProperty('--mtxfs', z + 'px'); if (d) sset('mtxfz', z);
+    $('#mtxFa').disabled = z <= 16; $('#mtxFb').disabled = z >= 32;
+    if (MP.txt && MP.cur >= 0) mpHl((MP.on ? sents : MP.L)[MP.cur]);
+  }
+  function mtxVv(){
+    var v = window.visualViewport, w = $('#mtxw');
+    if (!MP.fs || !v) return;
+    w.style.setProperty('--vvh', v.height + 'px'); w.style.setProperty('--vvt', v.offsetTop + 'px');
+  }
+  function mtxFs(on){
+    var w = $('#mtxw'), fd = $('#mtxFd'), vv = window.visualViewport, f;
+    on = !!on;
+    if (!w || MP.fs === on) return;
+    MP.fs = on; w.classList.toggle('fs', on);
+    f = document.querySelector('#manFxBox .mfs') || document.querySelector('#mtxFd .mfs');
+    if (on) {                                                        /* جست‌وجو/جایگزینی به نوار پایین می‌آید (پنهان تا دکمهٔ «جست‌وجو») */
+      if (f && !MP.fh) { MP.fh = { p: f.parentNode, n: f.nextSibling }; fd.appendChild(f); }
+      fd.hidden = true; $('#mtxFind').setAttribute('aria-pressed', 'false');
+      mtxVv(); if (vv) { vv.addEventListener('resize', mtxVv); vv.addEventListener('scroll', mtxVv); }
+    } else {
+      if (f && MP.fh) { MP.fh.p.insertBefore(f, MP.fh.n); MP.fh = null; }
+      fd.hidden = true; w.style.removeProperty('--vvh'); w.style.removeProperty('--vvt'); w.classList.remove('nodk'); $('#mtxTools').setAttribute('aria-pressed', 'false');
+      if (vv) { vv.removeEventListener('resize', mtxVv); vv.removeEventListener('scroll', mtxVv); }
+    }
+    $('#mpFs').setAttribute('aria-label', on ? 'خروج از تمام‌صفحه' : 'تمام‌صفحه'); $('#mpFs').title = on ? 'خروج از تمام‌صفحه' : 'تمام‌صفحه';
+    if (MP.txt && MP.cur >= 0) mpHl((MP.on ? sents : MP.L)[MP.cur]);
+  }
+  MP.fz = Math.max(16, Math.min(32, parseInt(sget('mtxfz', '16'), 10) || 16)); MP.so = sget('mpso', '0') === '1';
+  $('#mpSo').setAttribute('aria-pressed', MP.so ? 'true' : 'false'); mtxFz(0);
+  $('#mpPlay').onclick = mpPlay;
+  $('#mpNext').onclick = function(){ mpSkip(1); };
+  $('#mpPrev').onclick = function(){ mpSkip(-1); };
+  $('#mpSo').onclick = function(){ MP.so = !MP.so; this.setAttribute('aria-pressed', MP.so ? 'true' : 'false'); sset('mpso', MP.so ? '1' : '0'); manSt(MP.so ? 'فقط متن انتخاب‌شده خوانده می‌شود.' : 'از جای انتخابی تا پایان صفحه خوانده می‌شود.'); };
+  $('#mpFs').onclick = function(){ mtxFs(!MP.fs); };
+  $('#mtxFsX').onclick = function(){ mtxFs(false); };
+  $('#mtxPrev').onclick = function(){ $('#manPrev').click(); };
+  $('#mtxNext').onclick = function(){ $('#manNext').click(); };
+  $('#mtxSave').onclick = function(){ $('#manSave').click(); };
+  $('#mtxFa').onclick = function(){ mtxFz(-1); };
+  $('#mtxFb').onclick = function(){ mtxFz(1); };
+  $('#mtxTools').onclick = function(){ var on = $('#mtxw').classList.toggle('nodk'); this.setAttribute('aria-pressed', on ? 'true' : 'false'); };
+  $('#mtxFind').onclick = function(){ var f = $('#mtxFd'); f.hidden = !f.hidden; this.setAttribute('aria-pressed', f.hidden ? 'false' : 'true'); if (!f.hidden) { try { $('#mfFind').focus(); } catch (x) {} } };
+  mta.addEventListener('scroll', function(){ if (MP.txt && mmir.firstChild) mmir.scrollTop = mta.scrollTop; }, { passive: true });
+  document.addEventListener('selectionchange', function(){ if (document.activeElement === mta) MP.moved = true; });
+  $('#mtxH').addEventListener('mousedown', function(e){ if (e.target.closest && e.target.closest('button')) e.preventDefault(); });
+
+
+  /* ===== ذخیرهٔ تغییرات اسکن دستی در مسیر دلخواه کاربر ===== */
+  /* اولویت: پوشهٔ ماندگار (showDirectoryPicker) ← پنجرهٔ «ذخیره به‌عنوان» (showSaveFilePicker) ← برگهٔ اشتراک‌گذاری سیستم (اندروید: Files/Drive و …) ← دانلود.
+     پنجره‌های انتخاب مسیر لمس تازه می‌خواهند؛ پس مقصد پیش از ساخت متن سنگین گرفته می‌شود. */
+  var ms = { dir: null, busy: false, pend: null, init: false };
+  function msSt(t){ $('#msSt').textContent = t || ''; }
+  function msSafe(s){ return String(s || '').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '_').replace(/\s+/g, ' ').trim(); }
+  function msBase(){ var e = curEnt(); return msSafe(((e && e.name) || 'document').replace(/\.pdf$/i, '')) || 'document'; }
+  function msDefName(){ var v = $('#msScope').value; return msBase() + (v === 'page' ? '-صفحه' + man.pn : v === 'fixed' ? '-اصلاح‌شده' : '-متن-کامل'); }
+  function msNameSync(){ var e = $('#msName'); if (e && !e.dataset.u) e.value = msDefName(); }
+  function msPathUi(){
+    var t = ms.dir ? 'پوشه: ' + ms.dir.name
+      : window.showSaveFilePicker ? 'هر بار پنجرهٔ انتخاب مسیر باز می‌شود.'
+      : (navigator.share && navigator.canShare) ? 'مسیر از برگهٔ اشتراک‌گذاری سیستم انتخاب می‌شود (Files، Drive و …).'
+      : 'فایل در پوشهٔ دانلودها ذخیره می‌شود.';
+    $('#msPath').textContent = t; $('#msClr').hidden = !ms.dir;
+    ms.pend = null; $('#msSave').textContent = 'ذخیره در مسیر انتخابی';
+  }
+  function msOpen(){
+    $('#msName').dataset.u = ''; $('#msScope').value = 'page'; msNameSync(); msSt(''); msPathUi();
+    if (ms.init) return; ms.init = true;
+    if (window.showDirectoryPicker) kvGet0('ms:dir').then(function(h){ if (h && h.kind === 'directory') { ms.dir = h; msPathUi(); } });
+  }
+  async function msText(scope){
+    var cur = $('#manTx').value.replace(/\r\n?/g, '\n').replace(/[ \t]+$/gm, '').trim(), n = rawItems.length, out = [], ks, i, pn, t;
+    if (scope === 'page') return cur;
+    if (scope === 'fixed') {
+      ks = Object.keys(ocrPages).map(Number).filter(function(k){ return k >= 1 && k <= n; });
+      if (manDirty() && ks.indexOf(man.pn) < 0) ks.push(man.pn);
+      ks.sort(function(a, b){ return a - b; });
+      for (i = 0; i < ks.length; i++) { pn = ks[i]; t = pn === man.pn ? cur : String(ocrPages[pn] || ''); if (t.trim()) out.push('--- صفحهٔ ' + nf.format(pn) + ' ---\n' + t.trim()); }
+      return out.join('\n\n');
+    }
+    for (pn = 1; pn <= n; pn++) {
+      t = pn === man.pn ? cur : (ocrPages[pn] != null ? String(ocrPages[pn]) : manText(pn).t);
+      if (t && t.trim()) out.push('--- صفحهٔ ' + nf.format(pn) + ' ---\n' + t.trim());
+      if (pn % 25 === 0) await new Promise(function(r){ setTimeout(r, 0); });   /* رابط روی گوشی ضعیف قفل نشود */
+    }
+    return out.join('\n\n');
+  }
+  async function msTarget(name){
+    var d = ms.dir, ok = false;
+    if (d) {
+      try { ok = (await d.queryPermission({ mode: 'readwrite' })) === 'granted' || (await d.requestPermission({ mode: 'readwrite' })) === 'granted'; } catch (e) { ok = false; }
+      if (ok) return { k: 'dir', d: d };
+      msSt('اجازهٔ دسترسی به پوشه داده نشد؛ مسیر را دستی انتخاب کنید.');
+    }
+    if (window.showSaveFilePicker) return { k: 'file', h: await window.showSaveFilePicker({ suggestedName: name, types: [{ description: 'فایل متنی', accept: { 'text/plain': ['.txt'] } }] }) };
+    return { k: 'out' };
+  }
+  function msDl(blob, name){
+    var u = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(u); }, 60000);
+  }
+  async function msWrite(t, blob, name){
+    var w = null, f;
+    if (t.k === 'dir' || t.k === 'file') {
+      try {
+        w = await (t.k === 'dir' ? await t.d.getFileHandle(name, { create: true }) : t.h).createWritable();
+        await w.write(blob); await w.close(); w = null;
+      } catch (e) { try { if (w) await w.abort(); } catch (x) {} throw e; }
+      return t.k === 'dir' ? 'ذخیره شد در پوشهٔ «' + t.d.name + '»: ' + name : 'ذخیره شد: ' + t.h.name;
+    }
+    f = new File([blob], name, { type: 'text/plain' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [f] })) {
+      try { await navigator.share({ files: [f], title: name }); return 'فایل به برگهٔ اشتراک‌گذاری داده شد؛ مقصد را همان‌جا انتخاب کردید.'; }
+      catch (e) {
+        if (e && e.name === 'AbortError') throw e;
+        if (e && e.name === 'NotAllowedError') { ms.pend = { blob: blob, name: name }; $('#msSave').textContent = 'انتخاب مسیر و ذخیرهٔ فایل آماده'; return 'فایل آماده است؛ دکمه را یک بار دیگر بزنید تا مسیر را انتخاب کنید.'; }
+      }
+    }
+    msDl(blob, name); return 'در پوشهٔ دانلودها ذخیره شد: ' + name;
+  }
+  async function msSave(){
+    if (ms.busy || man.busy || man.fx) return;
+    var name = msSafe($('#msName').value) || msDefName(), p = ms.pend, t, txt;
+    if (!/\.txt$/i.test(name)) name += '.txt';
+    ms.busy = true; $('#msSave').disabled = true;
+    try {
+      if (p) { ms.pend = null; $('#msSave').textContent = 'ذخیره در مسیر انتخابی'; msSt(await msWrite({ k: 'out' }, p.blob, p.name)); return; }
+      msSt('در حال آماده‌سازی…');
+      t = await msTarget(name);
+      txt = await msText($('#msScope').value);
+      if (!txt.trim()) { msSt('متنی برای ذخیره نیست.'); return; }
+      msSt(await msWrite(t, new Blob(['\ufeff' + txt], { type: 'text/plain;charset=utf-8' }), name));
+    } catch (e) { msSt(e && e.name === 'AbortError' ? 'ذخیره لغو شد.' : 'ذخیره انجام نشد: ' + em(e)); }
+    finally { ms.busy = false; $('#msSave').disabled = !!(man.busy || man.fx); }
+  }
+  $('#msSave').onclick = msSave;
+  $('#msScope').onchange = msNameSync;
+  $('#msName').addEventListener('input', function(){ this.dataset.u = this.value.trim() ? '1' : ''; });
+  $('#msPick').onclick = async function(){
+    if (!window.showDirectoryPicker) { msSt('این دستگاه انتخاب پوشهٔ ماندگار را پشتیبانی نمی‌کند؛ مسیر هنگام ذخیره از پنجرهٔ سیستم انتخاب می‌شود.'); return; }
+    try { var h = await window.showDirectoryPicker({ id: 'pdfreader-text', mode: 'readwrite' }); ms.dir = h; await kvSet('ms:dir', h); msPathUi(); msSt('مسیر ذخیره تعیین شد.'); }
+    catch (e) { if (!e || e.name !== 'AbortError') msSt('انتخاب مسیر انجام نشد: ' + em(e)); }
+  };
+  $('#msClr').onclick = function(){ ms.dir = null; kvDel('ms:dir'); msPathUi(); msSt('مسیر حذف شد؛ هر بار پرسیده می‌شود.'); };
 
   /* ---------- OCR storage (IndexedDB, fallback localStorage) ---------- */
   var kvDB = null;
@@ -5315,7 +5809,7 @@ var ocrSpell = (function(){
     unrT = setTimeout(function(){ var l = unrList; unrList = {}; Object.keys(l).forEach(function(k){ unrenderPage(+k); }); }, 500);
   }
   function build(pages, pre, drp){
-    dropped = drp || 0; sents = []; idx = 0; curEl = null; pageParas = {}; pgEls = {}; plan = {}; pvReset();
+    mpStop(); dropped = drp || 0; sents = []; idx = 0; curEl = null; pageParas = {}; pgEls = {}; plan = {}; pvReset();
     if (pgObs) pgObs.disconnect();
     if (pgObsU) pgObsU.disconnect();
     unrList = {}; clearTimeout(unrT);
@@ -6281,7 +6775,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r47 · 2026-10-19 · dock-pages', npBuild = '';
+  var APP_BUILD = 'html-r49 · 2026-10-20 · man-play-fs', npBuild = '';
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r17: عیب‌یابی crossOriginIsolated — هدرهای واقعی سند را می‌خواند؛ اگر هدرها هست ولی coi=false (سند پیش از تعویض WebViewClient بار شده) یک‌بار صفحه را بازبارگذاری می‌کند */
   try { if (!window.crossOriginIsolated && window.fetch) fetch(location.href, { cache: 'no-store' }).then(function(r){
@@ -6945,11 +7439,11 @@ var ocrSpell = (function(){
   function advance(my){
     if (my !== token || !playing) return;
     idx++;
-    if (idx >= sents.length) { if (ocrWait(my)) return; endReading(); return; }
+    if (idx >= sents.length) { if (!MP.on && ocrWait(my)) return; endReading(); return; }
     mark(true);
     speakNow();
   }
-  function endReading(){ idx = 0; playing = false; ui(); mark(false); status('خواندن تمام شد.'); }
+  function endReading(){ if (MP.on) { mpEnd(); return; } idx = 0; playing = false; ui(); mark(false); status('خواندن تمام شد.'); }
   /* به انتهای متنِ آمادهٔ پخش رسیدیم ولی OCR هنوز صفحه‌های بعد را می‌سازد: صبر کن، صفحه‌های تازه را بی‌وقفه به متن اضافه و ادامه بده */
   function ocrWait(my){
     if (!(ocrBusy || ocrDirty) || !txwGet() || !sents.length) return false;
@@ -7223,13 +7717,14 @@ var ocrSpell = (function(){
   function posSave(){ clearTimeout(posT); posT = setTimeout(posFlush, 700); }
   function posFlush(){
     clearTimeout(posT); posT = 0;
-    if (!curKey) return;
+    if (!curKey || MP.on) return;
     sset(curKey, idx);
     var n = sents[idx] ? (String(sents[idx].text).trim().split(/\s+/).length || 1) : 1, f = posFi === idx ? posF : 0;
     if (rsm && rsm.i === idx) f = rsm.f + f * (1 - rsm.f);   /* پخش از میانهٔ جمله شروع شده؛ نسبت به کل جمله جبران می‌شود */
     sset('pw:' + curKey.slice(4), idx + ':' + Math.min(n, Math.floor(f * n)) + ':' + n);   /* جمله:واژه:شمار واژهٔ جمله (تقریب از نسبت زمان پخش) */
   }
   function mark(scroll){
+    if (MP.on) { mpMark(); return; }
     if (curEl) curEl.classList.remove('cur');
     curEl = null;
     if (sents.length && sents[idx]) {
@@ -7249,13 +7744,17 @@ var ocrSpell = (function(){
       if (pvOn() && pdfDoc && !sents.length && !pvPage) pvShow(1, false);
     }
   }
-  function follow(el){
+  var FOL = { m: 'out', p: 'center', s: '1' }, folForce = 0;   /* تنظیمات «پیمایش»: حالت دنبال‌کردن، جایگاه، نرمی حرکت (مقدار واقعی در بخش قلم متن بارگذاری می‌شود) */
+  function folBeh(){ return (FOL.s === '1' && !fxCalm()) ? 'smooth' : 'auto'; }
+  function follow(el, force){
+    if (FOL.m === 'off' && playing && !force && !folForce) return;   /* خاموش: فقط پیش‌روی خودکار پخش صفحه را جابه‌جا نمی‌کند؛ پرش دستی/تغییر قلم همچنان کار می‌کند */
     var r = el.getBoundingClientRect(), s = $('#stage').getBoundingClientRect(), dk = (document.body.classList.contains('dock-hide') ? $('#dockPeek') : $('#dock')).getBoundingClientRect();
-    if (r.top < s.top + 56 || r.bottom > dk.top - 12) el.scrollIntoView({ block: 'center', behavior: fxCalm() ? 'auto' : 'smooth' });
+    if (FOL.m === 'always' || r.top < s.top + 56 || r.bottom > dk.top - 12) el.scrollIntoView({ block: FOL.p, behavior: folBeh() });
   }
   /* ---------- نمای صفحهٔ PDF: خود صفحه رسم می‌شود و جملهٔ در حال خواندن روی آن علامت می‌خورد ---------- */
   var pvMode = sget('rdMode', 'page') === 'text' ? 'text' : 'page', pvPage = 0, pvTok = 0, pvRT = null, pvVp = null, pvStr = {}, pvHit = {}, pvDone = {}, pvRC = {};
-  var PVZ = [1, 1.25, 1.5, 2, 2.5, 3], pvZi = Math.max(0, Math.min(PVZ.length - 1, parseInt(sget('pvz', '0'), 10) || 0)), pvW = 0, pvRz = 0;
+  var PVZ = [1, 1.25, 1.5, 2, 2.5, 3, 4, 5], PVMAX = 5, pvW = 0, pvRz = 0,
+      pvZf = (function(){ var v = parseFloat(sget('pvzf', '')); if (!(v >= 1 && v <= PVMAX)) v = PVZ[Math.max(0, Math.min(5, parseInt(sget('pvz', '0'), 10) || 0))]; return v; })();
   function pvOn(){ return pvMode === 'page'; }
   function pvApply(){
     var b = $('#rdMode'), dt = $('#dText');
@@ -7406,7 +7905,7 @@ var ocrSpell = (function(){
     if (scroll && first) follow(first);
   }
   var pvCv = {}, pvUserT = 0, pvSw = 0, pvScQ = 0;
-  function pvKey(){ return Math.round(Math.max(200, $('#pv').clientWidth) * PVZ[pvZi]); }
+  function pvKey(){ return Math.round(Math.max(200, $('#pv').clientWidth) * pvZf); }
   function pvDrop(q){ var e = pvCv[q]; if (!e) return; delete pvCv[q]; try { if (e.rt) e.rt.cancel(); } catch (x) {} if (e.res) { try { e.res.c.width = 0; } catch (x) {} } }
   function pvClear(){ if (!pvCv) return; Object.keys(pvCv).forEach(pvDrop); var U = $('#pvU'), D = $('#pvD'); if (U) U.textContent = ''; if (D) D.textContent = ''; }
   function pvRender(p){                                            /* رندر صفحه در بومِ کش‌شده؛ همسایه‌ها هم با همین کش آماده می‌شوند */
@@ -7415,10 +7914,14 @@ var ocrSpell = (function(){
     pvDrop(p);
     ent = pvCv[p] = { k: k, doc: doc, rt: null, res: null, pr: null };
     ent.pr = (async function(){
-      var page = await doc.getPage(p), v1 = page.getViewport({ scale: 1 }), sc = k / v1.width, dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2, 4096 / k)), vp = page.getViewport({ scale: sc * dpr }), c = document.createElement('canvas');
-      c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
-      c.style.width = Math.round(vp.width / dpr) + 'px'; c.style.height = Math.round(vp.height / dpr) + 'px';
-      ent.rt = page.render({ canvasContext: c.getContext('2d'), viewport: vp, background: '#fff' });
+      var page = await doc.getPage(p), v1 = page.getViewport({ scale: 1 }), ratio = v1.height / v1.width, sc = k / v1.width, big = pvZf > 1.3,
+          dpr = Math.min(window.devicePixelRatio || 1, 3), cap = big ? 4.5e6 : 7e6, c = document.createElement('canvas'), cw, ch, vp;
+      if (big) dpr = Math.min(dpr, 1);                              /* در بزرگ‌نمایی، لایهٔ جزئیات وضوح بومی را می‌دهد */
+      dpr = Math.max(0.6, Math.min(dpr, Math.sqrt(cap / (k * k * ratio))));
+      cw = Math.max(2, Math.round(k * dpr)); ch = Math.max(2, Math.round(k * ratio * dpr));
+      vp = page.getViewport({ scale: cw / v1.width });
+      c.width = cw; c.height = ch; c.style.width = k + 'px'; c.style.height = Math.round(k * ratio) + 'px';
+      ent.rt = page.render({ canvasContext: c.getContext('2d', { alpha: false }), viewport: vp, background: '#fff' });
       await ent.rt.promise;
       ent.res = { c: c, vp: page.getViewport({ scale: sc }) };
       return ent.res;
@@ -7429,7 +7932,7 @@ var ocrSpell = (function(){
   function pvKeep(fn){ var m = $('#pvp'), st = $('#stage'), b = m.getBoundingClientRect().top, d; fn(); d = m.getBoundingClientRect().top - b; if (d) st.scrollTop += d; }
   function pvPut(w, c){ c.id = ''; w.style.width = ''; w.style.height = ''; w.appendChild(c); }
   function pvFill(p){                                              /* صفحهٔ قبل (۱) و بعدها (۱ تا ۲) زیر/بالای صفحهٔ اصلی چیده می‌شوند */
-    var doc = pdfDoc, n = doc ? doc.numPages : 0, U = $('#pvU'), D = $('#pvD'), mc = $('#pvc'), mw = mc.style.width || '60%', mh = mc.style.height || '300px', tok = pvTok, ah = PVZ[pvZi] >= 2 ? 1 : 2, key = pvKey(), pend = [], order = [], j;
+    var doc = pdfDoc, n = doc ? doc.numPages : 0, U = $('#pvU'), D = $('#pvD'), mc = $('#pvc'), mw = mc.style.width || '60%', mh = mc.style.height || '300px', tok = pvTok, ah = pvZf >= 2 ? 1 : 2, key = pvKey(), pend = [], order = [], j;
     Object.keys(pvCv).forEach(function(k){ if (+k < p - 1 || +k > p + ah) pvDrop(k); });
     U.textContent = ''; D.textContent = '';
     order.push(p + 1); order.push(p - 1); if (ah > 1) order.push(p + 2);
@@ -7446,7 +7949,7 @@ var ocrSpell = (function(){
       }
     })();
   }
-  async function pvShow(p, scroll, keep){
+  async function pvShow(p, scroll, keep, anc){
     var tok = ++pvTok, doc = pdfDoc, wrap = $('#pv'), st = $('#stage'), r, old, nc, at = null, bf = 0;
     pvPage = p; pvVp = null; pvRC = {}; $('#pvh').textContent = ''; $('#pvn').hidden = true;
     Object.keys(pvStr).forEach(function(k){ if (Math.abs(+k - p) > 2) delete pvStr[k]; });
@@ -7456,16 +7959,18 @@ var ocrSpell = (function(){
       nc = r.c; old = $('#pvc');
       if (keep && nc.isConnected) { at = nc; bf = nc.getBoundingClientRect().top; }
       if (old !== nc) { old.id = ''; nc.id = 'pvc'; old.parentNode.replaceChild(nc, old); }
+      pvDClear();
       pvVp = r.vp; pvW = wrap.clientWidth;
       pvFill(p);
-      if (at) st.scrollTop += at.getBoundingClientRect().top - bf;
+      if (anc) { anc.done(); var ar = $('#pvp').getBoundingClientRect(); st.scrollTop += ar.top + anc.fy * ar.height - anc.oy; wrap.scrollLeft += ar.left + anc.fx * ar.width - anc.ox; }
+      else if (at) st.scrollTop += at.getBoundingClientRect().top - bf;
       else { st.scrollTop += $('#pvp').getBoundingClientRect().top - st.getBoundingClientRect().top - 28; wrap.scrollLeft = 0; }
       if (keep) pgInfo(p, doc.numPages);
-      pvHL(!keep);
+      pvHL(!keep); pvDSched(250);
     } catch (e) { if (tok === pvTok) status('نمایش صفحه ممکن نشد؛ نمای متن را باز کنید.'); }
   }
   function pvScan(){                                               /* اسکرول پیوسته: وقتی میانهٔ صفحه به صفحهٔ دیگری رسید، همان صفحه «صفحهٔ جاری» می‌شود (بی‌پرش) */
-    if (!pvOn() || !pvPage || pvSw || !pdfDoc) return;
+    if (!pvOn() || !pvPage || pvSw || pvPin || pvBusy || !pdfDoc) return;
     var sr = $('#stage').getBoundingClientRect(), mid = sr.top + sr.height * 0.4, els = $('#pv').querySelectorAll('.pvn, #pvp'), i, r, q = 0, e;
     for (i = 0; i < els.length; i++) { r = els[i].getBoundingClientRect(); if (mid >= r.top - 7 && mid <= r.bottom + 7) { q = els[i].id === 'pvp' ? pvPage : +els[i].dataset.q; break; } }
     if (!q || q === pvPage) return;
@@ -7473,18 +7978,86 @@ var ocrSpell = (function(){
     pvSw = 1; pvShow(q, false, true).then(function(){ pvSw = 0; }, function(){ pvSw = 0; });
   }
   function pvMark(scroll){
-    if (!pvOn() || !pdfDoc || !sents[idx]) return;
+    if (!pvOn() || !pdfDoc || !sents[idx] || pvPin || pvBusy) return;
     var p = sents[idx].page;
     if (p === pvPage && pvVp) pvHL(scroll);
     else if (pvPage && playing && Date.now() - pvUserT < 6000) return;      /* کاربر دارد اسکرول می‌کند؛ نمای او را به صفحهٔ خوانش برنمی‌گردانیم */
     else pvShow(p, scroll);
   }
   function pvRedo(){ if (!pvOn() || !pdfDoc || !sents.length) return; pvPage = 0; pvVp = null; pvMark(true); }
+  function pvLbl(){ $('#fsV').textContent = nf.format(Math.round(pvZf * 100)) + '٪'; }
   function pvZoom(d){
-    var n = Math.max(0, Math.min(PVZ.length - 1, pvZi + d));
-    if (n === pvZi) return;
-    pvZi = n; sset('pvz', pvZi); $('#fsV').textContent = nf.format(Math.round(PVZ[pvZi] * 100)) + '٪'; pvRedo();
+    var i, n = pvZf;
+    if (d > 0) { for (i = 0; i < PVZ.length; i++) if (PVZ[i] > pvZf + 0.01) { n = PVZ[i]; break; } }
+    else { for (i = PVZ.length - 1; i >= 0; i--) if (PVZ[i] < pvZf - 0.01) { n = PVZ[i]; break; } }
+    if (n === pvZf) return;
+    pvZf = n; sset('pvzf', pvZf); pvLbl(); pvRedo();
   }
+  /* ----- لایهٔ جزئیات: ناحیهٔ دیده‌شده با وضوح بومی نمایشگر رسم می‌شود (متن در هر زوم تیز می‌ماند، حافظه محدود) ----- */
+  var pvDtok = 0, pvDrt = null, pvDarea = null, pvDT = 0, pvPin = null, pvBusy = 0;
+  function pvDClear(){ pvDtok++; clearTimeout(pvDT); if (pvDrt) { try { pvDrt.cancel(); } catch (e) {} pvDrt = null; } var d = $('#pvd'); if (d) { d.width = 0; d.remove(); } pvDarea = null; }
+  function pvDSched(ms){ clearTimeout(pvDT); if (pvZf <= 1.3 || !pvOn()) return; pvDT = setTimeout(pvDetail, ms || 200); }
+  function pvDetail(){
+    if (!pvOn() || !pvPage || !pvVp || !pdfDoc || pvZf <= 1.3 || pvPin || pvBusy) return;
+    var pvp = $('#pvp'), pr = pvp.getBoundingClientRect(), sr = $('#stage').getBoundingClientRect(), vr = $('#pv').getBoundingClientRect(),
+        L = Math.max(sr.left, vr.left), R = Math.min(sr.right, vr.right), T = sr.top, B = sr.bottom,
+        vx0 = Math.max(0, L - pr.left), vx1 = Math.min(pr.width, R - pr.left), vy0 = Math.max(0, T - pr.top), vy1 = Math.min(pr.height, B - pr.top),
+        A = pvDarea, dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3)), mx, my, x0, y0, x1, y1, w, h, tok, doc = pdfDoc, pg = pvPage, vp0 = pvVp;
+    if (vx1 - vx0 < 8 || vy1 - vy0 < 8) return;
+    if (A && A.p === pg && A.z === pvZf && A.w === pr.width && vx0 >= A.x0 - 1 && vx1 <= A.x1 + 1 && vy0 >= A.y0 - 1 && vy1 <= A.y1 + 1) return;
+    mx = (vx1 - vx0) * 0.2; my = (vy1 - vy0) * 0.3;
+    x0 = Math.max(0, vx0 - mx); x1 = Math.min(pr.width, vx1 + mx); y0 = Math.max(0, vy0 - my); y1 = Math.min(pr.height, vy1 + my);
+    while ((x1 - x0) * (y1 - y0) * dpr * dpr > 5.5e6 && (x1 - x0 > vx1 - vx0 + 2 || y1 - y0 > vy1 - vy0 + 2)) { x0 += (vx0 - x0) * 0.25; x1 -= (x1 - vx1) * 0.25; y0 += (vy0 - y0) * 0.25; y1 -= (y1 - vy1) * 0.25; }
+    if ((x1 - x0) * (y1 - y0) * dpr * dpr > 5.5e6) dpr = Math.max(1, Math.sqrt(5.5e6 / ((x1 - x0) * (y1 - y0))));
+    w = x1 - x0; h = y1 - y0; tok = ++pvDtok;
+    if (pvDrt) { try { pvDrt.cancel(); } catch (e) {} pvDrt = null; }
+    (async function(){
+      var page = await doc.getPage(pg), c, rt, old;
+      if (tok !== pvDtok || doc !== pdfDoc) return;
+      c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w * dpr)); c.height = Math.max(1, Math.round(h * dpr));
+      rt = page.render({ canvasContext: c.getContext('2d', { alpha: false }), viewport: page.getViewport({ scale: vp0.scale * dpr }), transform: [1, 0, 0, 1, -x0 * dpr, -y0 * dpr], background: '#fff' });
+      pvDrt = rt; await rt.promise; if (pvDrt === rt) pvDrt = null;
+      if (tok !== pvDtok || doc !== pdfDoc || pvPage !== pg || pvVp !== vp0) { c.width = 0; return; }
+      c.id = 'pvd'; c.className = 'pvd'; c.style.cssText = 'left:' + x0 + 'px;top:' + y0 + 'px;width:' + w + 'px;height:' + h + 'px';
+      old = $('#pvd'); if (old) { old.width = 0; old.remove(); }
+      pvp.insertBefore(c, $('#pvh')); pvDarea = { p: pg, z: pvZf, w: pr.width, x0: x0, y0: y0, x1: x1, y1: y1 };
+    })().catch(function(){});
+  }
+  /* ----- زوم با دو انگشت (پینچ): پیش‌نمایش لحظه‌ای با CSS، بازرسم تیز پس از رها کردن، حفظ نقطهٔ کانونی ----- */
+  (function(){
+    var st = $('#stage'), pv = $('#pv'), badge = document.createElement('div'), bt = 0;
+    badge.id = 'pvZb'; badge.hidden = true; document.body.appendChild(badge);
+    function dist(t){ return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY) || 1; }
+    function ctr(t){ return { x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 }; }
+    function rest(){ pv.style.transform = ''; pv.style.transformOrigin = ''; pv.style.willChange = ''; pv.style.overflowX = ''; st.style.overflowY = ''; }
+    function show(z){ badge.textContent = nf.format(Math.round(z * 100)) + '٪'; badge.hidden = false; clearTimeout(bt); bt = setTimeout(function(){ badge.hidden = true; }, 700); }
+    st.addEventListener('touchstart', function(e){
+      if (!pvOn() || !pvVp || e.touches.length !== 2 || pvBusy || pvPin) return;
+      var c = ctr(e.touches), pr = $('#pvp').getBoundingClientRect(), r = pv.getBoundingClientRect();
+      pvPin = { d0: dist(e.touches), s: 1, cx0: c.x, cy0: c.y, cx: c.x, cy: c.y, fx: (c.x - pr.left) / pr.width, fy: (c.y - pr.top) / pr.height, ox: c.x - r.left, oy: c.y - r.top, raf: 0 };
+      pv.style.transformOrigin = pvPin.ox + 'px ' + pvPin.oy + 'px'; pv.style.willChange = 'transform';
+      pv.style.overflowX = 'hidden'; st.style.overflowY = 'hidden'; pvUserT = Date.now(); clearTimeout(pvDT);
+    }, { passive: true });
+    st.addEventListener('touchmove', function(e){
+      var P = pvPin, c, z1;
+      if (!P || e.touches.length < 2) return;
+      if (e.cancelable) e.preventDefault();
+      c = ctr(e.touches); z1 = Math.max(1, Math.min(PVMAX, pvZf * dist(e.touches) / P.d0));
+      P.s = z1 / pvZf; P.cx = c.x; P.cy = c.y; show(z1);
+      if (!P.raf) P.raf = requestAnimationFrame(function(){ P.raf = 0; if (pvPin === P) pv.style.transform = 'translate(' + (P.cx - P.cx0) + 'px,' + (P.cy - P.cy0) + 'px) scale(' + P.s + ')'; });
+    }, { passive: false });
+    async function fin(e){
+      var P = pvPin, z1;
+      if (!P || (e.touches && e.touches.length >= 2)) return;
+      pvPin = null; if (P.raf) cancelAnimationFrame(P.raf);
+      z1 = Math.max(1, Math.min(PVMAX, pvZf * P.s));
+      if (Math.abs(z1 / pvZf - 1) < 0.03) { rest(); st.scrollTop += P.cy0 - P.cy; pv.scrollLeft += P.cx0 - P.cx; pvDSched(120); return; }
+      pvZf = z1; sset('pvzf', pvZf); pvLbl(); show(z1); pvBusy = 1; pvSw = 1;
+      try { await pvShow(pvPage, false, true, { fx: P.fx, fy: P.fy, ox: P.cx, oy: P.cy, done: rest }); }
+      finally { rest(); pvBusy = 0; pvSw = 0; pvDSched(120); }
+    }
+    st.addEventListener('touchend', fin, { passive: true }); st.addEventListener('touchcancel', fin, { passive: true });
+  })();
   function pvIn(r, x, y){
     if (r.r) { var cx = r.x + r.w / 2, cy = r.y + r.h / 2, c = Math.cos(-r.r), sn = Math.sin(-r.r), dx = x - cx, dy = y - cy; x = cx + dx * c - dy * sn; y = cy + dx * sn + dy * c; }
     return x >= r.x - 3 && x <= r.x + r.w + 3 && y >= r.y - 2 && y <= r.y + r.h + 2;
@@ -7499,7 +8072,8 @@ var ocrSpell = (function(){
       for (j = 0; j < rs.length; j++) if (pvIn(rs[j], x, y)) { seekTo(ids[k]); return; }
     }
   };
-  $('#stage').addEventListener('scroll', function(){ if (pvScQ || !pvOn()) return; pvScQ = requestAnimationFrame(function(){ pvScQ = 0; pvScan(); }); }, { passive: true });
+  $('#stage').addEventListener('scroll', function(){ if (!pvOn()) return; pvDSched(220); if (pvScQ) return; pvScQ = requestAnimationFrame(function(){ pvScQ = 0; pvScan(); }); }, { passive: true });
+  $('#pv').addEventListener('scroll', function(){ pvDSched(220); }, { passive: true });
   ['touchstart', 'wheel', 'pointerdown'].forEach(function(t){ $('#stage').addEventListener(t, function(){ pvUserT = Date.now(); }, { passive: true }); });
   window.addEventListener('resize', function(){ clearTimeout(pvRz); pvRz = setTimeout(function(){ if (pvOn() && pvPage && Math.abs($('#pv').clientWidth - pvW) > 8) pvRedo(); }, 280); });
   pvApply();
@@ -7527,7 +8101,7 @@ var ocrSpell = (function(){
     document.body.classList.toggle('no-sents', !sents.length);
     $('#play').setAttribute('aria-label', playing ? 'توقف موقت' : 'پخش');
     $('#play').title = playing ? 'توقف موقت (فاصله)' : 'پخش (فاصله)';
-    musicSync();
+    musicSync(); mpSync();
     try { if (navigator.mediaSession) navigator.mediaSession.playbackState = playing ? 'playing' : 'paused'; } catch (e) {}
   }
 
@@ -8022,14 +8596,14 @@ var ocrSpell = (function(){
   /* ---------- events ---------- */
   $('#play').onclick = function(){ playing ? pause() : start(); };
   function seekTo(i){
-    pvUserT = 0; var was = playing; idx = Math.max(0, Math.min(sents.length - 1, i)); mark(true);
+    pvUserT = 0; var was = playing; idx = Math.max(0, Math.min(sents.length - 1, i)); folForce = 1; try { mark(true); } finally { folForce = 0; }
     if (was) { clearTimeout(seekT); token++; cancelAll(); seekT = setTimeout(function(){ if (playing) start(); }, 300); }
   }
   var fs = Math.max(0.9, Math.min(2.2, +sget('fs', '1.15') || 1.15));
   function applyFs(){ $('#reader').style.fontSize = fs + 'rem'; $('#fsSample').style.fontSize = fs + 'rem'; $('#fsV').textContent = nf.format(Math.round(fs * 100)) + '٪'; }
   applyFs();
-  $('#fsUp').onclick = function(){ if (pvOn()) { pvZoom(1); return; } fs = Math.min(2.2, Math.round((fs + 0.1) * 100) / 100); sset('fs', fs); applyFs(); if (curEl) follow(curEl); };
-  $('#fsDn').onclick = function(){ if (pvOn()) { pvZoom(-1); return; } fs = Math.max(0.9, Math.round((fs - 0.1) * 100) / 100); sset('fs', fs); applyFs(); if (curEl) follow(curEl); };
+  $('#fsUp').onclick = function(){ if (pvOn()) { pvZoom(1); return; } fs = Math.min(2.2, Math.round((fs + 0.1) * 100) / 100); sset('fs', fs); applyFs(); if (curEl) follow(curEl, 1); };
+  $('#fsDn').onclick = function(){ if (pvOn()) { pvZoom(-1); return; } fs = Math.max(0.9, Math.round((fs - 0.1) * 100) / 100); sset('fs', fs); applyFs(); if (curEl) follow(curEl, 1); };
   function gotoPage(){
     var n = parseInt(digitsAscii($('#pgGo').value), 10);
     if (!n || !sents.length) return;
@@ -8149,7 +8723,7 @@ var ocrSpell = (function(){
     c.onclick = function(){ slSet(m); }; $('#slChips').appendChild(c);
   });
   slLabel();
-  $('#locBtn').onclick = function(){ if (pvOn()) { pvUserT = 0; pvPage = 0; pvVp = null; pvMark(true); return; } if (curEl) curEl.scrollIntoView({ block: 'center', behavior: fxCalm() ? 'auto' : 'smooth' }); };
+  $('#locBtn').onclick = function(){ if (pvOn()) { pvUserT = 0; pvPage = 0; pvVp = null; pvMark(true); return; } if (curEl) curEl.scrollIntoView({ block: FOL.p, behavior: folBeh() }); };
   $('#prev').onclick = function(){ seekTo(idx - 1); };
   $('#next').onclick = function(){ seekTo(idx + 1); };
   $('#stop').onclick = stopAll;
@@ -8465,7 +9039,7 @@ var ocrSpell = (function(){
   $('#pageClose').onclick = function(){ setAppTab('read'); };
   document.addEventListener('click', function(e){          /* سرتیتر کادرها بسته نمی‌شود (دکمه‌های داخل سرتیتر مثل بازنشانی کار می‌کنند) */
     var sm = e.target.closest ? e.target.closest('details.acc>summary') : null;
-    if (sm && !e.target.closest('button,a,input,select,label,.rsb')) e.preventDefault();
+    if (sm && !sm.closest('#manOv') && !e.target.closest('button,a,input,select,label,.rsb')) e.preventDefault();
   }, true);
 
   /* ---- منوی ابزار ---- */
@@ -8480,7 +9054,7 @@ var ocrSpell = (function(){
     if (gm || (narrowMQ && narrowMQ.matches)) { toolsHome = toolsEl.parentNode; toolsEl.classList.add('sheet'); document.body.appendChild(toolsEl); scrimEl.hidden = false; }
     toolsEl.hidden = false;
     menuBtn.setAttribute('aria-expanded', 'true'); var ft = toolsEl.querySelector(gm ? '#tpanel-device .tile' : '.ttab.on'); if (ft) try { ft.focus({ preventScroll: true }); } catch (x) {} }
-  function closeTools(refocus){ if (!toolsOn) return; toolsOn = false; toolsEl.hidden = true; scrimEl.hidden = true; if (toolsEl.classList.contains('sheet')) { toolsEl.classList.remove('sheet'); toolsHome.appendChild(toolsEl); } if ($('#sqIn').value) { $('#sqIn').value = ''; sqRun(); } menuBtn.setAttribute('aria-expanded', 'false'); if (refocus === true) try { menuBtn.focus({ preventScroll: true }); } catch (x) {} }
+  function closeTools(refocus){ if (!toolsOn) return; toolsOn = false; toolsEl.hidden = true; scrimEl.hidden = true; if (toolsEl.classList.contains('sheet')) { toolsEl.classList.remove('sheet'); toolsHome.appendChild(toolsEl); } menuBtn.setAttribute('aria-expanded', 'false'); if (refocus === true) try { menuBtn.focus({ preventScroll: true }); } catch (x) {} }
   menuBtn.onclick = function(e){ e.stopPropagation(); if (toolsOn) closeTools(); else openTools(); };
   toolsEl.addEventListener('click', function(e){ e.stopPropagation(); });
   document.addEventListener('click', function(){ if (!toolsHold) closeTools(); });
@@ -8525,37 +9099,13 @@ var ocrSpell = (function(){
   }
   Array.prototype.forEach.call(toolsEl.querySelectorAll('.tile,.tbanner'), function(b){ b.addEventListener('click', function(){ toolRun(b); }); });
 
-  /* ---- جستجوی تنظیمات، نشانگر «تغییریافته» و بازنشانی هر بخش ---- */
-  var CFG_DEF = {"vstyle":"natural","vclean":"2","vclarity":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', sqT = 0, chgQ = 0, cfgN = 0;
-  function sqNorm(s){ return String(s || '').toLowerCase().replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/[\u200c\u064b-\u0652]/g, '').replace(/\s+/g, ' ').trim(); }
+  /* ---- نشانگر «تغییریافته» و بازنشانی هر بخش ---- */
+  var CFG_DEF = {"vstyle":"natural","vclean":"2","vclarity":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
   Array.prototype.forEach.call(document.querySelectorAll(CFG_SEC), function(s){
     var h = s.tagName === 'DETAILS' ? s.querySelector('summary .stt b') : s.querySelector('h3'), pn = s.closest('.panel');
     if (!s.id) s.id = 'cs-' + (++cfgN);
-    s._t = h ? h.textContent.trim() : ''; s._pn = pn ? pn.dataset.panel : ''; s._sq = sqNorm(s.textContent);
+    s._t = h ? h.textContent.trim() : ''; s._pn = pn ? pn.dataset.panel : '';
   });
-  function sqRun(){
-    var q = sqNorm($('#sqIn').value), box = $('#sqRes'), secs, hits = [], i, s, b, ti;
-    toolsEl.classList.toggle('sq-on', !!q); box.hidden = !q; box.textContent = '';
-    if (!q) return;
-    secs = document.querySelectorAll(CFG_SEC);
-    for (i = 0; i < secs.length; i++) {
-      s = secs[i]; if (s.hidden || !s._t) continue;
-      ti = sqNorm(s._t).indexOf(q) >= 0;
-      if (ti || s._sq.indexOf(q) >= 0) hits.push({ s: s, w: ti ? 0 : 1 });
-    }
-    hits.sort(function(a, b){ return a.w - b.w; });
-    if (!hits.length) { b = document.createElement('p'); b.textContent = 'موردی پیدا نشد.'; box.appendChild(b); return; }
-    hits.slice(0, 8).forEach(function(h){
-      var el = document.createElement('button'), m = TAB_META[h.s._pn] || ['', '', ''], bb = document.createElement('b'), sm = document.createElement('small');
-      el.type = 'button'; bb.textContent = h.s._t; sm.textContent = m[0]; el.appendChild(bb); el.appendChild(sm);
-      el.onclick = function(){
-        closeTools();
-        setAppTab(h.s._pn, { only: '#' + h.s.id, title: h.s._t, sub: m[0], icon: m[2] });
-      };
-      box.appendChild(el);
-    });
-  }
-  $('#sqIn').addEventListener('input', function(){ clearTimeout(sqT); sqT = setTimeout(sqRun, 120); });
   function cfgSame(el, d){
     if (el.type === 'checkbox') return el.checked === d;
     var a = String(el.value), b = String(d), na = parseFloat(a), nb = parseFloat(b);
@@ -8725,8 +9275,29 @@ var ocrSpell = (function(){
   var RFONTS = { vazir: 'var(--font)', naskh: '"Noto Naskh Arabic","Vazirmatn",Tahoma,serif' };
   function applyRFont(){ var k = $('#rFont').value; document.documentElement.style.setProperty('--rfont', RFONTS[k] || RFONTS.vazir); }
   $('#rFont').value = RFONTS[sget('rfont', 'vazir')] ? sget('rfont', 'vazir') : 'vazir';
-  $('#rFont').onchange = function(){ sset('rfont', this.value); applyRFont(); if (curEl) follow(curEl); };
+  $('#rFont').onchange = function(){ sset('rfont', this.value); applyRFont(); if (curEl) follow(curEl, 1); };
   applyRFont();
+  /* فاصلهٔ خطوط، ترازبندی و تنظیمات پیمایش (قلم و پیمایش) */
+  (function(){
+    var RS = document.documentElement.style, T = [
+      ['rLh', ['1.8', '2.15', '2.5'], '2.15', function(v){ RS.setProperty('--rlh', v); }],
+      ['rAlign', ['start', 'justify'], 'start', function(v){ RS.setProperty('--ralign', v); }],
+      ['rFollow', ['out', 'always', 'off'], 'out', function(v){ FOL.m = v; }],
+      ['rFlPos', ['start', 'center', 'end'], 'center', function(v){ FOL.p = v; }],
+      ['rSmooth', ['1', '0'], '1', function(v){ FOL.s = v; }]
+    ];
+    T.forEach(function(t){
+      var e = $('#' + t[0]), v = sget(t[0], t[2]);
+      if (t[1].indexOf(v) < 0) v = t[2];
+      e.value = v; t[3](v);
+      e.addEventListener('change', function(){
+        sset(t[0], this.value); t[3](this.value);
+        if (curEl && !pvOn()) follow(curEl, 1);
+        segRefresh();
+      });
+    });
+    segRefresh();
+  })();
 
   try { localStorage.removeItem('harakat'); if (sget('rfont', '') === 'sch') sset('rfont', 'vazir'); } catch (e) {}
 
@@ -9181,6 +9752,8 @@ var ocrSpell = (function(){
     mk(r1, 'نیم‌فاصله', 't', 'درج نیم‌فاصله', function(){ ins('\u200c', false); });
     DG.forEach(function(c, i){ mk(r1, '\u25CC' + c, '', DGN[i], function(){ ins(c, true); }); });
     ACT.forEach(function(a){ mk(r2, a[1], 't', a[2], function(){ act(a[0]); }); });
+    mk(r2, 'انتخاب جمله', 't', 'انتخاب جملهٔ زیر مکان‌نما (برای ویرایش یا پخش فقط همان)', function(){ mpSel('s'); });
+    mk(r2, 'انتخاب بند', 't', 'انتخاب بند (سطر) زیر مکان‌نما', function(){ mpSel('p'); });
     bar.addEventListener('mousedown', function(e){ if (e.target.closest && e.target.closest('button')) e.preventDefault(); });
   })();
   $('#rdBack').onclick = showHome;
@@ -9189,7 +9762,7 @@ var ocrSpell = (function(){
     if (!g || g.hidden) { setAppTab('read'); status('ابتدا یک PDF باز کنید.'); return; }
     setAppTab('view', { only: '#navGrp', title: 'جستجو در متن', sub: 'و رفتن به صفحه', icon: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4' });
   };
-  $('#rdMode').onclick = function(){ pvMode = pvOn() ? 'text' : 'page'; sset('rdMode', pvMode); pvApply(); if (pvOn()) pvRedo(); else if (curEl) follow(curEl); };
+  $('#rdMode').onclick = function(){ pvMode = pvOn() ? 'text' : 'page'; sset('rdMode', pvMode); pvApply(); if (pvOn()) pvRedo(); else if (curEl) follow(curEl, 1); };
   /* ---- نشانهٔ صفحه + یادداشت (IndexedDB: bm:<id>)؛ در ZIP پشتیبان هم می‌آید ---- */
   var bmEl = null, bmSc = null, bmRec = null;
   function bmClose(){ try { if (bmRec) bmRec.stop(); } catch (x) {} if (bmEl) { bmEl.remove(); bmSc.remove(); bmEl = bmSc = null; } }
@@ -9315,18 +9888,18 @@ var ocrSpell = (function(){
   var VS = (function(){
     var sheet = $('#vsSheet'), scrim = $('#vsScrim'), vbox = $('#vsVoices'), sbox = $('#vsStyles'), desc = $('#vsDesc'), btn = $('#dVoice'),
         icon0 = btn.innerHTML, tmr = 0, isOn = false, built = false, memo = {}, ty = 0, inn = sheet.querySelector('.vs-in');
-    var SK = '<path d="M6 64c1-12 11-19 26-19s25 7 26 19z" fill="';
+    var AVDEFS = "<svg width=\"0\" height=\"0\" style=\"position:absolute\" aria-hidden=\"true\" focusable=\"false\"><defs><radialGradient id=\"avF\" cx=\".34\" cy=\".26\" r=\".95\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".5\"/><stop offset=\".38\" stop-color=\"#fff\" stop-opacity=\"0\"/><stop offset=\".75\" stop-color=\"#5a2410\" stop-opacity=\".16\"/><stop offset=\"1\" stop-color=\"#3a1206\" stop-opacity=\".45\"/></radialGradient><radialGradient id=\"avSh\"><stop offset=\"0\" stop-color=\"#2a0e04\" stop-opacity=\".6\"/><stop offset=\"1\" stop-color=\"#2a0e04\" stop-opacity=\"0\"/></radialGradient><radialGradient id=\"avHi\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".75\"/><stop offset=\"1\" stop-color=\"#fff\" stop-opacity=\"0\"/></radialGradient><radialGradient id=\"avBl\"><stop offset=\"0\" stop-color=\"#e2506a\" stop-opacity=\".3\"/><stop offset=\"1\" stop-color=\"#e2506a\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"avBd\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".34\"/><stop offset=\".45\" stop-color=\"#fff\" stop-opacity=\"0\"/><stop offset=\"1\" stop-color=\"#000\" stop-opacity=\".48\"/></linearGradient><linearGradient id=\"avNk\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#2a0e04\" stop-opacity=\".62\"/><stop offset=\".55\" stop-color=\"#2a0e04\" stop-opacity=\".12\"/><stop offset=\"1\" stop-color=\"#2a0e04\" stop-opacity=\".3\"/></linearGradient><radialGradient id=\"avHr\" cx=\".3\" cy=\".18\" r=\"1\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".4\"/><stop offset=\".5\" stop-color=\"#fff\" stop-opacity=\"0\"/><stop offset=\"1\" stop-color=\"#000\" stop-opacity=\".5\"/></radialGradient><radialGradient id=\"avIr\" cx=\".5\" cy=\".28\" r=\".8\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".5\"/><stop offset=\".5\" stop-color=\"#fff\" stop-opacity=\"0\"/><stop offset=\"1\" stop-color=\"#000\" stop-opacity=\".55\"/></radialGradient><radialGradient id=\"avBg\" cx=\".5\" cy=\".36\" r=\".62\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".45\"/><stop offset=\"1\" stop-color=\"#fff\" stop-opacity=\"0\"/></radialGradient><radialGradient id=\"avVg\" cx=\".5\" cy=\".46\" r=\".62\"><stop offset=\".68\" stop-color=\"#000\" stop-opacity=\"0\"/><stop offset=\"1\" stop-color=\"#000\" stop-opacity=\".4\"/></radialGradient><linearGradient id=\"avGl\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".34\"/><stop offset=\"1\" stop-color=\"#fff\" stop-opacity=\"0\"/></linearGradient><linearGradient id=\"avLip\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".28\"/><stop offset=\"1\" stop-color=\"#000\" stop-opacity=\".2\"/></linearGradient><linearGradient id=\"avLens\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".5\"/><stop offset=\".4\" stop-color=\"#fff\" stop-opacity=\".05\"/><stop offset=\"1\" stop-color=\"#9ec3ff\" stop-opacity=\".18\"/></linearGradient></defs></svg>";
     var AV = {
-      gyro: { c: ['#5b6cf0', '#1c2670'], t: 'مردانه · بم و متین', d: 'لحنی رسمی و باوقار؛ مناسب کتاب و متن‌های جدی.',
-        s: SK + '#1f2a55"/><path d="M25 45l7 9 7-9z" fill="#fff"/><path d="M31 50h2l1.5 10-2.5 2-2.5-2z" fill="#c0392b"/><rect x="28" y="36" width="8" height="11" rx="3" fill="#c98f68"/><ellipse cx="32" cy="27" rx="11" ry="13" fill="#dca67d"/><path d="M21 27c-1-10 5-16 11-16s12 5 11 15c-2-5-5-8-11-8s-9 3-11 9z" fill="#2a2433"/><path d="M21 29c0 10 5 15 11 15s11-5 11-15c-2 6-5 8-11 8s-9-2-11-8z" fill="#4b4555"/><rect x="23.5" y="24.5" width="7" height="5.5" rx="2" fill="none" stroke="#1d1d28" stroke-width="1.4"/><rect x="33.5" y="24.5" width="7" height="5.5" rx="2" fill="none" stroke="#1d1d28" stroke-width="1.4"/><path d="M30.5 26.5h3" stroke="#1d1d28" stroke-width="1.4" fill="none"/><circle cx="27" cy="27.3" r="1.1" fill="#1d1d28"/><circle cx="37" cy="27.3" r="1.1" fill="#1d1d28"/><path d="M29.5 35.2q2.5 1.5 5 0" stroke="#e7b9a0" stroke-width="1.3" fill="none" stroke-linecap="round"/>' },
-      ganji: { c: ['#34d3b0', '#0f7c6c'], t: 'مردانه · گرم و صمیمی', d: 'لحنی دوستانه و روان؛ مناسب مقاله و متن‌های روزمره.',
-        s: SK + '#17a38d"/><path d="M22 47c3 6 17 6 20 0" fill="none" stroke="#0e7766" stroke-width="2.4" stroke-linecap="round"/><path d="M28 52v6M36 52v6" stroke="#e9fff9" stroke-width="1.5" stroke-linecap="round"/><rect x="28" y="36" width="8" height="11" rx="3" fill="#e0aa84"/><ellipse cx="32" cy="27" rx="11" ry="13" fill="#f2c6a0"/><path d="M20.5 26c-2-10 4-17 12-17 8 0 13 6 11 17-1-5-4-9-8-9-3 2-8 2-11 4-2 1-3 3-4 5z" fill="#5a3a25"/><path d="M30 10c1-4 5-5 7-3-3 0-4 1-5 4z" fill="#5a3a25"/><circle cx="27.5" cy="27" r="1.5" fill="#2b1d16"/><circle cx="36.5" cy="27" r="1.5" fill="#2b1d16"/><path d="M25.5 23.2q2-1.3 4 0M34.5 23.2q2-1.3 4 0" stroke="#5a3a25" stroke-width="1.2" fill="none" stroke-linecap="round"/><path d="M27.5 33q4.5 5 9 0z" fill="#fff" stroke="#9a4a38" stroke-width="1" stroke-linejoin="round"/>' },
-      adabi: { c: ['#f2b24a', '#b4651b'], t: 'مردانه · ادبی و داستان‌گو', d: 'لحنی نرم و قصه‌گو؛ مناسب رمان، شعر و متن ادبی.',
-        s: SK + '#7b5a3c"/><path d="M26 45l6 7 6-7z" fill="#f1e6cf"/><rect x="28" y="36" width="8" height="11" rx="3" fill="#c48f68"/><ellipse cx="32" cy="27" rx="11" ry="13" fill="#d8a47c"/><path d="M21 24c-2 3-2 8-1 11 1-1 2-2 2-4zM43 24c2 3 2 8 1 11-1-1-2-2-2-4z" fill="#a9a9b4"/><ellipse cx="32" cy="16" rx="15" ry="6" fill="#8a2f3a"/><circle cx="32" cy="9.5" r="1.7" fill="#8a2f3a"/><circle cx="27.5" cy="27.5" r="1.4" fill="#2b1d16"/><circle cx="36.5" cy="27.5" r="1.4" fill="#2b1d16"/><path d="M25 24.5q2.5-1.6 5 0M34 24.5q2.5-1.6 5 0" stroke="#9a9aa5" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M24.5 32c3-3 6-2 7.5 0 1.5-2 4.5-3 7.5 0-3 3.5-6 2-7.5 1-1.500 1-4.500 2.500-7.500-1z" fill="#a9a9b4"/><g transform="rotate(-8 51 54)"><rect x="43" y="47" width="15" height="12" rx="1.500" fill="#f3e2b0" stroke="#6b4a2a" stroke-width="1"/><path d="M50.500 47v12" stroke="#6b4a2a" stroke-width="1"/></g>' },
-      mana: { c: ['#ff7aa8', '#7b3fd6'], t: 'زنانه · روشن و شمرده', d: 'لحنی شفاف و آرام؛ مناسب مجله، آموزش و کتاب صوتی.',
-        s: SK + '#7a4fd1"/><path d="M17.5 30c-1-14 6-23 15-23s16 9 14.500 26c0 10 1 17 3 22H15c2-5 3-11 2.500-25z" fill="#2a1a2e"/><path d="M24 45q8 8 16 0z" fill="#f1c7a5"/><rect x="28" y="36" width="8" height="11" rx="3" fill="#e3b08c"/><ellipse cx="32" cy="27" rx="10.500" ry="12.500" fill="#f4cdad"/><path d="M21.500 26c1-9 6-13 11-13 6 0 10 5 10.500 13-2-4-5-7-9-8-3 2-8 4-12.500 8z" fill="#2a1a2e"/><ellipse cx="27.500" cy="27.500" rx="1.400" ry="1.800" fill="#2a1a1a"/><ellipse cx="36.500" cy="27.500" rx="1.400" ry="1.800" fill="#2a1a1a"/><path d="M25.500 25q2-1.600 4 0M34.500 25q2-1.600 4 0" stroke="#2a1a2e" stroke-width="1.100" fill="none" stroke-linecap="round"/><path d="M29 34q3 2.800 6 0-3 .8-6 0z" fill="#c2415a" stroke="#c2415a" stroke-width=".8" stroke-linejoin="round"/><circle cx="21.500" cy="32" r="1.200" fill="#f5d36b"/><circle cx="42.500" cy="32" r="1.200" fill="#f5d36b"/>' }
+      gyro: { c: ['#5b6cf0', '#1c2670'], t: "مردانه · بم و متین", d: "لحنی رسمی و باوقار؛ مناسب کتاب و متن‌های جدی.",
+        s: "<circle cx=\"32\" cy=\"30\" r=\"31\" fill=\"url(#avBg)\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"#27356f\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"url(#avBd)\"/><path d=\"M22 49.500l8.600-4.800 1.400 12L26 64z\" fill=\"#1b2652\"/><path d=\"M42 49.500l-8.600-4.800L32 56.700 38 64z\" fill=\"#1b2652\"/><path d=\"M23.600 46.600 32 57.500l8.400-10.900-3.800-2-4.600 5-4.600-5z\" fill=\"#f3f5fa\"/><path d=\"M23.600 46.600 32 57.500l8.400-10.900-3.800-2-4.600 5-4.600-5z\" fill=\"url(#avBd)\" opacity=\".5\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"#d9a27b\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"url(#avNk)\"/><path d=\"M27 44.800 32 50l5-5.200-2.600-1.600L32 46l-2.400-2.800z\" fill=\"#fff\"/><path d=\"M31 49.200h2l1.600 2.400-1 11-1.600 1.600-1.600-1.600-1-11z\" fill=\"#b53a3d\"/><path d=\"M31 49.200h2l1.600 2.400-1 11-1.600 1.600-1.600-1.600-1-11z\" fill=\"url(#avBd)\" opacity=\".6\"/><path d=\"M30.200 47.600h3.600l.7 2.600h-5z\" fill=\"#cf4a4c\"/><g transform=\"translate(21.2 28.5) scale(1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#d9a27b\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><g transform=\"translate(42.8 28.5) scale(-1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#d9a27b\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"#d9a27b\"/><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"url(#avF)\"/><ellipse cx=\"25\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"39\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"26.5\" cy=\"21\" rx=\"3.6\" ry=\"2\" fill=\"url(#avHi)\" opacity=\".5\"/><ellipse cx=\"32\" cy=\"16.5\" rx=\"5\" ry=\"2.2\" fill=\"url(#avHi)\" opacity=\".45\"/><path d=\"M21.200 28c0 9 4.800 14.200 10.800 14.200S42.800 37 42.800 28c-1.200 5.600-4 8.600-6.400 9.200-1.400-1-2.800-1.400-4.400-1.400s-3 .4-4.400 1.400C25.200 36.600 22.400 33.600 21.200 28z\" fill=\"#3b3644\"/><path d=\"M21.200 28c0 9 4.800 14.200 10.800 14.200S42.800 37 42.800 28c-1.200 5.600-4 8.600-6.400 9.200-1.400-1-2.800-1.400-4.400-1.400s-3 .4-4.400 1.400C25.200 36.600 22.400 33.600 21.200 28z\" fill=\"url(#avHr)\"/><path d=\"M28.500 35.600c1.200-1.100 2.300-1.300 3.500-.7 1.200-.6 2.300-.4 3.500.7-1 .9-2.100 1.400-3.500 1.400s-2.500-.5-3.500-1.400z\" fill=\"#2c2733\"/><path d=\"M28.8 36.9c1.2-1.0 2.3-.6 3.2-.2 1.7-.4 2.8-1 3.2.2-.9 1-2.100 1.500-3.2 1.500s-2.3000000000000003 -.5-3.2 -1.500z\" fill=\"#b56a5a\"/><path d=\"M29.2 37.1c.8 1.7 4.800000000000001 1.7 5.6000000000000005 0-3.2 .6-3.3000000000000003 .6-5.6000000000000005 0z\" fill=\"#b56a5a\"/><path d=\"M29.2 37.1c.8 1.7 4.800000000000001 1.7 5.6000000000000005 0-3.2 .6-3.3000000000000003 .6-5.6000000000000005 0z\" fill=\"url(#avLip)\"/><ellipse cx=\"32\" cy=\"38.25\" rx=\"1.4\" ry=\".45\" fill=\"#fff\" opacity=\".45\"/><path d=\"M29.0 37.0q3.0 .7 6.0 0\" fill=\"none\" stroke=\"#3a1008\" stroke-width=\".45\" opacity=\".55\" stroke-linecap=\"round\"/><path d=\"M32 27.2c-.6 2.4-1.5 4.2-1.9 5.6.9.9 2.9.9 3.8 0-.4-1.4-1.3-3.2-1.9-5.6z\" fill=\"url(#avSh)\" opacity=\".42\"/><ellipse cx=\"30.8\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"33.2\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"32\" cy=\"32.1\" rx=\"1.4\" ry=\".9\" fill=\"url(#avHi)\" opacity=\".8\"/><path d=\"M29.6 26.6c.6-.5 1-.3 1.2.2\" fill=\"none\" stroke=\"#2a0e04\" stroke-width=\".4\" opacity=\".25\" stroke-linecap=\"round\"/><g transform=\"translate(27 26.6)\"><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a2f1d\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.5 .3C-1.815 -2.9 1.815 -2.9 3.5 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><g transform=\"translate(37 26.6)\"><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a2f1d\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.5 .3C-1.815 -2.9 1.815 -2.9 3.5 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><path d=\"M23.800 22.600c1.800-1.700 4.600-1.900 6.400-.6M33.800 22c1.800-1.300 4.600-1.100 6.400.6\" fill=\"none\" stroke=\"#221c28\" stroke-width=\"1.5\" stroke-linecap=\"round\"/><path d=\"M20.600 26.500c-1.500-9 3-15.500 11.600-15.500 7.800 0 12.700 5.300 11.300 15.200-.6-4.300-2.200-7-4.800-8.600-3.600 2-9.200 2.400-13 1.400-2.600 1.800-4.300 4.500-5.100 7.500z\" fill=\"#2a2433\"/><path d=\"M20.600 26.500c-1.500-9 3-15.500 11.600-15.500 7.800 0 12.700 5.300 11.300 15.200-.6-4.300-2.200-7-4.800-8.600-3.600 2-9.200 2.400-13 1.400-2.600 1.800-4.300 4.500-5.100 7.500z\" fill=\"url(#avHr)\"/><path d=\"M24.500 16.500c3-2.500 8-3.200 11.500-1.200\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1\" stroke-linecap=\"round\" opacity=\".3\"/><ellipse cx=\"28\" cy=\"14.200\" rx=\"4.500\" ry=\"1.400\" transform=\"rotate(-12 28 14.200)\" fill=\"url(#avHi)\" opacity=\".7\"/><rect x=\"22.600\" y=\"23.400\" width=\"8.800\" height=\"6.400\" rx=\"2.200\" fill=\"url(#avLens)\" stroke=\"#16161f\" stroke-width=\"1.100\"/><rect x=\"32.600\" y=\"23.400\" width=\"8.800\" height=\"6.400\" rx=\"2.200\" fill=\"url(#avLens)\" stroke=\"#16161f\" stroke-width=\"1.100\"/><path d=\"M31.400 25.800q.6-.7 1.200 0M22.600 25.200l-2-.5M41.400 25.200l2-.5\" fill=\"none\" stroke=\"#16161f\" stroke-width=\"1.100\" stroke-linecap=\"round\"/><ellipse cx=\"32\" cy=\"64\" rx=\"26\" ry=\"6\" fill=\"#000\" opacity=\"0\"/><circle cx=\"32\" cy=\"32\" r=\"32\" fill=\"url(#avVg)\"/><ellipse cx=\"22\" cy=\"10\" rx=\"24\" ry=\"13\" transform=\"rotate(-18 22 10)\" fill=\"url(#avGl)\"/>" },
+      ganji: { c: ['#34d3b0', '#0f7c6c'], t: "مردانه · گرم و صمیمی", d: "لحنی دوستانه و روان؛ مناسب مقاله و متن‌های روزمره.",
+        s: "<circle cx=\"32\" cy=\"30\" r=\"31\" fill=\"url(#avBg)\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"#1aa58f\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"url(#avBd)\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"#f0c29b\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"url(#avNk)\"/><path d=\"M21 49c1.600 7 5.400 11.200 11 11.200S41.400 56 43 49c-1.400 2.600-4.200 4.600-6 5.200-3 1-6 1-8.600 0-2-.8-4.800-2.600-6.400-5.200z\" fill=\"#0f8672\"/><path d=\"M23.400 46c2.400 3.600 5.200 5.400 8.600 5.400s6.200-1.800 8.600-5.400c-.2 3.200-2 6-4.200 7.600-2.800 1.400-5.800 1.400-8.600 0-2.200-1.600-4-4.400-4.400-7.600z\" fill=\"#0f8672\" opacity=\".7\"/><path d=\"M28.800 53.500v7.400M35.200 53.500v7.400\" stroke=\"#e9fff9\" stroke-width=\"1.300\" stroke-linecap=\"round\"/><g transform=\"translate(21.2 28.5) scale(1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#f0c29b\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><g transform=\"translate(42.8 28.5) scale(-1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#f0c29b\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"#f0c29b\"/><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"url(#avF)\"/><ellipse cx=\"25\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"39\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"26.5\" cy=\"21\" rx=\"3.6\" ry=\"2\" fill=\"url(#avHi)\" opacity=\".5\"/><ellipse cx=\"32\" cy=\"16.5\" rx=\"5\" ry=\"2.2\" fill=\"url(#avHi)\" opacity=\".45\"/><path d=\"M25.400 22.800q2-1.700 4.400-.2M34.200 22.600q2.400-1.500 4.400.2\" fill=\"none\" stroke=\"#4d2f1c\" stroke-width=\"1.500\" stroke-linecap=\"round\"/><g transform=\"translate(27.3 26.8)\"><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#5a3a1f\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.5 .3C-1.815 -2.9 1.815 -2.9 3.5 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><g transform=\"translate(36.7 26.8)\"><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#5a3a1f\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.5 .3C-1.815 -2.9 1.815 -2.9 3.5 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><path d=\"M32 27.2c-.6 2.4-1.5 4.2-1.9 5.6.9.9 2.9.9 3.8 0-.4-1.4-1.3-3.2-1.9-5.6z\" fill=\"url(#avSh)\" opacity=\".42\"/><ellipse cx=\"30.8\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"33.2\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"32\" cy=\"32.1\" rx=\"1.4\" ry=\".9\" fill=\"url(#avHi)\" opacity=\".8\"/><path d=\"M29.6 26.6c.6-.5 1-.3 1.2.2\" fill=\"none\" stroke=\"#2a0e04\" stroke-width=\".4\" opacity=\".25\" stroke-linecap=\"round\"/><path d=\"M27.400 34.400c1.400 4.800 7.800 4.800 9.200 0-2.800 1-6.400 1-9.200 0z\" fill=\"#7a2a24\"/><path d=\"M27.800 34.500c2.600 1 5.800 1 8.400 0-.2 1.100-.6 1.600-1 1.700-2.100.5-4.300.5-6.400 0-.4-.1-.8-.6-1-1.700z\" fill=\"#fff\"/><ellipse cx=\"32\" cy=\"38\" rx=\"2.200\" ry=\"1\" fill=\"#d9605a\"/><path d=\"M27.200 34.200c1.800 1.200 7.800 1.200 9.600 0\" fill=\"none\" stroke=\"#a8503f\" stroke-width=\".7\" stroke-linecap=\"round\"/><path d=\"M27.600 35.200c1.600 5.300 7.200 5.300 8.800 0\" fill=\"none\" stroke=\"#a8503f\" stroke-width=\".7\" stroke-linecap=\"round\"/><path d=\"M26.200 33.400q-.9 1 0 2.200M37.800 33.400q.9 1 0 2.200\" fill=\"none\" stroke=\"#c07a60\" stroke-width=\".6\" stroke-linecap=\"round\"/><path d=\"M20.200 27c-2.200-10.500 3.400-17.800 12.400-17.800 8.400 0 13.800 6.200 11.400 17.600-.9-5.600-3.700-9.600-8.200-10.200-3.400 1.800-8.200 2-11.200 4-2.100 1.200-3.400 3.600-4.400 6.400z\" fill=\"#5c3b24\"/><path d=\"M20.200 27c-2.200-10.500 3.400-17.800 12.400-17.800 8.400 0 13.800 6.200 11.400 17.600-.9-5.600-3.700-9.600-8.200-10.200-3.400 1.800-8.200 2-11.200 4-2.100 1.200-3.400 3.600-4.400 6.400z\" fill=\"url(#avHr)\"/><path d=\"M29.500 10.500c1.400-4.400 6-5.400 8.400-3.200-3.200-.4-4.800.8-5.800 4.200z\" fill=\"#5c3b24\"/><path d=\"M25 15.500c3.200-2.200 8.400-2.800 12-.8M22.600 21.500c1-3 2.800-4.800 5-5.800\" fill=\"none\" stroke=\"#a87a52\" stroke-width=\".9\" stroke-linecap=\"round\" opacity=\".5\"/><ellipse cx=\"27.500\" cy=\"13.800\" rx=\"5\" ry=\"1.500\" transform=\"rotate(-14 27.500 13.800)\" fill=\"url(#avHi)\" opacity=\".75\"/><ellipse cx=\"32\" cy=\"64\" rx=\"26\" ry=\"6\" fill=\"#000\" opacity=\"0\"/><circle cx=\"32\" cy=\"32\" r=\"32\" fill=\"url(#avVg)\"/><ellipse cx=\"22\" cy=\"10\" rx=\"24\" ry=\"13\" transform=\"rotate(-18 22 10)\" fill=\"url(#avGl)\"/>" },
+      adabi: { c: ['#f2b24a', '#b4651b'], t: "مردانه · ادبی و داستان‌گو", d: "لحنی نرم و قصه‌گو؛ مناسب رمان، شعر و متن ادبی.",
+        s: "<circle cx=\"32\" cy=\"30\" r=\"31\" fill=\"url(#avBg)\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"#7b5a3c\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"url(#avBd)\"/><path d=\"M22.400 47.400 32 56l9.600-8.600-3-1.800-6.600 5-6.600-5z\" fill=\"#eadfc6\"/><path d=\"M22.400 47.400 32 56l9.600-8.600-3-1.800-6.600 5-6.600-5z\" fill=\"url(#avBd)\" opacity=\".5\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"#d2997a\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"url(#avNk)\"/><path d=\"M27 44.800 32 50.400l5-5.600-2.600-1.200L32 46l-2.400-2.400z\" fill=\"#f3e9d2\"/><g transform=\"translate(21.2 28.5) scale(1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#d2997a\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><g transform=\"translate(42.8 28.5) scale(-1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#d2997a\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"#d2997a\"/><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"url(#avF)\"/><ellipse cx=\"25\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"39\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"26.5\" cy=\"21\" rx=\"3.6\" ry=\"2\" fill=\"url(#avHi)\" opacity=\".5\"/><ellipse cx=\"32\" cy=\"16.5\" rx=\"5\" ry=\"2.2\" fill=\"url(#avHi)\" opacity=\".45\"/><path d=\"M21 23.500c-2.200 3.200-2.400 8.500-1.200 12.200 1.200-1 2.400-2.400 2.800-4.600zM43 23.500c2.200 3.200 2.400 8.500 1.200 12.200-1.200-1-2.400-2.400-2.800-4.600z\" fill=\"#b8b8c4\"/><path d=\"M24 19.800q8-2.400 16 0M24.600 31.800q-1 .8-1.400 2M39.400 31.800q1 .8 1.400 2\" fill=\"none\" stroke=\"#7a4a30\" stroke-width=\".5\" opacity=\".35\" stroke-linecap=\"round\"/><g transform=\"translate(27.3 27)\"><path d=\"M-3.1 .2C-1.7050000000000003 -2.5 1.7050000000000003 -2.5 3.1 .2 1.7050000000000003 2.2 -1.7050000000000003 2.2 -3.1 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.1 .2C-1.7050000000000003 -2.5 1.7050000000000003 -2.5 3.1 .2 1.7050000000000003 2.2 -1.7050000000000003 2.2 -3.1 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a3422\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.3000000000000003 .3C-1.7050000000000003 -2.9 1.7050000000000003 -2.9 3.3000000000000003 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><g transform=\"translate(36.7 27)\"><path d=\"M-3.1 .2C-1.7050000000000003 -2.5 1.7050000000000003 -2.5 3.1 .2 1.7050000000000003 2.2 -1.7050000000000003 2.2 -3.1 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.1 .2C-1.7050000000000003 -2.5 1.7050000000000003 -2.5 3.1 .2 1.7050000000000003 2.2 -1.7050000000000003 2.2 -3.1 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a3422\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.3000000000000003 .3C-1.7050000000000003 -2.9 1.7050000000000003 -2.9 3.3000000000000003 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><path d=\"M32 27.2c-.6 2.4-1.5 4.2-1.9 5.6.9.9 2.9.9 3.8 0-.4-1.4-1.3-3.2-1.9-5.6z\" fill=\"url(#avSh)\" opacity=\".42\"/><ellipse cx=\"30.8\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"33.2\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"32\" cy=\"32.1\" rx=\"1.4\" ry=\".9\" fill=\"url(#avHi)\" opacity=\".8\"/><path d=\"M29.6 26.6c.6-.5 1-.3 1.2.2\" fill=\"none\" stroke=\"#2a0e04\" stroke-width=\".4\" opacity=\".25\" stroke-linecap=\"round\"/><path d=\"M24.200 23.600q2.800-2.200 5.800-.4M34 23.200q3-1.800 5.800.4\" fill=\"none\" stroke=\"#b4b4c0\" stroke-width=\"1.900\" stroke-linecap=\"round\"/><path d=\"M24.200 34.400c3.200-3 5.800-2.400 7.800-.6 2-1.800 4.600-2.400 7.800.6-3.200 4-6 2.400-7.800 1.200-1.800 1.200-4.600 2.800-7.800-1.200z\" fill=\"#b9b9c5\"/><path d=\"M24.200 34.400c3.200-3 5.800-2.400 7.800-.6 2-1.800 4.600-2.400 7.800.6-3.200 4-6 2.400-7.800 1.200-1.800 1.200-4.600 2.800-7.800-1.200z\" fill=\"url(#avHr)\" opacity=\".8\"/><path d=\"M29 37.600q3 1 6 0\" fill=\"none\" stroke=\"#7a3a2e\" stroke-width=\".9\" stroke-linecap=\"round\"/><ellipse cx=\"32\" cy=\"16.600\" rx=\"16\" ry=\"6.200\" fill=\"#8a2f3a\"/><ellipse cx=\"32\" cy=\"16.600\" rx=\"16\" ry=\"6.200\" fill=\"url(#avHr)\"/><path d=\"M17 17.200c3-3.600 9.400-5.400 15-5.400s12 1.800 15 5.400c-3.600 1.800-9.400 2.600-15 2.600s-11.400-.8-15-2.600z\" fill=\"#a03a46\"/><path d=\"M17 17.200c3-3.600 9.400-5.400 15-5.400s12 1.800 15 5.400c-3.600 1.800-9.400 2.600-15 2.600s-11.400-.8-15-2.600z\" fill=\"url(#avHr)\"/><circle cx=\"32.500\" cy=\"10.200\" r=\"1.800\" fill=\"#7a2631\"/><ellipse cx=\"26\" cy=\"13.400\" rx=\"5\" ry=\"1.300\" transform=\"rotate(-10 26 13.400)\" fill=\"url(#avHi)\" opacity=\".7\"/><g transform=\"rotate(-9 51 55)\"><rect x=\"42.500\" y=\"47.500\" width=\"16\" height=\"12.500\" rx=\"1.600\" fill=\"#f3e2b0\"/><rect x=\"42.500\" y=\"47.500\" width=\"16\" height=\"12.500\" rx=\"1.600\" fill=\"url(#avBd)\" opacity=\".7\"/><path d=\"M50.500 47.500V60\" stroke=\"#6b4a2a\" stroke-width=\"1\"/><path d=\"M44.500 50.500h4.200M44.500 53h4.200M52.500 50.500h4.200M52.500 53h4.200\" stroke=\"#8a6a44\" stroke-width=\".7\" opacity=\".7\"/></g><ellipse cx=\"46\" cy=\"62\" rx=\"3\" ry=\"2.600\" fill=\"#d2997a\"/><ellipse cx=\"46\" cy=\"62\" rx=\"3\" ry=\"2.600\" fill=\"url(#avF)\"/><ellipse cx=\"32\" cy=\"64\" rx=\"26\" ry=\"6\" fill=\"#000\" opacity=\"0\"/><circle cx=\"32\" cy=\"32\" r=\"32\" fill=\"url(#avVg)\"/><ellipse cx=\"22\" cy=\"10\" rx=\"24\" ry=\"13\" transform=\"rotate(-18 22 10)\" fill=\"url(#avGl)\"/>" },
+      mana: { c: ['#ff7aa8', '#7b3fd6'], t: "زنانه · روشن و شمرده", d: "لحنی شفاف و آرام؛ مناسب مجله، آموزش و کتاب صوتی.",
+        s: "<circle cx=\"32\" cy=\"30\" r=\"31\" fill=\"url(#avBg)\"/><path d=\"M17.200 30C16 14 23.500 6.600 32 6.600S48 14 46.800 30c.2 10 1.200 17 3.400 23.400H13.800c2.200-6.400 3.400-13.400 3.400-23.400z\" fill=\"#2b1a2f\"/><path d=\"M17.200 30C16 14 23.500 6.600 32 6.600S48 14 46.800 30c.2 10 1.200 17 3.400 23.400H13.800c2.200-6.400 3.400-13.400 3.400-23.400z\" fill=\"url(#avHr)\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"#7a4fd1\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"url(#avBd)\"/><path d=\"M22 50c3-1.400 6-2 10-2s7 .6 10 2c-1 3.600-2 6.400-4 10.500-2 .8-4 1.200-6 1.200s-4-.4-6-1.200c-2-4.100-3-6.900-4-10.500z\" fill=\"#8e63e4\" opacity=\".55\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"#f4cbab\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"url(#avNk)\"/><path d=\"M23.600 46.400q8.400 9 16.800 0c-1.400-2-3-3.200-4.200-3.800H27.800c-1.200.6-2.800 1.800-4.200 3.800z\" fill=\"#f4cbab\"/><path d=\"M23.600 46.400q8.400 9 16.800 0c-1.400-2-3-3.200-4.200-3.800H27.800c-1.200.6-2.800 1.800-4.200 3.800z\" fill=\"url(#avNk)\" opacity=\".55\"/><path d=\"M29 50.200l1.300 1.600 1.700-1.400 1.700 1.400 1.300-1.600\" fill=\"none\" stroke=\"#f5d36b\" stroke-width=\".8\" stroke-linecap=\"round\"/><circle cx=\"32\" cy=\"52.800\" r=\"1.100\" fill=\"#f5d36b\"/><circle cx=\"31.700\" cy=\"52.500\" r=\".4\" fill=\"#fff\"/><path d=\"M21.6 25.5C21.4 17.3 26 12.8 32 12.8s10.6 4.5 10.4 12.7c-.1 4.5-1.2 8.2-3.4 11.4-1.8 2.6-4.3 4.3-7 4.3s-5.2-1.7-7-4.3c-2.2-3.2-3.3-6.9-3.4-11.4z\" fill=\"#f4cbab\"/><path d=\"M21.6 25.5C21.4 17.3 26 12.8 32 12.8s10.6 4.5 10.4 12.7c-.1 4.5-1.2 8.2-3.4 11.4-1.8 2.6-4.3 4.3-7 4.3s-5.2-1.7-7-4.3c-2.2-3.2-3.3-6.9-3.4-11.4z\" fill=\"url(#avF)\"/><ellipse cx=\"25\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"39\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"26.5\" cy=\"21\" rx=\"3.6\" ry=\"2\" fill=\"url(#avHi)\" opacity=\".5\"/><ellipse cx=\"32\" cy=\"16.5\" rx=\"5\" ry=\"2.2\" fill=\"url(#avHi)\" opacity=\".45\"/><path d=\"M25.200 22.600q2.200-1.800 4.600-.4M34.200 22.200q2.400-1.400 4.600.4\" fill=\"none\" stroke=\"#2b1a2f\" stroke-width=\"1.100\" stroke-linecap=\"round\"/><g transform=\"translate(27.3 26.6)\"><path d=\"M-3.2 .2C-1.7600000000000002 -2.8 1.7600000000000002 -2.8 3.2 .2 1.7600000000000002 2.2 -1.7600000000000002 2.2 -3.2 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.2 .2C-1.7600000000000002 -2.8 1.7600000000000002 -2.8 3.2 .2 1.7600000000000002 2.2 -1.7600000000000002 2.2 -3.2 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a2c1c\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.4000000000000004 .3C-1.7600000000000002 -3.1999999999999997 1.7600000000000002 -3.1999999999999997 3.4000000000000004 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"1.05\" stroke-linecap=\"round\"/></g><g transform=\"translate(36.7 26.6)\"><path d=\"M-3.2 .2C-1.7600000000000002 -2.8 1.7600000000000002 -2.8 3.2 .2 1.7600000000000002 2.2 -1.7600000000000002 2.2 -3.2 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.2 .2C-1.7600000000000002 -2.8 1.7600000000000002 -2.8 3.2 .2 1.7600000000000002 2.2 -1.7600000000000002 2.2 -3.2 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a2c1c\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.4000000000000004 .3C-1.7600000000000002 -3.1999999999999997 1.7600000000000002 -3.1999999999999997 3.4000000000000004 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"1.05\" stroke-linecap=\"round\"/></g><path d=\"M23.900 26.200l-1-.7M40.100 26.200l1-.7\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\".8\" stroke-linecap=\"round\"/><path d=\"M32 27.2c-.6 2.4-1.5 4.2-1.9 5.6.9.9 2.9.9 3.8 0-.4-1.4-1.3-3.2-1.9-5.6z\" fill=\"url(#avSh)\" opacity=\".42\"/><ellipse cx=\"30.8\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"33.2\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"32\" cy=\"32.1\" rx=\"1.4\" ry=\".9\" fill=\"url(#avHi)\" opacity=\".8\"/><path d=\"M29.6 26.6c.6-.5 1-.3 1.2.2\" fill=\"none\" stroke=\"#2a0e04\" stroke-width=\".4\" opacity=\".25\" stroke-linecap=\"round\"/><path d=\"M28.7 36.4c1.2-1.25 2.3-.6 3.3-.2 1.7-.4 2.8-1 3.3.2-.9 1-2.100 1.500-3.3 1.500s-2.4 -.5-3.3 -1.500z\" fill=\"#c2415a\"/><path d=\"M29.099999999999998 36.6c.8 2.3 5.0 2.3 5.8 0-3.3 .6-3.4 .6-5.8 0z\" fill=\"#c2415a\"/><path d=\"M29.099999999999998 36.6c.8 2.3 5.0 2.3 5.8 0-3.3 .6-3.4 .6-5.8 0z\" fill=\"url(#avLip)\"/><ellipse cx=\"32\" cy=\"37.75\" rx=\"1.4\" ry=\".45\" fill=\"#fff\" opacity=\".45\"/><path d=\"M28.9 36.5q3.0999999999999996 .7 6.199999999999999 0\" fill=\"none\" stroke=\"#3a1008\" stroke-width=\".45\" opacity=\".55\" stroke-linecap=\"round\"/><path d=\"M20.600 29c-1-10.600 4.600-17.400 11.400-17.400 7 0 12 6 11.400 17.400-1.400-5.800-4.600-9.600-8.800-10.400-2.600 2.200-7.400 3.600-10.600 6.400-1 .8-2.600 2.400-3.400 4z\" fill=\"#2b1a2f\"/><path d=\"M20.600 29c-1-10.600 4.600-17.400 11.400-17.400 7 0 12 6 11.400 17.400-1.400-5.800-4.600-9.600-8.800-10.400-2.600 2.200-7.400 3.600-10.600 6.400-1 .8-2.600 2.400-3.400 4z\" fill=\"url(#avHr)\"/><path d=\"M19.200 30c-.6 8 .6 14 2.400 20M44.800 30c.6 8-.6 14-2.400 20\" fill=\"none\" stroke=\"#fff\" stroke-width=\".9\" stroke-linecap=\"round\" opacity=\".14\"/><path d=\"M24 14.400c3.600-2.400 9.400-2.800 13.600-.4\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1.200\" stroke-linecap=\"round\" opacity=\".32\"/><ellipse cx=\"27.500\" cy=\"13.200\" rx=\"5.500\" ry=\"1.500\" transform=\"rotate(-14 27.500 13.200)\" fill=\"url(#avHi)\" opacity=\".8\"/><circle cx=\"20.800\" cy=\"33.600\" r=\"1.300\" fill=\"#f5d36b\"/><circle cx=\"20.500\" cy=\"33.200\" r=\".45\" fill=\"#fff\"/><circle cx=\"43.200\" cy=\"33.600\" r=\"1.300\" fill=\"#f5d36b\"/><circle cx=\"42.900\" cy=\"33.200\" r=\".45\" fill=\"#fff\"/><ellipse cx=\"32\" cy=\"64\" rx=\"26\" ry=\"6\" fill=\"#000\" opacity=\"0\"/><circle cx=\"32\" cy=\"32\" r=\"32\" fill=\"url(#avVg)\"/><ellipse cx=\"22\" cy=\"10\" rx=\"24\" ry=\"13\" transform=\"rotate(-18 22 10)\" fill=\"url(#avGl)\"/>" }
     };
-    var GEN = '<path d="M8 64c1-11 10-17 24-17s23 6 24 17z" fill="#fff" fill-opacity=".85"/><circle cx="32" cy="27" r="11" fill="#fff" fill-opacity=".92"/>';
+    var GEN = "<circle cx=\"32\" cy=\"30\" r=\"31\" fill=\"url(#avBg)\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"#e9eefc\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"url(#avBd)\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"#e6b794\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"url(#avNk)\"/><g transform=\"translate(21.2 28.5) scale(1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#e6b794\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><g transform=\"translate(42.8 28.5) scale(-1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#e6b794\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"#e6b794\"/><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"url(#avF)\"/><ellipse cx=\"25\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"39\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"26.5\" cy=\"21\" rx=\"3.6\" ry=\"2\" fill=\"url(#avHi)\" opacity=\".5\"/><ellipse cx=\"32\" cy=\"16.5\" rx=\"5\" ry=\"2.2\" fill=\"url(#avHi)\" opacity=\".45\"/><path d=\"M20.800 26.500c-1.400-9 3-15.500 11.400-15.500 7.800 0 12.400 5.300 11 15.200-.6-4.300-2.200-7-4.800-8.600-3.600 2-9 2.400-12.800 1.400-2.400 1.800-4.200 4.500-4.800 7.500z\" fill=\"#3b3040\"/><path d=\"M20.800 26.500c-1.400-9 3-15.500 11.400-15.500 7.800 0 12.400 5.300 11 15.200-.6-4.300-2.200-7-4.800-8.600-3.600 2-9 2.400-12.800 1.400-2.400 1.800-4.200 4.500-4.800 7.500z\" fill=\"url(#avHr)\"/><g transform=\"translate(27.3 26.8)\"><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a2f1d\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.5 .3C-1.815 -2.9 1.815 -2.9 3.5 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><g transform=\"translate(36.7 26.8)\"><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a2f1d\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.5 .3C-1.815 -2.9 1.815 -2.9 3.5 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><path d=\"M32 27.2c-.6 2.4-1.5 4.2-1.9 5.6.9.9 2.9.9 3.8 0-.4-1.4-1.3-3.2-1.9-5.6z\" fill=\"url(#avSh)\" opacity=\".42\"/><ellipse cx=\"30.8\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"33.2\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"32\" cy=\"32.1\" rx=\"1.4\" ry=\".9\" fill=\"url(#avHi)\" opacity=\".8\"/><path d=\"M29.6 26.6c.6-.5 1-.3 1.2.2\" fill=\"none\" stroke=\"#2a0e04\" stroke-width=\".4\" opacity=\".25\" stroke-linecap=\"round\"/><path d=\"M28.8 36.6c1.2-1.0 2.3-.6 3.2-.2 1.7-.4 2.8-1 3.2.2-.9 1-2.100 1.500-3.2 1.500s-2.3000000000000003 -.5-3.2 -1.500z\" fill=\"#b56a5a\"/><path d=\"M29.2 36.800000000000004c.8 1.7 4.800000000000001 1.7 5.6000000000000005 0-3.2 .6-3.3000000000000003 .6-5.6000000000000005 0z\" fill=\"#b56a5a\"/><path d=\"M29.2 36.800000000000004c.8 1.7 4.800000000000001 1.7 5.6000000000000005 0-3.2 .6-3.3000000000000003 .6-5.6000000000000005 0z\" fill=\"url(#avLip)\"/><ellipse cx=\"32\" cy=\"37.95\" rx=\"1.4\" ry=\".45\" fill=\"#fff\" opacity=\".45\"/><path d=\"M29.0 36.7q3.0 .7 6.0 0\" fill=\"none\" stroke=\"#3a1008\" stroke-width=\".45\" opacity=\".55\" stroke-linecap=\"round\"/><ellipse cx=\"32\" cy=\"64\" rx=\"26\" ry=\"6\" fill=\"#000\" opacity=\"0\"/><circle cx=\"32\" cy=\"32\" r=\"32\" fill=\"url(#avVg)\"/><ellipse cx=\"22\" cy=\"10\" rx=\"24\" ry=\"13\" transform=\"rotate(-18 22 10)\" fill=\"url(#avGl)\"/>";
     var ST = {   /* آیکون و رنگ هر سبک */
       serene: ['M20 14.500A8 8 0 0 1 9.500 4 8 8 0 1 0 20 14.500z', '#6c7bff'],
       calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
@@ -9335,6 +9908,7 @@ var ocrSpell = (function(){
       natural: ['M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM6 11a6 6 0 0 0 12 0M12 17v4', '#ef5da8'],
       lively: ['M13 3L5 14h6l-1 7 8-11h-6z', '#f2693a']
     };
+    if (!document.getElementById('avF')) document.body.insertAdjacentHTML('beforeend', AVDEFS);
     function key(id){ return /adabi/i.test(id) ? 'adabi' : /gyro/i.test(id) ? 'gyro' : /ganji/i.test(id) ? 'ganji' : /mana/i.test(id) ? 'mana' : ''; }
     function vinfo(id){
       var all = allVoices(), v = null, i, k = key(id), a = AV[k] || null;
@@ -9350,7 +9924,7 @@ var ocrSpell = (function(){
         c = f.g === 'f' ? ['#ff8ab3', '#8a4fd8'] : f.g === 'm' ? ['#6a8cff', '#2b3fa8'] : ['hsl(' + h + ',70%,60%)', 'hsl(' + ((h + 40) % 360) + ',60%,35%)'];
         s = GEN;
       }
-      return (memo[id] = '<span class="vav" style="--a1:' + c[0] + ';--a2:' + c[1] + '"><svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">' + s + '</svg></span>');
+      return (memo[id] = '<span class="vav" style="--a1:' + c[0] + ';--a2:' + c[1] + '"><svg viewBox="6 5 52 52" aria-hidden="true" focusable="false">' + s + '</svg></span>');
     }
     function voices(){
       var o = $('#voice').options, a = [], i;
