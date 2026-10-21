@@ -1,4 +1,4 @@
-const fs=require('fs');const s=fs.readFileSync('index.html','utf8');
+const fs=require('fs');const s=fs.readFileSync(process.argv[2]||'index.html','utf8');
 const a=s.indexOf('var WD_MS = 25000'); const b=s.indexOf('var renderRaw');
 if(a<0||b<0) throw new Error('wdRender snippet not found');
 const code=s.slice(a,b).replace('WD_MS = 25000','WD_MS = 300');
