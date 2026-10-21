@@ -1863,6 +1863,7 @@ body.view-page .stage{touch-action:pan-x pan-y}
           <label class="mchip"><input type="checkbox" id="manDsk"><span>صاف‌کردن کجی</span></label>
           <label class="mchip"><input type="checkbox" id="manLex"><span>رمزگشایی با واژه‌نامه</span></label>
           <label class="mchip"><input type="checkbox" id="manDn"><span>کاهش نویز</span></label>
+          <label class="mchip"><input type="checkbox" id="manJoin"><span>چسباندن پیشوندی («در یافت» ← «دریافت»)</span></label>
         </div>
         <button class="btn primary mgo" id="manScan" type="button">اسکن مجدد صفحه</button>
       </section>
@@ -1954,7 +1955,7 @@ body.view-page .stage{touch-action:pan-x pan-y}
 </section>
 
 <script src="lib/pdf.min.js"></script>
-<script src="fa_lexicon.js"></script>
+<script src="fa_lexicon.js" onerror="window.__faLexMissing=1"></script>
 <script>window.pdfLocal = !!window.pdfjsLib;</script>
 <script>
 (function(){
@@ -2232,14 +2233,16 @@ body.view-page .stage{touch-action:pan-x pan-y}
       probe('fonts/fonts.css'), probe('lib/pdf.min.js'), probe('lib/pdf.worker.min.js'),
       probe('lib/cmaps/UniJIS-UCS2-H.bcmap'), probe('lib/standard_fonts/LiberationSans-Regular.ttf'),
       paddleLocal(),
+      probeOpt('fa_lexicon.js'),
       Promise.resolve(NP && NP.bundled ? NP.bundled() : null).catch(function(){ return null; }),
       Promise.resolve(NP && NP.stored ? NP.stored() : null).catch(function(){ return null; })
     ]).then(function(r){
-      var b = (r[6] && r[6].ids) || [], s = (r[7] && r[7].ids) || [];
+      var b = (r[7] && r[7].ids) || [], s = (r[8] && r[8].ids) || [], dq = {}; try { dq = window.dictStatus() || {}; } catch (e) {}
       add(r[0], 'فونت‌های فارسی', true);
       add(r[1] && r[2] && window.pdfjsLib, 'نمایش PDF (pdf.js)');
       add(r[3] && r[4], 'نگاشت‌ها و فونت‌های کمکی PDF', true);
       add(r[5], 'موتور و مدل‌های OCR (PaddleOCR)' + (r[5] ? '' : (probeBad.length ? ' — پیدا نشد: ' + probeBad.join(' ، ') : '')));
+      add(r[6] && dq.on, 'واژه‌نامهٔ املایی (fa_lexicon.js)' + (r[6] && dq.on ? ': ' + nf.format(dq.fileWords) + ' واژه' : ''), true, !r[6] ? ' — فایل داخل برنامه نیست؛ املا فقط با فهرست پایهٔ کوچک کار می‌کند' : ' — فایل هست ولی واژه‌ای از آن خوانده نشد (نام متغیر، const یا قالب)');
       add(npOK, 'موتور صدای بومی');
       add(b.length > 0 || s.length > 0, 'صداهای فارسی: ' + nf.format(s.length) + ' نصب‌شده' + (b.length ? '، ' + nf.format(b.length) + ' همراه برنامه' : ' (بعد از نصب برنامه دانلود می‌شوند)'), true, '');
       out.textContent = '';
@@ -2827,7 +2830,7 @@ var ocrSpell = (function(){
   'بپتثنی|جچحخ|دذ|رزژ|سش|صض|طظ|عغ|فق|کگ|اآ'.split('|').forEach(function(g){ g.split('').forEach(function(c){ CONF[c] = g.replace(c, ''); }); });
 
   var GW = (typeof window !== 'undefined') ? window : self, UW = new Set(), PLW = /^[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC]+$/;
-  function faText(){ var w = GW.FA_WORDS || GW.FA_DICT || GW.fa_words || ''; if (Array.isArray(w)) return w.join(' '); if (w && typeof w === 'object') return Object.keys(w).join(' '); return String(w); }   /* fa_words.js: رشته (فاصله/خط‌جدید/ویرگول)، آرایه یا شیء؛ نبودنش خطا نیست */
+  function faText(){ var w = GW.FA_WORDS || GW.FA_DICT || GW.fa_words || ''; if (!w) { try { if (typeof FA_WORDS !== 'undefined') w = FA_WORDS; else if (typeof FA_DICT !== 'undefined') w = FA_DICT; else if (typeof fa_words !== 'undefined') w = fa_words; } catch (e) {} } if (w instanceof Set) return Array.from(w).join(' '); if (w instanceof Map) return Array.from(w.keys()).join(' '); if (Array.isArray(w)) return w.join(' '); if (w && typeof w === 'object') return Object.keys(w).join(' '); return String(w); }   /* fa_words.js: رشته (فاصله/خط‌جدید/ویرگول)، آرایه یا شیء؛ نبودنش خطا نیست */
   function addFw(x){ x = normCh(x).replace(/[\u064B-\u0652\u0670]/g, ''); if (!x) return; if (x.indexOf('\u200c') >= 0) { x.split('\u200c').forEach(function(p){ if (p.length >= 3) D.add(p); }); if (x.replace(/\u200c/g, '').length >= 4) D.add(x.replace(/\u200c/g, '')); } else if (x.length >= 2) D.add(x); }
   function build(){
     D = new Set();
@@ -2862,15 +2865,26 @@ var ocrSpell = (function(){
   /* واژهٔ ناشناخته ← نزدیک‌ترین واژهٔ دیکشنری با فاصلهٔ لونشتاین وزن‌دار.
      نامزدها بدون پیمایش دیکشنری: «اسکلت» هر واژه (حروف هم‌شکل یک گروه) ← جدول هش؛ بنابراین هر تعداد خطای نقطه‌ای (ب‌پ‌ت‌ث‌ن‌ی، ج‌چ‌ح‌خ، …) در O(طول) پیدا می‌شود.
      پیشوند/پسوند جداگانه بررسی می‌شود؛ برای واژهٔ بلند (≥۸) یک درج/حذف اضافه هم (به‌روش SymSpell، ساخت تنبل). جایگزینی فقط وقتی که برندهٔ روشن باشد. */
-  var SK = {}, SI = null, DI = null, KEEP = new Set(), SP = [''].concat(PFX), SS = [''].concat(SFX);
+  var SK = {}, SI = null, DI = null, DIb = null, warmOn = false, DI_MIN = 7, KEEP = new Set(), SP = [''].concat(PFX), SS = [''].concat(SFX);
   'بپتثنی|جچحخ|دذ|رزژ|سش|صض|طظ|عغ|فق|کگ|اآ'.split('|').forEach(function(g){ g.split('').forEach(function(c){ SK[c] = g[0]; }); });
   function skel(w){ for (var o = '', i = 0; i < w.length; i++) o += SK[w[i]] || w[i]; return o; }
   function addI(M, k, v){ var a = M.get(k); if (!a) M.set(k, [v]); else if (a.indexOf(v) < 0) a.push(v); }
   function idx(){ SI = new Map(); D.forEach(function(w){ if (w.length >= 3) addI(SI, skel(w), w); }); }
-  function idx2(){
-    DI = new Map();
-    SI.forEach(function(ws, k){ if (k.length < 5) return; addI(DI, k, k); for (var i = 0; i < k.length; i++) addI(DI, k.slice(0, i) + k.slice(i + 1), k); });
+  function addD(M, k, v){ var a = M.get(k); if (a === undefined) M.set(k, v); else if (typeof a === 'string') { if (a !== v) M.set(k, [a, v]); } else if (a.indexOf(v) < 0) a.push(v); }
+  /* r57: فهرست حذف تک‌حرف فقط برای اسکلت‌های ≥DI_MIN حرف و تکه‌تکه (حافظهٔ کمتر، بدون توقف طولانی)؛ مقدار تک‌عضوی رشته است نه آرایه */
+  function diStep(n){
+    if (!SI) idx();
+    if (!DIb) DIb = { m: new Map(), it: SI.keys() };
+    var m = DIb.m, r, k, i;
+    while (n-- > 0) {
+      r = DIb.it.next();
+      if (r.done) { DI = m; DIb = null; return true; }
+      k = r.value; if (k.length < DI_MIN) continue;
+      addD(m, k, k); for (i = 0; i < k.length; i++) addD(m, k.slice(0, i) + k.slice(i + 1), k);
+    }
+    return false;
   }
+  function idx2(){ while (!diStep(1e9)); }
   function sc(x, y){                                      /* هزینهٔ جایگزینی: هم‌شکل‌ها ارزان، بقیه = حذف+درج */
     if (x === y) return 0;
     if (!SK[x] || SK[x] !== SK[y]) return 1;
@@ -2902,7 +2916,7 @@ var ocrSpell = (function(){
       if (!DI) idx2();
       var q = skel(w), ks = [q], ds;
       for (i = 0; i < q.length; i++) ks.push(q.slice(0, i) + q.slice(i + 1));
-      for (i = 0; i < ks.length; i++) { ds = DI.get(ks[i]); if (ds) for (j = 0; j < ds.length; j++) { ws = SI.get(ds[j]); if (ws) for (k = 0; k < ws.length; k++) if (!seen[ws[k]] && ws[k] !== w) { seen[ws[k]] = 1; cs.push(ws[k]); } } }
+      for (i = 0; i < ks.length; i++) { ds = DI.get(ks[i]); if (ds) { if (typeof ds === 'string') ds = [ds]; for (j = 0; j < ds.length; j++) { ws = SI.get(ds[j]); if (ws) for (k = 0; k < ws.length; k++) if (!seen[ws[k]] && ws[k] !== w) { seen[ws[k]] = 1; cs.push(ws[k]); } } } }
     }
     for (i = 0; i < cs.length; i++) {
       d = wl(w, cs[i]);
@@ -2941,7 +2955,18 @@ var ocrSpell = (function(){
     });
   }
   fix.freq = function(pages){ var m = new Map(); pages.forEach(function(p){ (p.match(TOK) || []).forEach(function(w){ m.set(w, (m.get(w) || 0) + 1); }); }); return m; };
-  fix.reset = function(){ D = null; SI = null; DI = null; memo.clear(); };
+  fix.ver = 0;   /* r57: شمارندهٔ نسخهٔ واژه‌نامه؛ با هر بازسازی افزایش می‌یابد (کلید کش lexMemo) */
+  fix.reset = function(){ D = null; SI = null; DI = null; DIb = null; fix.ver++; memo.clear(); };
+  fix.diSize = function(){ return DI ? DI.size : (DIb ? -DIb.m.size : 0); };
+  fix.warm = function(){                                         /* r57: ساخت تکه‌تکهٔ SI/DI در زمان بیکاری (هنگام شروع OCR) تا نخستین واژهٔ بلند ناشناخته نلنگد */
+    if (typeof window === 'undefined' || DI || warmOn) return; warmOn = true;
+    var step = function(){
+      try { if (!D) build(); if (!SI) idx(); var t0 = performance.now(); while (!diStep(400)) if (performance.now() - t0 > 10) break; if (DI) { warmOn = false; return; } }
+      catch (e) { warmOn = false; return; }
+      if (window.requestIdleCallback) window.requestIdleCallback(step, { timeout: 3000 }); else setTimeout(step, 30);
+    };
+    if (window.requestIdleCallback) window.requestIdleCallback(step, { timeout: 3000 }); else setTimeout(step, 30);
+  };
   fix.keep = function(ws){ (ws || []).forEach(function(x){ KEEP.add(x); }); memo.clear(); };   /* واژه‌های محافظت‌شده (اصطلاح/نام خاص) هرگز اصلاح نمی‌شوند */
   fix.has = function(w){ if (!D) build(); return D.has(w); };
   fix.words = function(){ if (!D) build(); return Array.from(D); };   /* برای رمزگشایی راهنمایی‌شده در Worker OCR */
@@ -2957,7 +2982,7 @@ var ocrSpell = (function(){
   fix.user = function(ws){                                       /* واژه‌های واژه‌نامهٔ کاربر ← دانسته و محافظت‌شده */
     var ch = false;
     (ws || []).forEach(function(w){ w = normCh(String(w)).replace(/[\u064B-\u0652\u0670]/g, ''); if (w.length >= 2 && PLW.test(w) && !UW.has(w)) { UW.add(w); KEEP.add(w); ch = true; } });
-    if (ch) { D = null; SI = null; DI = null; memo.clear(); }
+    if (ch) { D = null; SI = null; DI = null; DIb = null; fix.ver++; memo.clear(); }
   };   /* دیکشنری + پسوند/پیشوند */
   return fix;
 })();
@@ -3079,7 +3104,7 @@ var ocrSpell = (function(){
   function paddleWGlue(){
     var P = { tile: true, ds: null, rs: null, ch: null, chain: ['wasm'], ci: 0, thr: 1, side: 1472, ep: 'wasm', bat: true, dsk: true, dn: false, adp: true, lx: false, d: null, fb: false, RB: null };
     /* واژه‌نامهٔ OCR (LX) و قاعده‌های واژهٔ شناخته‌شده؛ پیش‌تر تعریف نشده بودند و بارگذاری واژه‌نامه «LX is not defined» می‌داد */
-    var LX = null, PL = /^[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC]+$/,
+    var LX = null, JW = new Map(), JP = new Map(), JPF = new Set(['در', 'باز', 'بر', 'فرا', 'وا', 'هم', 'پس', 'پیش']), PL = /^[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC]+$/,
         LSFX = ['ها', 'های', 'هایی', 'ان', 'ات', 'ین', 'تر', 'ترین', 'ی', 'ای', 'ام', 'اش', 'مان', 'تان', 'شان'],
         LPFX = ['می', 'نمی', 'بی', 'نا', 'هم', 'با', 'بر', 'در', 'وا', 'فرا', 'پیش', 'پس'];
     var AR = /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/g, SW = { '(': ')', ')': '(', '[': ']', ']': '[', '{': '}', '}': '{', '<': '>', '>': '<', '\u00AB': '\u00BB', '\u00BB': '\u00AB' };
@@ -3295,13 +3320,21 @@ var ocrSpell = (function(){
       return out.join('');
     }
     function joinSplit(t){                                           /* «کتا ب» ← «کتاب»: چسباندن تکه‌های جداافتاده وقتی حاصل در دیکشنری است و دست‌کم یک تکه خودش واژه نیست */
-      var tk = t.split(' '), out = [], i = 0, n = tk.length, sp, j, jn, ok, any, dn;
+      var tk = t.split(' '), out = [], i = 0, n = tk.length, sp, j, jn, ok, any, dn, a, pc, wc;
+      if (P.jp) {                                                    /* r57: شمارش بسامد واژه/جفت در همین سند (فقط اسکن دستی و گزینهٔ روشن) */
+        if (JW.size > 30000) { JW.clear(); JP.clear(); }
+        for (j = 0; j < n; j++) { a = nmS(tk[j]); JW.set(a, (JW.get(a) || 0) + 1); if (j + 1 < n) { a += ' ' + nmS(tk[j + 1]); JP.set(a, (JP.get(a) || 0) + 1); } }
+      }
       while (i < n) {
         dn = false;
         for (sp = Math.min(5, n - i); sp >= 2 && !dn; sp--) {
           jn = ''; ok = true; any = false;
           for (j = i; j < i + sp; j++) { if (!PL.test(tk[j]) || tk[j].length > 3) { ok = false; break; } jn += tk[j]; if (!lkn(nmS(tk[j]), 0)) any = true; }
           if (ok && any && jn.length >= 3 && lkn(nmS(jn), 0)) { out.push(jn); i += sp; dn = true; }
+        }
+        if (!dn && P.jp && i + 1 < n && JPF.has(tk[i]) && tk[i + 1].length >= 3 && PL.test(tk[i]) && PL.test(tk[i + 1])) {   /* «در یافت» ← «دریافت»: حاصل عیناً در واژه‌نامه، پیشوند بسته، و بسامد جفت ≤ بسامد حاصل‌جمع (یا جفت تکرار نشده) */
+          jn = nmS(tk[i] + tk[i + 1]);
+          if (jn.length >= 5 && LX.has(jn)) { pc = JP.get(nmS(tk[i]) + ' ' + nmS(tk[i + 1])) || 0; wc = JW.get(jn) || 0; if (pc <= 1 || wc >= pc) { out.push(tk[i] + tk[i + 1]); i += 2; dn = true; } }
         }
         if (!dn) { out.push(tk[i]); i++; }
       }
@@ -3791,10 +3824,15 @@ var ocrSpell = (function(){
     function epId(){ return P.ep + (P.ep === 'wasm' && P.thr > 1 ? ':' + P.thr : ''); }
     function webglOK(){ try { var c = new OffscreenCanvas(1, 1); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } }
     H.dx = function(){ if (P.dx) P.dx.chain = P.chain; return P.dx || null; };
-    H.rst = function(){ P.o0 = 0; P.rf = 0; return 1; };   /* بازنشانی حافظهٔ جهت‌یابی هنگام استفادهٔ مجدد از Worker گرم */
+    H.rst = function(){ P.o0 = 0; P.rf = 0; JW.clear(); JP.clear(); return 1; };   /* بازنشانی حافظهٔ جهت‌یابی هنگام استفادهٔ مجدد از Worker گرم */
     H.pinit = function(d){
       P.side = d.side || 1472; P.dsk = d.dsk !== false; P.dn = !!d.dn; P.adp = d.adp !== false; P.d = d;
-      if (d.lex && d.lex.length && !LX) { LX = new Set(typeof d.lex === 'string' ? d.lex.split('\n') : d.lex); d.lex = null; P.lx = true; }
+      P.jp = !!d.jp; JW.clear(); JP.clear();
+      if (typeof d.lex === 'string' || Array.isArray(d.lex)) {         /* r57: '' ← خاموش (LX رها می‌شود)؛ کلید lk عوض شود ← بازسازی */
+        if (!d.lex.length) { LX = null; P.lx = false; P.lk = ''; }
+        else if (!LX || P.lk !== (d.lk || '')) { LX = new Set(typeof d.lex === 'string' ? d.lex.split('\n') : d.lex); P.lx = true; P.lk = d.lk || ''; }
+        d.lex = null;
+      }
       return (async function(){
         if (P.ds && P.rs) return epId();
         if (!simdOK()) throw new Error('WebView این دستگاه از WASM SIMD پشتیبانی نمی‌کند (نسخهٔ سیستم‌وب‌ویو را به‌روز کنید).');
@@ -4060,35 +4098,39 @@ var ocrSpell = (function(){
       iso ? probeOpt(OPTF[2]) : no, iso ? probeOpt(OPTF[3]) : no
     ]).then(function(a){ return { gpu: !!a[0], thr: (a[1] || a[2]) ? { p: !!a[1], j: !!a[2] } : null }; }));
   }
-  var lexMemo = { n: -1, s: '' };
-  function lexList(){                                              /* یک رشتهٔ فشرده (نه آرایهٔ هزاران رشته) به Worker؛ بین اجراها کش می‌شود */
+  var lexMemo = { n: -1, k: '', s: '' };                           /* n: تعداد واژه‌ها؛ k: کلید نسخه (fix.ver:تعداد) یا 'off' */
+  function lexList(on){                                            /* رشتهٔ فشرده به Worker؛ '' = خاموش (Worker باید LX را رها کند)؛ null = خطا/بدون تغییر */
     try {
-      if (!$('#ocrLex').checked) return null;
-      var a = ocrSpell.words(); if (!a || !a.length) return null;
-      if (lexMemo.n !== a.length) lexMemo = { n: a.length, s: a.join('\n') };
+      if (on === undefined) on = $('#ocrLex').checked;
+      if (!on) { if (lexMemo.k !== 'off') lexMemo = { n: lexMemo.n, k: 'off', s: '' }; return ''; }
+      try { ocrSpell.warm(); } catch (e) {}
+      var a = ocrSpell.words(); if (!a || !a.length) return '';
+      var k = ocrSpell.ver + ':' + a.length;
+      if (lexMemo.k !== k) lexMemo = { n: a.length, k: k, s: a.join('\n') };
       return lexMemo.s;
     } catch (e) { return null; }
   }
+  function lexKey(on){ lexList(on); return lexMemo.k; }
   /* r54: وضعیت واژه‌نامه برای گزارش‌ها (گزارش خطا و گزارش کارایی OCR) */
   window.dictStatus = function(){
     var r = { on: false, src: '', fileWords: 0, total: -1, ocrLex: null, sent: -1, names: [] }, nm = ['FA_WORDS', 'FA_DICT', 'fa_words'], i, v, n, k, c, inw;
     try {
       for (i = 0; i < nm.length; i++) {
-        v = window[nm[i]]; if (!v) continue; n = 0;
-        if (Array.isArray(v)) n = v.length; else if (typeof v === 'object') n = Object.keys(v).length;
+        v = window[nm[i]]; if (!v) { try { v = i === 0 ? (typeof FA_WORDS !== 'undefined' ? FA_WORDS : null) : i === 1 ? (typeof FA_DICT !== 'undefined' ? FA_DICT : null) : (typeof fa_words !== 'undefined' ? fa_words : null); } catch (e) { v = null; } } if (!v) continue; n = 0;
+        if (v instanceof Set || v instanceof Map) n = v.size; else if (Array.isArray(v)) n = v.length; else if (typeof v === 'object') n = Object.keys(v).length;
         else { v = String(v); inw = false; for (k = 0; k < v.length; k++) { c = v.charCodeAt(k); if (c > 32) { if (!inw) { n++; inw = true; } } else inw = false; } }
         if (n > 0) { r.names.push(nm[i] + '=' + n); if (!r.src) { r.src = nm[i]; r.fileWords = n; } }
       }
       r.total = ocrSpell.size();
       var cb = document.getElementById('ocrLex'); r.ocrLex = cb ? !!cb.checked : null;
-      r.sent = lexMemo.n;
+      r.sent = lexMemo.k === 'off' ? 0 : lexMemo.n; r.missing = !!window.__faLexMissing; r.di = ocrSpell.diSize(); try { if (performance.memory) r.heapMB = Math.round(performance.memory.usedJSHeapSize / 1048576); } catch (e) {}
     } catch (e) { r.err = String((e && e.message) || e).slice(0, 80); }
     r.on = r.fileWords > 0;
     return r;
   };
   window.dictLine = function(){
     var d = window.dictStatus();
-    return (d.on ? 'فعال ✅' : 'غیرفعال ❌') + ' — واژه‌های فایل: ' + d.fileWords + (d.src ? ' (' + d.src + ')' : '') + ' · کل دیکشنری: ' + d.total + ' · رمزگشایی OCR: ' + (d.ocrLex === null ? '-' : d.ocrLex ? 'روشن' : 'خاموش') + ' · ارسال‌شده به OCR: ' + (d.sent >= 0 ? d.sent : 'هنوز نه') + (d.err ? ' · خطا: ' + d.err : '');
+    return (d.on ? 'فعال ✅' : 'غیرفعال ❌') + ' — واژه‌های فایل: ' + d.fileWords + (d.src ? ' (' + d.src + ')' : '') + ' · کل دیکشنری: ' + d.total + ' · رمزگشایی OCR: ' + (d.ocrLex === null ? '-' : d.ocrLex ? 'روشن' : 'خاموش') + ' · ارسال‌شده به OCR: ' + (d.sent >= 0 ? d.sent : 'هنوز نه') + (d.di ? ' · فهرست حذف: ' + d.di : '') + (d.heapMB ? ' · heap ' + d.heapMB + 'MB' : '') + (d.missing ? ' · ⚠ فایل fa_lexicon.js بارگذاری نشد (onerror)' : '') + (d.err ? ' · خطا: ' + d.err : '');
   };
   function epLabel(e){ if (!e) return ''; var q = e.split(':'); return q[0] === 'webgpu' ? 'WebGPU' : q[0] === 'webgl' ? 'WebGL' : 'WASM SIMD' + (q[1] ? ' ×' + q[1] : ''); }
   function epTag(){ return ocrEp ? ' [' + epLabel(ocrEp) + ']' : ''; }
@@ -4300,11 +4342,11 @@ var ocrSpell = (function(){
       var spawn = async function(ln, noGpu, noThr){
         var ow = ln.ow = ocrwSpawn();
         if (!ow) throw new Error('OCR به Worker نیاز دارد و روی این دستگاه پشتیبانی نمی‌شود.');
-        try { ocrEp = await ow.call('pinit', { ort: absUrl(PADF[0]), ortGpu: absUrl(OPTF[0]), ortBase: absUrl('ocr/ort/'), det: absUrl(PADF[2]), rec: absUrl(PADF[3]), detOrt: absUrl('ocr/paddle/PP-OCRv5_mobile_det.ort'), recOrt: absUrl('ocr/paddle/arabic_PP-OCRv5_mobile_rec.ort'), ortFmt: sget('ocrOrt', '') !== '0', dict: absUrl(PADF[4]), side: PDET[qv] || 1472, sums: PSUM, lex: lexList(), gpu: !!(!noGpu && !gpuBad() && $('#ocrGpu').checked), gpuFiles: !!opt.gpu, thr: noThr ? null : opt.thr, dsk: $('#ocrDsk').checked, dn: $('#ocrDn').checked, rh: +sget('ocrRecH', '48') || 48, nt: +sget('ocrNT', '0') || 0 }, null, function(){ status('بارگذاری موتور OCR…'); }); var dxr = null, ask = !noGpu && !gpuBad() && $('#ocrGpu').checked; try { dxr = await ow.call('dx'); ln.dx = dxr; if (ocrPerf && dxr) (ocrPerf.dx = ocrPerf.dx || {})['l' + ln.i] = dxr; } catch (x) {} gpuNote(ocrEp, ask, dxr); }
+        try { ocrEp = await ow.call('pinit', { ort: absUrl(PADF[0]), ortGpu: absUrl(OPTF[0]), ortBase: absUrl('ocr/ort/'), det: absUrl(PADF[2]), rec: absUrl(PADF[3]), detOrt: absUrl('ocr/paddle/PP-OCRv5_mobile_det.ort'), recOrt: absUrl('ocr/paddle/arabic_PP-OCRv5_mobile_rec.ort'), ortFmt: sget('ocrOrt', '') !== '0', dict: absUrl(PADF[4]), side: PDET[qv] || 1472, sums: PSUM, lex: lexList(), lk: lexMemo.k, gpu: !!(!noGpu && !gpuBad() && $('#ocrGpu').checked), gpuFiles: !!opt.gpu, thr: noThr ? null : opt.thr, dsk: $('#ocrDsk').checked, dn: $('#ocrDn').checked, rh: +sget('ocrRecH', '48') || 48, nt: +sget('ocrNT', '0') || 0 }, null, function(){ status('بارگذاری موتور OCR…'); }); var dxr = null, ask = !noGpu && !gpuBad() && $('#ocrGpu').checked; try { dxr = await ow.call('dx'); ln.dx = dxr; if (ocrPerf && dxr) (ocrPerf.dx = ocrPerf.dx || {})['l' + ln.i] = dxr; } catch (x) {} gpuNote(ocrEp, ask, dxr); }
         catch (e) { if (!noThr && opt.thr && /THR:/.test(em(e))) { try { ow.kill(); } catch (x) {} return spawn(ln, noGpu, true); } try { ortProbe().then(function(p){ window.__elog.add('ocr', 'probe ' + JSON.stringify(p)); }); } catch (x) {} throw e; }
       };
       var l1 = { i: 0, ow: null, killed: false, rs: 0, pre: null };
-      var sg = [qv, $('#ocrGpu').checked, !!opt.gpu, opt.thr, $('#ocrDsk').checked, $('#ocrDn').checked, lexMemo.n].join('|');
+      var sg = [qv, $('#ocrGpu').checked, !!opt.gpu, opt.thr, $('#ocrDsk').checked, $('#ocrDn').checked, lexKey()].join('|');
       if (ocrKeep && ocrKeep.ow && ocrKeep.sig === sg) { l1 = ocrKeep; ocrKeep = null; clearTimeout(ocrKeepTm); l1.killed = false; l1.dead = false; l1.rs = 0; l1.cur = 0; l1.pre = null; try { await l1.ow.call('rst'); } catch (e) {} try { if (l1.dx && ocrPerf) (ocrPerf.dx = ocrPerf.dx || {}).l0 = l1.dx; } catch (e) {} }   /* Worker گرم از اجرای قبلی: بدون بارگذاری دوبارهٔ مدل */
       else { dropKeep(); await spawn(l1, false); l1.sig = sg; }
       lanes.push(l1);
@@ -4873,12 +4915,12 @@ var ocrSpell = (function(){
       opt = await optLocal(); chk();
       var msig = '';
       var spawn = async function(noGpu, noThr){
-        msig = 'M|' + [qv, $('#ocrGpu').checked, !!opt.gpu, opt.thr, $('#manDsk').checked, $('#manDn').checked, $('#manLex').checked, lexMemo.n].join('|');
+        msig = 'M|' + [qv, $('#ocrGpu').checked, !!opt.gpu, opt.thr, $('#manDsk').checked, $('#manDn').checked, $('#manLex').checked, $('#manJoin').checked, lexKey($('#manLex').checked)].join('|');
         if (ocrKeep && ocrKeep.ow && ocrKeep.sig === msig) { ow = ocrKeep.ow; ocrKeep = null; clearTimeout(ocrKeepTm); try { await ow.call('rst'); } catch (e) {} }   /* S4: Worker گرم اسکن دستی قبلی */
         else { dropKeep(); ow = ocrwSpawn(); }
         man.ow = ow;
         if (!ow) throw new Error('OCR به Worker نیاز دارد و روی این دستگاه پشتیبانی نمی‌شود.');
-        try { ocrEp = await ow.call('pinit', { ort: absUrl(PADF[0]), ortGpu: absUrl(OPTF[0]), ortBase: absUrl('ocr/ort/'), det: absUrl(PADF[2]), rec: absUrl(PADF[3]), detOrt: absUrl('ocr/paddle/PP-OCRv5_mobile_det.ort'), recOrt: absUrl('ocr/paddle/arabic_PP-OCRv5_mobile_rec.ort'), ortFmt: sget('ocrOrt', '') !== '0', dict: absUrl(PADF[4]), side: PDET[qv] || 1472, sums: PSUM, lex: (function(){ try { return $('#manLex').checked ? ocrSpell.words() : null; } catch (e) { return null; } })(), gpu: !!(!noGpu && !gpuBad() && $('#ocrGpu').checked), gpuFiles: !!opt.gpu, thr: noThr ? null : opt.thr, dsk: $('#manDsk').checked, dn: $('#manDn').checked, rh: +sget('ocrRecH', '48') || 48, nt: +sget('ocrNT', '0') || 0 }, null, function(){ manSt('بارگذاری موتور OCR…'); }); }
+        try { ocrEp = await ow.call('pinit', { ort: absUrl(PADF[0]), ortGpu: absUrl(OPTF[0]), ortBase: absUrl('ocr/ort/'), det: absUrl(PADF[2]), rec: absUrl(PADF[3]), detOrt: absUrl('ocr/paddle/PP-OCRv5_mobile_det.ort'), recOrt: absUrl('ocr/paddle/arabic_PP-OCRv5_mobile_rec.ort'), ortFmt: sget('ocrOrt', '') !== '0', dict: absUrl(PADF[4]), side: PDET[qv] || 1472, sums: PSUM, lex: lexList($('#manLex').checked), lk: lexMemo.k, jp: $('#manJoin').checked, gpu: !!(!noGpu && !gpuBad() && $('#ocrGpu').checked), gpuFiles: !!opt.gpu, thr: noThr ? null : opt.thr, dsk: $('#manDsk').checked, dn: $('#manDn').checked, rh: +sget('ocrRecH', '48') || 48, nt: +sget('ocrNT', '0') || 0 }, null, function(){ manSt('بارگذاری موتور OCR…'); }); }
         catch (e) { if (!noThr && opt.thr && /THR:/.test(em(e))) { try { ow.kill(); } catch (x) {} return spawn(noGpu, true); } throw e; }
       };
       await spawn(false); chk();
@@ -6896,16 +6938,17 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r56 · 2026-10-21 · lex-wire', npBuild = '';
+  var APP_BUILD = 'html-r57 · 2026-10-21 · lex-audit', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
   try {
     var _w = window.FA_WORDS || window.FA_DICT || window.fa_words || '', _n = 0, _k, _c, _in = false, _nm = [];
-    if (Array.isArray(_w)) _n = _w.length;
+    if (_w instanceof Set || _w instanceof Map) _n = _w.size; else if (Array.isArray(_w)) _n = _w.length;
     else if (_w && typeof _w === 'object') _n = Object.keys(_w).length;
     else { _w = String(_w); for (_k = 0; _k < _w.length; _k++) { _c = _w.charCodeAt(_k); if (_c > 32) { if (!_in) { _n++; _in = true; } } else _in = false; } }
     if (_n === 0) { for (_k in window) if (/^(fa_|FA_|lex|LEX)/.test(_k) && _nm.length < 8) _nm.push(_k); }
+    if (window.__faLexMissing) window.__elog.add('dict', 'فایل fa_lexicon.js بارگذاری نشد (onerror)؛ املا به فهرست پایهٔ کوچک برمی‌گردد');
     if (_n === 0 || bNew) window.__elog.add('dict', _n ? 'واژه‌نامه بارگذاری شد: ' + _n + ' واژه' : 'واژه‌نامه خالی است (FA_WORDS/FA_DICT/fa_words پیدا نشد)؛ نام‌های مشابه: ' + (_nm.join(', ') || 'هیچ'));
   } catch (e) {}
   /* r17: عیب‌یابی crossOriginIsolated — هدرهای واقعی سند را می‌خواند؛ اگر هدرها هست ولی coi=false (سند پیش از تعویض WebViewClient بار شده) یک‌بار صفحه را بازبارگذاری می‌کند */
