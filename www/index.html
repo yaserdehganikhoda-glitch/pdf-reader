@@ -7,7 +7,7 @@
 <title>خوانندهٔ صوتی PDF</title>
 <script>
 /* سطح جلوه‌های بصری پیش از نخستین نقاشی: کامل | سبک | بهینه | فوق‌ساده. بار اول: «کاهش حرکت» ← فوق‌ساده، دستگاه ضعیف ← بهینه؛ مقدار قدیمی «off» به «فوق‌ساده» منتقل می‌شود */
-try{var _f=localStorage.getItem('fx');if(_f==='off')_f='flat';if(_f!=='full'&&_f!=='lite'&&_f!=='perf'&&_f!=='flat'){var _m=navigator.deviceMemory,_c=navigator.hardwareConcurrency,_r=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;_f=_r?'flat':((_m&&_m<=3)||(_c&&_c<=4))?'perf':'full'}document.documentElement.setAttribute('data-fx',_f)}catch(e){document.documentElement.setAttribute('data-fx','full')}
+try{var _f=localStorage.getItem('fx');if(!localStorage.getItem('fxv2')){_f='perf';localStorage.setItem('fx','perf');localStorage.setItem('fxv2','1')}if(_f==='off')_f='flat';if(_f!=='full'&&_f!=='lite'&&_f!=='perf'&&_f!=='flat')_f='perf';document.documentElement.setAttribute('data-fx',_f)}catch(e){document.documentElement.setAttribute('data-fx','perf')}
 </script>
 <script>
 /* ثبت خطاهای جاوااسکریپت (حتی پیش از بارگذاری برنامه) برای «پیشرفته ‹ گزارش خطا»؛ ۲۵ هزار نویسهٔ آخر در localStorage می‌ماند */
@@ -559,7 +559,6 @@ body.mini-on .panel{padding-bottom:88px}
 .tmenu.sheet .ttabs::before{content:"";position:absolute;top:6px;left:50%;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--line)}
 @keyframes sheetup{from{transform:translateY(28px);opacity:0}}
 ::highlight(usr){background:var(--hl);color:inherit}
-::highlight(wcur){background:color-mix(in srgb,var(--accent) 34%,transparent);color:inherit;text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:2px}
 #reader span.hlu{border-bottom:2px solid var(--gold)}
 #bmScrim{position:fixed;inset:0;z-index:69;background:var(--scrim)}
 #bmSheet{position:fixed;inset:auto 0 0 0;z-index:70;max-height:min(70dvh,520px);overflow:auto;overscroll-behavior:contain;padding:18px 14px calc(14px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 0 0;background:var(--paper);color:var(--ink);border:1px solid var(--glass-line);box-shadow:var(--shadow)}
@@ -1166,6 +1165,96 @@ body.view-page .stage{touch-action:pan-x pan-y}
 #dictBox .dxadv[open]>summary{margin-bottom:8px}
 #dictBox .dxadv textarea{width:100%;box-sizing:border-box;min-height:140px}
 @media (max-width:400px){.rdbar{gap:0;padding:4px 3px}.rdbar .rdb{width:38px;height:38px}}
+
+/* ===== r60: نوارهای شناور (بالا/پایین)، منوها بدون چسبیدن به سقف و کف، ویرایشگر تمام‌صفحه ===== */
+body.has-doc:not(.home-on)[data-apptab="read"] .top{padding:calc(8px) 10px 6px}
+body.has-doc:not(.home-on)[data-apptab="read"] .rdbar{min-height:58px;gap:2px;padding:5px 6px;border-radius:24px;border-width:1px;box-shadow:0 10px 26px -14px var(--dsh),0 2px 6px rgba(0,0,0,.06)}
+body.has-doc:not(.home-on)[data-apptab="read"] .rdbar .rdb{width:44px;height:44px}
+body.has-doc:not(.home-on)[data-apptab="read"] .rdbar .rdt{padding:0 8px}
+@media (max-width:420px){
+  body.has-doc:not(.home-on)[data-apptab="read"] .top{padding:8px 8px 4px}
+  body.has-doc:not(.home-on)[data-apptab="read"] .rdbar{justify-content:space-between;padding:5px 4px}
+  body.has-doc:not(.home-on)[data-apptab="read"] .rdbar .rdb{width:42px;height:42px}
+  body.has-doc:not(.home-on)[data-apptab="read"] .rdbar .rdt{display:none}
+}
+body.has-doc:not(.home-on)[data-apptab="read"] .frame::after{height:calc(var(--dock-h) + 8px)}
+body.has-doc:not(.home-on)[data-apptab="read"] .stage{padding-top:14px;padding-bottom:calc(var(--dock-h) + 12px)}
+body.has-doc:not(.home-on) .dock{inset-inline:0;bottom:calc(10px + env(safe-area-inset-bottom,0px));width:calc(100% - 20px);max-width:560px;margin:0 auto;padding:8px 14px 12px;gap:8px;border-radius:28px;border-width:1px;box-shadow:var(--dock-in),0 18px 40px -16px var(--dsh),0 2px 8px rgba(0,0,0,.08)}
+body.has-doc:not(.home-on) .drA{min-height:40px;gap:12px}
+body.has-doc:not(.home-on) .drA .dtl,body.has-doc:not(.home-on) .drA .dhide{width:40px;height:40px}
+body.has-doc:not(.home-on) .drA .dtl svg,body.has-doc:not(.home-on) .drA .dhide svg{width:19px;height:19px}
+body.has-doc:not(.home-on) .dpg{width:40px;height:40px;min-width:40px;min-height:40px}
+body.has-doc:not(.home-on) .dpg svg{width:20px;height:20px}
+body.has-doc:not(.home-on) .dock .drP{gap:10px;padding:2px 4px}
+body.has-doc:not(.home-on) .dock input[type=range].rng#seek{height:30px}
+body.has-doc:not(.home-on) .dock .rng::-webkit-slider-runnable-track{height:6px}
+body.has-doc:not(.home-on) .dock .rng::-webkit-slider-thumb{width:20px;height:20px;margin-top:-7px}
+body.has-doc:not(.home-on) .drC{gap:10px;padding-top:2px}
+body.has-doc:not(.home-on) .drC .pill{min-height:40px;padding:0 14px;font-size:.78rem}
+body.has-doc:not(.home-on) .drC .dsk{width:46px;height:46px;min-width:46px;min-height:46px}
+body.has-doc:not(.home-on) .drC .play{width:60px;height:60px}
+body.has-doc:not(.home-on) .dvoice{width:42px;height:42px}
+body.has-doc:not(.home-on) .dvoice>svg{width:22px;height:22px}
+body.has-doc:not(.home-on) .dcM{gap:12px}
+body.has-doc:not(.home-on) .dpeek{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+body.dock-hide .dock{transform:translateY(calc(100% + 40px))}
+.tmenu.sheet{inset:auto 10px calc(10px + env(safe-area-inset-bottom,0px)) 10px;width:auto;max-height:min(70vh,560px);max-height:min(70dvh,560px);border-radius:26px;padding-bottom:0;box-shadow:0 22px 50px -14px rgba(0,0,0,.45),0 2px 8px rgba(0,0,0,.1)}
+.tmenu.sheet .ttabs{border-radius:26px 26px 0 0}
+.tmenu.sheet .tbody{padding-bottom:6px}
+.tmenu.sheet.gm{inset:calc(env(safe-area-inset-top,0px) + 10px) 10px auto 10px;top:calc(env(safe-area-inset-top,0px) + 10px);bottom:auto;width:auto;max-height:min(64vh,460px);max-height:min(64dvh,460px);border-radius:26px;padding:0}
+.tmenu.sheet.gm .tbody::after{margin:10px auto 8px}
+.vs{border-radius:24px;box-shadow:0 18px 44px -12px rgba(0,0,0,.5)}
+.dqin{margin:0 10px calc(10px + env(safe-area-inset-bottom,0px));width:calc(100% - 20px);border-radius:26px}
+.manhd{margin:8px 8px 0;border:1px solid var(--line);border-radius:22px;padding:6px 8px;box-shadow:0 8px 20px -14px var(--dsh)}
+.manpb{margin:8px 8px 0;border:1px solid var(--line);border-radius:22px;padding:6px 10px}
+.manft{margin:0 8px calc(8px + env(safe-area-inset-bottom,0px));border:1px solid var(--line);border-radius:22px;padding:8px 10px;box-shadow:0 -8px 20px -16px var(--dsh)}
+.manin{padding-bottom:0}
+.manacts .btn{min-height:44px}
+.mib{width:38px;height:38px}
+.manpb .mpp{width:44px;height:44px}
+/* ویرایشگر تمام‌صفحهٔ متن (اسکن دستی) */
+.mtxh,.mtxfs{display:none}
+.mtxw.full{position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 8px) 8px calc(env(safe-area-inset-bottom,0px) + 8px);background:var(--paper)}
+.mtxw.full .mtxh{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:22px;background:var(--card)}
+.mtxw.full .mtxt{flex:1;min-width:0;font-size:.92rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mtxw.full .mtxs{flex:0 1 auto;max-width:52%;font-size:.7rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mtxw.full .mfqk{position:static;flex:none;max-height:92px;overflow:auto;box-shadow:none}
+.mtxw.full #manTx{flex:1 1 auto;min-height:0;height:auto;resize:none;font-size:1.06rem;line-height:2.1;padding:12px 14px}
+.mtxw.full .mtxf{display:none}
+.mtxw.full .mtxfs{display:flex;align-items:center;gap:8px;flex:none;flex-wrap:wrap;justify-content:center;padding:8px;border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:0 10px 26px -14px var(--dsh)}
+.mtxfs .mpp{width:48px;height:48px;background:var(--accent);border-color:transparent;color:#fff}
+.mtxfs .mpp svg{fill:currentColor;stroke:none;width:22px;height:22px}
+.mtxfs .i-pause{display:none}
+.mtxfs.on .i-play{display:none}
+.mtxfs.on .i-pause{display:block}
+.mtxfs .fsgap{flex:1 1 8px}
+.mtxfs .btn.xs{min-height:40px;padding:0 14px;font-size:.8rem}
+body.mtx-full .manhd,body.mtx-full .manpb,body.mtx-full .manft{visibility:hidden}
+
+/* r61: کادر فهرست فایل‌ها (همه/اخیر/علاقه‌مندی) دقیقاً هم‌اندازهٔ صفحه؛ محتوا فقط داخل کادر اسکرول می‌شود */
+.home{box-sizing:border-box;height:100%;max-height:100%;overflow:hidden;min-width:0}
+.home>*{min-width:0;max-width:100%}
+.home>.hbody{flex:1 1 0;height:0;min-height:0;overflow-x:hidden;overflow-y:auto}
+.hbody>*{flex:none;min-width:0;max-width:100%}
+.hbody>#homeList.isempty{flex:1 0 auto}
+#homeList{align-content:start;grid-auto-rows:min-content;width:100%;overflow:hidden}
+#homeList .lib-i,#homeList .lib-open{min-width:0;max-width:100%}
+#homeList .lib-open b{overflow:hidden;text-overflow:ellipsis}
+#homeAdd{position:sticky;bottom:0;z-index:2;margin-top:auto}
+
+/* r62: منوی چرخ‌دنده: کشوی بازشو در سمت چپ، بازشدن به پایین */
+@keyframes gmdrop{from{opacity:0;transform:translateY(-14px) scale(.94)}to{opacity:1;transform:none}}
+.tmenu.sheet.gm{inset:auto;left:10px;right:auto;bottom:auto;top:calc(env(safe-area-inset-top,0px) + 52px);width:min(21.5rem,calc(100vw - 20px));max-height:min(72vh,540px);max-height:min(72dvh,540px);border-radius:22px;transform-origin:top left;animation:gmdrop .2s cubic-bezier(.2,.9,.3,1) both}
+body.has-doc:not(.home-on) .tmenu.sheet.gm{top:calc(env(safe-area-inset-top,0px) + 74px)}
+.tmenu.sheet.gm .tbody::after{display:none}
+:root[data-fx="perf"] .tmenu.sheet.gm,:root[data-fx="flat"] .tmenu.sheet.gm{animation:none}
+
+/* r63: دکمه‌های منوی چرخ‌دنده زیر هم */
+.tmenu.gm #tpanel-device{grid-template-columns:1fr;gap:6px}
+.tmenu.gm #tpanel-device .tile{grid-column:1/-1;width:100%;min-height:54px;padding:8px 12px;gap:12px;border:1px solid var(--line);background:color-mix(in srgb,var(--ink) 3%,transparent)}
+.tmenu.gm #tpanel-device .tile.exitB{margin-top:2px}
+.tmenu.gm #tpanel-device .tx b{font-size:.84rem}
+.tmenu.gm #tpanel-device .tx small{font-size:.7rem}
 </style>
 </head>
 <body data-apptab="read">
@@ -1642,7 +1731,6 @@ body.view-page .stage{touch-action:pan-x pan-y}
             <label class="chk"><input type="checkbox" id="fixHi" checked><span class="st"><b>حساسیت بالا</b><small>حروف جداافتاده، تکرار و کشیدگی بی‌دلیل.</small></span></label>
             <label class="chk"><input type="checkbox" id="fixPro" checked><span class="st"><b>مکث‌گذاری هوشمند</b><small>پیش از پیوندها و شکستن جملهٔ بلند.</small></span></label>
             <label class="chk"><input type="checkbox" id="fixCite" checked><span class="st"><b>نخواندن ارجاع درون‌متنی</b><small>مثل «(احمدی، ۱۳۹۸: ۲۴)»، «(همان، ص ۲)» و «(Smith, 2020)»؛ در متن نمایش‌داده‌شده می‌ماند.</small></span></label>
-            <label class="chk"><input type="checkbox" id="wordHl" checked><span class="st"><b>هایلایت واژه‌به‌واژه</b><small>واژهٔ در حال خواندن داخل جمله علامت می‌خورد (تخمین از زمان پخش).</small></span></label>
           </div>
           <details class="sub hintbox"><summary>این بخش چه می‌کند؟</summary><div class="in"><p class="hint">پیش از خواندن هر جمله، متن را بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع (از جمله ارجاع درون‌متنی)، تنوین قیدها (مثلاً، حتماً)، کلمه‌های لاتین و سرواژه‌ها و مکث‌گذاری هوشمند. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p></div></details>
           <p class="hint" id="fixStats" aria-live="polite"></p>
@@ -1867,11 +1955,29 @@ body.view-page .stage{touch-action:pan-x pan-y}
         </div>
         <button class="btn primary mgo" id="manScan" type="button">اسکن مجدد صفحه</button>
       </section>
-      <div class="mtxw">
+      <div class="mtxw" id="mtxW">
+        <div class="mtxh">
+          <button class="mib" id="manFsX" type="button" aria-label="بستن حالت تمام‌صفحه" title="بستن"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          <b class="mtxt" id="mtxT">ویرایش متن صفحه</b>
+          <span class="mtxs" id="mtxS"></span>
+        </div>
         <div class="mfqk" id="mfQk" role="toolbar" aria-label="ابزار سریع ویرایش متن"></div>
         <textarea id="manTx" dir="rtl" spellcheck="false" aria-label="متن صفحه"></textarea>
+        <div class="mtxfs" id="mtxFs" role="toolbar" aria-label="پخش و ویرایش">
+          <button class="mib" id="fsNext" type="button" aria-label="جملهٔ بعد" title="جملهٔ بعد" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M5 5l10 7-10 7z"/></svg></button>
+          <button class="mib mpp" id="fsPlay" type="button" aria-label="پخش" title="ذخیره و پخش از این صفحه" disabled>
+            <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4L18.2 12z"/></svg>
+            <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.2" y="5" width="4.1" height="14" rx="1.5"/><rect x="13.7" y="5" width="4.1" height="14" rx="1.5"/></svg>
+          </button>
+          <button class="mib" id="fsPrev" type="button" aria-label="جملهٔ قبل" title="جملهٔ قبل" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14M19 5L9 12l10 7z"/></svg></button>
+          <span class="fsgap"></span>
+          <button class="btn xs" id="fsUndo" type="button">واگرد</button>
+          <button class="btn xs" id="fsFix" type="button">ویرایش هوشمند</button>
+          <button class="btn primary xs" id="fsSave" type="button">ذخیره و اعمال</button>
+        </div>
         <div class="mtxf">
           <p class="hint" id="mfStat" aria-live="off"></p>
+          <button class="btn xs" id="manFs" type="button" aria-label="ویرایش تمام‌صفحه" title="ویرایش تمام‌صفحه">تمام‌صفحه</button>
           <button class="btn xs" id="manUndo" type="button">واگرد</button>
           <button class="btn xs dgr" id="manDel" type="button">حذف نتیجهٔ OCR</button>
         </div>
@@ -1977,7 +2083,7 @@ body.view-page .stage{touch-action:pan-x pan-y}
   /* ---------- settings (best-effort) ---------- */
   function sget(k, d){ try { var v = localStorage.getItem(k); return v === null ? d : v; } catch(e){ return d; } }
   function sset(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
-  function fxLevel(){ return document.documentElement.getAttribute('data-fx') || 'full'; }
+  function fxLevel(){ return document.documentElement.getAttribute('data-fx') || 'perf'; }
   function fxCalm(){ var f = fxLevel(); return f === 'perf' || f === 'flat'; }
   $('#rate').value = sget('rate', '1');
   if (sget('rateBase', '') !== '1') { sset('rateBase', '1'); sset('rate', '1'); $('#rate').value = '1'; }   /* یک‌بار: بازگشت سرعت به ۱× (حالت اولیه) */
@@ -1995,12 +2101,10 @@ body.view-page .stage{touch-action:pan-x pan-y}
   /* ---------- voices ---------- */
   var piperVoices = [
     { id: 'fa_IR-gyro-medium', name: 'gyro (medium)', lang: 'fa-IR', gender: 'm', fa: true },
-    { id: 'fa_IR-ganji-medium', name: 'ganji (medium)', lang: 'fa-IR', gender: 'm', fa: true },
-    { id: 'fa_IR-negin-coqui', name: 'negin', lang: 'fa-IR', gender: 'f', mb: 114, fa: true },
-    { id: 'fa_IR-sahar-coqui', name: 'sahar', lang: 'fa-IR', gender: 'f', mb: 114, fa: true }
+    { id: 'fa_IR-ganji-medium', name: 'ganji (medium)', lang: 'fa-IR', gender: 'm', fa: true }
   ];
   var HAVE = [];   /* صداهای دانلودشده؛ با «تازه‌سازی» دوباره بررسی می‌شود */
-  var FEM_ID = /^(mimic3-fa-haaniye_low|coqui-fa-(negar|shiva|mahtab))$/i;   /* فقط شناسه‌های قدیمیِ حذف‌شده (برای پاک‌سازی)؛ صداهای زنانهٔ فعلی negin و sahar هستند */
+  var FEM_ID = /^(mimic3-fa-haaniye_low|coqui-fa-(negar|shiva|mahtab)|fa_IR-(negin|sahar)-coqui)$/i;   /* شناسه‌های صداهای حذف‌شده (برای پاک‌سازی از فهرست) */
   var FEM = /female|woman|dilara|zira|hazel|samantha|victoria|karen|moira|tessa|fiona|susan|heera|aria|jenny|sara|zuzana|elena|katya|milena|ava/i;
   var MALE = /\bmale\b|farid|david|mark|george|daniel|alex|fred|ravi|guy|ryan|thomas|jorge|diego|yuri|pavel/i;
   function genderOf(name){
@@ -2069,7 +2173,7 @@ body.view-page .stage{touch-action:pan-x pan-y}
     for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
     return new Blob([u], { type: type });
   }
-  var VOICE_TEMPOS = { 'fa_IR-gyro-medium': 0.92, 'fa_IR-negin-coqui': 1.1, 'fa_IR-sahar-coqui': 1.1 };   /* ضریب سرعت اختصاصی هر گوینده در ساخت صدا (بدون کشیدن صدا)؛ کمتر از ۱ = کندتر. گوینده‌ای که اینجا نیست با سرعت اصلی خودش می‌خواند */
+  var VOICE_TEMPOS = { 'fa_IR-gyro-medium': 0.92 };   /* ضریب سرعت اختصاصی هر گوینده در ساخت صدا (بدون کشیدن صدا)؛ کمتر از ۱ = کندتر. گوینده‌ای که اینجا نیست با سرعت اصلی خودش می‌خواند */
   var VOICE_TEMPO = 1;   /* ۱ = سرعت اصلی و دست‌نخوردهٔ مدل، همان لحظهٔ نصب صدا */
   var PART_GAP = 0.12;   /* ثانیه: سکوت بین جمله‌های یک تکه (هر جمله جدا ساخته و در حافظهٔ نهان نگه داشته می‌شود) */
   function npCancel(){ try { if (npOK && NP && NP.cancel) NP.cancel().catch(function(){}); } catch (e) {} }   /* کارهای صف‌شده و در حال ساختِ کهنه را فوری رها می‌کند */
@@ -2101,8 +2205,6 @@ body.view-page .stage{touch-action:pan-x pan-y}
         { key: 'fa_IR-gyro-medium', name: 'gyro', quality: 'medium', language: { family: 'fa' } },
         { key: 'fa_IR-ganji-medium', name: 'ganji', quality: 'medium', language: { family: 'fa' } },
         { key: 'fa_IR-ganji_adabi-medium', name: 'ganji_adabi', quality: 'medium', language: { family: 'fa' } },
-        { key: 'fa_IR-negin-coqui', name: 'negin', quality: 'coqui', mb: 114, language: { family: 'fa' } },
-        { key: 'fa_IR-sahar-coqui', name: 'sahar', quality: 'coqui', mb: 114, language: { family: 'fa' } },
         { key: 'fa_en-rezahedayatfar-ibrahimwalk-medium', name: 'reza_ibrahim (fa+en)', quality: 'medium', language: { family: 'fa' } }
       ];
       return Promise.resolve(NP.bundled ? NP.bundled() : null).then(function(r){ var ids = (r && r.ids) || []; return ids.length ? all.filter(function(v){ return ids.indexOf(v.key) >= 0 || /-coqui$/.test(v.key); }) : all; }, function(){ return all; });   /* صداهای دانلودی (coqui) همیشه فهرست می‌شوند، حتی اگر چند صدا همراه APK باشد */
@@ -2178,7 +2280,7 @@ body.view-page .stage{touch-action:pan-x pan-y}
         if (/amir/i.test(v.key || '') || FEM_ID.test(v.key || '')) return false;
         return (v.language && v.language.family === 'fa') || /^fa_/.test(v.key || '');
       }).map(function(v){
-        return { id: v.key, name: (v.name || v.key) + (v.quality ? ' (' + v.quality + ')' : ''), lang: 'fa-IR', gender: /gyro|ganji|amir|rezahedayatfar|ibrahim/i.test(v.key || '') ? 'm' : /negin|sahar|-coqui$/i.test(v.key || '') ? 'f' : '?', mb: v.mb || 0, fa: true };
+        return { id: v.key, name: (v.name || v.key) + (v.quality ? ' (' + v.quality + ')' : ''), lang: 'fa-IR', gender: /gyro|ganji|amir|rezahedayatfar|ibrahim/i.test(v.key || '') ? 'm' : '?', mb: v.mb || 0, fa: true };
       });
       if (fa.length) { piperVoices = fa; renderVoices(); }
     }).catch(function(){});
@@ -2831,7 +2933,7 @@ var ocrSpell = (function(){
   'بپتثنی|جچحخ|دذ|رزژ|سش|صض|طظ|عغ|فق|کگ|اآ'.split('|').forEach(function(g){ g.split('').forEach(function(c){ CONF[c] = g.replace(c, ''); }); });
 
   var GW = (typeof window !== 'undefined') ? window : self, UW = new Set(), PLW = /^[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC]+$/;
-  function faText(){ var w = GW.FA_WORDS || GW.FA_DICT || GW.fa_words || ''; if (!w) { try { if (typeof FA_WORDS !== 'undefined') w = FA_WORDS; else if (typeof FA_DICT !== 'undefined') w = FA_DICT; else if (typeof fa_words !== 'undefined') w = fa_words; } catch (e) {} } if (w instanceof Set) return Array.from(w).join(' '); if (w instanceof Map) return Array.from(w.keys()).join(' '); if (Array.isArray(w)) return w.join(' '); if (w && typeof w === 'object') return Object.keys(w).join(' '); return String(w); }   /* fa_words.js: رشته (فاصله/خط‌جدید/ویرگول)، آرایه یا شیء؛ نبودنش خطا نیست */
+  function faText(){ var w = GW.FA_WORDS || GW.FA_LEXICON || GW.FA_DICT || GW.fa_words || ''; if (!w) { try { if (typeof FA_WORDS !== 'undefined') w = FA_WORDS; else if (typeof FA_DICT !== 'undefined') w = FA_DICT; else if (typeof fa_words !== 'undefined') w = fa_words; else if (typeof FA_LEXICON !== 'undefined') w = FA_LEXICON; } catch (e) {} } if (w instanceof Set) return Array.from(w).join(' '); if (w instanceof Map) return Array.from(w.keys()).join(' '); if (Array.isArray(w)) return w.join(' '); if (w && typeof w === 'object') return Object.keys(w).join(' '); return String(w); }   /* fa_words.js: رشته (فاصله/خط‌جدید/ویرگول)، آرایه یا شیء؛ نبودنش خطا نیست */
   function addFw(x){ x = normCh(x).replace(/[\u064B-\u0652\u0670]/g, ''); if (!x) return; if (x.indexOf('\u200c') >= 0) { x.split('\u200c').forEach(function(p){ if (p.length >= 3) D.add(p); }); if (x.replace(/\u200c/g, '').length >= 4) D.add(x.replace(/\u200c/g, '')); } else if (x.length >= 2) D.add(x); }
   function build(){
     D = new Set();
@@ -4114,10 +4216,10 @@ var ocrSpell = (function(){
   function lexKey(on){ lexList(on); return lexMemo.k; }
   /* r54: وضعیت واژه‌نامه برای گزارش‌ها (گزارش خطا و گزارش کارایی OCR) */
   window.dictStatus = function(){
-    var r = { on: false, src: '', fileWords: 0, total: -1, ocrLex: null, sent: -1, names: [] }, nm = ['FA_WORDS', 'FA_DICT', 'fa_words'], i, v, n, k, c, inw;
+    var r = { on: false, src: '', fileWords: 0, total: -1, ocrLex: null, sent: -1, names: [] }, nm = ['FA_WORDS', 'FA_DICT', 'fa_words', 'FA_LEXICON'], i, v, n, k, c, inw;
     try {
       for (i = 0; i < nm.length; i++) {
-        v = window[nm[i]]; if (!v) { try { v = i === 0 ? (typeof FA_WORDS !== 'undefined' ? FA_WORDS : null) : i === 1 ? (typeof FA_DICT !== 'undefined' ? FA_DICT : null) : (typeof fa_words !== 'undefined' ? fa_words : null); } catch (e) { v = null; } } if (!v) continue; n = 0;
+        v = window[nm[i]]; if (!v) { try { v = i === 0 ? (typeof FA_WORDS !== 'undefined' ? FA_WORDS : null) : i === 1 ? (typeof FA_DICT !== 'undefined' ? FA_DICT : null) : i === 2 ? (typeof fa_words !== 'undefined' ? fa_words : null) : (typeof FA_LEXICON !== 'undefined' ? FA_LEXICON : null); } catch (e) { v = null; } } if (!v) continue; n = 0;
         if (v instanceof Set || v instanceof Map) n = v.size; else if (Array.isArray(v)) n = v.length; else if (typeof v === 'object') n = Object.keys(v).length;
         else { v = String(v); inw = false; for (k = 0; k < v.length; k++) { c = v.charCodeAt(k); if (c > 32) { if (!inw) { n++; inw = true; } } else inw = false; } }
         if (n > 0) { r.names.push(nm[i] + '=' + n); if (!r.src) { r.src = nm[i]; r.fileWords = n; } }
@@ -5025,6 +5127,49 @@ var ocrSpell = (function(){
     });
     function up(){ if (!st) return; st = null; if (man.rect && (man.rect.x1 - man.rect.x0 < 0.03 || man.rect.y1 - man.rect.y0 < 0.01)) { man.rect = null; manSel(); manSt('ناحیه خیلی کوچک بود؛ دوباره انتخاب کنید.'); } }
     pv.addEventListener('pointerup', up); pv.addEventListener('pointercancel', up);
+  })();
+  /* ===== ویرایشگر تمام‌صفحهٔ متن اسکن دستی (r60) ===== */
+  (function(){
+    var w = $('#mtxW'), ta = $('#manTx'), fs = $('#mtxFs'), pb = $('#manPb');
+    function isFull(){ return w.classList.contains('full'); }
+    function title(){ var t = $('#mtxT'); if (t) t.textContent = 'ویرایش متن صفحهٔ ' + nf.format(man.pn || 1); }
+    function stat(){ $('#mtxS').textContent = $('#manSt').textContent || $('#mfStat').textContent; }
+    function sync(){
+      fs.classList.toggle('on', !!playing);
+      var has = !$('#manPbPlay').disabled;
+      $('#fsPlay').disabled = !has; $('#fsPrev').disabled = $('#manPbPrev').disabled; $('#fsNext').disabled = $('#manPbNext').disabled;
+      $('#fsPlay').setAttribute('aria-label', playing ? 'توقف موقت' : 'پخش'); $('#fsPlay').title = playing ? 'توقف موقت' : 'ذخیره و پخش از این صفحه';
+      $('#fsFix').disabled = !!(man.busy || man.fx);
+    }
+    function open(){
+      if (isFull()) return;
+      w.classList.add('full'); document.body.classList.add('mtx-full'); title(); stat(); sync();
+      BK.push('mtxfull', function(){ close(true); return true; });
+      setTimeout(function(){ try { ta.focus({ preventScroll: true }); } catch (e) {} }, 60);
+    }
+    function close(fromBack){
+      if (!isFull()) return;
+      w.classList.remove('full'); document.body.classList.remove('mtx-full');
+      if (!fromBack) BK.drop('mtxfull');
+    }
+    $('#manFs').onclick = open;
+    $('#manFsX').onclick = function(){ close(false); };
+    $('#fsPlay').onclick = function(){ if (playing) { pause(); } else { $('#manPbFrom').click(); } setTimeout(sync, 120); };
+    $('#fsPrev').onclick = function(){ $('#manPbPrev').click(); };
+    $('#fsNext').onclick = function(){ $('#manPbNext').click(); };
+    $('#fsUndo').onclick = function(){ $('#manUndo').click(); };
+    $('#fsFix').onclick = function(){ $('#mfRun').click(); };
+    $('#fsSave').onclick = function(){ $('#manSave').click(); };
+    ta.addEventListener('input', function(){ if (isFull()) stat(); });
+    if (window.MutationObserver) {
+      var mo = new MutationObserver(function(){ if (isFull()) { sync(); stat(); title(); } });
+      mo.observe(pb, { attributes: true, subtree: true, attributeFilter: ['class', 'disabled'] });
+      mo.observe($('#mfStat'), { childList: true, characterData: true, subtree: true });
+      mo.observe($('#manSt'), { childList: true, characterData: true, subtree: true });
+    }
+    setInterval(function(){ if (isFull()) sync(); }, 700);
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && isFull()) { e.stopImmediatePropagation(); close(false); } }, true);
+    var _mc = manClose; manClose = function(){ close(false); return _mc.apply(this, arguments); };
   })();
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !$('#manOv').hidden && !man.busy && manLeave()) manClose(); });
   window.addEventListener('resize', function(){ if (!$('#manOv').hidden) manSel(); });
@@ -6939,12 +7084,12 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r58 · 2026-10-22 · lex-audit', npBuild = '';
+  var APP_BUILD = 'html-r59 · 2026-10-22 · lex-audit', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
   try {
-    var _w = window.FA_WORDS || window.FA_DICT || window.fa_words || '', _n = 0, _k, _c, _in = false, _nm = [];
+    var _w = window.FA_WORDS || window.FA_LEXICON || window.FA_DICT || window.fa_words || '', _n = 0, _k, _c, _in = false, _nm = [];
     if (_w instanceof Set || _w instanceof Map) _n = _w.size; else if (Array.isArray(_w)) _n = _w.length;
     else if (_w && typeof _w === 'object') _n = Object.keys(_w).length;
     else { _w = String(_w); for (_k = 0; _k < _w.length; _k++) { _c = _w.charCodeAt(_k); if (_c > 32) { if (!_in) { _n++; _in = true; } } else _in = false; } }
@@ -7524,48 +7669,6 @@ var ocrSpell = (function(){
       var c0 = planChunk(0, true); piperFetch(c0).catch(function(){}); prefetchPiper(c0.end + 1, 1, c0.text.length);
     }).catch(function(){});
   }
-  /* ===== نگاشت ایندکس واژه (Word Index Map) =====
-     هر واژهٔ متن نمایشی وزنی برابر طول تلفظ خود می‌گیرد (عدد/نماد/اختصار باز می‌شود) + مکث پس از ویرگول و نقطه؛ مجموع تجمعی وزن‌ها با نسبت پیشرفت جمله (posF) جست‌وجوی دودویی می‌شود
-     و واژهٔ جاری با CSS Custom Highlight (بدون ساخت المان/بازچینش DOM) علامت می‌خورد. فقط هنگام تغییر واژه Range تازه ساخته می‌شود. */
-  var WH = { i: -1, k: -1, e: null, ws: null, cw: null, c: new Map() };
-  function wordHlOn(){ var e = document.getElementById('wordHl'); return (!e || e.checked) && !!window.CSS && !!CSS.highlights && typeof Highlight !== 'undefined'; }
-  function whClear(){ WH.k = -1; WH.e = null; try { if (window.CSS && CSS.highlights) CSS.highlights.delete('wcur'); } catch (e) {} }
-  function whLen(w){
-    var core = w.replace(/^[("«“\[]+/, '').replace(/[,;:.!?،؛؟…"»”')\]]+$/, ''), n, sp;
-    if (/^[\u0621-\u06D3\u200c]+$/.test(core)) return core.replace(/\u200c/g, '').length;   /* واژهٔ فارسی ساده: بدون فراخوانی نرمال‌ساز */
-    if (WH.c.has(core)) return WH.c.get(core);
-    try { sp = ttsText(core, undefined); } catch (e) { sp = core; }
-    n = (sp.match(/[\p{L}\p{N}]/gu) || []).length || 0.3;                                 /* واژهٔ حذف‌شده (ارجاع/نماد): وزن ناچیز */
-    if (WH.c.size > 3000) WH.c.clear();
-    WH.c.set(core, n); return n;
-  }
-  function whBuild(i){
-    var t = sents[i].text, re = /\S+/g, m, ws = [], cw = [], acc = 0, w;
-    while ((m = re.exec(t))) {
-      w = m[0];
-      acc += whLen(w) + (/[،,;؛:]["»”')\]]*$/.test(w) ? 2.5 : /[.!?؟…]["»”')\]]*$/.test(w) ? 4 : 0);
-      ws.push(m.index, m.index + w.length); cw.push(acc);
-    }
-    WH.i = i; WH.ws = ws; WH.cw = cw; WH.k = -1; WH.e = null;
-  }
-  function whMark(i, f){
-    if (!wordHlOn()) return;
-    var s = sents[i], el = s && s.el, tn, cw, n, pos, lo, hi, mid, r;
-    if (!el || !el.isConnected) { whClear(); return; }
-    tn = el.firstChild; if (!tn || tn.nodeType !== 3) return;
-    if (WH.i !== i || !WH.cw || WH.cw.length === 0) whBuild(i);
-    cw = WH.cw; n = cw.length; if (!n) return;
-    pos = Math.max(0, Math.min(0.9999, f || 0)) * cw[n - 1]; lo = 0; hi = n - 1;
-    while (lo < hi) { mid = (lo + hi) >> 1; if (cw[mid] > pos) hi = mid; else lo = mid + 1; }
-    if (lo === WH.k && WH.e === el) return;
-    if (WH.ws[lo * 2 + 1] > tn.nodeValue.length) return;
-    WH.k = lo; WH.e = el;
-    try { r = document.createRange(); r.setStart(tn, WH.ws[lo * 2]); r.setEnd(tn, WH.ws[lo * 2 + 1]); CSS.highlights.set('wcur', new Highlight(r)); } catch (e) {}
-  }
-  try {
-    $('#wordHl').checked = sget('wordhl', '1') !== '0';
-    $('#wordHl').onchange = function(){ sset('wordhl', this.checked ? '1' : '0'); if (!this.checked) whClear(); else if (playing) whMark(idx, posF); };
-  } catch (e) {}
   function followChunk(c){
     var d = audio.duration;
     if (!d || !isFinite(d)) return;
@@ -7579,7 +7682,7 @@ var ocrSpell = (function(){
       while (lo < hi) { mid = (lo + hi + 1) >> 1; if (mk[mid] <= f) lo = mid; else hi = mid - 1; }
       posF = Math.max(0, Math.min(1, (f - mk[lo]) / (((lo + 1 < mk.length ? mk[lo + 1] : 1) - mk[lo]) || 1)));
       if (c.start + lo !== idx) { idx = c.start + lo; mark(true); }
-      posFi = idx; whMark(idx, posF);
+      posFi = idx;
       return;
     }
     var cps = pCps || 14, w = [], total = 0, k, j, x;
@@ -7594,7 +7697,7 @@ var ocrSpell = (function(){
       if (pos < acc) { t = c.start + k; posF = w[k] ? Math.max(0, Math.min(1, (pos - (acc - w[k])) / w[k])) : 0; break; }
     }
     if (t !== idx) { idx = t; mark(true); }
-    posFi = idx; whMark(idx, posF);
+    posFi = idx;
   }
   /* ---------- نگهبان پخش ----------
      اگر یکی از رویدادهای پخش (پایان صدا، تایمر فاصله، پایان ساخت صدا) گم شود، برنامه «در حال پخش» می‌ماند ولی صدایی نیست.
@@ -7884,7 +7987,7 @@ var ocrSpell = (function(){
     setTimeout(function(){ if (my === token && playing) speakNow(); }, 80);
   }
   function pause(){
-    playing = false; token++; clearTimeout(seekT); whClear();
+    playing = false; token++; clearTimeout(seekT);
     wdSet('idle');
     cancelAll();
     ui();
@@ -8819,12 +8922,19 @@ var ocrSpell = (function(){
     var f = this.files[0]; this.value = '';
     if (!f) return;
     if (f.type && f.type.indexOf('audio') !== 0 && !/\.(mp3|m4a|aac|wav|ogg|oga|opus|flac|webm)$/i.test(f.name)) { status('فایل انتخاب‌شده صوتی نیست.'); return; }
-    bgmLoadBlob(f, f.name);
+    bgmLoadBlob(f, f.name); sset('bgmDefOff', '1');
     kvSet('bgm', { blob: f, name: f.name }).then(function(ok){ if (!ok) status('موسیقی پخش می‌شود، ولی برای دفعهٔ بعد ذخیره نشد.'); });
   };
-  $('#bgmDel').onclick = function(){ bgmClear(); kvSet('bgm', null); };
+  $('#bgmDel').onclick = function(){ bgmClear(); kvSet('bgm', null); sset('bgmDefOff', '1'); };
   $('#bgmTry').onclick = function(){ bgm.preview = !bgm.preview; bgmUi(); musicSync(); };
-  kvGet('bgm').then(function(v){ if (v && v.blob && !bgm.loaded) bgmLoadBlob(v.blob, v.name); }).catch(function(){});
+  var BGM_DEF_URL = 'music/big rose.mp3', BGM_DEF_NAME = 'big rose';
+  function bgmLoadDefault(){                                       /* موسیقی پیش‌فرض همراه برنامه (داخل APK)؛ با «حذف» دیگر خودکار بارگذاری نمی‌شود */
+    if (bgm.loaded || sget('bgmDefOff', '0') === '1') return;
+    fetch(encodeURI(BGM_DEF_URL)).then(function(r){ if (!r.ok) throw new Error('nf'); return r.blob(); }).then(function(b){
+      if (!bgm.loaded && b && b.size > 1024) bgmLoadBlob(b, BGM_DEF_NAME);
+    }).catch(function(){});
+  }
+  kvGet('bgm').then(function(v){ if (v && v.blob) { if (!bgm.loaded) bgmLoadBlob(v.blob, v.name); } else bgmLoadDefault(); }).catch(function(){ bgmLoadDefault(); });
 
   /* ---------- events ---------- */
   $('#play').onclick = function(){ playing ? pause() : start(); };
@@ -9326,7 +9436,7 @@ var ocrSpell = (function(){
   $('#txtReset').onclick = function(){
     TXT_IDS.forEach(function(id){ var e = $('#' + id); if (e.type === 'checkbox') e.checked = TXT_DEF[id]; else e.value = TXT_DEF[id]; try { localStorage.removeItem('o_' + id); } catch (x) {} });
     $('#maxL').oninput(); segRefresh();
-    [['fixOn', 'fixon'], ['fixHi', 'fixhi'], ['fixPro', 'fixpro'], ['fixCite', 'fixcite'], ['wordHl', 'wordhl']].forEach(function(p){ $('#' + p[0]).checked = true; try { localStorage.removeItem(p[1]); } catch (x) {} });
+    [['fixOn', 'fixon'], ['fixHi', 'fixhi'], ['fixPro', 'fixpro'], ['fixCite', 'fixcite']].forEach(function(p){ $('#' + p[0]).checked = true; try { localStorage.removeItem(p[1]); } catch (x) {} });
     syncCols(); fixLock(); if (pdfDoc) process(true); else analyze();
     changed();
   };
@@ -9709,7 +9819,7 @@ var ocrSpell = (function(){
   function applyMini(){ document.body.classList.toggle('dock-mini', dockMini); $('#dockTgl').setAttribute('aria-expanded', dockMini ? 'false' : 'true'); }
   applyMini();
   $('#dockTgl').onclick = function(){ dockMini = !dockMini; sset('dockMini', dockMini ? '1' : '0'); applyMini(); };
-  function syncDock(){ var h = document.body.classList.contains('dock-hide') ? 40 : $('#dock').offsetHeight; if (h) document.documentElement.style.setProperty('--dock-h', (h + 10) + 'px'); }
+  function syncDock(){ var h = document.body.classList.contains('dock-hide') ? 40 : $('#dock').offsetHeight; if (h) document.documentElement.style.setProperty('--dock-h', (h + 26) + 'px'); }
   if (window.ResizeObserver) new ResizeObserver(syncDock).observe($('#dock'));
   window.addEventListener('resize', syncDock); syncDock();
 
@@ -10338,11 +10448,8 @@ var ocrSpell = (function(){
       ganji: { c: ['#34d3b0', '#0f7c6c'], t: "مردانه · گرم و صمیمی", d: "لحنی دوستانه و روان؛ مناسب مقاله و متن‌های روزمره.",
         s: "<circle cx=\"32\" cy=\"30\" r=\"31\" fill=\"url(#avBg)\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"#1aa58f\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"url(#avBd)\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"#f0c29b\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"url(#avNk)\"/><path d=\"M21 49c1.600 7 5.400 11.200 11 11.200S41.400 56 43 49c-1.400 2.600-4.200 4.600-6 5.200-3 1-6 1-8.600 0-2-.8-4.800-2.600-6.400-5.200z\" fill=\"#0f8672\"/><path d=\"M23.400 46c2.400 3.600 5.200 5.400 8.600 5.400s6.200-1.800 8.600-5.400c-.2 3.200-2 6-4.200 7.600-2.800 1.400-5.800 1.400-8.600 0-2.200-1.600-4-4.400-4.400-7.600z\" fill=\"#0f8672\" opacity=\".7\"/><path d=\"M28.800 53.500v7.400M35.200 53.500v7.400\" stroke=\"#e9fff9\" stroke-width=\"1.300\" stroke-linecap=\"round\"/><g transform=\"translate(21.2 28.5) scale(1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#f0c29b\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><g transform=\"translate(42.8 28.5) scale(-1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#f0c29b\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"#f0c29b\"/><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"url(#avF)\"/><ellipse cx=\"25\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"39\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"26.5\" cy=\"21\" rx=\"3.6\" ry=\"2\" fill=\"url(#avHi)\" opacity=\".5\"/><ellipse cx=\"32\" cy=\"16.5\" rx=\"5\" ry=\"2.2\" fill=\"url(#avHi)\" opacity=\".45\"/><path d=\"M25.400 22.800q2-1.700 4.400-.2M34.200 22.600q2.400-1.500 4.400.2\" fill=\"none\" stroke=\"#4d2f1c\" stroke-width=\"1.500\" stroke-linecap=\"round\"/><g transform=\"translate(27.3 26.8)\"><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#5a3a1f\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.5 .3C-1.815 -2.9 1.815 -2.9 3.5 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><g transform=\"translate(36.7 26.8)\"><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#5a3a1f\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.5 .3C-1.815 -2.9 1.815 -2.9 3.5 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><path d=\"M32 27.2c-.6 2.4-1.5 4.2-1.9 5.6.9.9 2.9.9 3.8 0-.4-1.4-1.3-3.2-1.9-5.6z\" fill=\"url(#avSh)\" opacity=\".42\"/><ellipse cx=\"30.8\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"33.2\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"32\" cy=\"32.1\" rx=\"1.4\" ry=\".9\" fill=\"url(#avHi)\" opacity=\".8\"/><path d=\"M29.6 26.6c.6-.5 1-.3 1.2.2\" fill=\"none\" stroke=\"#2a0e04\" stroke-width=\".4\" opacity=\".25\" stroke-linecap=\"round\"/><path d=\"M27.400 34.400c1.400 4.800 7.800 4.800 9.200 0-2.800 1-6.400 1-9.200 0z\" fill=\"#7a2a24\"/><path d=\"M27.800 34.500c2.600 1 5.800 1 8.400 0-.2 1.100-.6 1.600-1 1.700-2.100.5-4.300.5-6.400 0-.4-.1-.8-.6-1-1.700z\" fill=\"#fff\"/><ellipse cx=\"32\" cy=\"38\" rx=\"2.200\" ry=\"1\" fill=\"#d9605a\"/><path d=\"M27.200 34.200c1.800 1.200 7.800 1.200 9.600 0\" fill=\"none\" stroke=\"#a8503f\" stroke-width=\".7\" stroke-linecap=\"round\"/><path d=\"M27.600 35.200c1.600 5.300 7.200 5.300 8.800 0\" fill=\"none\" stroke=\"#a8503f\" stroke-width=\".7\" stroke-linecap=\"round\"/><path d=\"M26.200 33.400q-.9 1 0 2.200M37.800 33.400q.9 1 0 2.200\" fill=\"none\" stroke=\"#c07a60\" stroke-width=\".6\" stroke-linecap=\"round\"/><path d=\"M20.200 27c-2.200-10.500 3.400-17.800 12.400-17.800 8.400 0 13.800 6.200 11.400 17.600-.9-5.600-3.700-9.600-8.200-10.200-3.400 1.800-8.200 2-11.200 4-2.100 1.200-3.400 3.600-4.400 6.400z\" fill=\"#5c3b24\"/><path d=\"M20.200 27c-2.200-10.500 3.400-17.800 12.400-17.800 8.400 0 13.800 6.200 11.400 17.600-.9-5.600-3.700-9.600-8.200-10.200-3.400 1.800-8.200 2-11.200 4-2.100 1.200-3.400 3.600-4.400 6.400z\" fill=\"url(#avHr)\"/><path d=\"M29.500 10.500c1.400-4.400 6-5.400 8.400-3.200-3.200-.4-4.800.8-5.800 4.200z\" fill=\"#5c3b24\"/><path d=\"M25 15.500c3.200-2.200 8.400-2.800 12-.8M22.600 21.500c1-3 2.800-4.800 5-5.800\" fill=\"none\" stroke=\"#a87a52\" stroke-width=\".9\" stroke-linecap=\"round\" opacity=\".5\"/><ellipse cx=\"27.500\" cy=\"13.800\" rx=\"5\" ry=\"1.500\" transform=\"rotate(-14 27.500 13.800)\" fill=\"url(#avHi)\" opacity=\".75\"/><ellipse cx=\"32\" cy=\"64\" rx=\"26\" ry=\"6\" fill=\"#000\" opacity=\"0\"/><circle cx=\"32\" cy=\"32\" r=\"32\" fill=\"url(#avVg)\"/><ellipse cx=\"22\" cy=\"10\" rx=\"24\" ry=\"13\" transform=\"rotate(-18 22 10)\" fill=\"url(#avGl)\"/>" },
       adabi: { c: ['#f2b24a', '#b4651b'], t: "مردانه · ادبی و داستان‌گو", d: "لحنی نرم و قصه‌گو؛ مناسب رمان، شعر و متن ادبی.",
-        s: "<circle cx=\"32\" cy=\"30\" r=\"31\" fill=\"url(#avBg)\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"#7b5a3c\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"url(#avBd)\"/><path d=\"M22.400 47.400 32 56l9.600-8.600-3-1.800-6.600 5-6.600-5z\" fill=\"#eadfc6\"/><path d=\"M22.400 47.400 32 56l9.600-8.600-3-1.800-6.600 5-6.600-5z\" fill=\"url(#avBd)\" opacity=\".5\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"#d2997a\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"url(#avNk)\"/><path d=\"M27 44.800 32 50.400l5-5.600-2.600-1.200L32 46l-2.400-2.400z\" fill=\"#f3e9d2\"/><g transform=\"translate(21.2 28.5) scale(1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#d2997a\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><g transform=\"translate(42.8 28.5) scale(-1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#d2997a\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"#d2997a\"/><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"url(#avF)\"/><ellipse cx=\"25\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"39\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"26.5\" cy=\"21\" rx=\"3.6\" ry=\"2\" fill=\"url(#avHi)\" opacity=\".5\"/><ellipse cx=\"32\" cy=\"16.5\" rx=\"5\" ry=\"2.2\" fill=\"url(#avHi)\" opacity=\".45\"/><path d=\"M21 23.500c-2.200 3.200-2.400 8.500-1.200 12.200 1.200-1 2.400-2.400 2.800-4.600zM43 23.500c2.200 3.200 2.400 8.500 1.200 12.200-1.200-1-2.400-2.400-2.800-4.600z\" fill=\"#b8b8c4\"/><path d=\"M24 19.800q8-2.400 16 0M24.600 31.800q-1 .8-1.400 2M39.400 31.800q1 .8 1.400 2\" fill=\"none\" stroke=\"#7a4a30\" stroke-width=\".5\" opacity=\".35\" stroke-linecap=\"round\"/><g transform=\"translate(27.3 27)\"><path d=\"M-3.1 .2C-1.7050000000000003 -2.5 1.7050000000000003 -2.5 3.1 .2 1.7050000000000003 2.2 -1.7050000000000003 2.2 -3.1 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.1 .2C-1.7050000000000003 -2.5 1.7050000000000003 -2.5 3.1 .2 1.7050000000000003 2.2 -1.7050000000000003 2.2 -3.1 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a3422\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.3000000000000003 .3C-1.7050000000000003 -2.9 1.7050000000000003 -2.9 3.3000000000000003 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><g transform=\"translate(36.7 27)\"><path d=\"M-3.1 .2C-1.7050000000000003 -2.5 1.7050000000000003 -2.5 3.1 .2 1.7050000000000003 2.2 -1.7050000000000003 2.2 -3.1 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.1 .2C-1.7050000000000003 -2.5 1.7050000000000003 -2.5 3.1 .2 1.7050000000000003 2.2 -1.7050000000000003 2.2 -3.1 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a3422\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.3000000000000003 .3C-1.7050000000000003 -2.9 1.7050000000000003 -2.9 3.3000000000000003 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><path d=\"M32 27.2c-.6 2.4-1.5 4.2-1.9 5.6.9.9 2.9.9 3.8 0-.4-1.4-1.3-3.2-1.9-5.6z\" fill=\"url(#avSh)\" opacity=\".42\"/><ellipse cx=\"30.8\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"33.2\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"32\" cy=\"32.1\" rx=\"1.4\" ry=\".9\" fill=\"url(#avHi)\" opacity=\".8\"/><path d=\"M29.6 26.6c.6-.5 1-.3 1.2.2\" fill=\"none\" stroke=\"#2a0e04\" stroke-width=\".4\" opacity=\".25\" stroke-linecap=\"round\"/><path d=\"M24.200 23.600q2.800-2.200 5.800-.4M34 23.200q3-1.800 5.800.4\" fill=\"none\" stroke=\"#b4b4c0\" stroke-width=\"1.900\" stroke-linecap=\"round\"/><path d=\"M24.200 34.400c3.200-3 5.800-2.400 7.800-.6 2-1.800 4.600-2.400 7.800.6-3.200 4-6 2.400-7.800 1.200-1.800 1.200-4.600 2.800-7.800-1.200z\" fill=\"#b9b9c5\"/><path d=\"M24.200 34.400c3.200-3 5.800-2.400 7.800-.6 2-1.800 4.600-2.400 7.800.6-3.200 4-6 2.400-7.800 1.200-1.800 1.200-4.600 2.800-7.800-1.200z\" fill=\"url(#avHr)\" opacity=\".8\"/><path d=\"M29 37.600q3 1 6 0\" fill=\"none\" stroke=\"#7a3a2e\" stroke-width=\".9\" stroke-linecap=\"round\"/><ellipse cx=\"32\" cy=\"16.600\" rx=\"16\" ry=\"6.200\" fill=\"#8a2f3a\"/><ellipse cx=\"32\" cy=\"16.600\" rx=\"16\" ry=\"6.200\" fill=\"url(#avHr)\"/><path d=\"M17 17.200c3-3.600 9.400-5.400 15-5.400s12 1.800 15 5.400c-3.600 1.800-9.400 2.600-15 2.600s-11.400-.8-15-2.600z\" fill=\"#a03a46\"/><path d=\"M17 17.200c3-3.600 9.400-5.400 15-5.400s12 1.800 15 5.400c-3.600 1.800-9.400 2.600-15 2.600s-11.400-.8-15-2.600z\" fill=\"url(#avHr)\"/><circle cx=\"32.500\" cy=\"10.200\" r=\"1.800\" fill=\"#7a2631\"/><ellipse cx=\"26\" cy=\"13.400\" rx=\"5\" ry=\"1.300\" transform=\"rotate(-10 26 13.400)\" fill=\"url(#avHi)\" opacity=\".7\"/><g transform=\"rotate(-9 51 55)\"><rect x=\"42.500\" y=\"47.500\" width=\"16\" height=\"12.500\" rx=\"1.600\" fill=\"#f3e2b0\"/><rect x=\"42.500\" y=\"47.500\" width=\"16\" height=\"12.500\" rx=\"1.600\" fill=\"url(#avBd)\" opacity=\".7\"/><path d=\"M50.500 47.500V60\" stroke=\"#6b4a2a\" stroke-width=\"1\"/><path d=\"M44.500 50.500h4.200M44.500 53h4.200M52.500 50.500h4.200M52.500 53h4.200\" stroke=\"#8a6a44\" stroke-width=\".7\" opacity=\".7\"/></g><ellipse cx=\"46\" cy=\"62\" rx=\"3\" ry=\"2.600\" fill=\"#d2997a\"/><ellipse cx=\"46\" cy=\"62\" rx=\"3\" ry=\"2.600\" fill=\"url(#avF)\"/><ellipse cx=\"32\" cy=\"64\" rx=\"26\" ry=\"6\" fill=\"#000\" opacity=\"0\"/><circle cx=\"32\" cy=\"32\" r=\"32\" fill=\"url(#avVg)\"/><ellipse cx=\"22\" cy=\"10\" rx=\"24\" ry=\"13\" transform=\"rotate(-18 22 10)\" fill=\"url(#avGl)\"/>" },
-      negin: { c: ['#ff7aa8', '#7b3fd6'], t: "زنانه · گفتاری و صمیمی", d: "لحنی روان و محاوره‌ای؛ مناسب مقاله، وبلاگ و متن‌های روزمره.",
-        s: "<circle cx=\"32\" cy=\"30\" r=\"31\" fill=\"url(#avBg)\"/><path d=\"M17.200 30C16 14 23.500 6.600 32 6.600S48 14 46.800 30c.2 10 1.200 17 3.400 23.400H13.800c2.200-6.400 3.400-13.400 3.400-23.400z\" fill=\"#2b1a2f\"/><path d=\"M17.200 30C16 14 23.500 6.600 32 6.600S48 14 46.800 30c.2 10 1.200 17 3.400 23.400H13.800c2.200-6.400 3.400-13.400 3.400-23.400z\" fill=\"url(#avHr)\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"#7a4fd1\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"url(#avBd)\"/><path d=\"M22 50c3-1.400 6-2 10-2s7 .6 10 2c-1 3.600-2 6.400-4 10.500-2 .8-4 1.200-6 1.200s-4-.4-6-1.200c-2-4.100-3-6.900-4-10.500z\" fill=\"#8e63e4\" opacity=\".55\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"#f4cbab\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"url(#avNk)\"/><path d=\"M23.600 46.400q8.400 9 16.800 0c-1.400-2-3-3.200-4.200-3.800H27.800c-1.200.6-2.800 1.800-4.200 3.800z\" fill=\"#f4cbab\"/><path d=\"M23.600 46.400q8.400 9 16.800 0c-1.400-2-3-3.200-4.200-3.800H27.800c-1.200.6-2.800 1.800-4.200 3.800z\" fill=\"url(#avNk)\" opacity=\".55\"/><path d=\"M29 50.200l1.300 1.600 1.700-1.400 1.700 1.400 1.300-1.600\" fill=\"none\" stroke=\"#f5d36b\" stroke-width=\".8\" stroke-linecap=\"round\"/><circle cx=\"32\" cy=\"52.800\" r=\"1.100\" fill=\"#f5d36b\"/><circle cx=\"31.700\" cy=\"52.500\" r=\".4\" fill=\"#fff\"/><path d=\"M21.6 25.5C21.4 17.3 26 12.8 32 12.8s10.6 4.5 10.4 12.7c-.1 4.5-1.2 8.2-3.4 11.4-1.8 2.6-4.3 4.3-7 4.3s-5.2-1.7-7-4.3c-2.2-3.2-3.3-6.9-3.4-11.4z\" fill=\"#f4cbab\"/><path d=\"M21.6 25.5C21.4 17.3 26 12.8 32 12.8s10.6 4.5 10.4 12.7c-.1 4.5-1.2 8.2-3.4 11.4-1.8 2.6-4.3 4.3-7 4.3s-5.2-1.7-7-4.3c-2.2-3.2-3.3-6.9-3.4-11.4z\" fill=\"url(#avF)\"/><ellipse cx=\"25\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"39\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"26.5\" cy=\"21\" rx=\"3.6\" ry=\"2\" fill=\"url(#avHi)\" opacity=\".5\"/><ellipse cx=\"32\" cy=\"16.5\" rx=\"5\" ry=\"2.2\" fill=\"url(#avHi)\" opacity=\".45\"/><path d=\"M25.200 22.600q2.200-1.800 4.600-.4M34.200 22.200q2.400-1.400 4.600.4\" fill=\"none\" stroke=\"#2b1a2f\" stroke-width=\"1.100\" stroke-linecap=\"round\"/><g transform=\"translate(27.3 26.6)\"><path d=\"M-3.2 .2C-1.7600000000000002 -2.8 1.7600000000000002 -2.8 3.2 .2 1.7600000000000002 2.2 -1.7600000000000002 2.2 -3.2 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.2 .2C-1.7600000000000002 -2.8 1.7600000000000002 -2.8 3.2 .2 1.7600000000000002 2.2 -1.7600000000000002 2.2 -3.2 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a2c1c\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.4000000000000004 .3C-1.7600000000000002 -3.1999999999999997 1.7600000000000002 -3.1999999999999997 3.4000000000000004 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"1.05\" stroke-linecap=\"round\"/></g><g transform=\"translate(36.7 26.6)\"><path d=\"M-3.2 .2C-1.7600000000000002 -2.8 1.7600000000000002 -2.8 3.2 .2 1.7600000000000002 2.2 -1.7600000000000002 2.2 -3.2 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.2 .2C-1.7600000000000002 -2.8 1.7600000000000002 -2.8 3.2 .2 1.7600000000000002 2.2 -1.7600000000000002 2.2 -3.2 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a2c1c\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.4000000000000004 .3C-1.7600000000000002 -3.1999999999999997 1.7600000000000002 -3.1999999999999997 3.4000000000000004 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"1.05\" stroke-linecap=\"round\"/></g><path d=\"M23.900 26.200l-1-.7M40.100 26.200l1-.7\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\".8\" stroke-linecap=\"round\"/><path d=\"M32 27.2c-.6 2.4-1.5 4.2-1.9 5.6.9.9 2.9.9 3.8 0-.4-1.4-1.3-3.2-1.9-5.6z\" fill=\"url(#avSh)\" opacity=\".42\"/><ellipse cx=\"30.8\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"33.2\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"32\" cy=\"32.1\" rx=\"1.4\" ry=\".9\" fill=\"url(#avHi)\" opacity=\".8\"/><path d=\"M29.6 26.6c.6-.5 1-.3 1.2.2\" fill=\"none\" stroke=\"#2a0e04\" stroke-width=\".4\" opacity=\".25\" stroke-linecap=\"round\"/><path d=\"M28.7 36.4c1.2-1.25 2.3-.6 3.3-.2 1.7-.4 2.8-1 3.3.2-.9 1-2.100 1.500-3.3 1.500s-2.4 -.5-3.3 -1.500z\" fill=\"#c2415a\"/><path d=\"M29.099999999999998 36.6c.8 2.3 5.0 2.3 5.8 0-3.3 .6-3.4 .6-5.8 0z\" fill=\"#c2415a\"/><path d=\"M29.099999999999998 36.6c.8 2.3 5.0 2.3 5.8 0-3.3 .6-3.4 .6-5.8 0z\" fill=\"url(#avLip)\"/><ellipse cx=\"32\" cy=\"37.75\" rx=\"1.4\" ry=\".45\" fill=\"#fff\" opacity=\".45\"/><path d=\"M28.9 36.5q3.0999999999999996 .7 6.199999999999999 0\" fill=\"none\" stroke=\"#3a1008\" stroke-width=\".45\" opacity=\".55\" stroke-linecap=\"round\"/><path d=\"M20.600 29c-1-10.600 4.600-17.400 11.400-17.400 7 0 12 6 11.400 17.400-1.400-5.800-4.600-9.600-8.800-10.400-2.600 2.200-7.400 3.600-10.600 6.400-1 .8-2.600 2.400-3.400 4z\" fill=\"#2b1a2f\"/><path d=\"M20.600 29c-1-10.600 4.600-17.400 11.400-17.400 7 0 12 6 11.400 17.400-1.400-5.800-4.600-9.600-8.800-10.400-2.600 2.200-7.400 3.600-10.600 6.400-1 .8-2.600 2.400-3.400 4z\" fill=\"url(#avHr)\"/><path d=\"M19.200 30c-.6 8 .6 14 2.400 20M44.800 30c.6 8-.6 14-2.400 20\" fill=\"none\" stroke=\"#fff\" stroke-width=\".9\" stroke-linecap=\"round\" opacity=\".14\"/><path d=\"M24 14.400c3.600-2.400 9.400-2.800 13.600-.4\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1.200\" stroke-linecap=\"round\" opacity=\".32\"/><ellipse cx=\"27.500\" cy=\"13.200\" rx=\"5.500\" ry=\"1.500\" transform=\"rotate(-14 27.500 13.200)\" fill=\"url(#avHi)\" opacity=\".8\"/><circle cx=\"20.800\" cy=\"33.600\" r=\"1.300\" fill=\"#f5d36b\"/><circle cx=\"20.500\" cy=\"33.200\" r=\".45\" fill=\"#fff\"/><circle cx=\"43.200\" cy=\"33.600\" r=\"1.300\" fill=\"#f5d36b\"/><circle cx=\"42.900\" cy=\"33.200\" r=\".45\" fill=\"#fff\"/><ellipse cx=\"32\" cy=\"64\" rx=\"26\" ry=\"6\" fill=\"#000\" opacity=\"0\"/><circle cx=\"32\" cy=\"32\" r=\"32\" fill=\"url(#avVg)\"/><ellipse cx=\"22\" cy=\"10\" rx=\"24\" ry=\"13\" transform=\"rotate(-18 22 10)\" fill=\"url(#avGl)\"/>" }
+        s: "<circle cx=\"32\" cy=\"30\" r=\"31\" fill=\"url(#avBg)\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"#7b5a3c\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"url(#avBd)\"/><path d=\"M22.400 47.400 32 56l9.600-8.600-3-1.800-6.600 5-6.600-5z\" fill=\"#eadfc6\"/><path d=\"M22.400 47.400 32 56l9.600-8.600-3-1.800-6.600 5-6.600-5z\" fill=\"url(#avBd)\" opacity=\".5\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"#d2997a\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"url(#avNk)\"/><path d=\"M27 44.800 32 50.400l5-5.600-2.600-1.200L32 46l-2.400-2.400z\" fill=\"#f3e9d2\"/><g transform=\"translate(21.2 28.5) scale(1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#d2997a\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><g transform=\"translate(42.8 28.5) scale(-1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#d2997a\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"#d2997a\"/><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"url(#avF)\"/><ellipse cx=\"25\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"39\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"26.5\" cy=\"21\" rx=\"3.6\" ry=\"2\" fill=\"url(#avHi)\" opacity=\".5\"/><ellipse cx=\"32\" cy=\"16.5\" rx=\"5\" ry=\"2.2\" fill=\"url(#avHi)\" opacity=\".45\"/><path d=\"M21 23.500c-2.200 3.200-2.400 8.500-1.200 12.200 1.200-1 2.400-2.400 2.800-4.600zM43 23.500c2.200 3.200 2.400 8.500 1.200 12.200-1.200-1-2.400-2.400-2.800-4.600z\" fill=\"#b8b8c4\"/><path d=\"M24 19.800q8-2.400 16 0M24.600 31.800q-1 .8-1.400 2M39.400 31.800q1 .8 1.400 2\" fill=\"none\" stroke=\"#7a4a30\" stroke-width=\".5\" opacity=\".35\" stroke-linecap=\"round\"/><g transform=\"translate(27.3 27)\"><path d=\"M-3.1 .2C-1.7050000000000003 -2.5 1.7050000000000003 -2.5 3.1 .2 1.7050000000000003 2.2 -1.7050000000000003 2.2 -3.1 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.1 .2C-1.7050000000000003 -2.5 1.7050000000000003 -2.5 3.1 .2 1.7050000000000003 2.2 -1.7050000000000003 2.2 -3.1 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a3422\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.3000000000000003 .3C-1.7050000000000003 -2.9 1.7050000000000003 -2.9 3.3000000000000003 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><g transform=\"translate(36.7 27)\"><path d=\"M-3.1 .2C-1.7050000000000003 -2.5 1.7050000000000003 -2.5 3.1 .2 1.7050000000000003 2.2 -1.7050000000000003 2.2 -3.1 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.1 .2C-1.7050000000000003 -2.5 1.7050000000000003 -2.5 3.1 .2 1.7050000000000003 2.2 -1.7050000000000003 2.2 -3.1 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a3422\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.3000000000000003 .3C-1.7050000000000003 -2.9 1.7050000000000003 -2.9 3.3000000000000003 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><path d=\"M32 27.2c-.6 2.4-1.5 4.2-1.9 5.6.9.9 2.9.9 3.8 0-.4-1.4-1.3-3.2-1.9-5.6z\" fill=\"url(#avSh)\" opacity=\".42\"/><ellipse cx=\"30.8\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"33.2\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"32\" cy=\"32.1\" rx=\"1.4\" ry=\".9\" fill=\"url(#avHi)\" opacity=\".8\"/><path d=\"M29.6 26.6c.6-.5 1-.3 1.2.2\" fill=\"none\" stroke=\"#2a0e04\" stroke-width=\".4\" opacity=\".25\" stroke-linecap=\"round\"/><path d=\"M24.200 23.600q2.800-2.200 5.800-.4M34 23.200q3-1.800 5.800.4\" fill=\"none\" stroke=\"#b4b4c0\" stroke-width=\"1.900\" stroke-linecap=\"round\"/><path d=\"M24.200 34.400c3.200-3 5.800-2.400 7.800-.6 2-1.800 4.600-2.400 7.800.6-3.200 4-6 2.400-7.800 1.200-1.800 1.200-4.600 2.800-7.800-1.200z\" fill=\"#b9b9c5\"/><path d=\"M24.200 34.400c3.200-3 5.800-2.400 7.800-.6 2-1.800 4.600-2.400 7.800.6-3.200 4-6 2.400-7.800 1.200-1.800 1.200-4.600 2.800-7.800-1.200z\" fill=\"url(#avHr)\" opacity=\".8\"/><path d=\"M29 37.600q3 1 6 0\" fill=\"none\" stroke=\"#7a3a2e\" stroke-width=\".9\" stroke-linecap=\"round\"/><ellipse cx=\"32\" cy=\"16.600\" rx=\"16\" ry=\"6.200\" fill=\"#8a2f3a\"/><ellipse cx=\"32\" cy=\"16.600\" rx=\"16\" ry=\"6.200\" fill=\"url(#avHr)\"/><path d=\"M17 17.200c3-3.600 9.400-5.400 15-5.400s12 1.800 15 5.400c-3.600 1.800-9.400 2.600-15 2.600s-11.400-.8-15-2.600z\" fill=\"#a03a46\"/><path d=\"M17 17.200c3-3.600 9.400-5.400 15-5.400s12 1.800 15 5.400c-3.600 1.800-9.400 2.600-15 2.600s-11.400-.8-15-2.600z\" fill=\"url(#avHr)\"/><circle cx=\"32.500\" cy=\"10.200\" r=\"1.800\" fill=\"#7a2631\"/><ellipse cx=\"26\" cy=\"13.400\" rx=\"5\" ry=\"1.300\" transform=\"rotate(-10 26 13.400)\" fill=\"url(#avHi)\" opacity=\".7\"/><g transform=\"rotate(-9 51 55)\"><rect x=\"42.500\" y=\"47.500\" width=\"16\" height=\"12.500\" rx=\"1.600\" fill=\"#f3e2b0\"/><rect x=\"42.500\" y=\"47.500\" width=\"16\" height=\"12.500\" rx=\"1.600\" fill=\"url(#avBd)\" opacity=\".7\"/><path d=\"M50.500 47.500V60\" stroke=\"#6b4a2a\" stroke-width=\"1\"/><path d=\"M44.500 50.500h4.200M44.500 53h4.200M52.500 50.500h4.200M52.500 53h4.200\" stroke=\"#8a6a44\" stroke-width=\".7\" opacity=\".7\"/></g><ellipse cx=\"46\" cy=\"62\" rx=\"3\" ry=\"2.600\" fill=\"#d2997a\"/><ellipse cx=\"46\" cy=\"62\" rx=\"3\" ry=\"2.600\" fill=\"url(#avF)\"/><ellipse cx=\"32\" cy=\"64\" rx=\"26\" ry=\"6\" fill=\"#000\" opacity=\"0\"/><circle cx=\"32\" cy=\"32\" r=\"32\" fill=\"url(#avVg)\"/><ellipse cx=\"22\" cy=\"10\" rx=\"24\" ry=\"13\" transform=\"rotate(-18 22 10)\" fill=\"url(#avGl)\"/>" }
     };
-    AV.sahar = { c: ['#f58fb8', '#c0468b'], t: "زنانه · رسمی و شمرده", d: "لحنی شفاف و آرام؛ مناسب آموزش، گزارش و کتاب صوتی.", s: AV.negin.s };
     var GEN = "<circle cx=\"32\" cy=\"30\" r=\"31\" fill=\"url(#avBg)\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"#e9eefc\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"url(#avBd)\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"#e6b794\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"url(#avNk)\"/><g transform=\"translate(21.2 28.5) scale(1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#e6b794\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><g transform=\"translate(42.8 28.5) scale(-1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#e6b794\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"#e6b794\"/><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"url(#avF)\"/><ellipse cx=\"25\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"39\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"26.5\" cy=\"21\" rx=\"3.6\" ry=\"2\" fill=\"url(#avHi)\" opacity=\".5\"/><ellipse cx=\"32\" cy=\"16.5\" rx=\"5\" ry=\"2.2\" fill=\"url(#avHi)\" opacity=\".45\"/><path d=\"M20.800 26.500c-1.400-9 3-15.500 11.400-15.500 7.800 0 12.400 5.300 11 15.200-.6-4.300-2.200-7-4.800-8.600-3.600 2-9 2.400-12.800 1.400-2.400 1.800-4.200 4.500-4.800 7.500z\" fill=\"#3b3040\"/><path d=\"M20.800 26.500c-1.400-9 3-15.500 11.400-15.500 7.800 0 12.400 5.300 11 15.200-.6-4.300-2.200-7-4.800-8.600-3.600 2-9 2.400-12.800 1.400-2.400 1.800-4.200 4.500-4.800 7.500z\" fill=\"url(#avHr)\"/><g transform=\"translate(27.3 26.8)\"><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a2f1d\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.5 .3C-1.815 -2.9 1.815 -2.9 3.5 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><g transform=\"translate(36.7 26.8)\"><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a2f1d\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.5 .3C-1.815 -2.9 1.815 -2.9 3.5 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><path d=\"M32 27.2c-.6 2.4-1.5 4.2-1.9 5.6.9.9 2.9.9 3.8 0-.4-1.4-1.3-3.2-1.9-5.6z\" fill=\"url(#avSh)\" opacity=\".42\"/><ellipse cx=\"30.8\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"33.2\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"32\" cy=\"32.1\" rx=\"1.4\" ry=\".9\" fill=\"url(#avHi)\" opacity=\".8\"/><path d=\"M29.6 26.6c.6-.5 1-.3 1.2.2\" fill=\"none\" stroke=\"#2a0e04\" stroke-width=\".4\" opacity=\".25\" stroke-linecap=\"round\"/><path d=\"M28.8 36.6c1.2-1.0 2.3-.6 3.2-.2 1.7-.4 2.8-1 3.2.2-.9 1-2.100 1.500-3.2 1.500s-2.3000000000000003 -.5-3.2 -1.500z\" fill=\"#b56a5a\"/><path d=\"M29.2 36.800000000000004c.8 1.7 4.800000000000001 1.7 5.6000000000000005 0-3.2 .6-3.3000000000000003 .6-5.6000000000000005 0z\" fill=\"#b56a5a\"/><path d=\"M29.2 36.800000000000004c.8 1.7 4.800000000000001 1.7 5.6000000000000005 0-3.2 .6-3.3000000000000003 .6-5.6000000000000005 0z\" fill=\"url(#avLip)\"/><ellipse cx=\"32\" cy=\"37.95\" rx=\"1.4\" ry=\".45\" fill=\"#fff\" opacity=\".45\"/><path d=\"M29.0 36.7q3.0 .7 6.0 0\" fill=\"none\" stroke=\"#3a1008\" stroke-width=\".45\" opacity=\".55\" stroke-linecap=\"round\"/><ellipse cx=\"32\" cy=\"64\" rx=\"26\" ry=\"6\" fill=\"#000\" opacity=\"0\"/><circle cx=\"32\" cy=\"32\" r=\"32\" fill=\"url(#avVg)\"/><ellipse cx=\"22\" cy=\"10\" rx=\"24\" ry=\"13\" transform=\"rotate(-18 22 10)\" fill=\"url(#avGl)\"/>";
     var ST = {   /* آیکون و رنگ هر سبک */
       serene: ['M20 14.500A8 8 0 0 1 9.500 4 8 8 0 1 0 20 14.500z', '#6c7bff'],
@@ -10353,7 +10460,7 @@ var ocrSpell = (function(){
       lively: ['M13 3L5 14h6l-1 7 8-11h-6z', '#f2693a']
     };
     if (!document.getElementById('avF')) document.body.insertAdjacentHTML('beforeend', AVDEFS);
-    function key(id){ return /adabi/i.test(id) ? 'adabi' : /gyro/i.test(id) ? 'gyro' : /ganji/i.test(id) ? 'ganji' : /negin/i.test(id) ? 'negin' : /sahar/i.test(id) ? 'sahar' : ''; }
+    function key(id){ return /adabi/i.test(id) ? 'adabi' : /gyro/i.test(id) ? 'gyro' : /ganji/i.test(id) ? 'ganji' : ''; }
     function vinfo(id){
       var all = allVoices(), v = null, i, k = key(id), a = AV[k] || null;
       for (i = 0; i < all.length; i++) if (all[i].id === id) { v = all[i]; break; }
