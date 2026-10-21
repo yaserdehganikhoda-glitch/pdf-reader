@@ -1955,6 +1955,7 @@ body.view-page .stage{touch-action:pan-x pan-y}
 </section>
 
 <script src="lib/pdf.min.js"></script>
+<script>window.addEventListener("error",function(e){try{if(e&&/fa_lexicon/.test(e.filename||""))window.__faLexErr=String(e.message||"error")+" @"+(e.lineno||"?")+":"+(e.colno||"?");}catch(x){}});</script>
 <script src="fa_lexicon.js" onerror="window.__faLexMissing=1"></script>
 <script>window.pdfLocal = !!window.pdfjsLib;</script>
 <script>
@@ -2242,7 +2243,7 @@ body.view-page .stage{touch-action:pan-x pan-y}
       add(r[1] && r[2] && window.pdfjsLib, 'نمایش PDF (pdf.js)');
       add(r[3] && r[4], 'نگاشت‌ها و فونت‌های کمکی PDF', true);
       add(r[5], 'موتور و مدل‌های OCR (PaddleOCR)' + (r[5] ? '' : (probeBad.length ? ' — پیدا نشد: ' + probeBad.join(' ، ') : '')));
-      add(r[6] && dq.on, 'واژه‌نامهٔ املایی (fa_lexicon.js)' + (r[6] && dq.on ? ': ' + nf.format(dq.fileWords) + ' واژه' : ''), true, !r[6] ? ' — فایل داخل برنامه نیست؛ املا فقط با فهرست پایهٔ کوچک کار می‌کند' : ' — فایل هست ولی واژه‌ای از آن خوانده نشد (نام متغیر، const یا قالب)');
+      add(r[6] && dq.on, 'واژه‌نامهٔ املایی (fa_lexicon.js)' + (r[6] && dq.on ? ': ' + nf.format(dq.fileWords) + ' واژه' : ''), true, !r[6] ? ' — فایل داخل برنامه نیست؛ املا فقط با فهرست پایهٔ کوچک کار می‌کند' : ' — فایل هست ولی واژه‌ای از آن خوانده نشد' + (window.__faLexErr ? ' · خطای اجرا: ' + window.__faLexErr : ' (خطای اجرایی ثبت نشد؛ نام متغیر یا قالب؟)'));
       add(npOK, 'موتور صدای بومی');
       add(b.length > 0 || s.length > 0, 'صداهای فارسی: ' + nf.format(s.length) + ' نصب‌شده' + (b.length ? '، ' + nf.format(b.length) + ' همراه برنامه' : ' (بعد از نصب برنامه دانلود می‌شوند)'), true, '');
       out.textContent = '';
@@ -4130,7 +4131,7 @@ var ocrSpell = (function(){
   };
   window.dictLine = function(){
     var d = window.dictStatus();
-    return (d.on ? 'فعال ✅' : 'غیرفعال ❌') + ' — واژه‌های فایل: ' + d.fileWords + (d.src ? ' (' + d.src + ')' : '') + ' · کل دیکشنری: ' + d.total + ' · رمزگشایی OCR: ' + (d.ocrLex === null ? '-' : d.ocrLex ? 'روشن' : 'خاموش') + ' · ارسال‌شده به OCR: ' + (d.sent >= 0 ? d.sent : 'هنوز نه') + (d.di ? ' · فهرست حذف: ' + d.di : '') + (d.heapMB ? ' · heap ' + d.heapMB + 'MB' : '') + (d.missing ? ' · ⚠ فایل fa_lexicon.js بارگذاری نشد (onerror)' : '') + (d.err ? ' · خطا: ' + d.err : '');
+    return (d.on ? 'فعال ✅' : 'غیرفعال ❌') + ' — واژه‌های فایل: ' + d.fileWords + (d.src ? ' (' + d.src + ')' : '') + ' · کل دیکشنری: ' + d.total + ' · رمزگشایی OCR: ' + (d.ocrLex === null ? '-' : d.ocrLex ? 'روشن' : 'خاموش') + ' · ارسال‌شده به OCR: ' + (d.sent >= 0 ? d.sent : 'هنوز نه') + (d.di ? ' · فهرست حذف: ' + d.di : '') + (d.heapMB ? ' · heap ' + d.heapMB + 'MB' : '') + (d.missing ? ' · ⚠ فایل fa_lexicon.js بارگذاری نشد (onerror)' : '') + (window.__faLexErr ? ' · ⚠ خطای اجرای fa_lexicon.js: ' + window.__faLexErr : '') + ' · LEX=' + typeof window.FA_LEXICON + ':' + (window.FA_LEXICON ? String(window.FA_LEXICON).length : 0) + (d.err ? ' · خطا: ' + d.err : '');
   };
   function epLabel(e){ if (!e) return ''; var q = e.split(':'); return q[0] === 'webgpu' ? 'WebGPU' : q[0] === 'webgl' ? 'WebGL' : 'WASM SIMD' + (q[1] ? ' ×' + q[1] : ''); }
   function epTag(){ return ocrEp ? ' [' + epLabel(ocrEp) + ']' : ''; }
@@ -6938,7 +6939,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r57 · 2026-10-21 · lex-audit', npBuild = '';
+  var APP_BUILD = 'html-r58 · 2026-10-22 · lex-audit', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
