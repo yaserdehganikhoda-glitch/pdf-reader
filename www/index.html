@@ -2930,6 +2930,11 @@ var ocrSpell = (function(){
   fix.size = function(){ if (!D) build(); return D.size; };
   fix.fwText = function(){ return faText(); };
   fix.setFW = function(t){ GW.FA_WORDS = String(t || ''); fix.reset(); };
+  /* r56: پیش‌ساخت واژه‌نامه (≈۱۱۰ هزار واژه) در زمان بیکاری پس از بارگذاری، تا نخستین اصلاح متن/OCR کند نشود */
+  if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('load', function(){
+    var go = function(){ try { if (!D) build(); } catch (e) {} };
+    if (window.requestIdleCallback) window.requestIdleCallback(go, { timeout: 8000 }); else setTimeout(go, 4000);
+  });
   fix.user = function(ws){                                       /* واژه‌های واژه‌نامهٔ کاربر ← دانسته و محافظت‌شده */
     var ch = false;
     (ws || []).forEach(function(w){ w = normCh(String(w)).replace(/[\u064B-\u0652\u0670]/g, ''); if (w.length >= 2 && PLW.test(w) && !UW.has(w)) { UW.add(w); KEEP.add(w); ch = true; } });
@@ -6826,7 +6831,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r55 · 2026-10-21 · dict-status2', npBuild = '';
+  var APP_BUILD = 'html-r56 · 2026-10-21 · lex-wire', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
