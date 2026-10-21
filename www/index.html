@@ -931,6 +931,13 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 .manno input{width:46px;min-height:28px;height:28px;padding:0 4px;border-radius:999px;font-weight:800;-moz-appearance:textfield;appearance:textfield}
 .manno input::-webkit-outer-spin-button,.manno input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .manbd{gap:8px;padding:8px 10px 12px}
+.manpb{display:flex;align-items:center;justify-content:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line);background:var(--paper)}
+.manpb .mpp{width:40px;height:40px;background:var(--accent);border-color:transparent;color:#fff}
+.manpb .mpp svg{fill:currentColor;stroke:none;width:20px;height:20px}
+.manpb .i-pause{display:none}
+.manpb.on .i-play{display:none}
+.manpb.on .i-pause{display:block}
+.manpb .btn{white-space:nowrap}
 .manpv{padding:4px;min-height:84px;border-radius:14px}
 .manpv canvas{max-height:46vh;max-height:46dvh;border-radius:8px}
 .mcap{margin:-2px 2px 0;font-size:.7rem;text-align:center}
@@ -1831,6 +1838,16 @@ body.view-page .stage{touch-action:pan-x pan-y}
         <button class="mib" id="manPrev" type="button" aria-label="صفحهٔ قبل" title="صفحهٔ قبل"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
       </div>
     </div>
+    <div class="manpb" id="manPb" role="toolbar" aria-label="پخش صدای متن">
+      <button class="mib" id="manPbNext" type="button" aria-label="جملهٔ بعد" title="جملهٔ بعد" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M5 5l10 7-10 7z"/></svg></button>
+      <button class="mib mpp" id="manPbPlay" type="button" aria-label="پخش" title="پخش" disabled>
+        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4L18.2 12z"/></svg>
+        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.2" y="5" width="4.1" height="14" rx="1.5"/><rect x="13.7" y="5" width="4.1" height="14" rx="1.5"/></svg>
+      </button>
+      <button class="mib" id="manPbPrev" type="button" aria-label="جملهٔ قبل" title="جملهٔ قبل" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14M19 5L9 12l10 7z"/></svg></button>
+      <button class="mib" id="manPbStop" type="button" aria-label="توقف" title="توقف" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/></svg></button>
+      <button class="btn xs" id="manPbFrom" type="button" title="پخش از ابتدای همین صفحه">از این صفحه</button>
+    </div>
     <div class="manbd">
       <div class="manpv" id="manPv"><canvas id="manCv" width="2" height="2"></canvas><div id="manSel" hidden></div></div>
       <p class="hint mcap" id="manSrc"></p>
@@ -1864,7 +1881,7 @@ body.view-page .stage{touch-action:pan-x pan-y}
           <div class="mfh"><span>گزینه‌های ویرایش</span><button class="btn xs" id="mfHelp" type="button" aria-pressed="false">راهنما</button></div>
           <div class="mfg" id="mfGrid">
             <label class="mchip"><input type="checkbox" id="mfNorm" checked><span><b>یکدست‌سازی حروف و ارقام</b><small>ي ك ى ← ی ک؛ ارقام عربی و لاتین ← فارسی؛ حذف کشیده.</small></span></label>
-            <label class="mchip"><input type="checkbox" id="mfSp" checked><span><b>فاصله و نیم‌فاصله</b><small>می‌کنم، کتاب‌ها، خانه‌ام؛ جداکردن واژه‌های چسبیده و حذف فاصلهٔ اضافه.</small></span></label>
+            <label class="mchip"><input type="checkbox" id="mfSp" checked><span><b>فاصله و نیم‌فاصله</b><small>می‌کنم، کتاب‌ها، خانه‌ام؛ «ها ی» ← «های»، «خانه ی» ← «خانهٔ»؛ تنوین قیدها (مثلاً)؛ جداکردن واژه‌های چسبیده.</small></span></label>
             <label class="mchip"><input type="checkbox" id="mfSpell" checked><span><b>اصلاح املای OCR</b><small>خطاهای نقطه‌ای و نویسه‌ای با دیکشنری آفلاین.</small></span></label>
             <label class="mchip"><input type="checkbox" id="mfPun" checked><span><b>علائم نگارشی و فاصله‌هایشان</b><small>، ؛ ؟ « » … و فاصلهٔ آن‌ها؛ خط تیره، گیومهٔ جفت و «؟»ی جمله‌های پرسشی.</small></span></label>
             <label class="mchip"><input type="checkbox" id="mfCom" checked><span><b>ویرگول هوشمند</b><small>پیش از اما، ولی، زیرا…؛ پس از بنابراین، البته…؛ پایان بند شرطی «اگر … باشد،»؛ فهرست «الف، ب و ج».</small></span></label>
@@ -2686,9 +2703,11 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
   var miFix = (function(){
     var Z = '\u200c', NB = '(?<![\\p{L}\u200c])', NE = '(?![\\p{L}\u200c])',
         PRES = 'شو|کن|ده|رو|آی|ای|گو|بین|خور|گیر|توان|دان|خواه|باش|دار|نویس|خوان|مان|آور|اور|بر|ساز|یاب|پذیر|ریز|کش|زن|گذار|شناس|فرست|رس|خواب|نشین|پرس|فهم|آموز|گرد|ایست|انداز|افت|افزا|افروز|آفرین|آمیز|آزما|اندیش|کوش|شنو|پرداز|پندار|شمار|خند|پز|پوش|بخش|بند|تاز|تراش|ترس|چین|چسب|خر|خیز|دو|دوز|رقص|رنج|سپار|سوز|شکن|شکف|فروش|فرما|فشار|کار|کوب|گذر|گزین|گشا|گمار|نمای|نواز|پسند|پیچ|پیما|پیوند|بخش|بیز|جو|جنگ|چرخ|خوش|دز|دم|رنج|زی|ستان|سنج|شو|شکن|لرز|مال|مان|نگار|نگر|نشان|هراس|یاب|یاور|بار|بافت?',
-        PAST = 'کرد|گفت|رفت|شد|داد|دید|خواست|آمد|برد|خورد|گرفت|بود|داشت|ماند|نوشت|خواند|توانست|دانست|آورد|ساخت|زد|رسید|پرسید|شنید|فهمید|گذاشت|کشید|ریخت|نشست|افتاد|یافت|ایستاد|انداخت|پرداخت|پنداشت|شمرد|خندید|پوشید|پخت|فروخت|گشت|دوید|ترسید|کوشید|پذیرفت|شناخت|فرستاد|خوابید|خرید|چید|دوخت|سوخت|شکست|شکفت|بخشید|بست|جست|رقصید|ماسید|نمود|نماید|فرمود|گذشت|گزید|گمارد|گمارید|یاوید|سپرد|بافت';
+        PAST = 'کرد|گفت|رفت|شد|داد|دید|خواست|آمد|برد|خورد|گرفت|بود|داشت|ماند|نوشت|خواند|توانست|دانست|آورد|ساخت|زد|رسید|پرسید|شنید|فهمید|گذاشت|کشید|ریخت|نشست|افتاد|یافت|ایستاد|انداخت|پرداخت|پنداشت|شمرد|خندید|پوشید|پخت|فروخت|گشت|دوید|ترسید|کوشید|پذیرفت|شناخت|فرستاد|خوابید|خرید|چید|دوخت|سوخت|شکست|شکفت|بخشید|بست|جست|رقصید|ماسید|نمود|نماید|فرمود|گذشت|گزید|گمارد|گمارید|یاوید|سپرد|بافت|توان|بایست|شایست|بایستی';
     var R = new RegExp(NB + '(ن?می)[ ]?(?!دانی' + NE + ')(?=(?:' + PRES + ')(?:م|ی|یم|ید|ند|یند|د)' + NE + '|(?:' + PAST + ')(?:م|ی|یم|ید|ند)?' + NE + ')', 'gu');
-    return function(t){ return t.replace(R, '$1' + Z); };
+    var f = function(t){ return t.replace(R, '$1' + Z); };
+    f.PRES = PRES; f.PAST = PAST;
+    return f;
   })();
   /* ===== تفکیک پسوند جمع و ضمیر متصل با نیم‌فاصله: کتابها ← کتاب‌ها، کتابهایم ← کتاب‌هایم، کتابمان ← کتاب‌مان ===== */
   var splitSuffix = (function(){
@@ -4480,6 +4499,7 @@ var ocrSpell = (function(){
     $('#manPv').classList.toggle('reg', reg);
     if (!reg) { man.rect = null; manSel(); }
     segSync();
+    if (typeof kaReady !== 'undefined' && kaReady) kaSync();
   }
   function manSel(){
     var r = man.rect, s = $('#manSel');
@@ -4540,8 +4560,8 @@ var ocrSpell = (function(){
   var MF_SRC = 'اaز بeه کeه دaر هaر هaم یaک مaن چeه اaگaر اaمxا وaلی لیکeن بaلکه پaس بaر بaرای بaعد قaبل هaمه هaمین هaمان بeسیار بیشتaر کaمتaر چaند چoنین هaمچoنین بeنابaراین هaمیشه هaرگز مeثل طaبق عaلیه نaزد جoز شoما فaقط حaتxی اaکنون بeدون مaگaر خoد خoدش دیگaر بaعضی بaرخی چaنان اaکثaر اaغلaب کaم سeپaس پoشت کaنار حoدود نeسبaت طaور نaظaر جeهaت خاطeر سaمت نaه دaرباره نaزدیک دaرون مانaند اeینکه آنکeه چoنانکه اaگaرچه هaرچaند چeنانچه لeذا وaلو هaمراه';
   var MF = null, MF_TK = /[\u0621-\u06D3\u200c\u064B-\u0652\u0670\u0654]+/g;
   var MF_INTRO = /^((?:[«"(]\s*)?(?:بنابراین|همچنین|علاوه بر این|علاوه بر آن|به علاوه|به‌علاوه|به عبارت دیگر|به عبارتی|در نتیجه|در واقع|در حقیقت|به طور کلی|به‌طور کلی|به طور خلاصه|به‌طور خلاصه|به هر حال|به‌هرحال|به هر ترتیب|با این حال|با این وجود|از این رو|از این‌رو|البته|مثلاً|مثلا|برای مثال|برای نمونه|به عنوان مثال|به‌عنوان مثال|به عنوان نمونه|از سوی دیگر|از طرف دیگر|از این گذشته|در عوض|در عین حال|در ضمن|ضمناً|ضمنا|لذا|نتیجتاً|اتفاقاً|بدین ترتیب|به این ترتیب|به همین دلیل|به همین علت|به همین خاطر|متأسفانه|خوشبختانه|اولاً|ثانیاً|ثالثاً|اولا|ثانیا|ثالثا))(?=[ \t]+[^\s،,؛;:.!?؟\d۰-۹])/;
-  var MF_CONJ = /(\S)[ \t]+(اما|ولی|لیکن|بلکه|زیرا|درحالی\u200cکه|در حالی که)(?=[ \t])/g;
-  var MF_NOPRE = new Set(['و', 'که', 'یا', 'اگر', 'اما', 'ولی', 'بلکه', 'چه', 'نه', 'هم', 'تا', 'چون', 'زیرا', 'بنابراین']);
+  var MF_CONJ = /(\S)[ \t]+(اما|ولی|لیکن|ولیکن|بلکه|زیرا|چراکه|چرا که|یعنی|بنابراین|لذا|درنتیجه|در نتیجه|درحالی\u200cکه|در حالی که|درحالی که)(?=[ \t])/g;
+  var MF_NOPRE = new Set(['و', 'که', 'یا', 'اگر', 'اما', 'ولی', 'بلکه', 'چه', 'نه', 'هم', 'تا', 'چون', 'زیرا', 'بنابراین', 'لذا', 'یعنی', 'پس', 'نیز', 'همچنین', 'لیکن', 'چراکه', 'آنکه', 'اینکه', 'چنانچه', 'وقتی', 'اکنون', 'سپس', 'البته', 'مثلا', 'مثلاً', 'درنتیجه', 'نتیجه', 'اما،', 'ولی،']);
   function mfInit(){
     MF = {};
     MF_SRC.split(' ').forEach(function(v){ MF[v.replace(/[aeox]/g, '')] = v.replace(/a/g, '\u064E').replace(/e/g, '\u0650').replace(/o/g, '\u064F').replace(/x/g, '\u0651'); });
@@ -4587,7 +4607,7 @@ var ocrSpell = (function(){
   }
   /* ===== هستهٔ نگارش هوشمند (آفلاین و بدون مدل): پرسش/نقطه، ویرگول بندها و فهرست‌ها، کسرهٔ اضافه، تدوین صفحه ===== */
   var MF_PERS = /[\u0621-\u064A\u066E-\u06D3]/;
-  var MF_QW = /^[«"(\[\s]*(?:آیا|چرا(?![ \t]+که)|چگونه|چطور|کجا|کی|مگر(?![ \t]+(?:آنکه|اینکه|این که|آن که))|چقدر|به کجا|از کجا|تا کی|چه کسی|چه کسانی|چه زمانی|چه چیزی|چه کاری|برای چه|به چه دلیل|کدام یک)(?=[ \t،]|$)/;
+  var MF_QW = /^[«"(\[\s]*(?:آیا|چرا(?![ \t]+که)|چگونه|چطور|کجا|کی|مگر(?![ \t]+(?:آنکه|اینکه|این که|آن که))|چقدر|به کجا|از کجا|تا کی|چه کسی|چه کسانی|چه زمانی|چه چیزی|چه کاری|برای چه|به چه دلیل|کدام یک|کدام|چند بار|چند نفر|چه تعداد|چه مقدار|چه اندازه|به چه علت|چرا که نه)(?=[ \t،]|$)/;
   var EZ_COP = /^(?:است|نیست|بود|بودند|نبود|هست|هستند|هستم|نیستند|شد|شدند|باشد|باشند|می\u200cشود|نمی\u200cشود|می\u200cباشد|شده|بوده)$/;
   var EZ_ADJ = {}, MF_H = {};
   'خوب بد زیبا بزرگ کوچک مهم لازم ضروری ممکن مناسب سخت آسان ساده سرد گرم تازه قدیمی جدید زیاد کم کافی روشن تاریک شلوغ خلوت دشوار عالی درست غلط واضح مشخص روان آرام تمیز کثیف سنگین سبک بلند کوتاه ارزان گران'.split(' ').forEach(function(w){ EZ_ADJ[w] = 1; });
@@ -4625,15 +4645,28 @@ var ocrSpell = (function(){
     }
     return tk.join(' ');
   }
-  function mfSub(seg){                                              /* «اگر … باشد، …»: ویرگول پس از نخستین فعل بند پیرو */
-    var re = /\S+/g, m, T = [], n, v, vc;
+  var MF_VB = null;
+  function mfVerb(k){                                               /* فعل: ماضی، مضارع التزامی/منفی، استمراری و فهرست‌های برنامه */
+    if (!k) return false;
+    k = k.replace(/[\u064B-\u0652\u0654\u0670]/g, '');
+    if (ezVerb(k)) return true;
+    if (!MF_VB) MF_VB = { s: new RegExp('^[بن](?:' + miFix.PRES + ')(?:م|ی|د|یم|ید|ند)$', 'u'), p: new RegExp('^ن?(?:' + miFix.PAST + ')(?:م|ی|یم|ید|ند)?$', 'u') };
+    return MF_VB.s.test(k) || MF_VB.p.test(k) || /^ن?می\u200c\p{L}{2,}(?:م|ی|د|یم|ید|ند)$/u.test(k);
+  }
+  var MF_SUBS = new Set('اگر چنانچه چنان‌چه هرگاه وقتی چون اگرچه گرچه هرچند هنگامی زمانی همین'.split(' ')), MF_SUBK = new Set('هنگامی زمانی همین'.split(' ')), MF_COORD = /^(?:و|یا|که|تا|را|اما|ولی|بلکه|نیز|هم|هنوز|نه)$/;
+  function mfSub(seg){                                              /* «اگر … باشد، …»، «وقتی … رسیدم، …»: ویرگول پس از نخستین فعل بند پیرو */
+    var re = /\S+/g, m, T = [], n, v, vc, s0, k0 = 1;
     while ((m = re.exec(seg))) T.push({ w: m[0], e: m.index + m[0].length });
-    n = T.length; if (n < 7 || !PZ_SUB.has(T[0].w.replace(/^[«"(\[]+/, ''))) return seg;
-    for (v = 1; v < n - 3 && v <= 13; v++) {
+    n = T.length; if (n < 4) return seg;
+    s0 = T[0].w.replace(/^[«"(\[]+/, '');
+    if (!MF_SUBS.has(s0)) return seg;
+    if (T[1].w === 'که' || T[1].w === 'اینکه') k0 = 2; else if (MF_SUBK.has(s0)) return seg;
+    for (v = k0; v < n - 1 && v <= k0 + 12; v++) {
       if (PZ_END.test(T[v].w)) return seg;
       vc = wcore(T[v].w);
-      if (PZ_VERB.test(vc) || EZ_V[vc] || EZ_VBX[vc] || MF_P3[vc]) {
-        if (v < 3 || /^(?:و|یا|که|تا|را|اما|ولی)$/.test(wcore(T[v + 1].w))) return seg;
+      if (mfVerb(vc)) {
+        if (MF_COORD.test(wcore(T[v + 1].w))) return seg;
+        if (/خواه|توان/.test(vc) && /^ب/.test(wcore(T[v + 1].w))) return seg;      /* «اگر بخواهید بروید» ← مصدر مرخم، نه پایان بند */
         return seg.slice(0, T[v].e) + '،' + seg.slice(T[v].e);
       }
     }
@@ -4660,7 +4693,7 @@ var ocrSpell = (function(){
       seg = seg.replace(MF_CONJ, function(m, a, w, off){
         if (/[،,؛;:]$/.test(a)) return m;
         var tk = seg.slice(0, off + 1).split(/\s+/), prev = tk[tk.length - 1].replace(/^[«"(]+/, '');
-        if (tk.length < 3 || MF_NOPRE.has(prev)) return m;
+        if (tk.length < 2 || MF_NOPRE.has(prev)) return m;
         return a + '، ' + w;
       });
       return mfEnum(mfSub(seg));
@@ -4670,13 +4703,16 @@ var ocrSpell = (function(){
     var ls = s.split('\n'), mx = 0, pf = poemFlags(ls);
     ls.forEach(function(l){ if (l.length > mx) mx = l.length; });
     return ls.map(function(l, i){
-      var t = l.replace(/\s+$/, ''), nx = ls[i + 1], wc, endB;
-      if (t.length < 20 || pf.b[i] || !/[\u0621-\u064A\u066E-\u06D3]/.test(t)) return l;
+      var t = l.replace(/\s+$/, ''), nx = ls[i + 1], wc, endB, q, lw, shortL;
+      if (t.length < 10 || pf.b[i] || !/[\u0621-\u064A\u066E-\u06D3]/.test(t)) return l;
       if (!/[\p{L}\p{N}»”"')\]]$/u.test(t) || /[.!?؟…؛:،,]["»”')\]]*$/.test(t)) return l;
       if (t.indexOf('\u001f') >= 0 || /\.{3,}|…/.test(t) || JB_ITEM.test(t)) return l;
-      wc = t.split(/\s+/).length; if (wc < 5) return l;
+      wc = t.split(/\s+/).length; q = MF_QW.test(t);
+      lw = wcore((t.match(/\S+$/) || [''])[0]);
+      shortL = t.length < 20 || wc < 5;
+      if (shortL && !((q && wc >= 3) || (wc >= 3 && t.length >= 14 && mfVerb(lw)))) return l;   /* سطر کوتاه: فقط پرسش یا جملهٔ فعل‌دار */
       endB = nx === undefined || !nx.trim();
-      return endB || (t.length < mx * 0.6 && wc >= 6) ? t + mfMark(t) : l;
+      return endB || (!shortL && t.length < mx * 0.6 && wc >= 6) ? t + mfMark(t) : l;
     }).join('\n');
   }
   function manTypeset(s){                                           /* تدوین صفحه: شمارهٔ صفحهٔ بالا/پایین، خط‌های جداکننده، سطر خالی اضافی */
@@ -4688,6 +4724,35 @@ var ocrSpell = (function(){
     for (k = 0; k < ls.length; k++) { if (sp.test(ls[k])) continue; if (!ls[k] && (!out.length || !out[out.length - 1])) continue; out.push(ls[k]); }
     return out.join('\n');
   }
+  var MF_PRO = /(?:https?:\/\/|www\.)\S+|[\w.+-]+@[\w-]+\.[\w.-]+|[A-Za-z]:\\\S+|(?:\/[\w.-]*[A-Za-z][\w.-]*)(?:\/[\w.-]+)+|(?:\/[\w.-]+)+\/[\w.-]*[A-Za-z][\w.-]*/g;
+  function manDigits(l){                                            /* ارقام فارسی؛ ۱٬۲۵۰٬۰۰۰ و ۳٫۵ و ۱۵٪؛ نشانی و ارقام چسبیده به لاتین دست‌نخورده */
+    if (!/[\u0621-\u064A\u066E-\u06D3]/.test(l)) return l;
+    var keep = [];
+    l = l.replace(MF_PRO, function(m){ keep.push(m); return '\u0001' + String.fromCharCode(0xE000 + keep.length - 1) + '\u0002'; });
+    l = l.replace(/\S+/g, function(tok, off, str){ return /[A-Za-z]/.test(tok) || /[A-Za-z][ \t]+$/.test(str.slice(Math.max(0, off - 8), off)) ? tok : tok.replace(/\d/g, function(c){ return String.fromCharCode(c.charCodeAt(0) + 1728); }); });   /* توکن دارای لاتین (A4، v1.2.3، mp3) دست‌نخورده */
+    l = l.replace(/(?<![۰-۹.,٫٬])([۰-۹]{1,3}(?:[,٬][۰-۹]{3})+)(?:\.([۰-۹]+))?(?![۰-۹])/g, function(m, a, d){ return a.replace(/,/g, '٬') + (d ? '٫' + d : ''); });
+    if (!/^\s*[۰-۹]+\.[۰-۹]+/.test(l)) l = l.replace(/(?<![۰-۹.٫٬])([۰-۹]+)\.([۰-۹]+)(?![.۰-۹])/g, '$1٫$2').replace(/(?<![۰-۹٫٬])([۰-۹]+),([۰-۹]{1,2}|[۰-۹]{4,})(?![۰-۹])/g, '$1٫$2');
+    l = l.replace(/([۰-۹])[ \t]*%/g, '$1٪');
+    return l.replace(/\u0001([\uE000-\uF8FF])\u0002/g, function(m, i){ return keep[i.charCodeAt(0) - 0xE000]; });
+  }
+  var MF_ZY = /(?:که|چه)$/, MF_YA = /(^|[^\u0621-\u06D3\u200c])([\u0621-\u06D3\u200c]*[\u0621-\u06D3])[ \t]+ی(?=[ \t]+[\u0621-\u06D3«(]|[ \t]*[،؛:.!؟?)»]|$)/gu;
+  function manOrth(l){                                              /* املا: «ها ی»←«های»، «خانه ی»←«خانهٔ»، «بی خبر»←«بی‌خبر»، تنوین قیدها */
+    if (!MF_PERS.test(l)) return l;
+    l = l.replace(MF_YA, function(m, pre, w){
+      var c = w.replace(/\u200c/g, '');
+      if (c.length < 3 && !/[ا و]$/.test(c)) return m;
+      if (/ها$/.test(c) && c.length >= 4) return pre + w + 'ی';                             /* کتاب‌ها ی من ← کتاب‌های من */
+      if (/ه$/.test(c) && c.length >= 3 && !MF_ZY.test(c)) { var r = w.indexOf('\u200c') < 0 ? ezMark(w) : w + '\u200c' + 'ی'; return pre + (/\u0650$/.test(r) ? w : r); }   /* خانه ی من ← خانهٔ من؛ «ه»ی ملفوظ (دانشگاه ی تهران) ← بدون «ی» */
+      if (/[او]$/.test(c) && c.length >= 2 && c !== 'او') return pre + w + 'ی';           /* هوا ی تازه ← هوای تازه */
+      return m;
+    });
+    l = l.replace(/(?<![\p{L}\u200c])بی[ \t]+([\u0621-\u06D3]{3,})(?![\p{L}])/gu, function(m, w){ try { return ocrSpell.known(w) ? 'بی\u200c' + w : m; } catch (e) { return m; } });
+    l = l.replace(/(?<![\p{L}\u200c])(جمع|پیش|پس)[ \t]+(آوری|آور|بینی|بین|نیاز|فرض|نویس|انداز|پرداخت|خرید|فروش|بینی‌شده)(?![\p{L}\u200c])/gu, '$1\u200c$2')
+         .replace(/(?<![\p{L}\u200c])به[ \t]+کار(?=[ \t]+(?:بر|گیر|رف|گرفت|بست))/gu, 'به\u200cکار')
+         .replace(/(?<![\p{L}\u200c])([\u0621-\u06D3]{3,})[ \t]+(گیری|گیرنده|سازی|پذیری|کننده|دهنده|شناسی|نویسی|گذاری|سنجی|بندی|رسانی|ریزی|کاوی|پردازی|خوانی|یابی)(?![\p{L}\u200c])/gu, function(m, a, b){ try { return !/^(?:این|آن|همه|هیچ|چند|بیشتر|کمتر|بعضی|برخی|خود|هر|یک|دو|سه|بسیار|بعد|قبل|پس|پیش|دیگر)$/.test(a) && ocrSpell.known(a) ? a + '\u200c' + b : m; } catch (e) { return m; } });
+    l = l.replace(/([\u0621-\u06D3\u200c]{2,}ه)[ \t]+(ام|ایم|اید|اند)(?![\p{L}\u200c])/gu, function(m, w, e){ return MF_ZY.test(w) ? m : w + '\u200c' + e; });   /* همسایه اند ← همسایه‌اند */
+    return l.replace(ADV_N, function(m, g, off, str){ return str.charAt(off + m.length) === '\u064B' ? m : m + '\u064B'; });
+  }
   function manPolish(t, o){
     var s = String(t == null ? '' : t).replace(/\r\n?/g, '\n'), Z = '\u200c';
     if (o.join) s = clean(s, 'auto');
@@ -4695,12 +4760,12 @@ var ocrSpell = (function(){
     if (o.norm) {
       s = persianize(s).replace(/[\u0647\u06D5]\u0654/g, '\u06C0').replace(/[\u0640\u06D6-\u06ED]/g, '');
       s = s.split('\n').map(function(l){
-        return /[\u0621-\u064A\u066E-\u06D3]/.test(l) ? l.replace(/(?<![A-Za-z_@\/\\\d])\d+(?![A-Za-z\d])/g, function(m){ return m.replace(/\d/g, function(c){ return String.fromCharCode(c.charCodeAt(0) + 1728); }); }) : l;
+        return manDigits(l);
       }).join('\n');
     }
     if (o.sp) {
       s = s.split('\n').map(function(l){
-        return glueFix(l).replace(/[ \t\u00a0]+/g, ' ').replace(/\s*\u200c\s*/g, Z).replace(/\u200c{2,}/g, Z).replace(/(?<![\p{L}\p{M}])\u200c|\u200c(?![\p{L}])/gu, '').replace(/^ +| +$/g, '');
+        return manOrth(glueFix(l).replace(/[ \t\u00a0]+/g, ' ').replace(/\s*\u200c\s*/g, Z).replace(/\u200c{2,}/g, Z).replace(/(?<![\p{L}\p{M}])\u200c|\u200c(?![\p{L}])/gu, '').replace(/^ +| +$/g, ''));
       }).join('\n');
     }
     if (o.spell) s = ocrSpell(s, o.fq || null);
@@ -6344,7 +6409,7 @@ var ocrSpell = (function(){
     [/ان[\s\u200c]?شاء[\s\u200c]?الله/g, 'ان شا اللاه'], [/(?<!ا)خوا(?!(?:تین|ص(?![\p{L}])|رج|رق|نین|طر))/gu, 'خا'], [/خویش/g, 'خیش'], [/الله/g, 'اللاه'], [/[أإ]/g, 'ا'], [/ؤ/g, 'و'],
     [/(?<![\p{L}])(?:موسی|عیسی|یحیی|مصطفی|مجتبی|مرتضی|حتی|معنی|تعالی|مولی|تقوی|فتوی|دعوی|اعلی|کبری|صغری)(?![\p{L}])/gu, function(m){ return m.slice(0, -1) + 'ا'; }]
   ];
-  var ADV_N = /(?<![\p{L}\u200c])(مثلا|حتما|اصلا|واقعا|قبلا|بعدا|ظاهرا|تقریبا|غالبا|معمولا|احتمالا|قطعا|عمدا|لزوما|اساسا|صرفا|کاملا|عملا|نسبتا|اخیرا|اتفاقا|ضمنا|اولا|ثانیا|ثالثا|مجددا|دقیقا|مستقیما|مطلقا|رسما|عینا|طبعا|عموما|خصوصا|اصولا|تماما|لطفا|شخصا|مسلما|یقینا|طبیعتا|نهایتا|عمدتا|مخصوصا|فعلا|اکثرا|احیانا|دائما|قاعدتا|منطقا|ذاتا|اجمالا|تدریجا|جدیدا|سریعا|مرتبا|مکررا|کلا|جزئا|حقیقتا)(?![\p{L}\u200c])/gu;
+  var ADV_N = /(?<![\p{L}\u200c])(مثلا|حتما|اصلا|واقعا|قبلا|بعدا|ظاهرا|تقریبا|غالبا|معمولا|احتمالا|قطعا|عمدا|لزوما|اساسا|صرفا|کاملا|عملا|نسبتا|اخیرا|اتفاقا|ضمنا|اولا|ثانیا|ثالثا|مجددا|دقیقا|مستقیما|مطلقا|رسما|عینا|طبعا|عموما|خصوصا|اصولا|تماما|لطفا|شخصا|مسلما|یقینا|طبیعتا|نهایتا|عمدتا|مخصوصا|فعلا|اکثرا|احیانا|دائما|قاعدتا|منطقا|ذاتا|اجمالا|تدریجا|جدیدا|سریعا|مرتبا|مکررا|کلا|جزئا|حقیقتا|ابدا|فورا|ناچارا|مختصرا|مفصلا|عادتا|حدودا|شدیدا|صریحا|متقابلا|مجموعا|مستقلا|سابقا|اجبارا|ضرورتا|نظرا)(?![\p{L}\u200c])/gu;
   var CITE_U = '[^()\\d;؛]{2,60}?[,،]\\s*(?:1[34]|19|20)\\d\\d[a-z]?(?:\\s*[,،:]\\s*(?:pp?\\.?\\s*|ص\\s*)?\\d{1,4}(?:\\s*[-–]\\s*\\d{1,4})?)?';
   var RE_CITE = new RegExp('\\(\\s*' + CITE_U + '(?:\\s*[;؛]\\s*' + CITE_U + ')*\\s*\\)', 'gu');
   /* ارجاع تکراری بدون سال: «(همان، ص ۲)»، «(پیشین: ۱۲)»، «[همان ۳]»، «(ibid., p. 5)»؛ «(همان)» تنها (بدون شماره) ارجاع نیست و دست‌نخورده می‌ماند */
@@ -8180,15 +8245,35 @@ var ocrSpell = (function(){
   ['touchstart', 'wheel', 'pointerdown'].forEach(function(t){ $('#stage').addEventListener(t, function(){ pvUserT = Date.now(); }, { passive: true }); });
   window.addEventListener('resize', function(){ clearTimeout(pvRz); pvRz = setTimeout(function(){ if (pvOn() && pvPage && Math.abs($('#pv').clientWidth - pvW) > 8) pvRedo(); }, 280); });
   pvApply();
-  var kaOn = null, kaBad = false;
+  var kaOn = null, kaBad = false, kaReady = true, kaAu = null;
+  function kaFall(on){                                              /* صدای تقریباً بی‌صدا: پردازش (OCR) با صفحهٔ خاموش یا در پس‌زمینه از تعلیق جلوگیری می‌شود */
+    try {
+      if (on) {
+        if (!kaAu) {
+          var n = 8000, u = new Uint8Array(44 + n), dv = new DataView(u.buffer), i, w = function(o, t){ for (var j = 0; j < t.length; j++) u[o + j] = t.charCodeAt(j); };
+          w(0, 'RIFF'); dv.setUint32(4, 36 + n, true); w(8, 'WAVEfmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true); dv.setUint32(24, 8000, true); dv.setUint32(28, 8000, true); dv.setUint16(32, 1, true); dv.setUint16(34, 8, true); w(36, 'data'); dv.setUint32(40, n, true);
+          for (i = 0; i < n; i++) u[44 + i] = 128 + ((i % 200) < 100 ? 1 : 0);
+          kaAu = new Audio('data:audio/wav;base64,' + natU8(u)); kaAu.loop = true; kaAu.volume = 0.02;
+        }
+        if (kaAu.paused) kaAu.play().catch(function(){});
+        if (navigator.mediaSession && !playing) { try { navigator.mediaSession.metadata = new MediaMetadata({ title: 'OCR در حال اجراست', artist: 'خوانندهٔ صوتی PDF' }); navigator.mediaSession.playbackState = 'playing'; } catch (e) {} }
+      } else if (kaAu && !kaAu.paused) {
+        kaAu.pause();
+        if (navigator.mediaSession && !playing) { try { navigator.mediaSession.playbackState = 'none'; } catch (e) {} }
+      }
+    } catch (e) {}
+  }
   function kaSync(){
-    var kw = !!(playing || ocrBusy);                                 /* بیدار ماندن صفحه/CPU هم حین پخش و هم حین OCR (توقف سراسری لاگ r8) */
+    var scan = !!(ocrBusy || (man && (man.busy || man.fx))), kw = !!(playing || scan);   /* بیدار ماندن صفحه/CPU هم حین پخش و هم حین OCR (اصلی و دستی) */
+    kaFall(scan && !playing);
     if (kaBad || !npOK || !NP || (kaOn === null && !kw) || kaOn === kw) return;
     kaOn = kw;
     try { Promise.resolve(NP.keepAwake({ on: kw, cpu: kw })).catch(function(){ kaBad = true; }); } catch (e) { kaBad = true; }
   }
+  setInterval(function(){ if (ocrBusy || (man && (man.busy || man.fx))) kaSync(); }, 4000);
+  document.addEventListener('visibilitychange', function(){ kaSync(); });
   function ui(){
-    kaSync();
+    kaSync(); manPbSync();
     var has = sents.length > 0 && canSpeak();
     $('#play').disabled = !has;
     $('#prev').disabled = !has;
@@ -8831,6 +8916,29 @@ var ocrSpell = (function(){
   $('#prev').onclick = function(){ seekTo(idx - 1); };
   $('#next').onclick = function(){ seekTo(idx + 1); };
   $('#stop').onclick = stopAll;
+  function manPbSync(){
+    var has = sents.length > 0 && canSpeak(), bar = $('#manPb');
+    if (!bar) return;
+    bar.classList.toggle('on', !!playing);
+    ['manPbPlay', 'manPbPrev', 'manPbNext', 'manPbStop'].forEach(function(id){ $('#' + id).disabled = !has; });
+    $('#manPbPlay').setAttribute('aria-label', playing ? 'توقف موقت' : 'پخش'); $('#manPbPlay').title = playing ? 'توقف موقت' : 'پخش';
+    $('#manPbFrom').disabled = !has || !!(man && (man.busy || man.fx));
+  }
+  $('#manPbPlay').onclick = function(){ playing ? pause() : start(); };
+  $('#manPbPrev').onclick = function(){ seekTo(idx - 1); };
+  $('#manPbNext').onclick = function(){ seekTo(idx + 1); };
+  $('#manPbStop').onclick = stopAll;
+  $('#manPbFrom').onclick = async function(){
+    if (man.busy || man.fx || !sents.length) return;
+    if (manDirty()) await manSave();                                /* متن ویرایش‌شده پیش از پخش ذخیره می‌شود */
+    var n = man.pn, t0 = Date.now();
+    (function go(){
+      var k;
+      for (k = 0; k < sents.length; k++) if (sents[k].page === n) { if (playing) seekTo(k); else start(k); manPbSync(); return; }
+      if (Date.now() - t0 < 2500) { setTimeout(go, 200); return; }
+      manSt('برای این صفحه متنی برای پخش پیدا نشد.');
+    })();
+  };
   $('#reader').addEventListener('click', function(e){
     var t = e.target.closest('span[data-i]');
     if (window.getSelection && String(window.getSelection()).trim()) return;   /* انتخاب متن، جملهٔ دیگری را شروع نکند */
