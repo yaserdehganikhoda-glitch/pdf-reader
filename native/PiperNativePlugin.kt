@@ -32,7 +32,6 @@ import com.k2fsa.sherpa.onnx.OfflineTtsVitsModelConfig
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
 import java.io.BufferedInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
@@ -463,58 +462,44 @@ class PiperNativePlugin : Plugin() {
 
     private val VOICE_BASE = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models"
 
-    // ---------- Mana-Persian-Piper: مدل خام Piper (.onnx + .json) که بعد از نصب برنامه دانلود می‌شود ----------
-    private val MANA_ID = "fa_IR-mana-medium"
+    // ---------- صداهای زنانهٔ دانلودی (Coqui VITS فارسی؛ model.onnx + tokens.txt آمادهٔ sherpa) ----------
+    // بعد از نصب برنامه دانلود می‌شوند (نه داخل APK). آوانگاری با espeak است، پس espeak-ng-data از صدای gyro کپی می‌شود.
+    private class Dl(val folder: String)
     // آینهٔ دوم برای شبکه‌هایی که huggingface.co در آن‌ها کند یا مسدود است؛ فایل ناقص از همان نقطه ادامه می‌یابد
-    private val MANA_BASES = listOf(
-        "https://huggingface.co/MahtaFetrat/Mana-Persian-Piper/resolve/main/",
-        "https://hf-mirror.com/MahtaFetrat/Mana-Persian-Piper/resolve/main/"
+    private val DL_BASES = listOf(
+        "https://huggingface.co/karim23657/persian-tts-vits/resolve/main/",
+        "https://hf-mirror.com/karim23657/persian-tts-vits/resolve/main/"
     )
+    private val DOWNLOADABLE = mapOf(
+        "fa_IR-negin-coqui" to Dl("female-GPTInformal-coqui-vits"),
+        "fa_IR-sahar-coqui" to Dl("female-female-coqui-vits")
+    )
+    private val ESPEAK_DONOR = "fa_IR-gyro-medium"   // فقط برای کپی espeak-ng-data (مدل‌های Coqui خودشان espeak ندارند)
+
     private fun fetchMirrors(path: String, part: File, emit: (Long, Long) -> Unit) {
         var last: Throwable? = null
-        for (b in MANA_BASES) {
+        for (b in DL_BASES) {
             try { fetchResumable(b + path, part, emit); return } catch (e: IllegalStateException) { last = e }
         }
         throw last ?: IllegalStateException("دانلود ناموفق")
     }
-    private val ESPEAK_DONOR = "fa_IR-gyro-medium"   // فقط برای کپی espeak-ng-data (مدل Mana خودش espeak ندارد)
 
-    private fun varint(o: ByteArrayOutputStream, v0: Int) {
-        var v = v0
-        while (v >= 0x80) { o.write((v and 0x7f) or 0x80); v = v ushr 7 }
-        o.write(v)
-    }
-
-    /** sherpa-onnx متادیتای ONNX را لازم دارد؛ مدل خام Piper ندارد. فیلد ۱۴ (metadata_props) به انتهای فایل پروتوباف اضافه می‌شود (الحاق معتبر است، بدون تجزیهٔ مدل) */
-    private fun appendOnnxMeta(onnx: File, kv: List<Pair<String, String>>) {
-        val out = ByteArrayOutputStream()
-        for ((k, v) in kv) {
-            val kb = k.toByteArray(Charsets.UTF_8); val vb = v.toByteArray(Charsets.UTF_8)
-            val e = ByteArrayOutputStream()
-            e.write(0x0A); varint(e, kb.size); e.write(kb)
-            e.write(0x12); varint(e, vb.size); e.write(vb)
-            out.write(0x72); varint(out, e.size()); out.write(e.toByteArray())
-        }
-        FileOutputStream(onnx, true).use { it.write(out.toByteArray()) }
-    }
-
-    private fun downloadMana(call: PluginCall) {
-        val id = MANA_ID
+    private fun downloadPair(call: PluginCall, id: String, dl: Dl) {
         io.execute {
             if (okMark(id).exists() && findOnnx(voiceDir(id)) != null) { call.resolve(); return@execute }
             val partOnnx = File(root(), "$id.dl")
-            val partJson = File(root(), "$id.json.dl")
+            val partTok = File(root(), "$id.tok.dl")
             try {
                 if (ttsId == id) releaseEngine(id)
-                // فضای خالی: دانلود + کپی نهایی + espeak (حدود ۳۵۰ مگابایت در بدترین حالت)
-                if (root().usableSpace < 350_000_000L) throw IllegalStateException("فضای خالی گوشی کافی نیست (حداقل ۳۵۰ مگابایت)")
+                // فضای خالی: دانلود + کپی نهایی + espeak (حدود ۴۵۰ مگابایت در بدترین حالت)
+                if (root().usableSpace < 450_000_000L) throw IllegalStateException("فضای خالی گوشی کافی نیست (حداقل ۴۵۰ مگابایت)")
                 val emit = { l: Long, t: Long -> notifyListeners("progress", JSObject().put("loaded", l).put("total", t)) }
                 // ۱) espeak-ng-data: از صدای gyro (اگر نصب نیست، یک‌بار دانلود می‌شود)
                 var donorBytes = 0L
                 var espeakSrc: File? = sharedEspeak(id)
                 if (espeakSrc == null) {
                     val dpart = File(root(), "$ESPEAK_DONOR.dl")
-                    fetchResumable("$VOICE_BASE/vits-piper-$ESPEAK_DONOR.tar.bz2", dpart) { l, t -> emit(l, t + 66_000_000L) }
+                    fetchResumable("$VOICE_BASE/vits-piper-$ESPEAK_DONOR.tar.bz2", dpart) { l, t -> emit(l, t + 114_000_000L) }
                     donorBytes = dpart.length()
                     val dd = voiceDir(ESPEAK_DONOR)
                     dd.deleteRecursively(); dd.mkdirs()
@@ -526,36 +511,21 @@ class PiperNativePlugin : Plugin() {
                     espeakSrc = File(findRoot(dd), "espeak-ng-data").takeIf { it.isDirectory }
                 }
                 if (espeakSrc == null) throw IllegalStateException("espeak-ng-data پیدا نشد")
-                // ۲) پیکربندی و مدل (با ادامه پس از قطع شبکه)
-                fetchMirrors("$id.onnx.json", partJson) { _, _ -> }
-                fetchMirrors("$id.onnx", partOnnx) { l, t -> emit(donorBytes + l, donorBytes + t) }
-                if (partOnnx.length() < 10_000_000L) { partOnnx.delete(); throw IllegalStateException("فایل مدل ناقص یا نامعتبر است؛ دوباره امتحان کنید") }
-                val cfg = org.json.JSONObject(partJson.readText(Charsets.UTF_8))
-                val pt = cfg.optString("phoneme_type", "espeak")
-                if (pt != "espeak") throw IllegalStateException("نوع آوانگاری مدل ($pt) پشتیبانی نمی‌شود")
-                val idMap = cfg.getJSONObject("phoneme_id_map")
-                val sr = cfg.optJSONObject("audio")?.optInt("sample_rate", 22050) ?: 22050
-                val ns = cfg.optInt("num_speakers", 1)
-                val voice = cfg.optJSONObject("espeak")?.optString("voice", "fa") ?: "fa"
+                // ۲) توکن‌ها و مدل (با ادامه پس از قطع شبکه)
+                fetchMirrors(dl.folder + "/tokens.txt", partTok) { _, _ -> }
+                fetchMirrors(dl.folder + "/model.onnx", partOnnx) { l, t -> emit(donorBytes + l, donorBytes + t) }
+                if (partOnnx.length() < 20_000_000L) { partOnnx.delete(); throw IllegalStateException("فایل مدل ناقص یا نامعتبر است؛ دوباره امتحان کنید") }
+                if (partTok.length() < 20L) { partTok.delete(); throw IllegalStateException("فایل توکن‌ها ناقص است؛ دوباره امتحان کنید") }
                 // ۳) چیدن فایل‌ها: onnx + tokens.txt + espeak-ng-data
                 val dst = voiceDir(id)
                 dst.deleteRecursively(); dst.mkdirs()
-                val onnx = File(dst, "$id.onnx")
-                partOnnx.copyTo(onnx, overwrite = true)
-                val sb = StringBuilder()
-                val ks = idMap.keys()
-                while (ks.hasNext()) { val k = ks.next(); sb.append(k).append(' ').append(idMap.getJSONArray(k).getInt(0)).append('\n') }
-                File(dst, "tokens.txt").writeText(sb.toString(), Charsets.UTF_8)
-                File(dst, "$id.onnx.json").writeText(partJson.readText(Charsets.UTF_8), Charsets.UTF_8)
+                partOnnx.copyTo(File(dst, "$id.onnx"), overwrite = true)
+                partTok.copyTo(File(dst, "tokens.txt"), overwrite = true)
                 espeakSrc.copyRecursively(File(dst, "espeak-ng-data"), overwrite = true)
-                appendOnnxMeta(onnx, listOf(
-                    "model_type" to "vits", "comment" to "piper", "language" to "Persian", "voice" to voice,
-                    "has_espeak" to "1", "n_speakers" to ns.toString(), "sample_rate" to sr.toString()
-                ))
                 if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists())
                     throw IllegalStateException("فایل‌های مدل کامل نیست")
                 okMark(id).writeText("1")
-                partOnnx.delete(); partJson.delete()
+                partOnnx.delete(); partTok.delete()
                 emit(1, 1)
                 call.resolve()
             } catch (e: Throwable) {
@@ -570,7 +540,7 @@ class PiperNativePlugin : Plugin() {
     fun download(call: PluginCall) {
         val id = call.getString("id") ?: return call.reject("id")
         if (!Regex("[A-Za-z0-9_-]+").matches(id)) return call.reject("شناسهٔ صدا نامعتبر است")
-        if (id == MANA_ID) { downloadMana(call); return }
+        DOWNLOADABLE[id]?.let { downloadPair(call, id, it); return }
         io.execute {
             val part = File(root(), "$id.dl")
             var netDone = false
@@ -917,7 +887,7 @@ class PiperNativePlugin : Plugin() {
         val fxPk = (call.getFloat("fxPk") ?: 2f).coerceIn(-6f, 8f)
         val fxHs = (call.getFloat("fxHs") ?: 0.8f).coerceIn(-6f, 8f)
         val fxLp = (call.getFloat("fxLp") ?: 10500f).coerceIn(4000f, 20000f)
-        val strong = id.contains("mana", ignoreCase = true)   // مانا: خروجی خام نویزی‌تر؛ پاک‌سازی قوی‌تر (SpeechClean/MasterFx)
+        val strong = false   // پاک‌سازی عادی برای همهٔ صداها (حالت قوی مخصوص مانا بود که حذف شد)
         val ep = epoch.get()   // لحظهٔ رسیدن درخواست؛ اگر بعدش cancel بیاید این کار رها می‌شود
         cpu.execute {
             try {
@@ -956,7 +926,8 @@ class PiperNativePlugin : Plugin() {
                         val cached = cacheGet(key, sr)
                         val s = if (cached != null) { hit++; cached } else {
                             val t0 = System.nanoTime()
-                            val g = genPart(eng, pt, ps, ep)
+                            val g0 = genPart(eng, pt, ps, ep)
+                            val g = if (id.endsWith("-coqui")) trimEdges(g0, sr) else g0   // Coqui: سکوت ابتدا/انتهای هر جمله بلند است
                             genMs += (System.nanoTime() - t0) / 1_000_000L   // زمان خالص مدل (بدون صیقل و انتقال)
                             cachePut(key, sr, g)
                             g
@@ -1010,6 +981,23 @@ class PiperNativePlugin : Plugin() {
     }
 
     /** صیقل خروجی هر تکه: حذف سکوت اضافهٔ ابتدا/انتها، محوشدن کوتاه (جلوگیری از «تق» بین جمله‌ها)، یکنواخت‌کردن بلندی صدا با محدودکنندهٔ نرم */
+    /** Coqui: هر جمله با سکوت طولانی ابتدا/انتها ساخته می‌شود (فاصلهٔ زیاد بین جمله‌ها)؛ اینجا به ۳۰ms ابتدا و ۶۰ms انتها کوتاه می‌شود. مکث بین جمله‌ها را خود برنامه می‌گذارد. */
+    private fun trimEdges(f: FloatArray, sr: Int): FloatArray {
+        if (f.size < sr / 4) return f
+        var peak = 0f
+        for (x in f) { val a = kotlin.math.abs(x); if (a > peak) peak = a }
+        if (peak < 1e-3f) return f
+        val thr = kotlin.math.max(peak * 0.012f, 0.0015f)   // آستانهٔ پایین تا واج‌های سایشی بریده نشوند
+        var s = 0
+        while (s < f.size && kotlin.math.abs(f[s]) < thr) s++
+        var e = f.size - 1
+        while (e > s && kotlin.math.abs(f[e]) < thr) e--
+        if (e - s < sr / 10) return f
+        s = kotlin.math.max(0, s - (sr * 0.03).toInt())
+        e = kotlin.math.min(f.size - 1, e + (sr * 0.06).toInt())
+        return f.copyOfRange(s, e + 1)
+    }
+
     private fun polish(f: FloatArray, sr: Int, trim: IntArray? = null): FloatArray {
         if (f.size < sr / 5) return f
         var peak = 0f
