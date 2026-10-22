@@ -2705,11 +2705,11 @@ body.has-doc:not(.home-on) .tmenu.sheet.gm{top:calc(env(safe-area-inset-top,0px)
   function headroom(){ var n = Date.now(), v; if (n - hrT < 10000) return hrV; hrT = n; try { v = window.NativeThermal && window.NativeThermal.headroom ? +window.NativeThermal.headroom() : -1; } catch (e) { v = -1; } hrV = v >= 0 ? v : -1; if (ocrPerf && hrV > (ocrPerf.hrMax || -1)) ocrPerf.hrMax = hrV; return hrV; }   /* getThermalHeadroom: ۱٫۰ = تروتل شدید؛ ۱- = نامعلوم؛ حداکثر هر ۱۰ثانیه */
   function bigCores(){ if (bcV === -2) { try { bcV = window.NativeThermal && window.NativeThermal.bigCores ? +window.NativeThermal.bigCores() : -1; } catch (e) { bcV = -1; } } return bcV; }
   ocrPerfReset();
-  var hbT = 0, hbL = 0, ltO = null;                                            /* ضربان ترد اصلی: فاصلهٔ >۴ثانیه حین OCR = توقف سیستم/WebView (hid = صفحه پنهان بود) */
+  var hbT = 0, hbL = 0, hbW = 0, ltO = null;                                            /* ضربان ترد اصلی: فاصلهٔ >۴ثانیه حین OCR = توقف سیستم/WebView (hid = صفحه پنهان بود) */
   function hbStop(){ if (hbT) { clearInterval(hbT); hbT = 0; } if (ltO) { try { ltO.disconnect(); } catch (e) {} ltO = null; } }
-  function hbStart(){ hbStop(); hbL = performance.now(); ocrPerf.stalls = []; ocrPerf.lt = [];
+  function hbStart(){ hbStop(); hbL = performance.now(); hbW = Date.now(); ocrPerf.stalls = []; ocrPerf.lt = []; ocrPerf.vis = [];
     try { ltO = new PerformanceObserver(function(l){ var a = l.getEntries(), i; for (i = 0; i < a.length; i++) if (a[i].duration >= 120 && ocrPerf && ocrPerf.lt && ocrPerf.lt.length < 60) ocrPerf.lt.push([ocrPerf.n, Math.round(a[i].duration)]); }); ltO.observe({ entryTypes: ['longtask'] }); } catch (e) { ltO = null; }   /* r19: longtask ≥۱۲۰ms ترد اصلی ⇒ lt:[[صفحه، ms]] */
-    hbT = setInterval(function(){ var n = performance.now(), g = n - hbL - 1000; hbL = n; if (g > 400 && ocrPerf && ocrPerf.stalls && ocrPerf.stalls.length < 40) ocrPerf.stalls.push({ pg: ocrPerf.n, gap: Math.round(g), hid: !!document.hidden, ln: (ocrLanes || []).filter(function(x){ return !x.dead; }).length, cur: (ocrLanes || []).map(function(x){ return x.cur || 0; }).filter(Boolean), hpm: mainHeap(), th: thermal() }); }, 1000); }
+    hbT = setInterval(function(){ var n = performance.now(), g = n - hbL - 1000, w = Date.now(), wg = w - hbW - 1000; hbL = n; hbW = w; if (g > 400 && ocrPerf && ocrPerf.stalls && ocrPerf.stalls.length < 40) ocrPerf.stalls.push({ pg: ocrPerf.n, gap: Math.round(g), wg: Math.round(wg), vs: document.visibilityState, fo: document.hasFocus(), hid: !!document.hidden, ln: (ocrLanes || []).filter(function(x){ return !x.dead; }).length, cur: (ocrLanes || []).map(function(x){ return x.cur || 0; }).filter(Boolean), hpm: mainHeap(), th: thermal() }); }, 1000); }
   window.ocrRecH = function(h){ sset('ocrRecH', String(+h || 48)); return 'ارتفاع rec = ' + (+h || 48) + ' (از OCR بعدی؛ Worker گرم ≤۹۰ثانیه ممکن است مقدار قبلی را نگه دارد)'; };
   /* r19: سرویس rec بومی برای Workerها (ترد اصلی پل Capacitor را دارد) — پیش‌فرض خاموش: ocrNative(1) */
   function natU8(u){ if (typeof u.toBase64 === 'function') { try { return u.toBase64(); } catch (e) {} } var s = '', i, c = 0x8000; for (i = 0; i < u.length; i += c) s += String.fromCharCode.apply(null, u.subarray(i, i + c)); return btoa(s); }
@@ -2778,7 +2778,7 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
       r.ppmClean = o.n > 1 && o.t1 > o.t0 && (o.t1 - o.t0) > ex2 + 1000 ? +(((o.n - 1) * 60000) / (o.t1 - o.t0 - ex2)).toFixed(2) : r.ppm;
     } catch (e) {}
     r.dev = { hc: navigator.hardwareConcurrency, dm: navigator.deviceMemory, ua: (navigator.userAgent || '').slice(0, 120) };
-    r.stalls = o.stalls || []; r.recH = +sget('ocrRecH', '48') || 48; r.gov = o.gov || []; r.dx = o.dx || null; r.gpuWhy = sget('ocrGpuWhy', ''); r.lanesEnd = (ocrLanes || []).filter(function(x){ return !x.dead; }).length; r.hpMain = mainHeap(); r.renderTop = o.rtop || []; r.thermNow = thermal(); r.thermMax = o.thMax; r.nat = { on: sget('ocrNat', '') !== '0', calls: o.nc || 0, msAvg: o.nc ? Math.round(o.nms / o.nc) : 0, detCalls: o.ndc || 0, detMsAvg: o.ndc ? Math.round(o.ndms / o.ndc) : 0, infAvg: o.nc ? Math.round((o.nin || 0) / o.nc) : 0, detInfAvg: o.ndc ? Math.round((o.ndin || 0) / o.ndc) : 0, cfg: natCfg(), ov: { rEnc: o.nc ? Math.round((o.rEnc || 0) / o.nc) : 0, rDec: o.nc ? Math.round((o.rDec || 0) / o.nc) : 0, rBr: o.nc ? Math.round((o.nms - (o.nin || 0) - (o.rEnc || 0) - (o.rDec || 0)) / o.nc) : 0, dEnc: o.ndc ? Math.round((o.dEnc || 0) / o.ndc) : 0, dDec: o.ndc ? Math.round((o.dDec || 0) / o.ndc) : 0, dBr: o.ndc ? Math.round((o.ndms - (o.ndin || 0) - (o.dEnc || 0) - (o.dDec || 0)) / o.ndc) : 0 }, bad: sget('ocrNatBad', '') }; r.epEff = (r.nat.on && r.nat.calls) ? 'native:' + ((r.nat.cfg && r.nat.cfg.ep) || 'default') : r.ep; r.ort = !!(o.dx && o.dx.ort); r.hrNow = headroom(); r.hrMax = o.hrMax; r.bigCores = bigCores(); r.lt = o.lt || []; r.pxs = o.t1 > o.t0 ? Math.round((o.wd || 0) * 1000 / (o.t1 - o.t0)) : null;
+    r.stalls = o.stalls || []; r.vis = o.vis || []; r.recH = +sget('ocrRecH', '48') || 48; r.gov = o.gov || []; r.dx = o.dx || null; r.gpuWhy = sget('ocrGpuWhy', ''); r.lanesEnd = (ocrLanes || []).filter(function(x){ return !x.dead; }).length; r.hpMain = mainHeap(); r.renderTop = o.rtop || []; r.thermNow = thermal(); r.thermMax = o.thMax; r.nat = { on: sget('ocrNat', '') !== '0', calls: o.nc || 0, msAvg: o.nc ? Math.round(o.nms / o.nc) : 0, detCalls: o.ndc || 0, detMsAvg: o.ndc ? Math.round(o.ndms / o.ndc) : 0, infAvg: o.nc ? Math.round((o.nin || 0) / o.nc) : 0, detInfAvg: o.ndc ? Math.round((o.ndin || 0) / o.ndc) : 0, cfg: natCfg(), ov: { rEnc: o.nc ? Math.round((o.rEnc || 0) / o.nc) : 0, rDec: o.nc ? Math.round((o.rDec || 0) / o.nc) : 0, rBr: o.nc ? Math.round((o.nms - (o.nin || 0) - (o.rEnc || 0) - (o.rDec || 0)) / o.nc) : 0, dEnc: o.ndc ? Math.round((o.dEnc || 0) / o.ndc) : 0, dDec: o.ndc ? Math.round((o.dDec || 0) / o.ndc) : 0, dBr: o.ndc ? Math.round((o.ndms - (o.ndin || 0) - (o.dEnc || 0) - (o.dDec || 0)) / o.ndc) : 0 }, bad: sget('ocrNatBad', '') }; r.epEff = (r.nat.on && r.nat.calls) ? 'native:' + ((r.nat.cfg && r.nat.cfg.ep) || 'default') : r.ep; r.ort = !!(o.dx && o.dx.ort); r.hrNow = headroom(); r.hrMax = o.hrMax; r.bigCores = bigCores(); r.lt = o.lt || []; r.pxs = o.t1 > o.t0 ? Math.round((o.wd || 0) * 1000 / (o.t1 - o.t0)) : null;
     r.gpuDx = { wgpu: !!navigator.gpu, coi: !!window.crossOriginIsolated, sab: typeof SharedArrayBuffer !== 'undefined', gpuBox: !!($('#ocrGpu') || {}).checked, gpuBad: !!sget('ocrGpuBad') };
     return JSON.stringify(r, null, 1);
   }
@@ -3696,11 +3696,21 @@ var ocrSpell = (function(){
       for (r = 0; r < m; r++) for (k = 0; k < K; k++) a[r * C + ix[r * K + k]] = vl[r * K + k];
       return { dims: [Bn, Tn, C], data: a, dispose: function(){} };
     }
-    function natAgree(a, b){                                         /* اعتبارسنجی: argmax هر گام بومی در برابر WASM؛ تا ۲٪ اختلاف مجاز */
-      var da = a.data, db = b.data, Bn = a.dims[0], Tn = a.dims[1], C = a.dims[2], n = Bn * Tn, bad = 0, r, c, o, ia, ib, va, vb;
+    function natAgree(a, b){                                         /* اعتبارسنجی: متن greedy-CTC هر خط بومی در برابر WASM (جابه‌جایی ±۱ گام قلهٔ CTC خطا نیست)؛ تا ۴٪ فاصلهٔ ویرایشی مجاز */
+      var da = a.data, db = b.data, Bn = a.dims[0], Tn = a.dims[1], C = a.dims[2], bi, t, c, o, ia, ib, va, vb, pa, pb, sa, sb, tot = 0, ed = 0;
       if (!b.dims || b.dims.length !== 3 || b.dims[0] !== Bn || b.dims[1] !== Tn || b.dims[2] !== C) return false;
-      for (r = 0; r < n; r++) { o = r * C; ia = 0; ib = 0; va = da[o]; vb = db[o]; for (c = 1; c < C; c++) { if (da[o + c] > va) { va = da[o + c]; ia = c; } if (db[o + c] > vb) { vb = db[o + c]; ib = c; } } if (ia !== ib) bad++; }
-      return bad <= n * 0.02;
+      function dist(x, y){ var m = x.length, n = y.length, p = [], q, i, j, c0; if (!m) return n; for (j = 0; j <= n; j++) p[j] = j; for (i = 1; i <= m; i++) { q = [i]; for (j = 1; j <= n; j++) { c0 = x[i - 1] === y[j - 1] ? 0 : 1; q[j] = Math.min(p[j] + 1, q[j - 1] + 1, p[j - 1] + c0); } p = q; } return p[n]; }
+      for (bi = 0; bi < Bn; bi++) {
+        sa = []; sb = []; pa = 0; pb = 0;
+        for (t = 0; t < Tn; t++) {
+          o = (bi * Tn + t) * C; ia = 0; ib = 0; va = da[o]; vb = db[o];
+          for (c = 1; c < C; c++) { if (da[o + c] > va) { va = da[o + c]; ia = c; } if (db[o + c] > vb) { vb = db[o + c]; ib = c; } }
+          if (ia && ia !== pa) sa.push(ia); pa = ia;
+          if (ib && ib !== pb) sb.push(ib); pb = ib;
+        }
+        tot += sb.length; ed += dist(sa, sb);
+      }
+      return ed <= tot * 0.04 + 1;
     }
     async function natTry(T, B, plane, TW, pr, tr1){                 /* خروجی: tensor-مانند یا null (⇒ مسیر WASM) */
       var o = null, o2, tin, f, res;
@@ -4431,7 +4441,7 @@ var ocrSpell = (function(){
   async function runOcr(){
     if (ocrBusy) { ocrStop = true; ocrLanes.forEach(function(ln){ if (ln.ow && !ln.killed) { ln.killed = true; try { ln.ow.kill(); } catch (e) {} } }); return; }   /* توقف فوری: Worker کشته می‌شود */
     if (man.busy) { status('اسکن دستی در حال اجراست؛ ابتدا آن را تمام یا متوقف کنید.'); return; }
-    var doc = pdfDoc, key = ocrKey, pages = ocrPages, geo = ocrGeo, gkey = ocrKey.replace(/^ocr:/, 'ocrg:'), mkey = ocrKey.replace(/^ocr:/, 'ocrm:'), failed = {}, tried = {}, lowN = 0, lastSv = Date.now(), lastProc = 0, cur = sents[idx] ? sents[idx].page : 1, n = rawItems.length, L = [], done = 0, err = '', qi = 0, killed = false, lastP = 0, lanes = [], redo = [], donT = [], inflight = {}, rch = Promise.resolve(), cv = null, cx = null, opt = null, qv = $('#ocrQ').value;
+    var doc = pdfDoc, key = ocrKey, pages = ocrPages, geo = ocrGeo, gkey = ocrKey.replace(/^ocr:/, 'ocrg:'), mkey = ocrKey.replace(/^ocr:/, 'ocrm:'), failed = {}, tried = {}, defer = {}, dtry = {}, lowN = 0, lastSv = Date.now(), lastProc = 0, cur = sents[idx] ? sents[idx].page : 1, n = rawItems.length, L = [], done = 0, err = '', qi = 0, killed = false, lastP = 0, lanes = [], redo = [], donT = [], inflight = {}, rch = Promise.resolve(), cv = null, cx = null, opt = null, qv = $('#ocrQ').value;
     for (var k = 0; k < n; k++) { var p0 = ((cur - 1 + k) % n) + 1; if (need.indexOf(p0) >= 0 && !ocrDone(p0)) L.push(p0); }
     if (!L.length || !doc) return;
     stopAll(); ocrBusy = true; ocrStop = false; ocrLanes = lanes; ocrPerfReset(); kaSync(); hbStart(); ocrFlush = function(){ var ts = performance.now(); ocrSaveD(key, pages, geo, ocrMeta).then(function(){ ocrPerfK('save', performance.now() - ts); }, function(){}); lastSv = Date.now(); }; ocrInfo();
@@ -4467,11 +4477,7 @@ var ocrSpell = (function(){
         catch (e) {                                                  /* r53: صفحهٔ گیرکرده (استال ۱۸۴ثانیه‌ای r52) ⇒ لغو، یک‌بار با نصف وضوح، وگرنه «ناموفق» و ادامه */
           if (!/render-timeout/.test(em(e))) throw e;
           try { (ocrPerf.to || (ocrPerf.to = [])).push({ pg: pn, sc: +sc.toFixed(2), w: cv.width, h: cv.height, ms: Math.round(performance.now() - trn) }); window.__elog.add('ocr', 'رندر صفحه ' + pn + ' بیش از ' + (WD_MS / 1000) + 'ث طول کشید؛ تلاش با نصف وضوح'); } catch (x) {}
-          try { page.cleanup(); } catch (x) {}
-          sc = Math.max(0.5, sc * 0.5); vp = page.getViewport({ scale: sc });
-          cv.width = Math.ceil(vp.width); cv.height = Math.ceil(vp.height);
-          cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
-          await wdRender(page, vp);                                  /* شکست دوم ⇒ استثنا ⇒ failed[pn] در runLane */
+          throw e;                                                   /* r63: بدون تلاش دوم (تلاش دوم ترد اصلی را ~۱۳۰ث قفل می‌کرد) ⇒ صفحه «ناموفق» و ادامه */
         }
         m = { w: cv.width, h: cv.height };
         if (useBmp) { m.bmp = await createImageBitmap(cv); tr = [m.bmp]; } else { m.b = cx.getImageData(0, 0, m.w, m.h).data.buffer; tr = [m.b]; }
@@ -4496,10 +4502,11 @@ var ocrSpell = (function(){
         var cp = sents[idx] ? sents[idx].page : cur, wait = false, k, p0;
         for (k = 0; k < n; k++) {
           p0 = ((cp - 1 + k) % n) + 1;
-          if (need.indexOf(p0) < 0 || ocrDone(p0) || inflight[p0] || failed[p0]) continue;
+          if (need.indexOf(p0) < 0 || ocrDone(p0) || inflight[p0] || failed[p0] || defer[p0]) continue;
           if (playing && (k >= 4 || ln.i > 0)) { wait = true; continue; }
           return p0;
         }
+        if (!wait && Object.keys(defer).length) { defer = {}; return pick(ln); }   /* r64: صفحه‌های رندرتایم‌اوت‌شده پس از بقیه یک‌بار دیگر امتحان می‌شوند */
         return wait ? -1 : 0;
       };
       var take = function(ln){ var pn = pick(ln); if (pn > 0) { inflight[pn] = 1; return { pn: pn, p: renderPage(pn) }; } return pn; };
@@ -4509,7 +4516,7 @@ var ocrSpell = (function(){
           ln.pre = null;
           if (!cr) { tk = take(ln); if (tk === 0) break; if (tk === -1) { await sleep(500); continue; } cr = tk; }
           pn = cr.pn; kk = done + 1; ln.cur = pn;
-          try { var tw0 = performance.now(); img = await cr.p; rwait = performance.now() - tw0; } catch (e) { failed[pn] = em(e); try { window.__elog.add('ocr', 'رندر صفحه ' + pn + ': ' + em(e)); } catch (x) {} delete inflight[pn]; ln.cur = 0; continue; }   /* خطای رندر یک صفحه، کل OCR را نمی‌خواباند */
+          try { var tw0 = performance.now(); img = await cr.p; rwait = performance.now() - tw0; } catch (e) { if (/render-timeout/.test(em(e)) && !dtry[pn]) { dtry[pn] = 1; defer[pn] = 1; delete inflight[pn]; ln.cur = 0; continue; } failed[pn] = em(e); try { window.__elog.add('ocr', 'رندر صفحه ' + pn + ': ' + em(e)); } catch (x) {} delete inflight[pn]; ln.cur = 0; continue; }   /* خطای رندر یک صفحه، کل OCR را نمی‌خواباند */
           status('OCR صفحهٔ ' + nf.format(pn) + ' (' + nf.format(kk) + ' از ' + nf.format(L.length) + ')…' + epTag());
           tk = take(ln); if (tk && tk !== -1) { ln.pre = tk; tk.p.catch(function(){}); }
           try { img.m.nat = natOn && !natFail ? 1 : 0; rr = await ln.ow.call('prec', img.m, img.tr, mkPr(ln, pn, kk)); }
@@ -7112,7 +7119,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r62 · 2026-10-22 · worker-fix', npBuild = '';
+  var APP_BUILD = 'html-r64 · 2026-10-22 · nat-agree-ctc · diag-defer', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -8447,7 +8454,7 @@ var ocrSpell = (function(){
     try { Promise.resolve(NP.keepAwake({ on: kw, cpu: kw })).catch(function(){ kaBad = true; }); } catch (e) { kaBad = true; }
   }
   setInterval(function(){ if (ocrBusy || (man && (man.busy || man.fx))) kaSync(); }, 4000);
-  document.addEventListener('visibilitychange', function(){ kaSync(); });
+  document.addEventListener('visibilitychange', function(){ kaSync(); try { if (ocrBusy && ocrPerf && ocrPerf.vis && ocrPerf.vis.length < 60) ocrPerf.vis.push([ocrPerf.n, document.visibilityState, Math.round(performance.now() / 1000)]); } catch (e) {} });
   function ui(){
     kaSync(); manPbSync();
     var has = sents.length > 0 && canSpeak();
