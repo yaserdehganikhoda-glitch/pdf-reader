@@ -12,6 +12,11 @@ import android.util.Base64
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
+import android.media.MediaCodec
+import android.media.MediaCodecInfo
+import android.media.MediaExtractor
+import android.media.MediaFormat
+import android.media.MediaMuxer
 import androidx.activity.result.ActivityResult
 import androidx.documentfile.provider.DocumentFile
 import com.getcapacitor.annotation.ActivityCallback
@@ -96,6 +101,139 @@ class PiperNativePlugin : Plugin() {
     fun clearCrashLog(call: PluginCall) {
         try { crashFile().delete() } catch (e: Throwable) {}
         call.resolve()
+    }
+
+    // ---- فشرده‌سازی کش صوت: WAV (۱۶بیت، تک‌کاناله) ⇄ AAC-LC در قالب m4a (حدود ۸ برابر کوچک‌تر) ----
+    private val acEx = Executors.newSingleThreadExecutor()
+
+    @PluginMethod
+    fun encodeAac(call: PluginCall) {
+        val s = call.getString("wav")
+        if (s.isNullOrEmpty()) { call.reject("wav?"); return }
+        acEx.execute {
+            val out = File(context.cacheDir, "ac_" + System.nanoTime() + ".m4a")
+            var codec: MediaCodec? = null
+            var mux: MediaMuxer? = null
+            var muxOn = false
+            try {
+                val wav = Base64.decode(s, Base64.DEFAULT)
+                val bb = ByteBuffer.wrap(wav).order(ByteOrder.LITTLE_ENDIAN)
+                if (wav.size < 128 || wav[0] != 0x52.toByte() || wav[36] != 0x64.toByte() || bb.getShort(22).toInt() != 1 || bb.getShort(34).toInt() != 16) throw IllegalArgumentException("fmt")
+                val sr = bb.getInt(24)
+                if (sr < 8000 || sr > 48000) throw IllegalArgumentException("sr")
+                val fmt = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sr, 1)
+                fmt.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
+                fmt.setInteger(MediaFormat.KEY_BIT_RATE, 40000)
+                fmt.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 16384)
+                val cd = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC); codec = cd
+                cd.configure(fmt, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE); cd.start()
+                val mx = MediaMuxer(out.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4); mux = mx
+                val info = MediaCodec.BufferInfo()
+                var track = -1; var pos = 44; var inDone = false; var outDone = false; var pts = 0L
+                val t0 = System.currentTimeMillis()
+                while (!outDone) {
+                    if (System.currentTimeMillis() - t0 > 20000) throw IllegalStateException("timeout")
+                    if (!inDone) {
+                        val ii = cd.dequeueInputBuffer(10000)
+                        if (ii >= 0) {
+                            val ib = cd.getInputBuffer(ii)!!
+                            ib.clear()
+                            val n = minOf(ib.capacity(), wav.size - pos) and 1.inv()
+                            if (n <= 0) { cd.queueInputBuffer(ii, 0, 0, pts, MediaCodec.BUFFER_FLAG_END_OF_STREAM); inDone = true }
+                            else { ib.put(wav, pos, n); cd.queueInputBuffer(ii, 0, n, pts, 0); pos += n; pts += (n / 2).toLong() * 1000000L / sr }
+                        }
+                    }
+                    val oi = cd.dequeueOutputBuffer(info, 10000)
+                    if (oi == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                        track = mx.addTrack(cd.outputFormat); mx.start(); muxOn = true
+                    } else if (oi >= 0) {
+                        val ob = cd.getOutputBuffer(oi)!!
+                        if ((info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) info.size = 0
+                        if (info.size > 0 && muxOn) { ob.position(info.offset); ob.limit(info.offset + info.size); mx.writeSampleData(track, ob, info) }
+                        cd.releaseOutputBuffer(oi, false)
+                        if ((info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) outDone = true
+                    }
+                }
+                if (!muxOn) throw IllegalStateException("nomux")
+                mx.stop(); muxOn = false
+                call.resolve(JSObject().put("aac", Base64.encodeToString(out.readBytes(), Base64.NO_WRAP)).put("sampleRate", sr))
+            } catch (e: Throwable) {
+                call.reject("encodeAac: " + (e.message ?: e.javaClass.simpleName))
+            } finally {
+                try { codec?.stop() } catch (e: Throwable) {}
+                try { codec?.release() } catch (e: Throwable) {}
+                try { if (muxOn) mux?.stop() } catch (e: Throwable) {}
+                try { mux?.release() } catch (e: Throwable) {}
+                try { out.delete() } catch (e: Throwable) {}
+            }
+        }
+    }
+
+    @PluginMethod
+    fun decodeAac(call: PluginCall) {
+        val s = call.getString("aac")
+        if (s.isNullOrEmpty()) { call.reject("aac?"); return }
+        acEx.execute {
+            val f = File(context.cacheDir, "ad_" + System.nanoTime() + ".m4a")
+            var ex: MediaExtractor? = null
+            var codec: MediaCodec? = null
+            try {
+                f.writeBytes(Base64.decode(s, Base64.DEFAULT))
+                val e = MediaExtractor(); ex = e
+                e.setDataSource(f.absolutePath)
+                var tr = -1
+                var inFmt: MediaFormat? = null
+                for (i in 0 until e.trackCount) {
+                    val fm = e.getTrackFormat(i)
+                    if ((fm.getString(MediaFormat.KEY_MIME) ?: "").startsWith("audio/")) { tr = i; inFmt = fm; break }
+                }
+                if (tr < 0 || inFmt == null) throw IllegalArgumentException("track")
+                e.selectTrack(tr)
+                val cd = MediaCodec.createDecoderByType(inFmt.getString(MediaFormat.KEY_MIME)!!); codec = cd
+                cd.configure(inFmt, null, null, 0); cd.start()
+                val pcm = java.io.ByteArrayOutputStream()
+                val info = MediaCodec.BufferInfo()
+                var sIn = false; var sOut = false
+                var sr = inFmt.getInteger(MediaFormat.KEY_SAMPLE_RATE); var ch = 1
+                val t0 = System.currentTimeMillis()
+                while (!sOut) {
+                    if (System.currentTimeMillis() - t0 > 20000) throw IllegalStateException("timeout")
+                    if (!sIn) {
+                        val ii = cd.dequeueInputBuffer(10000)
+                        if (ii >= 0) {
+                            val ib = cd.getInputBuffer(ii)!!
+                            val n = e.readSampleData(ib, 0)
+                            if (n < 0) { cd.queueInputBuffer(ii, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM); sIn = true }
+                            else { cd.queueInputBuffer(ii, 0, n, e.sampleTime, 0); e.advance() }
+                        }
+                    }
+                    val oi = cd.dequeueOutputBuffer(info, 10000)
+                    if (oi == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                        val of2 = cd.outputFormat
+                        sr = of2.getInteger(MediaFormat.KEY_SAMPLE_RATE); ch = of2.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
+                    } else if (oi >= 0) {
+                        val ob = cd.getOutputBuffer(oi)!!
+                        if (info.size > 0) { val a = ByteArray(info.size); ob.position(info.offset); ob.get(a); pcm.write(a) }
+                        cd.releaseOutputBuffer(oi, false)
+                        if ((info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) sOut = true
+                    }
+                }
+                if (ch != 1) throw IllegalStateException("ch")
+                val d = pcm.toByteArray()
+                val h = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN)
+                h.put("RIFF".toByteArray()); h.putInt(36 + d.size); h.put("WAVEfmt ".toByteArray()); h.putInt(16)
+                h.putShort(1.toShort()); h.putShort(1.toShort()); h.putInt(sr); h.putInt(sr * 2)
+                h.putShort(2.toShort()); h.putShort(16.toShort()); h.put("data".toByteArray()); h.putInt(d.size)
+                call.resolve(JSObject().put("wav", Base64.encodeToString(h.array() + d, Base64.NO_WRAP)).put("sampleRate", sr))
+            } catch (e: Throwable) {
+                call.reject("decodeAac: " + (e.message ?: e.javaClass.simpleName))
+            } finally {
+                try { codec?.stop() } catch (e: Throwable) {}
+                try { codec?.release() } catch (e: Throwable) {}
+                try { ex?.release() } catch (e: Throwable) {}
+                try { f.delete() } catch (e: Throwable) {}
+            }
+        }
     }
 
     @PluginMethod
