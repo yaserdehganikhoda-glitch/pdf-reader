@@ -592,7 +592,7 @@ body.mini-on .panel{padding-bottom:88px}
 .tpanel.on{display:grid}
 .tmenu.gm .ttabs,.tmenu.gm .tpanel:not(#tpanel-device){display:none!important}
 .tmenu.gm #tpanel-device{display:grid}
-.tmenu:not(.gm) #tpanel-device{display:none!important}
+.tmenu:not(.gm) #tpanel-device:not(.on){display:none!important}
 .tmenu.sheet.gm{inset:0 0 auto 0;top:0;bottom:auto;max-height:min(60vh,420px);max-height:min(60dvh,420px);border-radius:0 0 22px 22px;padding:env(safe-area-inset-top,0px) 0 0;animation:sheetdown .22s ease both}
 .tmenu.sheet.gm .tbody::after{content:"";display:block;width:36px;height:4px;border-radius:2px;background:var(--line);margin:10px auto 2px}
 @keyframes sheetdown{from{transform:translateY(-28px);opacity:0}}
@@ -792,6 +792,15 @@ body:not(.has-doc) .top,body.home-on .top{padding:0}
 .hdlist .btn{text-align:start;min-height:38px;font-size:.8rem}
 .hdlga{display:flex;gap:8px;justify-content:flex-end}
 .hdlga .btn{min-height:36px;padding:3px 18px;font-size:.8rem}
+.hti.busy svg{animation:spin .9s linear infinite}
+.hrefmsg{flex:none;max-width:42rem;width:100%;margin:0 auto;text-align:center}
+#homeList .lib-open{cursor:default}
+.hmenu{display:grid;gap:5px}
+.hmenu .btn{display:flex;align-items:center;justify-content:flex-start;gap:10px;text-align:start;min-height:42px;font-size:.84rem}
+.hmenu .btn svg{flex:none;width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hmenu .btn.danger{color:#d93a3a}
+:root[data-theme="dark"] .hmenu .btn.danger{color:#ff7b7b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hmenu .btn.danger{color:#ff7b7b}}
 
 /* ===== نمای صفحهٔ PDF ===== */
 .pv{max-width:100%;margin:0 auto;overflow-x:auto}
@@ -898,12 +907,12 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 #homeList.grid .hth.has .ph{display:none}
 #homeList.grid .hth.fold{background:color-mix(in srgb,var(--gold) 10%,var(--card))}
 #homeList.grid .hth.fold .ph{width:56%;fill:var(--gold);stroke:none;opacity:1}
-#homeList.grid .lib-open b{order:2;display:block;padding:8px 8px 9px 36px;font-size:.78rem;font-weight:600;text-align:right;white-space:nowrap}
+#homeList.grid .lib-open b{order:2;display:block;padding:8px 36px 9px 8px;font-size:.78rem;font-weight:600;text-align:right;white-space:nowrap}
 #homeList.grid .lib-open span{display:none}
 #homeList.grid .lib-pr{position:relative;z-index:1;order:1;inset-inline:auto;width:100%;height:3px;margin-top:-3px}
 #homeList.grid .hacts{display:contents}
 #homeList.grid .hfav{position:absolute;top:6px;left:6px;width:34px;height:34px;border:0;border-radius:11px;background:color-mix(in srgb,var(--card) 82%,transparent)}
-#homeList.grid .hmore{position:absolute;bottom:4px;left:2px;width:32px;height:32px;border:0;background:transparent}
+#homeList.grid .hmore{position:absolute;bottom:4px;right:2px;width:32px;height:32px;border:0;background:transparent}
 .htit{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .htool{justify-content:flex-end}
 #homeList.isempty{flex:1;display:flex;flex-direction:column}
@@ -1255,6 +1264,16 @@ body.has-doc:not(.home-on) .tmenu.sheet.gm{top:calc(env(safe-area-inset-top,0px)
 .tmenu.gm #tpanel-device .tile.exitB{margin-top:2px}
 .tmenu.gm #tpanel-device .tx b{font-size:.84rem}
 .tmenu.gm #tpanel-device .tx small{font-size:.7rem}
+/* r64: کادر پخش — گوینده و سرعت در ردیف دوم، هر کدام زیر دکمهٔ جملهٔ بالاتر از خود */
+body.has-doc:not(.home-on) .drC{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-rows:auto auto;row-gap:6px;column-gap:10px;align-items:center}
+body.has-doc:not(.home-on) .drC .dcS,body.has-doc:not(.home-on) .drC .dcE{display:contents}
+body.has-doc:not(.home-on) .drC #locBtn{grid-column:1;grid-row:1;justify-self:start}
+body.has-doc:not(.home-on) .drC .dcM{grid-column:2;grid-row:1}
+body.has-doc:not(.home-on) .drC #dVoice{grid-column:2;grid-row:2;justify-self:start;margin-left:0;margin-right:2px}
+body.has-doc:not(.home-on) .drC #spdBtn{grid-column:2;grid-row:2;justify-self:end;width:72px;min-width:0;padding:0;margin-left:-13px;margin-right:0;text-align:center}
+/* r64: تب «دستگاه» در کادر تنظیمات (گزارش خطا، ذخیره‌سازی، خروج) */
+.tmenu:not(.gm) #tpanel-device.on{display:grid;grid-template-columns:1fr}
+.tmenu:not(.gm) #tpanel-device .tile{grid-column:1/-1;width:100%}
 </style>
 </head>
 <body data-apptab="read">
@@ -1308,6 +1327,7 @@ body.has-doc:not(.home-on) .tmenu.sheet.gm{top:calc(env(safe-area-inset-top,0px)
             <button type="button" class="ttab on" role="tab" aria-selected="true" id="ttab-voice" aria-controls="tpanel-voice" tabindex="0" data-tt="voice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg><span>صدا</span></button>
             <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-text" aria-controls="tpanel-text" tabindex="-1" data-tt="text"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/></svg><span>متن</span></button>
             <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-view" aria-controls="tpanel-view" tabindex="-1" data-tt="view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg><span>نمایش</span></button>
+            <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-device" aria-controls="tpanel-device" tabindex="-1" data-tt="device"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 3v3M12 18v3M3 12h3M18 12h3"/></svg><span>دستگاه</span></button>
           </div>
           <div class="tbody">
             <div class="tpanel on" id="tpanel-voice" role="tabpanel" aria-labelledby="ttab-voice" data-tp="voice">
@@ -1350,12 +1370,14 @@ body.has-doc:not(.home-on) .tmenu.sheet.gm{top:calc(env(safe-area-inset-top,0px)
     <div class="home" id="homeView">
             <div class="htool">
         <b class="htit" id="hTitle">همه فایل‌ها</b>
+        <button class="hti" id="hRef" type="button" aria-label="به‌روزرسانی فهرست فایل‌ها" title="به‌روزرسانی فهرست"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg></button>
         <button class="hti" id="hSearchB" type="button" aria-label="جستجو" title="جستجو"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"/></svg></button>
         <button class="hti" id="hNewF" type="button" aria-label="ایجاد پوشه" title="ایجاد پوشه"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM12 10v6M9 13h6"/></svg></button>
         <button class="hti" id="hLay" type="button" aria-label="نمایش شبکه‌ای" title="چیدمان"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg></button>
         <button class="hti" id="hSortB" type="button" aria-label="مرتب‌سازی" title="مرتب‌سازی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h6"/></svg></button>
         <button class="rdb" id="hGear" type="button" aria-label="گزارش خطا و خروج" title="تنظیمات"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
       </div>
+      <p class="hint hrefmsg" id="hRefMsg" role="status" aria-live="polite" hidden></p>
       <div class="hsearch" id="hSearchRow" hidden><input id="hQ" type="search" dir="auto" autocomplete="off" placeholder="جستجوی نام فایل…" aria-label="جستجوی نام فایل"><button class="hti" id="hQx" type="button" aria-label="بستن جستجو"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       <div class="hsortp" id="hSortP" hidden role="group" aria-label="مرتب‌سازی">
         <div class="hseg" id="hSortK"><button type="button" data-k="name" aria-pressed="false">نام</button><button type="button" data-k="date" aria-pressed="false">تاریخ</button><button type="button" data-k="time" aria-pressed="false">زمان</button></div>
@@ -1365,6 +1387,7 @@ body.has-doc:not(.home-on) .tmenu.sheet.gm{top:calc(env(safe-area-inset-top,0px)
         <div class="hperm" id="homePerm" hidden><span id="homePermT">برای نمایش خودکار همهٔ PDFهای دستگاه، دسترسی به فایل‌ها را فعال کنید.</span><button class="btn primary sm" id="homePermB" type="button">فعال‌سازی</button></div>
         <div id="homeList"></div>
         <p class="hint" id="homeMsg" aria-live="polite"></p>
+        <button class="btn wide" id="homeRestore" type="button" hidden></button>
         <button class="btn wide" id="homeAdd" type="button" hidden>افزودن فایل PDF…</button>
       </div>
     <div class="htabs" role="tablist" aria-label="فهرست فایل‌ها">
@@ -2456,7 +2479,7 @@ body.has-doc:not(.home-on) .tmenu.sheet.gm{top:calc(env(safe-area-inset-top,0px)
 
   /* ---------- text settings / OCR ---------- */
 /*@@TXW:A*/
-  var O = { ln: 'auto', maxl: 200, script: true, ocr: 'auto' }, pdfDoc = null, rawItems = [], ocrPages = {}, ocrGeo = {}, ocrKey = '', need = [], dropped = 0, ocrBusy = false, ocrStop = false, ocrDirty = false, rawImg = [];
+  var O = { ln: 'auto', maxl: 200, script: true, ocr: 'auto' }, pdfDoc = null, rawItems = [], ocrPages = {}, ocrGeo = {}, ocrKey = '', need = [], ocrAll = false, dropped = 0, ocrBusy = false, ocrStop = false, ocrDirty = false, rawImg = [];
   function opts(){ var g = function(i){ return $('#' + i); }; return { ln: g('lnMode').value, dots: g('oDots').checked, hdr: g('oHdr').checked, norm: g('oNorm').checked, script: g('oScript').checked, latin: g('oLatin').checked, pos: g('oPos').checked, cols: g('oCols').checked && g('oPos').checked, fix: g('oFix').checked, glue: g('oGlue').checked, spell: g('oSpell').checked, pause: g('oPause').checked, toc: g('oToc').checked, from: Math.max(0, +g('pgFrom').value || 0), to: Math.max(0, +g('pgTo').value || 0), maxl: +g('maxL').value, ocr: g('ocrMode').value, enc: g('encMode').value }; }
   function optsFix(o){ if (o.from && o.to && o.from > o.to) { var x = o.from; o.from = o.to; o.to = x; } return o; }
   var CW = new Set('و در به از که این را با است برای آن یک تا هم بر یا هر شد می'.split(' '));
@@ -2804,20 +2827,20 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
   window.addEventListener('pagehide', function(){ if (ocrBusy && ocrFlush) ocrFlush(); });                  /* ocrMeta[p] = {w: ok|blank_contrast|no_boxes|filtered, v: نسخهٔ موتور+کیفیت, q: اطمینان} */
   function ocrVer(){ var q = $('#ocrQ'); return OCR_VER + ':' + (q ? q.value : ''); }
   var cerSet = null;   /* r71: در سنجش خودکار CER فقط همین صفحه‌ها OCR می‌شوند (need میانِ اجرا بازنویسی می‌شود) */
-  function inNeed(p){ return cerSet ? !!cerSet[p] : need.indexOf(p) >= 0; }
+  function inNeed(p){ return cerSet ? !!cerSet[p] : ocrAll ? ((!O.from || p >= O.from) && (!O.to || p <= O.to)) : need.indexOf(p) >= 0; }   /* ocrAll: اسکن همهٔ صفحه‌ها حتی بدون مشکل (با دکمهٔ OCR) */
   function ocrDone(p){ if (ocrPages[p] == null) return false; var m = ocrMeta[p]; return !(m && m.w !== 'ok' && m.v !== ocrVer()); }   /* صفحهٔ خالی/بی‌خط فقط تا همان نسخهٔ موتور «انجام‌شده» است */
   function ocrHarMap(){ var o = {}, p; for (p in ocrMeta) if (ocrMeta[p] && ocrMeta[p].har && ocrDone(+p)) o[p] = 1; return o; }
   function ocrEdMap(){ var o = {}, p; for (p in ocrMeta) if (ocrMeta[p].ed && ocrDone(+p)) o[p] = ocrMeta[p].ed; return o; }
   function ocrActive(){ var o = {}, p; for (p in ocrPages) if (ocrDone(+p)) o[p] = ocrPages[p]; return o; }
-  function ocrTodo(){ return need.filter(function(p){ return !ocrDone(p); }); }
-  function ocrHint(){ var k = ocrTodo().length; return k ? ' — ' + nf.format(k) + ' صفحه متن خراب یا بدون متن دارد و نیاز به OCR دارد (منو ‹ متن)' : ''; }
+  function ocrTodo(){ if (ocrAll && !cerSet) { var r = [], i; for (i = 1; i <= rawItems.length; i++) if (inNeed(i) && !ocrDone(i)) r.push(i); return r; } return need.filter(function(p){ return !ocrDone(p); }); }
+  function ocrHint(){ var k = ocrTodo().length; if (ocrAll) return k ? ' — ' + nf.format(k) + ' صفحه برای OCR مانده است' : ''; return k ? ' — ' + nf.format(k) + ' صفحه متن خراب یا بدون متن دارد و نیاز به OCR دارد (منو ‹ متن)' : ''; }
   function ocrInfo(){
-    var k = ocrTodo().length, b = $('#ocrBtn');
+    var k = ocrTodo().length, b = $('#ocrBtn'), can = !!pdfDoc && rawItems.length > 0;
     paddleLocal().then(function(l){ $('#ocrSrc').textContent = (l ? 'موتور و مدل OCR: داخل برنامه (آفلاین)' : 'موتور و مدل OCR: داخل برنامه نیست') + ' — نمایش PDF: ' + (window.pdfLocal ? 'داخل برنامه (آفلاین)' : 'داخل برنامه نیست') + (ocrEp ? ' — شتاب‌دهنده: ' + epLabel(ocrEp) : '') + ' — واژه‌نامهٔ املا: ' + nf.format(ocrSpell.size()) + ' واژه'; });
     $('#manBtn').disabled = !pdfDoc || !rawItems.length;
-    b.disabled = !ocrBusy && !k; b.textContent = ocrBusy ? 'توقف OCR و استفاده از نتیجه' : 'اجرای OCR (از صفحهٔ فعلی)';
+    b.disabled = !ocrBusy && !can; b.textContent = ocrBusy ? 'توقف OCR و استفاده از نتیجه' : k ? 'اجرای OCR (از صفحهٔ فعلی)' : 'اسکن خودکار همهٔ صفحه‌ها (حتی بدون مشکل)';
     uiOcrNote(k);
-    $('#ocrStat').textContent = (O.ocr === 'off' ? 'OCR خاموش است. ' : k ? nf.format(k) + ' صفحه ' + (O.ocr === 'always' ? 'برای OCR انتخاب شده' : 'متن ناخوانا یا بدون متن دارد (کدگذاری فونت PDF درست نیست)') + '؛ با OCR از روی تصویر صفحه خوانده می‌شوند. ' : (rawItems.length ? 'صفحهٔ مشکل‌دار پیدا نشد. ' : '')) + (dropped ? nf.format(dropped) + ' جملهٔ غیرفارسی و غیرلاتین (مثل ارمنی) کنار گذاشته شد.' : '');
+    $('#ocrStat').textContent = (O.ocr === 'off' && !ocrAll ? 'OCR خاموش است. ' : k ? nf.format(k) + ' صفحه ' + ((O.ocr === 'always' || ocrAll) ? 'برای OCR انتخاب شده' : 'متن ناخوانا یا بدون متن دارد (کدگذاری فونت PDF درست نیست)') + '؛ با OCR از روی تصویر صفحه خوانده می‌شوند. ' : (rawItems.length ? 'صفحهٔ مشکل‌دار پیدا نشد. ' : '')) + (dropped ? nf.format(dropped) + ' جملهٔ غیرفارسی و غیرلاتین (مثل ارمنی) کنار گذاشته شد.' : '');
   }
   /* ===== اصلاح کلمات چسبیدهٔ OCR (قاعده‌محور، آفلاین، بدون دیکشنری بزرگ) ===== */
   /* ===== جداکردن «می» و «نمی» از فعل با نیم‌فاصله: میکنم ← می‌کنم، نمیدانم ← نمی‌دانم ===== */
@@ -4561,8 +4584,9 @@ var ocrSpell = (function(){
     if (ocrBusy) { ocrStop = true; ocrLanes.forEach(function(ln){ if (ln.ow && !ln.killed) { ln.killed = true; try { ln.ow.kill(); } catch (e) {} } }); return; }   /* توقف فوری: Worker کشته می‌شود */
     if (man.busy) { status('اسکن دستی در حال اجراست؛ ابتدا آن را تمام یا متوقف کنید.'); return; }
     var doc = pdfDoc, key = ocrKey, pages = ocrPages, geo = ocrGeo, gkey = ocrKey.replace(/^ocr:/, 'ocrg:'), mkey = ocrKey.replace(/^ocr:/, 'ocrm:'), failed = {}, tried = {}, defer = {}, dtry = {}, lowN = 0, lastSv = Date.now(), lastProc = 0, cur = sents[idx] ? sents[idx].page : 1, n = rawItems.length, L = [], done = 0, err = '', qi = 0, killed = false, lastP = 0, lanes = [], redo = [], donT = [], inflight = {}, rch = Promise.resolve(), cv = null, cx = null, opt = null, qv = $('#ocrQ').value;
+    if (doc && !cerSet && !ocrTodo().length) ocrAll = true;   /* هیچ صفحهٔ مشکل‌داری نیست ⇒ همهٔ صفحه‌ها (در بازهٔ انتخابی) اسکن می‌شوند */
     for (var k = 0; k < n; k++) { var p0 = ((cur - 1 + k) % n) + 1; if (inNeed(p0) && !ocrDone(p0)) L.push(p0); }
-    if (!L.length || !doc) return;
+    if (!L.length || !doc) { if (doc && ocrAll) { status('همهٔ صفحه‌ها قبلاً OCR شده‌اند.'); ocrInfo(); } return; }
     stopAll(); ocrBusy = true; ocrStop = false; ocrLanes = lanes; ocrPerfReset(); kaSync(); hbStart(); ocrFlush = function(){ var ts = performance.now(); ocrSaveD(key, pages, geo, ocrMeta).then(function(){ ocrPerfK('save', performance.now() - ts); }, function(){}); lastSv = Date.now(); }; ocrInfo();
     var dropPre = function(ln){ if (ln.pre) { var q = ln.pre.p; redo.push(ln.pre.pn); delete inflight[ln.pre.pn]; ln.pre = null; q.then(function(r){ try { if (r.m.bmp) r.m.bmp.close(); } catch (e) {} }, function(){}); } };
     try {
@@ -6203,7 +6227,7 @@ var ocrSpell = (function(){
     var lt = ++loadTok; posFlush();
     if (!window.pdfjsLib) { status('کتابخانهٔ PDF داخل برنامه پیدا نشد (پوشهٔ lib را با fetch-offline.sh بسازید).'); return; }
     if (ocrBusy) { ocrStop = true; while (ocrBusy) await new Promise(function(r){ setTimeout(r, 60); }); }
-    curKey = '';
+    curKey = ''; ocrAll = false;
     stopAll();
     status('در حال باز کردن فایل…'); setDocTitle(file.name); closeMenu();
     docName = file.name; dictP = sget('dict:' + docName, ''); parseDict(); dictShow();   /* واژه‌نامهٔ همین فایل */
@@ -8677,7 +8701,7 @@ var ocrSpell = (function(){
         var pos = parseInt(sget('pos:' + e.id, '0'), 10) || 0, pr = e.total > 1 && pos > 0 ? Math.min(99, Math.round(pos / e.total * 100)) : 0;
         row.className = 'lib-i';
         ob.type = 'button'; ob.className = 'lib-open' + (curKey === 'pos:' + e.id ? ' cur' : '');
-        nm.dir = 'auto'; nm.textContent = e.name;
+        nm.dir = 'auto'; nm.textContent = (typeof hNameOf === 'function' ? hNameOf(e.id, e.name) : e.name);
         inf.textContent = [libSize(e.size || 0), e.pages ? nf.format(e.pages) + ' صفحه' : '', pr ? nf.format(pr) + '٪ خوانده شده' : '', new Date(e.opened || e.added || Date.now()).toLocaleDateString('fa-IR')].filter(Boolean).join('، ');
         ob.appendChild(nm); ob.appendChild(inf);
         if (pr) { var bar = document.createElement('i'); bar.className = 'lib-pr'; bar.style.setProperty('--w', pr + '%'); ob.appendChild(bar); }
@@ -10148,7 +10172,7 @@ var ocrSpell = (function(){
   function favToggle(e){
     var a = hJ('favs'), i = -1;
     a.forEach(function(x, k){ if (x.id === e.id) i = k; });
-    if (i >= 0) a.splice(i, 1); else a.unshift({ id: e.id, name: e.name, size: e.size, path: e.path || '' });
+    if (i >= 0) a.splice(i, 1); else a.unshift({ id: e.id, name: e.orig || e.name, size: e.size, path: e.path || '' });
     sset('favs', JSON.stringify(a));
     hRender(); rdSync();
   }
@@ -10170,22 +10194,28 @@ var ocrSpell = (function(){
   function hOpen(e){
     hPendFold = ''; hMsg('در حال باز کردن…');
     var fail = function(){ hMsg('این فایل پیدا نشد؛ ممکن است جابه‌جا یا حذف شده باشد.'); };
-    if (!e.path) return hFromLib(e).catch(fail);
-    return hFetch(e.path).then(function(b){ return loadFile(new File([b], e.name, { type: 'application/pdf' })); }).catch(function(){ return hFromLib(e); }).catch(fail);
+    var nm = e.orig || e.name, al = e.name !== nm ? e.name : '';
+    var shown = function(){ if (al) { try { setDocTitle(al); } catch (x) {} } };   /* نام تغییریافته فقط نمایشی است؛ شناسهٔ فایل (نام اصلی + حجم) ثابت می‌ماند */
+    if (!e.path) return hFromLib(e).then(shown).catch(fail);
+    return hFetch(e.path).then(function(b){ return loadFile(new File([b], nm, { type: 'application/pdf' })); }).catch(function(){ return hFromLib(e); }).then(shown).catch(fail);
   }
+  /* نام نمایشی (تغییر نام داخل برنامه) و فایل‌های حذف‌شده از فهرست */
+  function hNames(){ try { var o = JSON.parse(sget('hNames', '{}')); return o && typeof o === 'object' && !Array.isArray(o) ? o : {}; } catch (e) { return {}; } }
+  function hNameOf(id, name){ return hNames()[id] || name; }
   /* گردآوری: فهرست اسکن‌شدهٔ دستگاه + فایل‌های ذخیره‌شده در برنامه (یکتا بر اساس «نام:حجم») */
   function hEntries(){
     return libIdx().then(function(lib){
-      var map = {}, all = [], rc = {};
+      var map = {}, all = [], rc = {}, nms = hNames(), hid = {};
+      hJ('hHidden').forEach(function(x){ hid[x] = 1; });
       hJ('recents').forEach(function(r){ rc[r.id] = r.ts; });
       function put(id, name, size, path, mtime){
         var o = map[id];
-        if (!o) { o = map[id] = { id: id, name: name, size: size || 0, path: '', mtime: 0, total: 0, ts: rc[id] || 0 }; all.push(o); }
+        if (!o) { o = map[id] = { id: id, name: nms[id] || name, orig: name, size: size || 0, path: '', mtime: 0, total: 0, ts: rc[id] || 0 }; all.push(o); }
         if (path) { o.path = path; pathOf[id] = path; }
         if (mtime && !o.mtime) o.mtime = mtime;
         return o;
       }
-      hScan.forEach(function(f){ put(f.name + ':' + f.size, f.name, f.size, f.path, f.mtime * 1000); });
+      hScan.forEach(function(f){ var id = f.name + ':' + f.size; if (hid[id]) return; put(id, f.name, f.size, f.path, f.mtime * 1000); });
       lib.forEach(function(e){ var o = put(e.id, e.name, e.size, '', e.added); o.total = e.total || 0; });
       return { all: all, map: map, rc: rc };
     });
@@ -10308,30 +10338,116 @@ var ocrSpell = (function(){
     }, { root: document.querySelector('#homeView .hbody'), rootMargin: '300px 0px' });
     thIO.observe(th);
   }
+  var SVG_I = {
+    play: 'M8 5v14l11-7z',
+    edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
+    heart: 'M12 20s-7-4.6-9-9.2C1.6 7.4 3.7 4 7 4c2 0 3.4 1.1 5 3 1.6-1.9 3-3 5-3 3.3 0 5.4 3.4 4 6.8C19 15.4 12 20 12 20z',
+    folder: 'M3 6.5A2.5 2.5 0 0 1 5.5 4h3.7a2 2 0 0 1 1.6.8L12 6.4h6.5A2.5 2.5 0 0 1 21 8.9v8.6a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z',
+    del: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6'
+  };
+  function hMItem(box, label, path, fn, cls){
+    var b = document.createElement('button'), s = document.createElement('span');
+    b.type = 'button'; b.className = 'btn' + (cls ? ' ' + cls : '');
+    b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + path + '"/></svg>';
+    s.textContent = label; b.appendChild(s); b.onclick = fn; box.appendChild(b);
+  }
+  /* منوی سه‌نقطهٔ هر فایل: تنها راه باز کردن PDF «اجرا» در همین منوست */
+  function hMenu(e){
+    var box = document.createElement('div'), fav = hJ('favs').some(function(x){ return x.id === e.id; });
+    box.className = 'hmenu';
+    hMItem(box, 'اجرا', SVG_I.play, function(){ hDlg.close(); hOpen(e); });
+    hMItem(box, 'تغییر نام', SVG_I.edit, function(){ hRenameDlg(e); });
+    hMItem(box, fav ? 'حذف از مورد علاقه' : 'افزودن به مورد علاقه', SVG_I.heart, function(){ hDlg.close(); favToggle(e); });
+    hMItem(box, 'انتقال به پوشه', SVG_I.folder, function(){ hMoveDlg(e); });
+    hMItem(box, 'حذف', SVG_I.del, function(){ hDelDlg(e); }, 'danger');
+    hDlg({ title: e.name, body: box, cancel: 'بستن' });
+  }
+  function hNameDlg(title, cur, taken, save){
+    var inp = document.createElement('input'), msg = document.createElement('p'), box = document.createElement('div');
+    inp.type = 'text'; inp.maxLength = 120; inp.dir = 'auto'; inp.value = cur; inp.setAttribute('aria-label', 'نام جدید');
+    msg.className = 'hint'; box.className = 'hdbox'; box.appendChild(inp); box.appendChild(msg);
+    inp.onkeydown = function(ev){ if (ev.key === 'Enter') { ev.preventDefault(); $('#hDlgOk').click(); } };
+    hDlg({ title: title, body: box, ok: 'ذخیره', cancel: 'لغو', focus: inp, onOk: function(){
+      var n = inp.value.trim().replace(/\s+/g, ' ');
+      if (!n) { msg.textContent = 'نام را بنویسید.'; return false; }
+      if (taken && taken(n)) { msg.textContent = 'این نام قبلاً استفاده شده است.'; return false; }
+      save(n);
+    } });
+    setTimeout(function(){ try { inp.select(); } catch (x) {} }, 60);
+  }
+  function hRenameDlg(e){
+    var orig = e.orig || e.name, ext = /\.pdf$/i.test(orig) ? '.pdf' : '';
+    hNameDlg('تغییر نام فایل', e.name.replace(/\.pdf$/i, ''), null, function(n){
+      var o = hNames(), nn = n.replace(/\.pdf$/i, '') + ext;
+      if (nn === orig) delete o[e.id]; else o[e.id] = nn;
+      sset('hNames', JSON.stringify(o));
+      if (curKey === 'pos:' + e.id) { try { setDocTitle(nn); } catch (x) {} }
+      if (typeof libRender === 'function') libRender();
+      hRender();
+    });
+  }
+  function hDelDlg(e){
+    var p = document.createElement('p'); p.className = 'hint';
+    p.textContent = '«' + e.name + '» از فهرست و حافظهٔ برنامه حذف می‌شود. فایل اصلی روی دستگاه پاک نمی‌شود و با «افزودن فایل PDF» می‌توانید دوباره آن را اضافه کنید. جای خواندن و نتیجهٔ OCR حفظ می‌ماند.';
+    hDlg({ title: 'حذف فایل', body: p, ok: 'حذف', cancel: 'لغو', onOk: function(){ hDelFile(e); } });
+  }
+  function hDelFile(e){
+    var id = e.id;
+    libLock(function(){
+      return libIdx().then(function(a){
+        return kvDelMany(['lib:f:' + id, 'th:' + id]).then(function(){
+          if (a.some(function(x){ return x.id === id; })) return kvSet('lib:index', a.filter(function(x){ return x.id !== id; }));
+        });
+      });
+    }).then(function(){
+      sset('favs', JSON.stringify(hJ('favs').filter(function(x){ return x.id !== id; })));
+      sset('recents', JSON.stringify(hJ('recents').filter(function(x){ return x.id !== id; })));
+      var fa = fdAll(), nm = hNames(), hd = hJ('hHidden');
+      fa.forEach(function(f){ var i = f.files.indexOf(id); if (i >= 0) f.files.splice(i, 1); });
+      fdSave(fa);
+      if (nm[id]) { delete nm[id]; sset('hNames', JSON.stringify(nm)); }
+      if ((e.path || hScan.some(function(f){ return f.name + ':' + f.size === id; })) && hd.indexOf(id) < 0) { hd.push(id); sset('hHidden', JSON.stringify(hd)); }
+      if (typeof libRender === 'function') libRender();
+      hMsg('«' + e.name + '» حذف شد.');
+      return hRender();
+    }).catch(function(){ hMsg('حذف فایل انجام نشد.'); });
+  }
   function hRow(e){
-    var row = document.createElement('div'), ob = document.createElement('button'), nm = document.createElement('b'), inf = document.createElement('span'), acts = document.createElement('div');
+    var row = document.createElement('div'), ob = document.createElement('div'), nm = document.createElement('b'), inf = document.createElement('span'), acts = document.createElement('div');
     var pos = parseInt(sget('pos:' + e.id, '0'), 10) || 0, pr = e.total > 1 && pos > 0 ? Math.min(99, Math.round(pos / e.total * 100)) : 0;
     var when = hTab === 'rec' ? e.ts : (e.mtime || e.ts);
     var fav = hJ('favs').some(function(x){ return x.id === e.id; });
     row.className = 'lib-i';
-    ob.type = 'button'; ob.className = 'lib-open' + (curKey === 'pos:' + e.id ? ' cur' : '');
+    ob.className = 'lib-open' + (curKey === 'pos:' + e.id ? ' cur' : '');   /* ضربه روی کادر نام فایل را باز نمی‌کند؛ فقط «اجرا» در منوی ⋮ */
     nm.dir = 'auto'; nm.textContent = e.name;
     inf.textContent = [libSize(e.size || 0), pr ? nf.format(pr) + '٪ خوانده شده' : '', hFmt(when)].filter(Boolean).join('، ');
     ob.appendChild(nm); ob.appendChild(inf); nm.title = e.name;
     if (pr) { var bar = document.createElement('i'); bar.className = 'lib-pr'; bar.style.setProperty('--w', pr + '%'); ob.appendChild(bar); }
     var th = document.createElement('div'); th.className = 'hth'; th.setAttribute('aria-hidden', 'true'); th.innerHTML = SVG_DOC;
     ob.insertBefore(th, ob.firstChild); if (hLay === 'grid') thWatch(th, e);
-    ob.onclick = function(){ hOpen(e); };
     acts.className = 'hacts';
     var fv = hBtn('hfav' + (fav ? ' on' : ''), SVG_HEART, (fav ? 'حذف از مورد علاقه: ' : 'افزودن به مورد علاقه: ') + e.name, function(){ favToggle(e); });
     fv.setAttribute('aria-pressed', fav ? 'true' : 'false');
     acts.appendChild(fv);
-    acts.appendChild(hBtn('hmore', SVG_MORE, 'گزینه‌های ' + e.name, function(){ hMoveDlg(e); }));
-    row.appendChild(ob); row.appendChild(acts);
+    var mb = hBtn('hmore', SVG_MORE, 'گزینه‌های ' + e.name, function(){ hMenu(e); });
+    mb.setAttribute('aria-haspopup', 'dialog');
+    row.appendChild(mb); row.appendChild(ob); row.appendChild(acts);   /* ⋮ سمت راست کادر نام (RTL) */
     return row;
   }
+  function hFMenu(f){
+    var box = document.createElement('div');
+    box.className = 'hmenu';
+    hMItem(box, 'باز کردن پوشه', SVG_I.folder, function(){ hDlg.close(); hFolder = f.id; hLimit = 150; hRender(); });
+    hMItem(box, 'تغییر نام', SVG_I.edit, function(){
+      hNameDlg('تغییر نام پوشه', f.name, function(n){ return fdAll().some(function(x){ return x.id !== f.id && norm(x.name) === norm(n); }); }, function(n){
+        var a = fdAll(); a.forEach(function(x){ if (x.id === f.id) x.name = n; }); fdSave(a); hRender();
+      });
+    });
+    hMItem(box, 'حذف پوشه', SVG_I.del, function(){ hDelFolder(f); }, 'danger');
+    hDlg({ title: f.name, body: box, cancel: 'بستن' });
+  }
   function hFRow(f){
-    var row = document.createElement('div'), ob = document.createElement('button'), nm = document.createElement('b'), inf = document.createElement('span'), acts = document.createElement('div');
+    var row = document.createElement('div'), ob = document.createElement('button'), nm = document.createElement('b'), inf = document.createElement('span');
     row.className = 'lib-i hfold';
     ob.type = 'button'; ob.className = 'lib-open';
     nm.dir = 'auto'; nm.textContent = '📁 ' + f.name;
@@ -10339,9 +10455,9 @@ var ocrSpell = (function(){
     ob.appendChild(nm); ob.appendChild(inf);
     var fth = document.createElement('div'); fth.className = 'hth fold'; fth.setAttribute('aria-hidden', 'true'); fth.innerHTML = SVG_FOLD; ob.insertBefore(fth, ob.firstChild);
     ob.onclick = function(){ hFolder = f.id; hLimit = 150; hRender(); };
-    acts.className = 'hacts';
-    acts.appendChild(hBtn('hmore', SVG_MORE, 'حذف پوشهٔ ' + f.name, function(){ hDelFolder(f); }));
-    row.appendChild(ob); row.appendChild(acts);
+    var mb = hBtn('hmore', SVG_MORE, 'گزینه‌های پوشهٔ ' + f.name, function(){ hFMenu(f); });
+    mb.setAttribute('aria-haspopup', 'dialog');
+    row.appendChild(mb); row.appendChild(ob);
     return row;
   }
   function hSortSync(){
@@ -10358,7 +10474,7 @@ var ocrSpell = (function(){
     $('#hLay').setAttribute('aria-label', hLay === 'grid' ? 'نمایش فهرستی' : 'نمایش شبکه‌ای');
     return hEntries().then(function(r){
       var q = norm(hQ.trim()), folders = [], list, fo = null, total, box = $('#homeList'), more;
-      function ref(x){ var o = r.map[x.id] || { id: x.id, name: x.name, size: x.size, path: x.path || '', mtime: 0, total: 0 }; if (!o.path && x.path) o.path = x.path; o.ts = x.ts || r.rc[x.id] || 0; return o; }
+      function ref(x){ var o = r.map[x.id] || { id: x.id, name: hNameOf(x.id, x.name), orig: x.name, size: x.size, path: x.path || '', mtime: 0, total: 0 }; if (!o.path && x.path) o.path = x.path; o.ts = x.ts || r.rc[x.id] || 0; return o; }
       if (hTab === 'fav') list = hJ('favs').map(ref);
       else if (hTab === 'rec') list = hJ('recents').map(ref);
       else {
@@ -10384,6 +10500,7 @@ var ocrSpell = (function(){
       if (!hasAny) { $('#hSearchRow').hidden = true; $('#hSortP').hidden = true; }
       $('#hNewF').hidden = !(hasAny && hTab === 'all' && !fo);
       $('#homeAdd').hidden = hTab !== 'all';
+      var hdn = hJ('hHidden').length, hrb = $('#homeRestore'); hrb.hidden = !(hdn && hTab === 'all' && !fo); hrb.textContent = 'نمایش دوبارهٔ ' + nf.format(hdn) + ' فایل حذف‌شده از فهرست';
       $('#homePerm').hidden = !(onNative && NP && NP.listPdfs && hTab === 'all' && hScanOK && !hAccess);
       $('#homePermT').textContent = hDecl ? 'برای نمایش خودکار همهٔ PDFهای دستگاه، دسترسی به فایل‌ها را فعال کنید.' : 'این نسخهٔ برنامه مجوز دسترسی به فایل‌های دستگاه را ندارد، برای همین فهرست خودکار کار نمی‌کند. با «افزودن فایل PDF» می‌توانید فایل‌ها را دستی اضافه کنید.';
       $('#homePermB').hidden = !hDecl;
@@ -10418,15 +10535,16 @@ var ocrSpell = (function(){
     }).catch(function(){});
   }
   /* اسکن خودکار حافظهٔ دستگاه از طریق پلاگین بومی؛ در مرورگر یا بدون دسترسی فقط فایل‌های ذخیره‌شده در برنامه نمایش داده می‌شوند */
+  function hRefSpin(on){ var b = $('#hRef'); if (b) b.classList.toggle('busy', !!on); }
   function hScanRun(){
     if (!onNative || !NP || hBusy) return Promise.resolve();
-    hBusy = true;
+    hBusy = true; hRefSpin(true);
     return ensurePiper().then(function(ok){
       if (!ok || !NP.listPdfs) throw new Error('old');
       return NP.listPdfs();
     }).then(function(r){
       hScan = (r && r.files) || []; hAccess = !!(r && r.access); hDecl = !(r && r.declared === false); hScanOK = true;
-    }).catch(function(){ hScanOK = false; hAccess = false; }).then(function(){ hBusy = false; return hRender(); });
+    }).catch(function(){ hScanOK = false; hAccess = false; }).then(function(){ hBusy = false; hRefSpin(false); return hRender(); });
   }
   function showHome(){
     closeTools(); setAppTab('read'); BK.drop('rd');
@@ -10452,6 +10570,20 @@ var ocrSpell = (function(){
   $('#hSortB').onclick = function(){ var p = $('#hSortP'); p.hidden = !p.hidden; this.classList.toggle('on', !p.hidden); };
   Array.prototype.forEach.call(document.querySelectorAll('#hSortK button'), function(b){ b.onclick = function(){ var s = hSortGet(); s.k = b.dataset.k; hSortSet(s); hRender(); }; });
   Array.prototype.forEach.call(document.querySelectorAll('#hSortD button'), function(b){ b.onclick = function(){ var s = hSortGet(); s.d = b.dataset.d; hSortSet(s); hRender(); }; });
+  var hRefT = 0;
+  $('#hRef').onclick = function(){
+    var b = this, m = $('#hRefMsg'), t0 = Date.now();
+    if (b.classList.contains('busy')) return;
+    b.classList.add('busy');
+    Promise.resolve(hScanRun()).then(function(){ return hEntries(); }).then(function(r){
+      var txt = (onNative && NP && NP.listPdfs) ? (hScanOK ? 'فهرست به‌روز شد — ' + nf.format(r.all.length) + ' فایل' : 'خواندن حافظهٔ دستگاه ممکن نشد؛ فقط فایل‌های ذخیره‌شده در برنامه نمایش داده می‌شوند.') : 'فهرست به‌روز شد — ' + nf.format(r.all.length) + ' فایل';
+      return hRender().then(function(){ return txt; });
+    }).catch(function(){ return 'به‌روزرسانی فهرست انجام نشد.'; }).then(function(txt){
+      setTimeout(function(){ b.classList.remove('busy'); }, Math.max(0, 600 - (Date.now() - t0)));
+      m.textContent = txt; m.hidden = false; clearTimeout(hRefT); hRefT = setTimeout(function(){ m.hidden = true; }, 3500);
+    });
+  };
+  $('#homeRestore').onclick = function(){ sset('hHidden', '[]'); hRender(); hScanRun(); };
   $('#homeAdd').onclick = function(){ hPendFold = hFolder; fin.click(); };
   $('#homePermB').onclick = function(){ if (NP && NP.pdfRequest) NP.pdfRequest().then(function(r){ if (r && r.declared === false) { hDecl = false; hRender(); } }).catch(function(){}); };
   document.addEventListener('visibilitychange', function(){ if (!document.hidden && (!document.body.classList.contains('has-doc') || document.body.classList.contains('home-on'))) hScanRun(); });
@@ -10647,8 +10779,8 @@ var ocrSpell = (function(){
   document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape') bmClose(); });
   $('#rdFav').onclick = function(){ var e = curEnt(); if (e) { favToggle(e); rdSync(); } };
   $('#rdMan').onclick = function(ev){ ev.stopPropagation(); if ($('#manBtn').disabled) { status('ابتدا یک PDF باز کنید.'); return; } manOpen(); };
-  $('#rdMore').onclick = function(ev){ ev.stopPropagation(); if (toolsOn) closeTools(); else openTools('gear'); };
-  $('#hGear').onclick = function(ev){ ev.stopPropagation(); if (toolsOn) closeTools(); else openTools('gear'); };
+  $('#rdMore').onclick = function(ev){ ev.stopPropagation(); if (toolsOn) closeTools(); else openTools('set'); };
+  $('#hGear').onclick = function(ev){ ev.stopPropagation(); if (toolsOn) closeTools(); else openTools('set'); };
   $('#dTools').onclick = function(ev){ ev.stopPropagation(); if (toolsOn) closeTools(); else openTools('set'); };
   /* ---------- برگهٔ گوینده و سبک گفتار (دکمهٔ کاربر): آواتار هر گوینده + انتخاب سبک ---------- */
   var VS = (function(){
