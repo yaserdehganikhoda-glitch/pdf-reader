@@ -1706,7 +1706,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
             <textarea id="logText" readonly rows="9" style="width:100%;direction:ltr;font:11px monospace" aria-label="گزارش خطا"></textarea>
             <div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="logCopy">کپی</button><button type="button" class="btn sm" id="logAll">همهٔ ثبت‌ها</button><button type="button" class="btn sm" id="logClear">پاک‌کردن</button></div>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0"><button type="button" class="btn sm" id="ocrPerfShow">سرعت OCR (JSON)</button><button type="button" class="btn sm" id="ocrGpuRetry">آزمون دوبارهٔ GPU</button><button type="button" class="btn sm" id="natAutoBtn">بهینه‌سازی خودکار سرعت OCR</button></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0"><button type="button" class="btn sm" id="ocrPerfShow">سرعت OCR (JSON)</button><button type="button" class="btn sm" id="ocrGpuRetry">آزمون دوبارهٔ GPU</button><button type="button" class="btn sm" id="natAutoBtn">بهینه‌سازی خودکار سرعت OCR</button><button type="button" class="btn sm" id="natRetryBtn">فعال‌سازی دوبارهٔ موتور بومی</button></div>
           <p class="hint" id="natAutoRes" aria-live="polite"></p>
           <div id="cerBox" style="margin:10px 0">
             <p class="hint">مقایسه با متن مرجع (CER/WER): شمارهٔ یک صفحهٔ OCR‌شده و متن درست همان صفحه را وارد کنید؛ برای دقت بهتر ۳ تا ۵ صفحه را پشت‌سرهم بسنجید.</p>
@@ -2898,7 +2898,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
     } catch (e) { try { ln.ow.post('natres', { id: v.id, err: String((e && e.message) || e).slice(0, 120) }); } catch (x) {} }
   }
   window.ocrNative = function(on){ sset('ocrNat', on ? '1' : '0'); sset('ocrNatBad', ''); return on ? 'det+rec بومی فعال (از OCR بعدی)؛ دو فراخوانی اول هرکدام با WASM اعتبارسنجی می‌شود' : 'بومی خاموش'; };
-  function natBadNow(){ return (sget('ocrNatBad', '') || '').indexOf(APP_BUILD) === 0; }   /* خطای بومی فقط برای همین بیلد ماندگار است؛ بیلد جدید دوباره امتحان می‌کند */
+  function natBadNow(){ var s = sget('ocrNatBad', '') || '', a, ts; if (s.indexOf(APP_BUILD) !== 0) return false; if (/mismatch/.test(s)) return true; a = s.split('|'); ts = +a[2] || 0; return !ts || (Date.now() - ts) < 1200000; }   /* r80: عدم‌تطابق خروجی = دائمی برای همین بیلد؛ timeout/خطای پل فقط ۲۰ دقیقه (قبلاً تا بیلد بعد ماندگار بود و رابطی برای پاک‌کردنش نبود) */   /* خطای بومی فقط برای همین بیلد ماندگار است؛ بیلد جدید دوباره امتحان می‌کند */
   function natCfg(){ try { return JSON.parse(sget('ocrNatCfg', '') || '{}') || {}; } catch (e) { return {}; } }   /* r23: تنظیم ORT بومی از کنسول (th, dth, ep:'xnn'|'cpu', ith, spin:0|1, mp:0|1)؛ بدون بیلد مجدد */
 window.ocrNatCfg = function(c){ if (!c) { sset('ocrNatCfg', ''); return 'تنظیم بومی = پیش‌فرض'; } sset('ocrNatCfg', JSON.stringify(c)); return 'تنظیم بومی: ' + JSON.stringify(c) + ' (از OCR بعدی)'; };
 window.ocrNativeBench = async function(tw, b, n, cfg){ var P = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.OcrNative, a = { tw: tw || 768, b: b || 3, n: n || 5, th: 3 }, k; if (!P) return 'پلاگین OcrNative نصب نیست'; if (cfg) for (k in cfg) a[k] = cfg[k]; try { return JSON.stringify(await P.bench(a)); } catch (e) { return 'خطا: ' + ((e && e.message) || e); } };   /* r23: پیش‌فرض tw·b ≈ ۲۳۰۰px (میانگین واقعی batch)؛ مقایسه با WASM ≈ ۱۳۵۰ px/s */
@@ -2916,7 +2916,7 @@ window.ocrNatAuto = async function(tw, b, n){   /* r27: جاروی خودکار 
     try { j = JSON.parse(r); } catch (e) { return String(r).slice(0, 200); }
     if (!j.best || !j.bestPxs) return 'جاروی بومی نتیجه نداد: ' + r.slice(0, 200);
     ctl = (j.rows || []).filter(function(x){ return x.ctl && x.pxs; })[0]; bs = (j.rows || []).filter(function(x){ return !x.ctl && x.pxs && x.cfg && x.cfg.ep === 'xnn' && x.cfg.th === 3 && x.cfg.ith === undefined && x.cfg.spin === undefined && x.cfg.mp === undefined; })[0]; dr = (ctl && bs) ? Math.round((ctl.pxs / bs.pxs - 1) * 100) : 0;   /* رانش = تکرار کنترل نسبت به اولین اجرای همان تنظیم */
-    window.ocrNatCfg(j.best);
+    window.ocrNatCfg(j.best); try { sset('ocrNatBad', ''); } catch (e) {}   /* r80: جاروی موفق = پرچم خرابی قبلی پاک */
     return 'ثبت شد: ' + JSON.stringify(j.best) + ' · ' + Math.round(j.bestPxs) + ' px/s (WASM ≈ ' + j.wasm + ')' + (ctl ? ' · رانش حرارتی ' + dr + '٪' : '') + ' — از OCR بعدی اعمال می‌شود';
   } catch (e) { return 'خطا: ' + String((e && e.message) || e).slice(0, 120); }
 };
@@ -4777,7 +4777,7 @@ var ocrSpell = (function(){
         return function(v){
           if (ocrStop && ln.ow && !ln.killed) { ln.killed = killed = true; ln.ow.kill(); return; }
           if (v && v.nat) { natServe(ln, v); return; }
-          if (v && v.natBad) { natFail = true; try { sset('ocrNatBad', APP_BUILD + '|' + String(v.natBad)); window.__elog.add('ocr', 'rec بومی غیرفعال شد: ' + v.natBad); } catch (x) {} return; }
+          if (v && v.natBad) { natFail = true; try { sset('ocrNatBad', APP_BUILD + '|' + String(v.natBad) + '|' + Date.now()); window.__elog.add('ocr', 'rec بومی غیرفعال شد: ' + v.natBad); } catch (x) {} return; }
           var t = Date.now(); if (t - lastP < 150 && !(v.p >= 1)) return; lastP = t;
           status('OCR صفحهٔ ' + nf.format(pn) + ' (' + nf.format(kk) + ' از ' + nf.format(L.length) + ') — ' + (v.st === 'prep' ? 'آماده‌سازی تصویر' : 'تشخیص متن ' + nf.format(Math.round((v.p || 0) * 100)) + '٪') + '…' + epTag());
         };
@@ -7742,7 +7742,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r79 · 2026-10-23 · cer-auto', npBuild = '';
+  var APP_BUILD = 'html-r80 · 2026-10-23 · cer-auto', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10255,6 +10255,7 @@ var ocrSpell = (function(){
   $('#cerAutoCopy').onclick = function(){ var t = $('#cerAutoOut'); try { navigator.clipboard.writeText(t.value); } catch (e) { try { t.select(); document.execCommand('copy'); } catch (x) {} } };
   $('#cerAutoRef').addEventListener('input', function(){ sset('cerRef:' + ocrKey, this.value); });
   $('#cerAutoRef').addEventListener('focus', function(){ if (!this.value) this.value = sget('cerRef:' + ocrKey, ''); });
+  $('#natRetryBtn').onclick = function(){ var r = $('#natAutoRes'); try { r.textContent = window.ocrNative(1) + ' — یک OCR کوتاه (۳ تا ۵ صفحه) اجرا کنید و گزارش «سرعت OCR (JSON)» را بگیرید.'; } catch (e) { r.textContent = 'خطا: ' + String((e && e.message) || e).slice(0, 120); } };   /* r80: پاک‌کردن پرچم خرابی بومی بدون کنسول */
   $('#natAutoBtn').onclick = async function(){   /* r28: اجرای ocrNatAuto از رابط (بدون کنسول) */
     var b = this, r = $('#natAutoRes'); if (b.disabled) return; b.disabled = true;
     r.textContent = 'در حال سنجش (حدود ۱ تا ۲ دقیقه)… از برنامه خارج نشوید و هم‌زمان OCR اجرا نکنید.';
