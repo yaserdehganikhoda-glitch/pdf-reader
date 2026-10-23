@@ -2909,6 +2909,22 @@ window.ocrNatSweep = async function(tw, b, n){   /* r23: جاروی پیکربن
   srt = out.filter(function(x){ return x.pxs && !x.ctl; }).sort(function(p, q){ return q.pxs - p.pxs; });
   return JSON.stringify({ best: srt[0] ? srt[0].cfg : null, bestPxs: srt[0] ? srt[0].pxs : 0, wasm: 1350, hrNow: headroom(), th: thermal(), rows: out });
 };
+window.ocrNatQuick = async function(){   /* r82: تنظیم خودکار سبک و یک‌باره (≈۳۰ث): ۵ پیکربندی، هر کدام ۳ اجرا؛ بین پیکربندی‌هایی که ≥۹۲٪ بهترین سرعت را دارند، کم‌نخ‌ترین (کم‌گرماترین) انتخاب می‌شود */
+  var P = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.OcrNative, out = [], i, k, a, r, best, ok, sc = function(c){ return (c.th || 2) + (c.ith || c.th || 2) + (c.spin === 0 ? 0 : 1); },
+      cs = [{ ep: 'xnn', th: 2 }, { ep: 'xnn', th: 2, ith: 1, spin: 0 }, { ep: 'xnn', th: 3 }, { ep: 'xnn', th: 3, ith: 1, spin: 0 }, { ep: 'cpu', th: 2 }];
+  if (!P) return null;
+  for (i = 0; i < cs.length; i++) {
+    if (thermal() >= 2 || headroom() >= 0.88) break;
+    a = { tw: 768, b: 3, n: 3 }; for (k in cs[i]) a[k] = cs[i][k];
+    try { r = await P.bench(a); if (r && r.pxs) out.push({ cfg: cs[i], pxs: r.pxs, ep: r.ep }); } catch (e) {}
+  }
+  if (!out.length) return null;
+  best = out.slice().sort(function(x, y){ return y.pxs - x.pxs; })[0];
+  ok = out.filter(function(x){ return x.pxs >= best.pxs * 0.92; }).sort(function(x, y){ return sc(x.cfg) - sc(y.cfg) || y.pxs - x.pxs; })[0];
+  window.ocrNatCfg(ok.cfg);
+  try { window.__elog.add('gov', 'تنظیم خودکار بومی: ' + JSON.stringify(ok.cfg) + ' · ' + ok.pxs + ' px/s (بهترین ' + best.pxs + ')'); } catch (e) {}
+  return { cfg: ok.cfg, pxs: ok.pxs, best: best.pxs, rows: out };
+};
 window.ocrNatAuto = async function(tw, b, n){   /* r27: جاروی خودکار + ثبت بهترین پیکربندی بومی (بدون کپی دستی خروجی) */
   try {
     if (thermal() >= 2) return 'گوشی داغ است (وضعیت حرارتی ' + thermal() + ')؛ چند دقیقه صبر کنید و دوباره اجرا کنید';
@@ -2950,7 +2966,7 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
       r.ppmClean = o.n > 1 && o.t1 > o.t0 && (o.t1 - o.t0) > ex2 + 1000 ? +(((o.n - 1) * 60000) / (o.t1 - o.t0 - ex2)).toFixed(2) : r.ppm;
     } catch (e) {}
     r.dev = { hc: navigator.hardwareConcurrency, dm: navigator.deviceMemory, ua: (navigator.userAgent || '').slice(0, 120) };
-    r.stalls = o.stalls || []; r.vis = o.vis || []; r.recH = +sget('ocrRecH', '48') || 48; r.gov = o.gov || []; r.dx = o.dx || null; r.gpuWhy = sget('ocrGpuWhy', ''); r.lanesEnd = (ocrLanes || []).filter(function(x){ return !x.dead; }).length; r.hpMain = mainHeap(); r.renderTop = o.rtop || []; r.thermNow = thermal(); r.thermMax = o.thMax; r.nat = { on: sget('ocrNat', '') !== '0', calls: o.nc || 0, msAvg: o.nc ? Math.round(o.nms / o.nc) : 0, detCalls: o.ndc || 0, detMsAvg: o.ndc ? Math.round(o.ndms / o.ndc) : 0, infAvg: o.nc ? Math.round((o.nin || 0) / o.nc) : 0, detInfAvg: o.ndc ? Math.round((o.ndin || 0) / o.ndc) : 0, cfg: natCfg(), ov: { rEnc: o.nc ? Math.round((o.rEnc || 0) / o.nc) : 0, rDec: o.nc ? Math.round((o.rDec || 0) / o.nc) : 0, rBr: o.nc ? Math.round((o.nms - (o.nin || 0) - (o.rEnc || 0) - (o.rDec || 0)) / o.nc) : 0, dEnc: o.ndc ? Math.round((o.dEnc || 0) / o.ndc) : 0, dDec: o.ndc ? Math.round((o.dDec || 0) / o.ndc) : 0, dBr: o.ndc ? Math.round((o.ndms - (o.ndin || 0) - (o.dEnc || 0) - (o.dDec || 0)) / o.ndc) : 0 }, bad: sget('ocrNatBad', '') }; r.epEff = (r.nat.on && r.nat.calls) ? 'native:' + ((r.nat.cfg && r.nat.cfg.ep) || 'default') : r.ep; r.ort = !!(o.dx && o.dx.ort); r.hrNow = headroom(); r.hrMax = o.hrMax; r.bigCores = bigCores(); r.lt = o.lt || []; r.pxs = o.t1 > o.t0 ? Math.round((o.wd || 0) * 1000 / (o.t1 - o.t0)) : null;
+    r.cool = o.cool || 0; r.tuned = sget('ocrNatTuned', ''); r.stalls = o.stalls || []; r.vis = o.vis || []; r.recH = +sget('ocrRecH', '48') || 48; r.gov = o.gov || []; r.dx = o.dx || null; r.gpuWhy = sget('ocrGpuWhy', ''); r.lanesEnd = (ocrLanes || []).filter(function(x){ return !x.dead; }).length; r.hpMain = mainHeap(); r.renderTop = o.rtop || []; r.thermNow = thermal(); r.thermMax = o.thMax; r.nat = { on: sget('ocrNat', '') !== '0', calls: o.nc || 0, msAvg: o.nc ? Math.round(o.nms / o.nc) : 0, detCalls: o.ndc || 0, detMsAvg: o.ndc ? Math.round(o.ndms / o.ndc) : 0, infAvg: o.nc ? Math.round((o.nin || 0) / o.nc) : 0, detInfAvg: o.ndc ? Math.round((o.ndin || 0) / o.ndc) : 0, cfg: natCfg(), ov: { rEnc: o.nc ? Math.round((o.rEnc || 0) / o.nc) : 0, rDec: o.nc ? Math.round((o.rDec || 0) / o.nc) : 0, rBr: o.nc ? Math.round((o.nms - (o.nin || 0) - (o.rEnc || 0) - (o.rDec || 0)) / o.nc) : 0, dEnc: o.ndc ? Math.round((o.dEnc || 0) / o.ndc) : 0, dDec: o.ndc ? Math.round((o.dDec || 0) / o.ndc) : 0, dBr: o.ndc ? Math.round((o.ndms - (o.ndin || 0) - (o.dEnc || 0) - (o.dDec || 0)) / o.ndc) : 0 }, bad: sget('ocrNatBad', '') }; r.epEff = (r.nat.on && r.nat.calls) ? 'native:' + ((r.nat.cfg && r.nat.cfg.ep) || 'default') : r.ep; r.ort = !!(o.dx && o.dx.ort); r.hrNow = headroom(); r.hrMax = o.hrMax; r.bigCores = bigCores(); r.lt = o.lt || []; r.pxs = o.t1 > o.t0 ? Math.round((o.wd || 0) * 1000 / (o.t1 - o.t0)) : null;
     r.gpuDx = { wgpu: !!navigator.gpu, coi: !!window.crossOriginIsolated, sab: typeof SharedArrayBuffer !== 'undefined', gpuBox: !!($('#ocrGpu') || {}).checked, gpuBad: !!sget('ocrGpuBad') };
     return JSON.stringify(r, null, 1);
   }
@@ -4772,6 +4788,7 @@ var ocrSpell = (function(){
         return { m: m, tr: tr, rt: performance.now() - trn };
       };
       var renderPage = function(pn){ var r = rch.then(function(){ return renderRaw(pn); }); rch = r.catch(function(){}); return r; };   /* رندرها پشت‌سرهم (بوم مشترک) */
+      if (!playing && sget('ocrNat', '') !== '0' && !natBadNow() && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.OcrNative) { try { var ntag = (navigator.hardwareConcurrency || 0) + ':' + (navigator.deviceMemory || 0), ntt = (sget('ocrNatTuned', '') || '').split('='); if (!(ntt[0] === ntag && +ntt[1] && Date.now() - +ntt[1] < 2592e6) && thermal() < 2 && !(headroom() >= 0.8)) { status('بهینه‌سازی یک‌باره‌ی موتور OCR برای این گوشی (حدود نیم دقیقه)…'); if (await window.ocrNatQuick()) sset('ocrNatTuned', ntag + '=' + Date.now()); } } catch (x) {} }   /* r82: تنظیم خودکار بومی؛ هر ۳۰ روز یا با تغییر گوشی؛ با گرمای زیاد یا هنگام پخش صدا انجام نمی‌شود */
       var natOn = sget('ocrNat', '') !== '0' && !natBadNow() && !!(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.OcrNative), natFail = false;
       var mkPr = function(ln, pn, kk){                             /* گزارش پیشرفت Worker ← ترد اصلی (با کاهش نرخ به‌روزرسانی) */
         return function(v){
@@ -4799,6 +4816,8 @@ var ocrSpell = (function(){
       var take = function(ln){ var pn = pick(ln); if (pn > 0) { inflight[pn] = 1; return { pn: pn, p: renderPage(pn) }; } return pn; };
       var runLane = async function(ln){
         while (!ocrStop && !ln.retire) {
+          if (thermal() >= 2 || headroom() >= 0.9) { var cn = 0; try { window.__elog.add('gov', 'مکث خنک‌سازی (th=' + thermal() + ', hr=' + headroom().toFixed(2) + ')'); } catch (x) {}   /* r81: با یک مسیر پایشگر مسیرها غیرفعال است؛ این مکث تا خنک‌شدن (hr<0.75) یا حداکثر ۶ دقیقه */
+            while (!ocrStop && !ln.retire && cn < 120 && (thermal() >= 2 || headroom() >= 0.75)) { status('گوشی داغ است؛ OCR برای خنک‌شدن مکث کرد…'); await sleep(3000); cn++; if (ocrPerf) ocrPerf.cool = (ocrPerf.cool || 0) + 3; } }
           var cr = ln.pre, tk, pn, kk, img, rr, rwait = null;
           ln.pre = null;
           if (!cr) { tk = take(ln); if (tk === 0) break; if (tk === -1) { await sleep(500); continue; } cr = tk; }
@@ -5896,7 +5915,7 @@ var ocrSpell = (function(){
   }
   /* ===== ذخیره و بارگذاری کل تنظیمات (فایل JSON) =====
      همهٔ کلیدهای localStorage به‌جز جای خواندن هر فایل، فهرست‌ها، و حافظه‌های وابسته به دستگاه (OCR/GPU)؛ بارگذاری: تنظیمات جایگزین می‌شوند و برنامه دوباره راه‌اندازی می‌شود. */
-  var SET_SKIP = /^(pos:|pw:|dict:|favs$|recents$|hFolders$|errlog|ocrLane|ocrGpu|ocrNatBad|ocrNatCfg|rateBase|vstyleV|smartV|th:)/;
+  var SET_SKIP = /^(pos:|pw:|dict:|favs$|recents$|hFolders$|errlog|ocrLane|ocrGpu|ocrNatBad|ocrNatCfg|ocrNatTuned|rateBase|vstyleV|smartV|th:)/;
   function setCollect(){ var o = {}, k, v; try { for (k in localStorage) { if (!localStorage.hasOwnProperty(k) || SET_SKIP.test(k)) continue; v = localStorage.getItem(k); if (typeof v === 'string' && v.length <= 200000) o[k] = v; } } catch (x) {} return o; }
   async function setExport(){
     var man = { app: 'pdf-voice-reader', kind: 'settings', v: 1, t: Date.now(), ls: setCollect() }, name = 'pdf-reader-settings.json', txt = JSON.stringify(man, null, 1), blob = new Blob([txt], { type: 'application/json' }), t, f, n = Object.keys(man.ls).length;
@@ -7742,7 +7761,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r80 · 2026-10-23 · cer-auto', npBuild = '';
+  var APP_BUILD = 'html-r82 · 2026-10-23 · cer-auto', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
