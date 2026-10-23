@@ -11,11 +11,14 @@ quantize_ocr.py — INT8 (QDQ) برای مدل rec پدل‌اُسی‌آر (ara
   2) در غیر این‌صورت خط‌های مصنوعی فارسی/لاتین از واژه‌های --lex با فونت‌های سیستم ساخته می‌شود.
 پیش‌پردازش همان برنامه است: ارتفاع ۴۸، خاکستری تکرارشده در ۳ کانال، (v/127.5-1)، پدینگ صفر.
 
+حافظه: کالیبراسیون histogram (percentile/entropy) در ORT خروجی میانیِ همهٔ نمونه‌ها را هم‌زمان در RAM نگه می‌دارد
+(OOM ← «exit code 143» در CI). اینجا نمونه‌به‌نمونه و جریانی جمع می‌شود (patch_hist)؛ بدون نیاز به RAM زیاد.
+
 اعتبارسنجی داخلی: متن greedy-CTC مدل fp32 و int8 روی نمونه‌های جداگانه مقایسه می‌شود
 (agree-CER). اگر از --max-agree (پیش‌فرض ۲٪) بیشتر شد کد خروج ۳ برمی‌گردد (فایل نوشته می‌شود
 ولی commit/استفاده نشود). گیت اصلی همچنان در برنامه است: «گیت INT8» (ΔCER ≤ +0.3، ΔWER ≤ +1).
 """
-import argparse, glob, hashlib, json, os, random, re, sys, tempfile, time
+import argparse, contextlib, gc, glob, io, hashlib, json, os, random, re, sys, tempfile, time
 
 H = 48
 PLW = re.compile(r'[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC]{2,}')
@@ -171,6 +174,62 @@ def edit(a, b):
     return p[n]
 
 
+# ------------------------------------------------------------------ کالیبراسیون کم‌مصرف (جریانی)
+def patch_hist():
+    """HistogramCalibrater.collect_data را با نسخهٔ جریانی عوض می‌کند: هر نمونه بلافاصله در هیستوگرام ادغام و
+    آزاد می‌شود (حافظه ≈ یک نمونه، و عرض‌های متفاوت ragged-خطا نمی‌دهند). ناموفق ← False."""
+    try:
+        from onnxruntime.quantization import calibrate as C
+        import numpy as np
+        HC, HCol = C.HistogramCalibrater, C.HistogramCollector
+        orig_merge = HCol.merge_histogram
+
+        def merge(self, old, data, nmin, nmax, nthr):
+            # رشد بیش‌ازحد محدوده (نمونهٔ اول تقریباً صفر، بعدی بزرگ) ← میلیاردها bin ← OOM؛ اینجا بازبینی با تعداد bin ثابت
+            oh, oe, omin, omax, othr = old
+            if othr > 0 and nthr > othr * 4096:
+                nb = len(oh)
+                h, e = np.histogram(data, nb, range=(-nthr, nthr))
+                ctr = (oe[:-1] + oe[1:]) / 2
+                h = h + np.rint(np.histogram(ctr, nb, range=(-nthr, nthr), weights=oh)[0]).astype(h.dtype)
+                return (h, e, min(omin, nmin), max(omax, nmax), nthr)
+            return orig_merge(self, old, data, nmin, nmax, nthr)
+
+        HCol.merge_histogram = merge
+
+        def collect_data(self, data_reader):
+            ins = {x.name for x in self.infer_session.get_inputs()}
+            outs = [x.name for x in self.infer_session.get_outputs()]
+            want = set(self.tensors_to_calibrate)
+            if not self.collector:
+                self.collector = HCol(method=self.method, symmetric=self.symmetric, num_bins=self.num_bins,
+                                      num_quantized_bins=self.num_quantized_bins, percentile=self.percentile,
+                                      scenario=self.scenario)
+            n = 0
+            while True:
+                feed = data_reader.get_next()
+                if not feed:
+                    break
+                res = self.infer_session.run(None, feed)
+                d = {k: (v.copy() if k in ins else v) for k, v in zip(outs, res) if k in want}
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.collector.collect(d)
+                del res, d, feed
+                n += 1
+                if n % 16 == 0:
+                    gc.collect()
+                    print('  کالیبراسیون: %d نمونه' % n, flush=True)
+            if n == 0:
+                raise ValueError('No data is collected.')
+            self.intermediate_outputs = []
+
+        HC.collect_data = collect_data
+        return True
+    except Exception as e:
+        print('WARN: patch جریانی ناموفق (%s) ← MinMax' % str(e)[:120], file=sys.stderr)
+        return False
+
+
 # ------------------------------------------------------------------ کوانتیزه
 def ensure_names(src, dst):
     import onnx
@@ -206,12 +265,17 @@ def main():
     ap.add_argument('--fonts', action='append', default=[])
     ap.add_argument('--mode', choices=['static', 'dynamic'], default='static')
     ap.add_argument('--act', choices=['u8', 's8'], default='u8', help='نوع فعال‌سازی QDQ (وزن‌ها همیشه s8 و per-channel)')
+    ap.add_argument('--calib-method', choices=['percentile', 'entropy', 'minmax'], default='percentile')
     ap.add_argument('--n', type=int, default=240)
     ap.add_argument('--nval', type=int, default=120)
     ap.add_argument('--max-agree', type=float, default=2.0)
     ap.add_argument('--quantize-first-conv', action='store_true')
     ap.add_argument('--report', default='')
     a = ap.parse_args()
+    try:
+        sys.stdout.reconfigure(line_buffering=True)
+    except Exception:
+        pass
 
     for mod in ('numpy', 'PIL', 'onnx', 'onnxruntime'):
         try:
@@ -220,6 +284,7 @@ def main():
             die('ماژول %s نصب نیست (pip install onnx onnxruntime numpy pillow): %s' % (mod, e))
     import numpy as np
     import onnxruntime as ort
+    ort.set_default_logger_severity(3)
     from onnxruntime.quantization import (CalibrationDataReader, CalibrationMethod, QuantFormat, QuantType,
                                           quantize_dynamic, quantize_static)
 
@@ -255,15 +320,17 @@ def main():
     val = synth(a.nval, words, find_fonts(a.fonts) or [], 777) if not a.calib else cal[-min(len(cal), a.nval):]
     if not cal or not val:
         die('نمونهٔ کالیبراسیون/اعتبارسنجی ساخته نشد.')
-    rnd = random.Random(5)
     Ws = [192, 320, 512]
 
     class Reader(CalibrationDataReader):
+        """تنبل: هر نمونه هنگام نیاز پیش‌پردازش و بعد آزاد می‌شود."""
         def __init__(self):
-            self.it = iter([{inp: prep(im, rnd.choice(Ws))[None]} for im, _ in cal])
+            rnd = random.Random(5)
+            self.it = ((im, rnd.choice(Ws)) for im, _ in cal)
 
         def get_next(self):
-            return next(self.it, None)
+            r = next(self.it, None)
+            return None if r is None else {inp: prep(r[0], r[1])[None]}
 
     t0 = time.time()
     if a.mode == 'dynamic':
@@ -271,15 +338,25 @@ def main():
                          nodes_to_exclude=excl)
     else:
         at = QuantType.QUInt8 if a.act == 'u8' else QuantType.QInt8
+        cm = a.calib_method
+        if cm != 'minmax' and not patch_hist():
+            cm = 'minmax'
+        cmm = {'percentile': CalibrationMethod.Percentile, 'entropy': CalibrationMethod.Entropy,
+               'minmax': CalibrationMethod.MinMax}[cm]
+        xo = {'ActivationSymmetric': False, 'WeightSymmetric': True}
+        if cm == 'minmax':
+            xo['CalibMaxIntermediateOutputs'] = 8     # سقف RAM: هر ۸ نمونه min/max ادغام و آزاد می‌شود
         kw = dict(quant_format=QuantFormat.QDQ, activation_type=at, weight_type=QuantType.QInt8,
                   op_types_to_quantize=['Conv', 'MatMul', 'Gemm'], nodes_to_exclude=excl,
-                  calibrate_method=CalibrationMethod.Percentile, reduce_range=False,
-                  extra_options={'ActivationSymmetric': False, 'WeightSymmetric': True})
+                  calibrate_method=cmm, reduce_range=False, extra_options=xo)
+        print('کالیبراسیون: %s | %d نمونه' % (cm, len(cal)), flush=True)
         try:
             quantize_static(src, a.out, Reader(), per_channel=True, **kw)
+        except MemoryError:
+            raise
         except Exception as e:
             print('WARN: per-channel ناموفق (%s) ← per-tensor' % str(e)[:140])
-            rnd = random.Random(5)
+            gc.collect()
             quantize_static(src, a.out, Reader(), per_channel=False, **kw)
     print('کوانتیزه در %.0fs' % (time.time() - t0))
 
