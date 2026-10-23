@@ -1,6 +1,7 @@
 package ir.sewingstats.app;   // <-- appId پروژه (inject-native.sh جایگزین می‌کند)
 
-/* r23 — تشخیص/rec بومی با ORT. تغییرات r23: (۱) ms = زمان خالص inference در پاسخ rec/det؛ (۲) پیکربندی قابل‌تنظیم از JS (ep/th/ith/spin/mp)؛ (۳) شمارش مرجع روی session برای جلوگیری از بسته‌شدن session حین اجرا.
+/* r84 — rec INT8 اختیاری: پارامتر rm='int8' + فایل assets/public/ocr/paddle/arabic_PP-OCRv5_mobile_rec_int8.onnx؛ پاسخ rec/bench فیلد rm (int8|fp32) دارد.
+   r23 — تشخیص/rec بومی با ORT. تغییرات r23: (۱) ms = زمان خالص inference در پاسخ rec/det؛ (۲) پیکربندی قابل‌تنظیم از JS (ep/th/ith/spin/mp)؛ (۳) شمارش مرجع روی session برای جلوگیری از بسته‌شدن session حین اجرا.
 /* r19 PoC — ONNX Runtime بومی برای rec.
    وابستگی app/build.gradle:  implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.21.0'
    مدل: assets/public/ocr/paddle/arabic_PP-OCRv5_mobile_rec.onnx (همان فایل وب).
@@ -29,6 +30,18 @@ import java.util.Map;
 @CapacitorPlugin(name = "OcrNative")
 public class OcrNativePlugin extends Plugin {
     private static final String MODEL = "public/ocr/paddle/arabic_PP-OCRv5_mobile_rec.onnx";
+    private static final String MODEL8 = "public/ocr/paddle/arabic_PP-OCRv5_mobile_rec_int8.onnx";   // r84: rec INT8 (QDQ)، اختیاری
+    private volatile Boolean has8 = null;
+    private volatile boolean q8Bad = false;   // ساخت/اجرای نشست int8 شکست خورد ⇒ تا پایان اجرای برنامه fp32
+
+    private boolean hasAsset(String p) {
+        Boolean h = has8;
+        if (h == null) {
+            try (InputStream in = getContext().getAssets().open(p)) { h = true; } catch (Throwable e) { h = false; }
+            has8 = h;
+        }
+        return h;
+    }
     private static final int H = 48;
     private OrtEnvironment env;
     private static final String DET = "public/ocr/paddle/PP-OCRv5_mobile_det.onnx";
@@ -45,8 +58,8 @@ public class OcrNativePlugin extends Plugin {
 
     /* r23: پیکربندی ORT. پیش‌فرض‌ها = رفتار r22 (xnnpack، intra=th، spin و memPattern روشن) */
     private static final class Cfg {
-        int th, ith; boolean xnn, spin, mp;
-        String key() { return th + "|" + ith + "|" + xnn + "|" + spin + "|" + mp; }
+        int th, ith; boolean xnn, spin, mp, q8;
+        String key() { return th + "|" + ith + "|" + xnn + "|" + spin + "|" + mp + "|" + q8; }
     }
 
     private Cfg cfg(PluginCall call, int thDef) {
@@ -56,12 +69,13 @@ public class OcrNativePlugin extends Plugin {
         c.xnn = !"cpu".equals(call.getString("ep", "xnn"));
         c.spin = call.getInt("spin", 1) != 0;
         c.mp = call.getInt("mp", 1) != 0;
+        c.q8 = !q8Bad && "int8".equals(call.getString("rm", "")) && hasAsset(MODEL8);   // r84: JS پارامتر rm='int8' می‌فرستد؛ فایل نبود ⇒ fp32
         return c;
     }
 
     /* r23: session با شمارندهٔ استفاده؛ تعویض session فقط وقتی قدیمی بیکار است بسته می‌شود (بستن حین run = کرش بومی غیرقابل‌گرفتن) */
     private static final class Sess {
-        OrtSession s; String key, in, ep = "cpu"; int chans = 3, busy = 0; long loadMs; boolean retired = false;
+        OrtSession s; String key, in, ep = "cpu", rm = "fp32"; int chans = 3, busy = 0; long loadMs; boolean retired = false;
     }
     private Sess recS, detS;
 
@@ -85,6 +99,7 @@ public class OcrNativePlugin extends Plugin {
             }
             x.s = env.createSession(readAsset(model), o);
         }
+        x.rm = MODEL8.equals(model) ? "int8" : "fp32";
         x.key = c.key();
         x.in = x.s.getInputNames().iterator().next();
         long[] sh = ((TensorInfo) x.s.getInputInfo().get(x.in).getInfo()).getShape();
@@ -98,7 +113,14 @@ public class OcrNativePlugin extends Plugin {
     private synchronized Sess acquire(boolean isDet, Cfg c) throws Exception {
         Sess cur = isDet ? detS : recS;
         if (cur == null || !cur.key.equals(c.key())) {
-            Sess n = build(isDet ? DET : MODEL, c);
+            Sess n;
+            if (!isDet && c.q8) {
+                try { n = build(MODEL8, c); }
+                catch (Throwable e) { q8Bad = true; c.q8 = false; n = build(MODEL, c); }   // r84: خطای int8 ⇒ همان پیکربندی با fp32 (و دیگر int8 امتحان نمی‌شود)
+            } else {
+                if (isDet) c.q8 = false;
+                n = build(isDet ? DET : MODEL, c);
+            }
             if (cur != null) { cur.retired = true; if (cur.busy == 0) closeQuiet(cur); }
             if (isDet) detS = n; else recS = n;
             cur = n;
@@ -117,6 +139,7 @@ public class OcrNativePlugin extends Plugin {
     public void det(final PluginCall call) {
         final int w = call.getInt("w", 0), h = call.getInt("h", 0);
         final Cfg c = cfg(call, 2);
+        c.q8 = false;   // r84: det همیشه fp32
         final String data = call.getString("data", "");
         new Thread(new Runnable() {
             @Override public void run() {
@@ -184,7 +207,7 @@ public class OcrNativePlugin extends Plugin {
                     }
                     double avg = sum / (double) n;
                     JSObject o = new JSObject();
-                    o.put("ep", S.ep); o.put("th", c.th); o.put("cfg", c.key()); o.put("chans", S.chans); o.put("loadMs", S.loadMs);
+                    o.put("ep", S.ep); o.put("rm", S.rm); o.put("th", c.th); o.put("cfg", c.key()); o.put("chans", S.chans); o.put("loadMs", S.loadMs);
                     o.put("msPerRun", Math.round(avg)); o.put("msBest", best);
                     o.put("pxs", Math.round(b * (double) tw * 1000 / avg));
                     call.resolve(o);
@@ -243,6 +266,7 @@ public class OcrNativePlugin extends Plugin {
                             o.put("dims", new org.json.JSONArray(java.util.Arrays.toString(dm)));
                             o.put("k", K);
                             o.put("ms", ms);
+                            o.put("rm", S.rm);   // r84: مدل واقعی rec (int8|fp32)
                             o.put("idx", Base64.encodeToString(ib.array(), Base64.NO_WRAP));
                             o.put("val", Base64.encodeToString(vb.array(), Base64.NO_WRAP));
                             call.resolve(o);
