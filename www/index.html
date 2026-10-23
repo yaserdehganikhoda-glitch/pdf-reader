@@ -2624,6 +2624,13 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
     if (ar > n * 0.5) { var ws = normCh(t).split(/\s+/), h = 0; ws.forEach(function(w){ if (CW.has(w)) h++; }); if (ws.length >= 25 && h / ws.length < 0.02) return true; }
     return false;
   }
+  /* r85: لایهٔ متنی با انکودینگ فونتِ خراب (حروف نادر U+063B..063F یا سهم زیاد ثضظذطؾػ) مرجع معتبر نیست؛ bad() آن را نمی‌گیرد چون حروف عربی معتبرند */
+  function refBad(t){
+    var s = String(t).replace(/\s/g, ''), a = (s.match(/[\u0621-\u06D3]/g) || []).length, r, f;
+    if (a < 100) return false;
+    r = (s.match(/[\u063B-\u063F]/g) || []).length; f = (s.match(/[\u062B\u0636\u0638\u0630\u0637\u063E\u063B]/g) || []).length;
+    return r / a > 0.005 || f / a > 0.12;
+  }
   var CP1252 = { 0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85, 0x2020: 0x86, 0x2021: 0x87, 0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A, 0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E, 0x2018: 0x91, 0x2019: 0x92, 0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97, 0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C, 0x017E: 0x9E, 0x0178: 0x9F };
   function reenc(t, enc){
     return t.split('\n').map(function(l){
@@ -2891,7 +2898,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
   function i8Probe(){ if (i8Have !== null) return Promise.resolve(i8Have); return probeOpt(PADF8).then(function(ok){ return (i8Have = !!ok); }); }
   window.ocrInt8 = function(on){ sset('ocrInt8', on ? '1' : '0'); i8Have = null; return on ? 'rec INT8 فعال (از OCR بعدی؛ اگر فایل ' + PADF8 + ' نباشد خودکار fp32)' : 'rec INT8 خاموش (fp32)'; };
   function i8Eff(pj){ var dx = pj && pj.dx, k, q = false; if (pj && pj.i8 && pj.i8.nc > 0) return pj.i8.nrm === 'int8' ? 'nat' : ''; if (dx) for (k in dx) if (dx[k] && dx[k].q8 === 1) q = true; return q ? 'wasm' : ''; }   /* مدلِ واقعاً مؤثر: بومی (اگر فعال بود، فقط با اعلام rm=int8 از Java) وگرنه WASM */
-  function i8Why(pj){ var dx = pj && pj.dx, k, w = []; if (pj && pj.i8 && pj.i8.nc > 0) return 'مسیر بومی فعال است و rm=' + (pj.i8.nrm || '—') + ' برگشت (Java پارامتر rm را نمی‌شناسد/فایل int8 در APK نیست)'; if (dx) for (k in dx) if (dx[k] && dx[k].q8e) w.push(dx[k].q8e); return w.length ? w[0] : 'int8 بارگذاری نشد (فایل نیست؟)'; }
+  function i8Why(pj){ var dx = pj && pj.dx, k, w = []; if (pj && pj.i8 && pj.i8.nc > 0) return 'مسیر بومی فعال است و rm=' + (pj.i8.nrm || '—') + ' برگشت (Java اعمال نکرد: فایل int8 در assetsِ بومی APK نیست یا rm نادیده گرفته شد)'; if (dx) for (k in dx) if (dx[k] && dx[k].q8e) w.push(dx[k].q8e); return w.length ? w[0] : 'int8 بارگذاری نشد (فایل نیست؟)'; }
   function i8Gate(res, ncm, stopped){
     var a = res[0], b = res[1], o = { ok: 0, ncm: ncm }, dC, dW, sp, t, sg = function(x){ return (x > 0 ? '+' : '') + x; };
     if (stopped || res.length < 2 || !a || !b || a.ccer == null || b.ccer == null || a.cwer == null || b.cwer == null) { o.why = 'ناتمام'; return { o: o, txt: 'گیت INT8: ناتمام یا بدون CER — تصمیمی گرفته نشد.' }; }
@@ -7873,7 +7880,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r84 · 2026-10-23 · int8-rec', npBuild = '';
+  var APP_BUILD = 'html-r85 · 2026-10-24 · ref-guard', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10311,10 +10318,10 @@ var ocrSpell = (function(){
     pns = Object.keys(refs).map(Number).filter(function(q){ return q >= 1 && q <= rawItems.length && cerNorm(refs[q]).length >= 20; }).sort(function(x, y){ return x - y; });
     if (!pns.length) {
       src = 'لایهٔ متنی PDF'; refs = {}; c = [];
-      for (i = 1; i <= rawItems.length; i++) { fl = cerLayer(i); if (fl.replace(/\s/g, '').length >= 400 && !bad(fl)) { c.push(i); refs[i] = fl; } }
+      for (i = 1; i <= rawItems.length; i++) { fl = cerLayer(i); if (fl.replace(/\s/g, '').length >= 400 && !bad(fl) && !refBad(fl)) { c.push(i); refs[i] = fl; } }
       pns = []; for (i = 0; i < 4 && i < c.length; i++) pns.push(c[Math.floor(i * c.length / Math.min(4, c.length))]);
     }
-    if (!pns.length) { say('مرجعی نیست: متن مرجع را با قالب «--- 12 ---» بچسبانید (لایهٔ متنی سالم هم در PDF نیست).'); return; }
+    if (!pns.length) { say('مرجعی نیست: متن مرجع را با قالب «--- 12 ---» بچسبانید (لایهٔ متنی سالم هم در PDF نیست؛ شاید انکودینگ فونت خراب است).'); return; }
     modes = kind === 'i8'
       ? [['fp32 (پایه)', +sget('ocrP2', '0') || 0, +sget('ocrP2V', '1') || 1, '0'], ['int8', +sget('ocrP2', '0') || 0, +sget('ocrP2V', '1') || 1, '1']]
       : kind === 'lm'
