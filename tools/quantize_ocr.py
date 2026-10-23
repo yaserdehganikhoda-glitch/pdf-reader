@@ -18,7 +18,7 @@ quantize_ocr.py — INT8 (QDQ) برای مدل rec پدل‌اُسی‌آر (ara
 (agree-CER). اگر از --max-agree (پیش‌فرض ۲٪) بیشتر شد کد خروج ۳ برمی‌گردد (فایل نوشته می‌شود
 ولی commit/استفاده نشود). گیت اصلی همچنان در برنامه است: «گیت INT8» (ΔCER ≤ +0.3، ΔWER ≤ +1).
 """
-import argparse, contextlib, gc, glob, io, hashlib, json, os, random, re, sys, tempfile, time
+import argparse, contextlib, gc, glob, io, shutil, hashlib, json, os, random, re, sys, tempfile, time
 
 H = 48
 PLW = re.compile(r'[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC]{2,}')
@@ -232,8 +232,27 @@ def patch_hist():
 
 # ------------------------------------------------------------------ کوانتیزه
 def ensure_names(src, dst):
+    """نام‌گذاری گره‌ها + تبدیل Constantهای tensor به initializer (تا وزن‌ها واقعاً کوانتیزه شوند)."""
     import onnx
     m = onnx.load(src)
+    have = {i.name for i in m.graph.initializer}
+    keep, nconst = [], 0
+    for n in m.graph.node:
+        if n.op_type == 'Constant' and len(n.output) == 1 and n.output[0] not in have:
+            at = [x for x in n.attribute if x.name == 'value' and x.HasField('t')]
+            if at:
+                t = onnx.TensorProto()
+                t.CopyFrom(at[0].t)
+                t.name = n.output[0]
+                m.graph.initializer.append(t)
+                have.add(t.name)
+                nconst += 1
+                continue
+        keep.append(n)
+    if nconst:
+        del m.graph.node[:]
+        m.graph.node.extend(keep)
+        print('Constant→initializer: %d' % nconst)
     for i, n in enumerate(m.graph.node):
         if not n.name:
             n.name = '%s_%d' % (n.op_type, i)
@@ -241,9 +260,10 @@ def ensure_names(src, dst):
     return m
 
 
-def pick_excludes(m, keep_first):
+def pick_excludes(m, keep_first, quant_attn):
     ex = []
     nodes = list(m.graph.node)
+    inits = {i.name for i in m.graph.initializer}
     core = [n for n in nodes if n.op_type in ('MatMul', 'Gemm', 'Conv')]
     if core:
         ex.append(core[-1].name)          # لایهٔ خروجی (سر CTC)
@@ -252,7 +272,15 @@ def pick_excludes(m, keep_first):
             if n.op_type == 'Conv':
                 ex.append(n.name)         # Conv اولِ سه‌کاناله
                 break
-    return ex
+    if not quant_attn:                    # MatMulهای attention (هر دو ورودی فعال‌سازی) ← fp32؛ بیشترین منبع افت دقت
+        for n in nodes:
+            if n.op_type == 'MatMul' and not any(x in inits for x in n.input):
+                ex.append(n.name)
+    return list(dict.fromkeys(ex))
+
+
+AUTO = [('static', 'u8', 'percentile'), ('static', 's8', 'percentile'), ('static', 'u8', 'entropy'),
+        ('static', 'u8', 'minmax'), ('dynamic', 'u8', 'percentile')]
 
 
 def main():
@@ -266,6 +294,8 @@ def main():
     ap.add_argument('--mode', choices=['static', 'dynamic'], default='static')
     ap.add_argument('--act', choices=['u8', 's8'], default='u8', help='نوع فعال‌سازی QDQ (وزن‌ها همیشه s8 و per-channel)')
     ap.add_argument('--calib-method', choices=['percentile', 'entropy', 'minmax'], default='percentile')
+    ap.add_argument('--auto', action='store_true', help='چند پیکربندی را پشت‌سرهم امتحان و بهترین را نگه می‌دارد')
+    ap.add_argument('--quant-attn', action='store_true', help='MatMulهای attention (بدون وزن) هم کوانتیزه شوند (پیش‌فرض: fp32)')
     ap.add_argument('--n', type=int, default=240)
     ap.add_argument('--nval', type=int, default=120)
     ap.add_argument('--max-agree', type=float, default=2.0)
@@ -281,8 +311,9 @@ def main():
         try:
             __import__(mod)
         except Exception as e:
-            die('ماژول %s نصب نیست (pip install onnx onnxruntime numpy pillow): %s' % (mod, e))
+            die('ماژول %s نصب نیست (pip install onnx onnxruntime numpy pillow sympy): %s' % (mod, e))
     import numpy as np
+    import onnx
     import onnxruntime as ort
     ort.set_default_logger_severity(3)
     from onnxruntime.quantization import (CalibrationDataReader, CalibrationMethod, QuantFormat, QuantType,
@@ -293,18 +324,26 @@ def main():
     tmp = tempfile.mkdtemp(prefix='q8_')
     src = os.path.join(tmp, 'pre.onnx')
 
-    # --- پیش‌پردازش ORT (shape-inference + fusion مثل BN→Conv)
-    base = os.path.join(tmp, 'base.onnx')
+    # --- پیش‌پردازش ORT (shape-inference + fusion مثل BN→Conv)؛ نیازمند sympy
+    base = a.model
+    bp = os.path.join(tmp, 'base.onnx')
     try:
         from onnxruntime.quantization.shape_inference import quant_pre_process
-        quant_pre_process(a.model, base, skip_optimization=False)
+        for kw in ({}, {'skip_symbolic_shape': True}):
+            try:
+                quant_pre_process(a.model, bp, skip_optimization=False, **kw)
+                base = bp
+                break
+            except Exception as e:
+                print('WARN: quant_pre_process%s ناموفق (%s)' % (' (بدون symbolic)' if kw else '', str(e)[:120]))
     except Exception as e:
-        print('WARN: quant_pre_process ناموفق (%s)؛ مدل اصلی استفاده می‌شود.' % str(e)[:120])
-        base = a.model
+        print('WARN: quant_pre_process در دسترس نیست (%s)' % str(e)[:120])
+    if base == a.model:
+        print('WARN: مدل اصلی بدون پیش‌پردازش استفاده می‌شود (pip install sympy).')
     m = ensure_names(base, src)
-    inp = [i for i in m.graph.input if i.name not in {x.name for x in m.graph.initializer}][0].name
-    excl = pick_excludes(m, not a.quantize_first_conv)
-    print('input=%s | exclude=%s' % (inp, excl))
+    ini = {x.name for x in m.graph.initializer}
+    inp = [i for i in m.graph.input if i.name not in ini][0].name
+    print('input=%s | initializers=%d | exclude(پایه)=%s' % (inp, len(ini), pick_excludes(m, not a.quantize_first_conv, True)))
 
     # --- نمونه‌ها
     words = load_words(a.lex)
@@ -317,6 +356,8 @@ def main():
             die('فونتی پیدا نشد؛ --fonts DIR یا --calib DIR بدهید (در CI: fonts-noto-core).')
         cal = synth(a.n, words, fonts, 11)
         print('کالیبراسیون مصنوعی: %d خط | فونت‌ها: %d | واژه‌ها: %d' % (len(cal), len(fonts), len(words)))
+        if len(words) < 500:
+            print('WARN: فهرست واژه کوچک است (fa_lexicon.js پیدا نشد)؛ کالیبراسیون ضعیف‌تر.')
     val = synth(a.nval, words, find_fonts(a.fonts) or [], 777) if not a.calib else cal[-min(len(cal), a.nval):]
     if not cal or not val:
         die('نمونهٔ کالیبراسیون/اعتبارسنجی ساخته نشد.')
@@ -332,64 +373,103 @@ def main():
             r = next(self.it, None)
             return None if r is None else {inp: prep(r[0], r[1])[None]}
 
-    t0 = time.time()
-    if a.mode == 'dynamic':
-        quantize_dynamic(src, a.out, weight_type=QuantType.QInt8, op_types_to_quantize=['MatMul', 'Gemm'],
-                         nodes_to_exclude=excl)
-    else:
-        at = QuantType.QUInt8 if a.act == 'u8' else QuantType.QInt8
-        cm = a.calib_method
-        if cm != 'minmax' and not patch_hist():
-            cm = 'minmax'
-        cmm = {'percentile': CalibrationMethod.Percentile, 'entropy': CalibrationMethod.Entropy,
-               'minmax': CalibrationMethod.MinMax}[cm]
-        xo = {'ActivationSymmetric': False, 'WeightSymmetric': True}
-        if cm == 'minmax':
-            xo['CalibMaxIntermediateOutputs'] = 8     # سقف RAM: هر ۸ نمونه min/max ادغام و آزاد می‌شود
-        kw = dict(quant_format=QuantFormat.QDQ, activation_type=at, weight_type=QuantType.QInt8,
-                  op_types_to_quantize=['Conv', 'MatMul', 'Gemm'], nodes_to_exclude=excl,
-                  calibrate_method=cmm, reduce_range=False, extra_options=xo)
-        print('کالیبراسیون: %s | %d نمونه' % (cm, len(cal)), flush=True)
-        try:
-            quantize_static(src, a.out, Reader(), per_channel=True, **kw)
-        except MemoryError:
-            raise
-        except Exception as e:
-            print('WARN: per-channel ناموفق (%s) ← per-tensor' % str(e)[:140])
-            gc.collect()
-            quantize_static(src, a.out, Reader(), per_channel=False, **kw)
-    print('کوانتیزه در %.0fs' % (time.time() - t0))
-
-    # --- اعتبارسنجی fp32 در برابر int8
+    # --- مرجع fp32 (یک‌بار)
     so = ort.SessionOptions()
     so.log_severity_level = 3
     sf = ort.InferenceSession(a.model, so, providers=['CPUExecutionProvider'])
-    sq = ort.InferenceSession(a.out, so, providers=['CPUExecutionProvider'])
     nm = sf.get_inputs()[0].name
-    nq = sq.get_inputs()[0].name
     rv = random.Random(9)
-    tot = ed = 0
-    tf = tq = 0.0
+    vx, tf = [], 0.0
     for im, _ in val:
         x = prep(im, rv.choice(Ws))[None]
         t1 = time.time(); yf = sf.run(None, {nm: x})[0][0]; tf += time.time() - t1
-        t1 = time.time(); yq = sq.run(None, {nq: x})[0][0]; tq += time.time() - t1
-        sa, sb = decode(yf, chars), decode(yq, chars)
-        tot += max(1, len(sa))
-        ed += edit(sa, sb)
-    agree = 100.0 * ed / max(1, tot)
-    sz0, sz1 = os.path.getsize(a.model), os.path.getsize(a.out)
+        vx.append((x, decode(yf, chars)))
+    del sf
+    sz0 = os.path.getsize(a.model)
+
+    def run(k, mode, act, cm):
+        outp = os.path.join(tmp, 't%d.onnx' % k)
+        ex = pick_excludes(m, not a.quantize_first_conv, a.quant_attn)
+        t0 = time.time()
+        if mode == 'dynamic':
+            quantize_dynamic(src, outp, weight_type=QuantType.QInt8, op_types_to_quantize=['MatMul', 'Gemm'],
+                             nodes_to_exclude=ex)
+        else:
+            at = QuantType.QUInt8 if act == 'u8' else QuantType.QInt8
+            if cm != 'minmax' and not patch_hist():
+                cm = 'minmax'
+            cmm = {'percentile': CalibrationMethod.Percentile, 'entropy': CalibrationMethod.Entropy,
+                   'minmax': CalibrationMethod.MinMax}[cm]
+            xo = {'ActivationSymmetric': False, 'WeightSymmetric': True}
+            if cm == 'minmax':
+                xo['CalibMaxIntermediateOutputs'] = 8     # سقف RAM: هر ۸ نمونه min/max ادغام و آزاد می‌شود
+            kw = dict(quant_format=QuantFormat.QDQ, activation_type=at, weight_type=QuantType.QInt8,
+                      op_types_to_quantize=['Conv', 'MatMul', 'Gemm'], nodes_to_exclude=ex,
+                      calibrate_method=cmm, reduce_range=False, extra_options=xo)
+            print('کالیبراسیون: %s | %d نمونه' % (cm, len(cal)), flush=True)
+            try:
+                quantize_static(src, outp, Reader(), per_channel=True, **kw)
+            except MemoryError:
+                raise
+            except Exception as e:
+                print('WARN: per-channel ناموفق (%s) ← per-tensor' % str(e)[:140])
+                gc.collect()
+                quantize_static(src, outp, Reader(), per_channel=False, **kw)
+        dt = time.time() - t0
+        mq = onnx.load(outp)
+        n8 = sum(1 for i in mq.graph.initializer if i.data_type in (2, 3))
+        nqdq = sum(1 for n in mq.graph.node if n.op_type in ('QuantizeLinear', 'DequantizeLinear', 'DynamicQuantizeLinear'))
+        del mq
+        sq = ort.InferenceSession(outp, so, providers=['CPUExecutionProvider'])
+        nq = sq.get_inputs()[0].name
+        tot = ed = 0
+        tq = 0.0
+        for x, ref in vx:
+            t1 = time.time(); yq = sq.run(None, {nq: x})[0][0]; tq += time.time() - t1
+            tot += max(1, len(ref))
+            ed += edit(ref, decode(yq, chars))
+        del sq
+        gc.collect()
+        sz1 = os.path.getsize(outp)
+        r = {'mode': mode, 'act': act, 'calib': cm if mode == 'static' else '-', 'attn_fp32': not a.quant_attn,
+             'agree_cer_pct': round(100.0 * ed / max(1, tot), 3), 'n_val': len(vx), 'size_fp32': sz0, 'size_int8': sz1,
+             'ratio': round(sz1 / sz0, 3), 'int8_initializers': n8, 'qdq_nodes': nqdq, 'quant_s': round(dt, 1),
+             'cpu_x86_ms_fp32': round(1000 * tf / len(vx), 1), 'cpu_x86_ms_int8': round(1000 * tq / len(vx), 1),
+             'exclude': ex, 'path': outp}
+        print('→ %s/%s/%s: agree-CER %.2f%% | حجم ×%.2f | وزن int8: %d | Q/DQ: %d | %.0fs'
+              % (mode, act, r['calib'], r['agree_cer_pct'], r['ratio'], n8, nqdq, dt), flush=True)
+        if mode == 'static' and r['ratio'] > 0.7:
+            print('WARN: حجم تقریباً کم نشد ← وزن‌ها کوانتیزه نشده‌اند (sympy/pre-process یا Constant؟).')
+        return r
+
+    cfgs = AUTO if a.auto else [(a.mode, a.act, a.calib_method)]
+    trials = []
+    for k, (mo, ac, cm) in enumerate(cfgs):
+        try:
+            trials.append(run(k, mo, ac, cm))
+        except MemoryError:
+            raise
+        except Exception as e:
+            print('WARN: پیکربندی %s/%s/%s شکست خورد: %s' % (mo, ac, cm, str(e)[:160]))
+            continue
+        if trials[-1]['agree_cer_pct'] <= a.max_agree:
+            break
+    if not trials:
+        die('هیچ پیکربندی‌ای اجرا نشد.')
+    best = min(trials, key=lambda r: r['agree_cer_pct'])
+    shutil.copyfile(best.pop('path'), a.out)
+    for r in trials:
+        r.pop('path', None)
     sha = hashlib.sha256(open(a.out, 'rb').read()).hexdigest()
     open(a.out + '.sha256', 'w').write(sha + '  ' + os.path.basename(a.out) + '\n')
-    rep = {'mode': a.mode, 'act': a.act, 'agree_cer_pct': round(agree, 3), 'n_val': len(val), 'size_fp32': sz0,
-           'size_int8': sz1, 'ratio': round(sz1 / sz0, 3), 'cpu_x86_ms_fp32': round(1000 * tf / len(val), 1),
-           'cpu_x86_ms_int8': round(1000 * tq / len(val), 1), 'sha256': sha, 'exclude': excl}
+    rep = dict(best, sha256=sha, trials=[{k: r[k] for k in ('mode', 'act', 'calib', 'agree_cer_pct', 'ratio')} for r in trials])
     print(json.dumps(rep, ensure_ascii=False, indent=1))
     if a.report:
         open(a.report, 'w').write(json.dumps(rep, ensure_ascii=False, indent=1))
     print('توجه: زمان‌های x86 معیار سرعت گوشی نیستند؛ سرعت واقعی را «گیت INT8» روی دستگاه می‌سنجد.')
-    if agree > a.max_agree:
-        die('agree-CER %.2f%% > %.2f%% — این مدل را استفاده نکنید (calib واقعی بدهید یا --act s8 / --mode dynamic را امتحان کنید).' % (agree, a.max_agree), 3)
+    if best['agree_cer_pct'] > a.max_agree:
+        die('agree-CER %.2f%% > %.2f%% — این مدل را استفاده نکنید (calib واقعی بدهید: --calib DIR، یا --auto).'
+            % (best['agree_cer_pct'], a.max_agree), 3)
 
 
 if __name__ == '__main__':
