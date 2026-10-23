@@ -14,6 +14,10 @@ on:
         default: u8
         type: choice
         options: [u8, s8]
+      auto:
+        description: 'امتحان خودکار چند پیکربندی و نگه‌داشتن بهترین (mode/act/calib نادیده گرفته می‌شود)'
+        default: true
+        type: boolean
       calib:
         description: 'روش کالیبراسیون (percentile دقیق‌تر؛ minmax سبک‌ترین)'
         default: percentile
@@ -58,7 +62,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y fonts-noto-core fonts-dejavu-core || true
           sudo apt-get install -y fonts-vazirmatn || true
-          pip install --quiet numpy pillow onnx onnxruntime arabic-reshaper python-bidi
+          pip install --quiet numpy pillow onnx onnxruntime sympy arabic-reshaper python-bidi
 
       - name: پیدا کردن مدل rec و دیکشنری
         id: find
@@ -72,7 +76,7 @@ jobs:
           [ -n "$REC" ] || { echo "::error::arabic_PP-OCRv5_mobile_rec.onnx پیدا نشد (rec_url بدهید)"; exit 1; }
           DICT=$(find . -name 'arabic_PP-OCRv5_mobile_rec_dict.txt' | head -1)
           [ -n "$DICT" ] || { echo "::error::arabic_PP-OCRv5_mobile_rec_dict.txt پیدا نشد"; exit 1; }
-          LEX=$(find . -maxdepth 1 -name 'fa_lexicon.js' | head -1)
+          LEX=$(find . -name 'fa_lexicon.js' -not -path './node_modules/*' | head -1)
           echo "rec=$REC" >> "$GITHUB_OUTPUT"; echo "dict=$DICT" >> "$GITHUB_OUTPUT"; echo "lex=$LEX" >> "$GITHUB_OUTPUT"
           echo "rec=$REC dict=$DICT lex=$LEX"
 
@@ -85,7 +89,7 @@ jobs:
             --model "${{ steps.find.outputs.rec }}" \
             --dict "${{ steps.find.outputs.dict }}" \
             --lex "${{ steps.find.outputs.lex }}" \
-            --mode "${{ inputs.mode }}" --act "${{ inputs.act }}" --calib-method "${{ inputs.calib }}" --n "${{ inputs.n }}" \
+            --mode "${{ inputs.mode }}" --act "${{ inputs.act }}" --calib-method "${{ inputs.calib }}" ${{ inputs.auto && '--auto' || '' }} --n "${{ inputs.n }}" \
             --out out/arabic_PP-OCRv5_mobile_rec_int8.onnx --report out/report.json
 
       - uses: actions/upload-artifact@v4
