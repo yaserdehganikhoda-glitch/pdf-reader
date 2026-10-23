@@ -1,0 +1,106 @@
+name: quantize-ocr
+# اجرای دستی: Actions ← quantize-ocr ← Run workflow
+# خروجی: ocr-int8/arabic_PP-OCRv5_mobile_rec_int8.onnx (+ .sha256) و Artifact
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'static (QDQ، سریع‌تر) یا dynamic (فقط MatMul/Gemm؛ کم‌خطرتر)'
+        default: static
+        type: choice
+        options: [static, dynamic]
+      act:
+        description: 'نوع فعال‌سازی static'
+        default: u8
+        type: choice
+        options: [u8, s8]
+      n:
+        description: 'تعداد خط کالیبراسیون'
+        default: '240'
+      rec_url:
+        description: '(اختیاری) آدرس مستقیم arabic_PP-OCRv5_mobile_rec.onnx اگر در مخزن/fetch-offline.sh نیست'
+        default: ''
+      commit:
+        description: 'نتیجه در ocr-int8/ کامیت شود'
+        default: true
+        type: boolean
+      build:
+        description: 'پس از کامیت، workflow «Build APK» اجرا شود'
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  quantize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: ابزارها و فونت‌ها
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y fonts-noto-core fonts-dejavu-core || true
+          sudo apt-get install -y fonts-vazirmatn || true
+          pip install --quiet numpy pillow onnx onnxruntime arabic-reshaper python-bidi
+
+      - name: پیدا کردن مدل rec و دیکشنری
+        id: find
+        env:
+          REC_URL: ${{ inputs.rec_url }}
+        run: |
+          find_rec() { find . -name 'arabic_PP-OCRv5_mobile_rec.onnx' -not -path './node_modules/*' | head -1; }
+          REC=$(find_rec)
+          if [ -z "$REC" ] && [ -f native/fetch-offline.sh ]; then mkdir -p www; npm install --legacy-peer-deps >/dev/null 2>&1 || true; bash native/fetch-offline.sh www || true; REC=$(find_rec); fi
+          if [ -z "$REC" ] && [ -n "$REC_URL" ]; then mkdir -p dl && curl -fL "$REC_URL" -o dl/arabic_PP-OCRv5_mobile_rec.onnx && REC=dl/arabic_PP-OCRv5_mobile_rec.onnx; fi
+          [ -n "$REC" ] || { echo "::error::arabic_PP-OCRv5_mobile_rec.onnx پیدا نشد (rec_url بدهید)"; exit 1; }
+          DICT=$(find . -name 'arabic_PP-OCRv5_mobile_rec_dict.txt' | head -1)
+          [ -n "$DICT" ] || { echo "::error::arabic_PP-OCRv5_mobile_rec_dict.txt پیدا نشد"; exit 1; }
+          LEX=$(find . -maxdepth 1 -name 'fa_lexicon.js' | head -1)
+          echo "rec=$REC" >> "$GITHUB_OUTPUT"; echo "dict=$DICT" >> "$GITHUB_OUTPUT"; echo "lex=$LEX" >> "$GITHUB_OUTPUT"
+          echo "rec=$REC dict=$DICT lex=$LEX"
+
+      - name: کوانتیزه + اعتبارسنجی
+        run: |
+          mkdir -p out
+          python tools/quantize_ocr.py \
+            --model "${{ steps.find.outputs.rec }}" \
+            --dict "${{ steps.find.outputs.dict }}" \
+            --lex "${{ steps.find.outputs.lex }}" \
+            --mode "${{ inputs.mode }}" --act "${{ inputs.act }}" --n "${{ inputs.n }}" \
+            --out out/arabic_PP-OCRv5_mobile_rec_int8.onnx --report out/report.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ocr-int8
+          path: out/
+
+      - name: کامیت در ocr-int8/
+        if: ${{ inputs.commit }}
+        run: |
+          mkdir -p ocr-int8
+          cp out/arabic_PP-OCRv5_mobile_rec_int8.onnx out/arabic_PP-OCRv5_mobile_rec_int8.onnx.sha256 out/report.json ocr-int8/
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add ocr-int8
+          git diff --cached --quiet || git commit -m "ocr-int8: rec int8 (${{ inputs.mode }}/${{ inputs.act }})"
+          git push
+
+      - name: اجرای Build APK
+        if: ${{ inputs.commit && inputs.build }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run build.yml --ref "${{ github.ref_name }}"

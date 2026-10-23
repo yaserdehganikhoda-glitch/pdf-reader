@@ -38,6 +38,15 @@ jobs:
         run: npm install --legacy-peer-deps
       - name: Bundle offline web assets (fonts, pdf.js, OCR)
         run: bash native/fetch-offline.sh www
+      - name: Add INT8 rec model (optional, from quantize-ocr workflow)
+        run: |
+          f=ocr-int8/arabic_PP-OCRv5_mobile_rec_int8.onnx
+          if [ -s "$f" ]; then
+            mkdir -p www/ocr/paddle && cp "$f" www/ocr/paddle/
+            echo "INT8 rec model added: $(stat -c %s "$f") bytes"
+          else
+            echo "::notice::ocr-int8/ model not found; OCR runs fp32 only"
+          fi
       - name: Add Android platform
         run: npx cap add android
       - name: Inject native Piper
@@ -81,6 +90,9 @@ jobs:
           unzip -l PdfVoiceReader.apk | grep -E "assets/public/ocr/" || true
           unzip -l PdfVoiceReader.apk | grep -q "assets/public/fa_lexicon.js" || echo "::warning::fa_lexicon.js داخل APK نیست؛ واژه‌نامهٔ املایی غیرفعال می‌ماند"
           unzip -l PdfVoiceReader.apk | grep -q "assets/public/ocr/ort/ort-wasm-simd-threaded.wasm" || echo "::warning::ort-wasm-simd-threaded.wasm داخل APK نیست؛ OCR چندنخی کار نمی‌کند"
+          if [ -s ocr-int8/arabic_PP-OCRv5_mobile_rec_int8.onnx ]; then
+            unzip -l PdfVoiceReader.apk | grep -q "assets/public/ocr/paddle/arabic_PP-OCRv5_mobile_rec_int8.onnx" || echo "::warning::مدل int8 در مخزن هست ولی داخل APK نیست"
+          fi
           for f in ort/ort.min.js ort/ort-wasm-simd.wasm paddle/PP-OCRv5_mobile_det.onnx paddle/arabic_PP-OCRv5_mobile_rec.onnx paddle/arabic_PP-OCRv5_mobile_rec_dict.txt; do
             unzip -l PdfVoiceReader.apk | grep -q "assets/public/ocr/$f" || { echo "OCR file missing from APK: $f"; exit 1; }
           done
