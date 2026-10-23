@@ -14,6 +14,11 @@ on:
         default: u8
         type: choice
         options: [u8, s8]
+      calib:
+        description: 'روش کالیبراسیون (percentile دقیق‌تر؛ minmax سبک‌ترین)'
+        default: percentile
+        type: choice
+        options: [percentile, entropy, minmax]
       n:
         description: 'تعداد خط کالیبراسیون'
         default: '240'
@@ -72,13 +77,15 @@ jobs:
           echo "rec=$REC dict=$DICT lex=$LEX"
 
       - name: کوانتیزه + اعتبارسنجی
+        env:
+          PYTHONUNBUFFERED: '1'
         run: |
           mkdir -p out
           python tools/quantize_ocr.py \
             --model "${{ steps.find.outputs.rec }}" \
             --dict "${{ steps.find.outputs.dict }}" \
             --lex "${{ steps.find.outputs.lex }}" \
-            --mode "${{ inputs.mode }}" --act "${{ inputs.act }}" --n "${{ inputs.n }}" \
+            --mode "${{ inputs.mode }}" --act "${{ inputs.act }}" --calib-method "${{ inputs.calib }}" --n "${{ inputs.n }}" \
             --out out/arabic_PP-OCRv5_mobile_rec_int8.onnx --report out/report.json
 
       - uses: actions/upload-artifact@v4
