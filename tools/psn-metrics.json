@@ -1,0 +1,20 @@
+[
+ {
+  "version": "r105",
+  "sents": 102,
+  "changedPct": 85.3,
+  "injectedPer100w": 3.42,
+  "avgClauseWords": 3.02,
+  "merges": 65,
+  "goldenErrPct": 17.6
+ },
+ {
+  "version": "r106",
+  "sents": 102,
+  "changedPct": 70.6,
+  "injectedPer100w": 2.78,
+  "avgClauseWords": 3.2,
+  "merges": 49,
+  "goldenErrPct": 0
+ }
+]
