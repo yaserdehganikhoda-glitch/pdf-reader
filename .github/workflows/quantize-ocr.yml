@@ -26,6 +26,9 @@ on:
       n:
         description: 'تعداد خط کالیبراسیون'
         default: '240'
+      android_ort:
+        description: '(اختیاری) نسخهٔ ORT داخل APK؛ خالی = خودکار از sherpa-onnx همان مخزن تشخیص داده می‌شود'
+        default: ''
       rec_url:
         description: '(اختیاری) آدرس مستقیم arabic_PP-OCRv5_mobile_rec.onnx اگر در مخزن/fetch-offline.sh نیست'
         default: ''
@@ -80,6 +83,38 @@ jobs:
           echo "rec=$REC" >> "$GITHUB_OUTPUT"; echo "dict=$DICT" >> "$GITHUB_OUTPUT"; echo "lex=$LEX" >> "$GITHUB_OUTPUT"
           echo "rec=$REC dict=$DICT lex=$LEX"
 
+      - name: نسخهٔ ORT داخل APK (خودکار از sherpa)
+        id: aort
+        env:
+          IN_ORT: ${{ inputs.android_ort }}
+        run: |
+          V="$IN_ORT"
+          if [ -z "$V" ] && [ -f native/inject-native.sh ]; then
+            SV=$(grep -oE 'SHERPA_VER:-[0-9.]+' native/inject-native.sh | head -1 | sed 's/.*:-//')
+            SV=${SV:-1.12.13}
+            if curl -fsSL --retry 3 -o /tmp/sherpa.tar.bz2 "https://github.com/k2-fsa/sherpa-onnx/releases/download/v${SV}/sherpa-onnx-v${SV}-android.tar.bz2" \
+               && tar xjf /tmp/sherpa.tar.bz2 -C /tmp jniLibs/arm64-v8a/libonnxruntime.so; then
+              V=$(strings /tmp/jniLibs/arm64-v8a/libonnxruntime.so | grep -E '^1\.(1[4-9]|2[0-9])\.[0-9]+$' | sort -V | tail -1 || true)
+            fi
+          fi
+          echo "ORT داخل APK (sherpa): ${V:-نامشخص}"
+          echo "v=$V" >> "$GITHUB_OUTPUT"
+
+      - name: ORT نسخه‌های مقصد (بررسی سازگاری)
+        env:
+          ANDROID_ORT: ${{ steps.aort.outputs.v }}
+        run: |
+          mk() { v="$1"; python -m venv "/tmp/ort-$v" && "/tmp/ort-$v/bin/pip" install --quiet "onnxruntime==$v" "numpy<2" && echo "/tmp/ort-$v/bin/python:$v"; }
+          BLOCK=""; INFO=""
+          for v in 1.17.3 $ANDROID_ORT; do   # 1.17.3 = onnxruntime-web داخل برنامه (مسیر WASM)
+            r=$(mk "$v") && BLOCK="$BLOCK,$r" || echo "::warning::نصب onnxruntime==$v ناموفق؛ بررسی نمی‌شود"
+          done
+          for v in 1.19.2 1.20.1 1.21.0 1.22.0; do
+            case " 1.17.3 $ANDROID_ORT " in *" $v "*) continue;; esac
+            r=$(mk "$v") && INFO="$INFO,$r" || echo "::warning::نصب onnxruntime==$v ناموفق؛ رد شد"
+          done
+          echo "COMPAT_BLOCK=${BLOCK#,}" >> "$GITHUB_ENV"; echo "COMPAT_INFO=${INFO#,}" >> "$GITHUB_ENV"
+
       - name: کوانتیزه + اعتبارسنجی
         env:
           PYTHONUNBUFFERED: '1'
@@ -90,6 +125,7 @@ jobs:
             --dict "${{ steps.find.outputs.dict }}" \
             --lex "${{ steps.find.outputs.lex }}" \
             --mode "${{ inputs.mode }}" --act "${{ inputs.act }}" --calib-method "${{ inputs.calib }}" ${{ inputs.auto && '--auto' || '' }} --n "${{ inputs.n }}" \
+            --compat "$COMPAT_BLOCK" --compat-info "$COMPAT_INFO" \
             --out out/arabic_PP-OCRv5_mobile_rec_int8.onnx --report out/report.json
 
       - uses: actions/upload-artifact@v4
