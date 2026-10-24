@@ -3,16 +3,16 @@
  "act": "u8",
  "calib": "-",
  "attn_fp32": true,
- "agree_cer_pct": 1.076,
+ "agree_cer_pct": 1.21,
  "n_val": 120,
  "size_fp32": 7994035,
  "size_int8": 7280159,
  "ratio": 0.911,
  "int8_initializers": 16,
  "qdq_nodes": 8,
- "quant_s": 0.0,
- "cpu_x86_ms_fp32": 11.0,
- "cpu_x86_ms_int8": 11.1,
+ "quant_s": 0.1,
+ "cpu_x86_ms_fp32": 13.2,
+ "cpu_x86_ms_int8": 12.9,
  "exclude": [
   "MatMul.12",
   "Conv.0",
@@ -27,28 +27,28 @@
    "mode": "static",
    "act": "u8",
    "calib": "percentile",
-   "agree_cer_pct": 12.239,
+   "agree_cer_pct": 12.71,
    "ratio": 0.316
   },
   {
    "mode": "static",
    "act": "s8",
    "calib": "percentile",
-   "agree_cer_pct": 12.239,
+   "agree_cer_pct": 12.643,
    "ratio": 0.316
   },
   {
    "mode": "static",
    "act": "u8",
    "calib": "entropy",
-   "agree_cer_pct": 10.894,
+   "agree_cer_pct": 11.298,
    "ratio": 0.316
   },
   {
    "mode": "dynamic",
    "act": "u8",
    "calib": "-",
-   "agree_cer_pct": 1.076,
+   "agree_cer_pct": 1.21,
    "ratio": 0.911
   }
  ]
