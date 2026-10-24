@@ -1386,6 +1386,18 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 .cmpg .fsrow .btn.sm{min-height:28px;padding:0 14px;font-size:.8rem}
 /* r98: جستجو، نشانه‌ها، علاقه‌مندی و چرخش از نوار خواندن به منوی ⋯ رفتند؛ دکمه‌های اصلی در DOM می‌مانند (پنهان) تا کد و rdSync بدون تغییر کار کنند */
 #rdSearch,#rdBm,#rdFav,#rdRot{display:none}
+/* r100: نوار شناور نمای صفحه (ضربهٔ تک) و تب «سریع» تنظیمات */
+.pvbar{position:fixed;z-index:30;inset-inline:0;margin:0 auto;width:max-content;max-width:calc(100% - 16px);bottom:calc(var(--dock-h) + 14px);display:flex;align-items:center;gap:2px;padding:4px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-line);box-shadow:var(--shadow)}
+.pvbar[hidden],body:not(.view-page) .pvbar{display:none}
+.pvbar button{min-width:44px;height:44px;padding:0 10px;border:0;border-radius:999px;background:transparent;color:var(--ink);font:inherit;font-size:.8rem;font-weight:800;touch-action:manipulation}
+.pvbar button[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+.pvbar output{min-width:46px;text-align:center;font-size:.76rem;font-weight:800;font-variant-numeric:tabular-nums;direction:ltr;color:var(--muted)}
+.pvbar i{flex:none;width:1px;height:20px;background:var(--line)}
+#tpanel-quick .hint{grid-column:1/-1;margin:4px 2px 0}
+.stsec{display:grid;gap:8px;padding-top:12px;border-top:1px solid var(--line)}
+.stsec:first-child{padding-top:0;border-top:0}
+.stsec>b{font-size:.88rem;font-weight:800}
+.stsec>small{font-size:.74rem;line-height:1.6;color:var(--muted)}
 .tqa{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:6px;margin-bottom:8px}
 body:not(.has-doc) .tqa,.tmenu.gm .tqa{display:none}
 body:not(.view-page) #qaRot{display:none}
@@ -1424,6 +1436,7 @@ body:not(.view-page) #qaRot{display:none}
 <body data-apptab="read">
 <div class="aura" aria-hidden="true"></div>
 
+<div class="pvbar" id="pvBar" hidden role="toolbar" aria-label="ابزار نمای صفحه"><button type="button" data-pf="w" aria-pressed="false" aria-label="تناسب با عرض">عرض</button><button type="button" data-pf="p" aria-pressed="false" aria-label="تناسب با صفحه">صفحه</button><i aria-hidden="true"></i><button type="button" data-a="out" aria-label="کوچک‌نمایی">−</button><output id="pvBarV" aria-live="polite">۱۰۰٪</output><button type="button" data-a="in" aria-label="بزرگ‌نمایی">+</button><i aria-hidden="true"></i><button type="button" data-a="rot" aria-label="چرخش صفحه ۹۰ درجه">↻</button></div>
 <div id="selBar" class="selbar" hidden role="toolbar" aria-label="عملیات روی متن انتخاب‌شده">
   <button type="button" class="btn sm primary" id="selAdd">افزودن به واژه‌نامه</button>
   <button type="button" class="btn sm" id="selCopy">کپی</button>
@@ -1470,14 +1483,21 @@ body:not(.view-page) #qaRot{display:none}
         <div id="tscrim" hidden></div>
         <div class="tmenu" id="toolsMenu" hidden role="dialog" aria-label="منوی ابزار">
           <div class="ttabs" role="tablist" aria-label="بخش‌های منوی ابزار">
-            <button type="button" class="ttab on" role="tab" aria-selected="true" id="ttab-voice" aria-controls="tpanel-voice" tabindex="0" data-tt="voice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg><span>صدا</span></button>
+            <button type="button" class="ttab on" role="tab" aria-selected="true" id="ttab-quick" aria-controls="tpanel-quick" tabindex="0" data-tt="quick"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg><span>سریع</span></button>
+            <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-voice" aria-controls="tpanel-voice" tabindex="-1" data-tt="voice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg><span>صدا</span></button>
             <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-text" aria-controls="tpanel-text" tabindex="-1" data-tt="text"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/></svg><span>متن</span></button>
             <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-view" aria-controls="tpanel-view" tabindex="-1" data-tt="view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg><span>نمایش</span></button>
             <button type="button" class="ttab" role="tab" aria-selected="false" id="ttab-device" aria-controls="tpanel-device" tabindex="-1" data-tt="device"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 3v3M12 18v3M3 12h3M18 12h3"/></svg><span>دستگاه</span></button>
           </div>
           <div class="tbody">
 <div class="tqa" role="group" aria-label="کارهای سریع سند"><button type="button" class="tqb" id="qaSearch" data-proxy="#rdSearch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"/></svg><span>جستجو</span></button><button type="button" class="tqb" id="qaBm" data-proxy="#rdBm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4zM12 7v6M9 10h6"/></svg><span>نشانه‌ها</span></button><button type="button" class="tqb" id="qaFav" data-proxy="#rdFav" aria-pressed="false" aria-label="افزودن به مورد علاقه"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"/></svg><span id="qaFavT">علاقه‌مندی</span></button><button type="button" class="tqb" id="qaRot" data-proxy="#rdRot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg><span>چرخش</span></button></div>
-            <div class="tpanel on" id="tpanel-voice" role="tabpanel" aria-labelledby="ttab-voice" data-tp="voice">
+            <div class="tpanel on" id="tpanel-quick" role="tabpanel" aria-labelledby="ttab-quick" data-tp="quick">
+<p class="tlbl">تنظیمات سریع</p>
+<div class="cfgrow c2"><button type="button" class="tile t-a" data-act="speed"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14l4-5M4.5 17a8.5 8.5 0 1 1 15 0"/></svg></span><span class="tx"><b>سرعت خواندن</b><small id="qkSpdSub">۱×</small></span></button><button type="button" class="tile t-b" data-click="#dVoice"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg></span><span class="tx"><b>گوینده و سبک</b><small>انتخاب صدا</small></span></button><button type="button" class="tile t-g" data-act="theme"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></span><span class="tx"><b>پوسته</b><small id="thTileSub">خودکار</small></span></button><button type="button" class="tile t-a" data-act="mode"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h7"/></svg></span><span class="tx"><b>حالت نمایش</b><small id="qkModeSub">صفحهٔ PDF</small></span></button>
+</div>
+<p class="hint">گزینه‌های بیشتر در تب‌های «صدا»، «متن» و «نمایش»؛ ابزار فنی در «دستگاه».</p>
+            </div>
+            <div class="tpanel" id="tpanel-voice" role="tabpanel" aria-labelledby="ttab-voice" data-tp="voice">
 <p class="tlbl">تنظیمات صدا</p>
 <div class="cfgrow c2"><button type="button" class="tile t-a" data-go="voice" data-only="#spkBox,#styleBox,#rateBox,#paceBox" data-title="گوینده و گفتار" data-sub="سبک، سرعت و مکث"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg></span><span class="tx"><b>گوینده و گفتار</b><small>سبک، سرعت و مکث</small></span></button><button type="button" class="tile t-b" data-go="voice" data-only="#qualBox,#bgmBox" data-title="کیفیت و موسیقی" data-sub="نویز، شفافیت و موسیقی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8v8M8 5v14M12 9v6M16 6v12M20 10v4"/></svg></span><span class="tx"><b>کیفیت و موسیقی</b><small>نویز، شفافیت و موسیقی</small></span></button><button type="button" class="tile t-g" data-go="voice" data-only="#sleepBox,#advBox" data-title="تایمر و پیشرفته" data-sub="خواب و اطلاعات فنی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/></svg></span><span class="tx"><b>تایمر و پیشرفته</b><small>خواب و اطلاعات فنی</small></span></button></div>
             </div>
@@ -1491,7 +1511,7 @@ body:not(.view-page) #qaRot{display:none}
             </div>
             <div class="tpanel" id="tpanel-device" role="tabpanel" aria-labelledby="ttab-device" data-tp="device">
 <button type="button" class="tile t-g" data-go="voice" data-only="#advBox" data-click="#logShow"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6"/></svg></span><span class="tx"><b>گزارش خطا</b><small>برای عیب‌یابی</small></span></button>
-<button type="button" class="tile t-g" data-go="lib" data-only="#stBox" data-title="ذخیره‌سازی و پشتیبان" data-sub="حافظه، مسیر ذخیره و تنظیمات"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span><span class="tx"><b>ذخیره‌سازی و پشتیبان</b><small>مسیر ذخیره، تنظیمات، ZIP</small></span></button>
+<button type="button" class="tile t-g" data-go="lib" data-only="#stBox" data-title="داده و پشتیبان" data-sub="تنظیمات، پشتیبان کامل و نتایج OCR"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span><span class="tx"><b>داده و پشتیبان</b><small>تنظیمات، ZIP و نتایج OCR</small></span></button>
 <button type="button" class="tile t-b exitB" ><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></span><span class="tx"><b>خروج</b><small>بستن برنامه</small></span></button>
             </div>
           </div>
@@ -1611,21 +1631,26 @@ body:not(.view-page) #qaRot{display:none}
       </section>
 
       <details class="acc" id="stBox">
-        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></i><span class="stt"><b>مدیریت حافظه و آرشیو</b><small>سهمیه، پاک‌سازی هوشمند و ZIP</small></span></summary>
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></i><span class="stt"><b>داده و پشتیبان</b><small>تنظیمات، پشتیبان کامل و نتایج OCR</small></span></summary>
         <div class="in">
-          <p class="hint" id="stInfo"></p>
-          <div class="field"><label for="stCap"><span>سقف حجم کتابخانه</span></label>
-            <select id="stCap"><option value="200">۲۰۰ مگابایت</option><option value="500">۵۰۰ مگابایت</option><option value="1000">۱ گیگابایت</option><option value="2000">۲ گیگابایت</option><option value="0">بدون سقف</option></select></div>
-          <div class="slist"><label class="chk"><input type="checkbox" id="stAuto" checked><span class="st"><b>حذف خودکار قدیمی‌ترین‌ها (LRU)</b><small>هنگام کمبود سهمیه یا عبور از سقف، PDFهایی که مدت بیشتری باز نشده‌اند حذف می‌شوند. فایل در حال خواندن هرگز حذف نمی‌شود؛ جای خواندن و نتیجهٔ OCR می‌ماند.</small></span></label></div>
-          <button class="btn wide" id="stTrim" type="button">پاک‌سازی قدیمی‌ترین فایل‌ها (تا ۶۰٪ سقف)</button>
-          <div class="slist"><label class="chk"><input type="checkbox" id="abOn" checked><span class="st"><b>ذخیرهٔ خودکار هنگام خروج</b><small>با دکمهٔ «خروج»، تنظیمات، فهرست‌ها، جای خواندن، نشانه‌ها و متن OCR در یک فایل JSON در مسیر انتخابی شما ذخیره می‌شود. بازیابی: «واردات».</small></span></label></div>
-          <p class="hint" id="abPath"></p>
-          <div class="two"><button class="btn" id="abPick" type="button">انتخاب مسیر ذخیره</button><button class="btn" id="abClr" type="button" hidden>حذف مسیر</button></div>
-          <p class="hint" id="abSt" aria-live="polite"></p>
-          <div class="two"><button class="btn" id="setExp" type="button">ذخیرهٔ کل تنظیمات</button><button class="btn" id="setImp" type="button">بارگذاری تنظیمات</button></div>
-          <input type="file" id="setFile" accept=".json,application/json" hidden>
-          <div class="two"><button class="btn" id="stExp" type="button">صادرات ZIP</button><button class="btn" id="stImp" type="button">واردات ZIP / JSON</button></div>
-          <input type="file" id="stZip" accept=".zip,application/zip,.json,application/json" hidden>
+          <div class="stsec"><b>تنظیمات</b><small>ذخیره و بارگذاری همهٔ تنظیمات برنامه در یک فایل JSON.</small>
+            <div class="two"><button class="btn" id="setExp" type="button">ذخیرهٔ کل تنظیمات</button><button class="btn" id="setImp" type="button">بارگذاری تنظیمات</button></div>
+            <input type="file" id="setFile" accept=".json,application/json" hidden></div>
+          <div class="stsec"><b>پشتیبان کامل</b><small>فایل‌ها، جای خواندن، نشانه‌ها و متن OCR در یک ZIP؛ ذخیرهٔ خودکار هنگام خروج هم همین‌جاست.</small>
+            <div class="two"><button class="btn" id="stExp" type="button">صادرات ZIP</button><button class="btn" id="stImp" type="button">واردات ZIP / JSON</button></div>
+            <input type="file" id="stZip" accept=".zip,application/zip,.json,application/json" hidden>
+            <div class="slist"><label class="chk"><input type="checkbox" id="abOn" checked><span class="st"><b>ذخیرهٔ خودکار هنگام خروج</b><small>با دکمهٔ «خروج»، تنظیمات، فهرست‌ها، جای خواندن، نشانه‌ها و متن OCR در یک فایل JSON در مسیر انتخابی شما ذخیره می‌شود. بازیابی: «واردات».</small></span></label></div>
+            <p class="hint" id="abPath"></p>
+            <div class="two"><button class="btn" id="abPick" type="button">انتخاب مسیر ذخیره</button><button class="btn" id="abClr" type="button" hidden>حذف مسیر</button></div>
+            <p class="hint" id="abSt" aria-live="polite"></p></div>
+          <div class="stsec"><b>نتایج OCR</b><small>ذخیره، بارگذاری و حذف نتیجهٔ هر فایل.</small>
+            <button class="btn wide" id="stOcrGo" type="button">مدیریت نتایج OCR فایل‌ها</button></div>
+          <div class="stsec"><b>حافظهٔ کتابخانه</b>
+            <p class="hint" id="stInfo"></p>
+            <div class="field"><label for="stCap"><span>سقف حجم کتابخانه</span></label>
+              <select id="stCap"><option value="200">۲۰۰ مگابایت</option><option value="500">۵۰۰ مگابایت</option><option value="1000">۱ گیگابایت</option><option value="2000">۲ گیگابایت</option><option value="0">بدون سقف</option></select></div>
+            <div class="slist"><label class="chk"><input type="checkbox" id="stAuto" checked><span class="st"><b>حذف خودکار قدیمی‌ترین‌ها (LRU)</b><small>هنگام کمبود سهمیه یا عبور از سقف، PDFهایی که مدت بیشتری باز نشده‌اند حذف می‌شوند. فایل در حال خواندن هرگز حذف نمی‌شود؛ جای خواندن و نتیجهٔ OCR می‌ماند.</small></span></label></div>
+            <button class="btn wide" id="stTrim" type="button">پاک‌سازی قدیمی‌ترین فایل‌ها (تا ۶۰٪ سقف)</button></div>
           <p class="hint" id="stMsg" aria-live="polite"></p>
         </div>
       </details>
@@ -2024,7 +2049,7 @@ body:not(.view-page) #qaRot{display:none}
           <button class="btn sm" id="pvRr" type="button" aria-label="چرخش ۹۰ درجه به راست">↻</button>
         </div></div>
         <div class="slist"><label class="chk"><input type="checkbox" id="pvTlOn" checked><span class="st"><b>لایهٔ متنی انتخاب‌پذیر</b><small>انتخاب و کپی متن روی خود صفحه.</small></span></label></div>
-        <p class="hint">بزرگ‌نمایی از ۵۰٪ تا ۵۰۰٪ با دکمه‌های آ− / آ+ بخش «متن» یا حرکت دو انگشتی.</p>
+        <p class="hint">بزرگ‌نمایی از ۵۰٪ تا ۵۰۰٪ با دکمه‌های آ− / آ+ بخش «متن» یا حرکت دو انگشتی. ضربهٔ تک روی صفحه نوار تناسب/زوم/چرخش را نشان می‌دهد؛ دوبار ضربه زوم را بین تناسب و ۲۰۰٪ جابه‌جا می‌کند.</p>
       </section>
 
       <section class="grp" id="fxBox">
@@ -2146,6 +2171,7 @@ body:not(.view-page) #qaRot{display:none}
           <button class="btn" id="qPrev" type="button" aria-label="نتیجهٔ قبلی">‹</button>
           <button class="btn" id="qNext" type="button" aria-label="نتیجهٔ بعدی">›</button>
         </div>
+        <p class="hint" id="qSt" aria-live="polite" hidden></p>
       </section>
     </div>
 
@@ -6293,9 +6319,10 @@ var ocrSpell = (function(){
     try {
       gs = await orScan(); orGs = gs; box.textContent = '';
       gs.forEach(function(gr){ box.appendChild(orRow(gr)); });
+      if (!gs.length) { var ep = document.createElement('p'); ep.className = 'empty'; ep.textContent = 'هنوز نتیجهٔ OCR ذخیره‌شده‌ای وجود ندارد.'; box.appendChild(ep); }   /* r102: جای‌نگهدار داخل فهرست */
       $('#orSaveAll').disabled = !gs.length;
-      if (!keep || !gs.length) orMsg(gs.length ? '' : 'هنوز نتیجهٔ OCR ذخیره‌شده‌ای وجود ندارد.');
-    } catch (e) { orMsg('خواندن فهرست ناموفق بود: ' + em(e)); }
+      if (!keep) orMsg('');
+    } catch (e) { box.textContent = ''; var er = document.createElement('p'); er.className = 'empty'; er.textContent = 'خواندن فهرست ناموفق بود.'; box.appendChild(er); orMsg('جزئیات: ' + em(e)); }
     orScanning = false;
   }
   $('#orPick').onclick = function(){ if (orOp) return; orOp = true; msLoad().then(msPickRun).then(function(){ orMsg($('#msSt').textContent); }, function(e){ orMsg('انتخاب مسیر انجام نشد: ' + em(e)); }).then(function(){ orOp = false; }); };
@@ -7975,7 +8002,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r94 · 2026-10-24 · pdf-view', npBuild = '';
+  var APP_BUILD = 'html-r102 · 2026-10-24 · empty-states', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -9242,7 +9269,7 @@ var ocrSpell = (function(){
     else pvShow(p, scroll);
   }
   function pvRedo(){ if (!pvOn() || !pdfDoc || !sents.length) return; pvPage = 0; pvVp = null; pvMark(true); }
-  function pvLbl(){ if (!pvOn()) return; $('#fsV').textContent = nf.format(Math.round(pvZf * 100)) + '٪'; }
+  function pvLbl(){ if (!pvOn()) return; var t = nf.format(Math.round(pvZf * 100)) + '٪', o = $('#pvBarV'); $('#fsV').textContent = t; if (o) o.textContent = t; }
   function pvZoom(d){
     var i, n = pvZf;
     if (d > 0) { for (i = 0; i < PVZ.length; i++) if (PVZ[i] > pvZf + 0.01) { n = PVZ[i]; break; } }
@@ -9320,17 +9347,52 @@ var ocrSpell = (function(){
     if (r.r) { var cx = r.x + r.w / 2, cy = r.y + r.h / 2, c = Math.cos(-r.r), sn = Math.sin(-r.r), dx = x - cx, dy = y - cy; x = cx + dx * c - dy * sn; y = cy + dx * sn + dy * c; }
     return x >= r.x - 3 && x <= r.x + r.w + 3 && y >= r.y - 2 && y <= r.y + r.h + 2;
   }
-  $('#pvp').onclick = function(ev){
-    if (!pvVp) return;
-    try { var sl = window.getSelection(); if (sl && !sl.isCollapsed && String(sl).length) return; } catch (e) {}
-    var r = this.getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top, ids = [], k, j, rs;
+  /* r100: ضربهٔ تک = نمایش نوار ابزار + پرش به جمله (با تأخیر ۲۲۰ms)؛ دوبار ضربه = زوم بین تناسب و ۲۰۰٪ (فقط نمای صفحه) */
+  var pvTapT = 0, pvTapAt = 0, pvTapX = 0, pvTapY = 0, pvBarT = 0;
+  function pvBarHide(){ clearTimeout(pvBarT); var b = $('#pvBar'); if (b) b.hidden = true; }
+  function pvBarShow(){ var b = $('#pvBar'); if (!b) return; b.hidden = false; clearTimeout(pvBarT); pvBarT = setTimeout(pvBarHide, 2500); }
+  function pvJump(x, y, pg){
+    if (!pvVp || pg !== pvPage) return;
+    var ids = [], k, j, rs;
     pvPrep(pvPage);
     (pageParas[pvPage] || []).forEach(function(g){ g.forEach(function(i){ ids.push(i); }); });
     for (k = 0; k < ids.length; k++) {
       rs = pvRectsOf(ids[k]);
       for (j = 0; j < rs.length; j++) if (pvIn(rs[j], x, y)) { seekTo(ids[k]); return; }
     }
+  }
+  function pvZoomAt(z, cx, cy){
+    var pr = $('#pvp').getBoundingClientRect();
+    if (!pvPage || pvBusy || pvPin || !pr.width) return;
+    z = Math.max(PVMIN, Math.min(PVMAX, z)); if (Math.abs(z - pvZf) < 0.01) return;
+    pvZf = z; sset('pvzf', pvZf); pvLbl(); pvBusy = 1; pvSw = 1;
+    function end(){ pvBusy = 0; pvSw = 0; pvDSched(120); }
+    pvShow(pvPage, false, true, { fx: (cx - pr.left) / pr.width, fy: (cy - pr.top) / pr.height, ox: cx, oy: cy, done: function(){} }).then(end, end);
+  }
+  $('#pvp').onclick = function(ev){
+    if (!pvVp) return;
+    var now = Date.now(), cx = ev.clientX, cy = ev.clientY, r, pg = pvPage, sl;
+    if (pvTapT && now - pvTapAt < 320 && Math.abs(cx - pvTapX) < 30 && Math.abs(cy - pvTapY) < 30) {
+      clearTimeout(pvTapT); pvTapT = 0; pvTapAt = 0;
+      try { sl = window.getSelection(); if (sl) sl.removeAllRanges(); } catch (e) {}
+      pvZoomAt(pvZf > 1.05 ? 1 : 2, cx, cy); pvBarShow(); return;
+    }
+    try { sl = window.getSelection(); if (sl && !sl.isCollapsed && String(sl).length) return; } catch (e) {}
+    pvBarShow();
+    r = this.getBoundingClientRect(); pvTapAt = now; pvTapX = cx; pvTapY = cy;
+    clearTimeout(pvTapT); pvTapT = setTimeout(function(x, y){ pvTapT = 0; pvJump(x, y, pg); }, 220, cx - r.left, cy - r.top);
   };
+  (function(){
+    var bar = $('#pvBar'); if (!bar) return;
+    bar.addEventListener('click', function(e){
+      e.stopPropagation();
+      var b = e.target.closest ? e.target.closest('button') : null, a, t; if (!b) return;
+      a = b.dataset.pf || b.dataset.a;
+      if (a === 'w' || a === 'p') { t = document.querySelector('#pfSw button[data-pf="' + a + '"]'); if (t) t.click(); }
+      else if (a === 'in') pvZoom(1); else if (a === 'out') pvZoom(-1); else if (a === 'rot') $('#rdRot').click();
+      pvBarShow();
+    });
+  })();
   $('#stage').addEventListener('scroll', function(){ if (!pvOn()) return; pvDSched(220); if (pvScQ) return; pvScQ = requestAnimationFrame(function(){ pvScQ = 0; pvScan(); }); }, { passive: true });
   $('#pv').addEventListener('scroll', function(){ pvDSched(220); }, { passive: true });
   ['touchstart', 'wheel', 'pointerdown'].forEach(function(t){ $('#stage').addEventListener(t, function(){ pvUserT = Date.now(); }, { passive: true }); });
@@ -9364,7 +9426,7 @@ var ocrSpell = (function(){
     var pv = $('#pv'), b, i;
     if (pvPt) pv.setAttribute('data-pt', pvPt); else pv.removeAttribute('data-pt');
     b = document.querySelectorAll('#ptSw button'); for (i = 0; i < b.length; i++) b[i].setAttribute('aria-pressed', (b[i].dataset.pt || '') === pvPt ? 'true' : 'false');
-    b = document.querySelectorAll('#pfSw button'); for (i = 0; i < b.length; i++) b[i].setAttribute('aria-pressed', b[i].dataset.pf === pvFit ? 'true' : 'false');
+    b = document.querySelectorAll('#pfSw button, #pvBar [data-pf]'); for (i = 0; i < b.length; i++) b[i].setAttribute('aria-pressed', b[i].dataset.pf === pvFit ? 'true' : 'false');
     $('#pvRv').textContent = nf.format(pvRot) + '°'; $('#pvTlOn').checked = pvTL;
   }
   (function(){
@@ -9497,6 +9559,8 @@ var ocrSpell = (function(){
     }).then(libRender).catch(function(){ libMsg('ذخیرهٔ این فایل در کتابخانه ممکن نشد (حافظه یا دسترسی مرورگر).'); });
   }
   function libRender(){
+    var bx0 = $('#libList'), lp;
+    if (bx0 && !bx0.firstChild) { lp = document.createElement('p'); lp.className = 'empty'; lp.textContent = 'در حال بارگذاری…'; bx0.appendChild(lp); }   /* r102: اسکلت ساده، بدون spinner */
     return libIdx().then(function(a){
       var box = $('#libList'), tot = 0;
       box.textContent = '';
@@ -9520,7 +9584,7 @@ var ocrSpell = (function(){
         row.appendChild(ob); row.appendChild(del); box.appendChild(row);
       });
       libMsg('مجموع حجم ذخیره‌شده: ' + libSize(tot));
-    }).catch(function(){});
+    }).catch(function(){ var bx = $('#libList'), p; if (!bx) return; bx.textContent = ''; p = document.createElement('p'); p.className = 'empty'; p.textContent = 'خواندن فهرست ناموفق بود؛ صفحه را دوباره باز کنید.'; bx.appendChild(p); });
   }
   function libOpen(id){
     libMsg('در حال باز کردن…');
@@ -9768,6 +9832,7 @@ var ocrSpell = (function(){
       }).then(function(r){ stMsg(r.n ? nf.format(r.n) + ' فایل قدیمی حذف شد و ' + libSize(r.freed) + ' آزاد شد.' : 'چیزی برای حذف نبود.'); });
     });
   };
+  $('#stOcrGo').onclick = function(){ setAppTab('text', { only: '#ocrFxBox', title: 'نتایج OCR فایل‌ها', sub: 'ذخیره، بارگذاری و حذف برای هر فایل', icon: 'M12 3v12M7 10l5 5 5-5M5 21h14' }); };   /* r101: ردیف «نتایج OCR» در صفحهٔ «داده و پشتیبان» */
   $('#stExp').onclick = function(){ stRun(stExport); };
   $('#stImp').onclick = function(){ if (!stBusy) $('#stZip').click(); };
   $('#stZip').onchange = function(){
@@ -9946,17 +10011,20 @@ var ocrSpell = (function(){
   })();
   var hits = [], hq = '';
   function nrm(t){ return normCh(digitsAscii(t)).toLowerCase(); }
+  function qSt(t){ var e = $('#qSt'); if (!e) return; e.textContent = t || ''; e.hidden = !t; }   /* r102: وضعیت جستجو داخل پنل (نه فقط پیام گذرا) */
   function findNext(dir){
     var q = nrm($('#qBox').value.trim());
-    if (!q || !sents.length) return;
+    if (!q) { qSt(''); return; }
+    if (!sents.length) { qSt('ابتدا یک PDF باز کنید.'); return; }
     if (q !== hq) { hq = q; hits = []; for (var k = 0; k < sents.length; k++) if (nrm(sents[k].text).indexOf(q) >= 0) hits.push(k); }
-    if (!hits.length) { status('«' + $('#qBox').value.trim() + '» پیدا نشد.'); return; }
+    if (!hits.length) { qSt('«' + $('#qBox').value.trim() + '» در متن پیدا نشد.'); status('«' + $('#qBox').value.trim() + '» پیدا نشد.'); return; }
     var j = -1, n;
     if (dir > 0) { for (n = 0; n < hits.length; n++) if (hits[n] > idx) { j = n; break; } if (j < 0) j = 0; }
     else { for (n = hits.length - 1; n >= 0; n--) if (hits[n] < idx) { j = n; break; } if (j < 0) j = hits.length - 1; }
-    status('نتیجهٔ ' + nf.format(j + 1) + ' از ' + nf.format(hits.length));
+    status('نتیجهٔ ' + nf.format(j + 1) + ' از ' + nf.format(hits.length)); qSt('نتیجهٔ ' + nf.format(j + 1) + ' از ' + nf.format(hits.length));
     seekTo(hits[j]);
   }
+  $('#qBox').addEventListener('input', function(){ qSt(''); });
   $('#qNext').onclick = function(){ findNext(1); };
   $('#qPrev').onclick = function(){ findNext(-1); };
   $('#qBox').onkeydown = function(e){ if (e.key === 'Enter') { e.preventDefault(); findNext(1); $('#qBox').blur(); } };
@@ -10800,11 +10868,12 @@ var ocrSpell = (function(){
   function toolsSync(){
     var th = document.querySelector('#thSw button[aria-pressed="true"]');
     var ts = $('#thTileSub'); if (ts) ts.textContent = th ? th.textContent.trim() : 'خودکار';
+    var sp = $('#qkSpdSub'), ms = $('#qkModeSub'); if (sp) sp.textContent = nf.format(+$('#rate').value || 1) + '×'; if (ms) ms.textContent = pvOn() ? 'صفحهٔ PDF' : 'متن استخراجی';
   }
   function qaSync(){ var f = $('#rdFav'), q = $('#qaFav'); if (!f || !q) return; var on = f.getAttribute('aria-pressed') === 'true'; q.setAttribute('aria-pressed', on ? 'true' : 'false'); q.setAttribute('aria-label', on ? 'حذف از مورد علاقه' : 'افزودن به مورد علاقه'); }
   var toolsHome = toolsEl.parentNode, scrimEl = $('#tscrim'), narrowMQ = window.matchMedia ? matchMedia('(max-width:520px)') : null;
   function openTools(m){ var gm = m === 'gear'; toolsSync(); qaSync(); toolsOn = true; toolsEl.classList.toggle('gm', gm);
-    if (!gm) { var lt = sget('tt', 'voice'), lb = toolsEl.querySelector('.ttab[data-tt="' + lt + '"]'); if (lb && !lb.classList.contains('on')) lb.click(); }
+    if (!gm) { var lb = toolsEl.querySelector('.ttab[data-tt="quick"]');   /* r100: همیشه از «سریع» شروع می‌شود */ if (lb && !lb.classList.contains('on')) lb.click(); }
     if (gm || (narrowMQ && narrowMQ.matches)) { toolsHome = toolsEl.parentNode; toolsEl.classList.add('sheet'); document.body.appendChild(toolsEl); scrimEl.hidden = false; }
     toolsEl.hidden = false; BK.push('tools', function(){ closeTools(); });
     menuBtn.setAttribute('aria-expanded', 'true'); var ft = toolsEl.querySelector(gm ? '#tpanel-device .tile' : '.ttab.on'); if (ft) try { ft.focus({ preventScroll: true }); } catch (x) {} }
@@ -10839,7 +10908,9 @@ var ocrSpell = (function(){
   function toolRun(b){
     var act = b.dataset.act, go = b.dataset.go, only = b.dataset.only, sel = b.dataset.click, el, tg, bt, sm, pt;
     if (act === 'theme') { toolsHold = true; try { cycleBtns('#thSw button'); } finally { toolsHold = false; } toolsSync(); return; }
+    if (act === 'speed') { toolsHold = true; try { $('#spdBtn').click(); } finally { toolsHold = false; } toolsSync(); return; }
     closeTools();
+    if (act === 'mode') { if (!document.body.classList.contains('has-doc')) { setAppTab('read'); status('ابتدا یک PDF باز کنید.'); return; } $('#rdMode').click(); return; }
     if (act === 'file') { fin.click(); return; }
     if (act === 'home') { showHome(); return; }
     if (act === 'resume') { if ($('#play').disabled) showHome(); else { hideHome(); setAppTab('read'); } return; }
