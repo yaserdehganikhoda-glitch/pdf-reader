@@ -107,6 +107,87 @@ open(m,'w',encoding='utf-8').write(s)
 assert 'PlayerService' in s and 'WAKE_LOCK' in s and 'MANAGE_EXTERNAL_STORAGE' in s
 PY
 
+# 3d) r93: برگشت سیستم (کشیدن از لبه / دکمهٔ برگشت). بدون این، گوشی برنامه را به صفحهٔ خانه می‌برد.
+# BackApp برای هر Activity یک OnBackPressedCallback اضافه می‌کند که اول از JS (window.__nativeBack) می‌پرسد؛ اگر JS مصرفش نکرد، رفتار پیش‌فرض اجرا می‌شود.
+cat > "$PKG_PATH/BackApp.java" <<'JAVA'
+package __APP_ID__;
+
+import android.app.Activity;
+import android.app.Application;
+import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.webkit.ValueCallback;
+import android.webkit.WebView;
+import androidx.activity.ComponentActivity;
+import androidx.activity.OnBackPressedCallback;
+import java.util.Map;
+import java.util.WeakHashMap;
+
+public class BackApp extends Application {
+  private final Map<Activity, Boolean> done = new WeakHashMap<>();
+
+  @Override public void onCreate() {
+    super.onCreate();
+    registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
+      @Override public void onActivityStarted(Activity a) { install(a); }
+      @Override public void onActivityCreated(Activity a, Bundle b) {}
+      @Override public void onActivityResumed(Activity a) {}
+      @Override public void onActivityPaused(Activity a) {}
+      @Override public void onActivityStopped(Activity a) {}
+      @Override public void onActivitySaveInstanceState(Activity a, Bundle b) {}
+      @Override public void onActivityDestroyed(Activity a) {}
+    });
+  }
+
+  private void install(final Activity a) {
+    try {
+      if (!(a instanceof ComponentActivity) || done.containsKey(a)) return;
+      done.put(a, Boolean.TRUE);
+      final ComponentActivity ca = (ComponentActivity) a;
+      ca.getOnBackPressedDispatcher().addCallback(new OnBackPressedCallback(true) {
+        @Override public void handleOnBackPressed() {
+          final OnBackPressedCallback self = this;
+          WebView w = find(ca.getWindow().getDecorView());
+          if (w == null) { pass(ca, self); return; }
+          try {
+            w.evaluateJavascript("(function(){try{return window.__nativeBack?window.__nativeBack():false}catch(e){return false}})()", new ValueCallback<String>() {
+              @Override public void onReceiveValue(String v) { if (!"true".equals(v)) pass(ca, self); }
+            });
+          } catch (Throwable t) { pass(ca, self); }
+        }
+      });
+    } catch (Throwable t) { }
+  }
+
+  private static void pass(ComponentActivity ca, OnBackPressedCallback cb) {
+    cb.setEnabled(false);
+    ca.getOnBackPressedDispatcher().onBackPressed();
+    cb.setEnabled(true);
+  }
+
+  private static WebView find(View v) {
+    if (v instanceof WebView) return (WebView) v;
+    if (v instanceof ViewGroup) {
+      ViewGroup g = (ViewGroup) v;
+      for (int i = 0; i < g.getChildCount(); i++) { WebView w = find(g.getChildAt(i)); if (w != null) return w; }
+    }
+    return null;
+  }
+}
+JAVA
+sed -i "s/__APP_ID__/$APP_ID/" "$PKG_PATH/BackApp.java"
+python3 - <<'PY'
+import re
+m='android/app/src/main/AndroidManifest.xml'; s=open(m,encoding='utf-8').read()
+mm=re.search(r'<application\b[^>]*>', s)
+if mm and 'android:name=' not in mm.group(0):
+    s=s.replace('<application', '<application android:name=".BackApp"', 1)
+    open(m,'w',encoding='utf-8').write(s); print('BackApp registered in manifest')
+else:
+    print('WARN: <application> دارای android:name است؛ BackApp ثبت نشد (برگشت بومی کار نمی‌کند)')
+PY
+
 # 4) امضای ثابت (تا هر نسخه روی قبلی نصب شود)
 cp "$HERE/debug.keystore" android/app/debug.keystore
 
