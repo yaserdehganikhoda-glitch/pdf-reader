@@ -279,6 +279,28 @@ def pick_excludes(m, keep_first, quant_attn):
     return list(dict.fromkeys(ex))
 
 
+def prune_opsets(m):
+    """opset_import دامنه‌هایی که هیچ گره‌ای استفاده نمی‌کند را حذف می‌کند.
+    علت (از لاگ CI): ai.onnx.ml نسخهٔ ۵ در مدل نوشته می‌شود و ORT 1.17.3 بارگذاری را رد می‌کند (حداکثر ۴)؛ مدل هیچ عملگر ML ندارد."""
+    used = {'ai.onnx'}
+    for n in m.graph.node:
+        used.add(n.domain or 'ai.onnx')
+    for f in getattr(m, 'functions', []):
+        used.add(f.domain or 'ai.onnx')
+        for n in f.node:
+            used.add(n.domain or 'ai.onnx')
+    keep, dropped = [], []
+    for o in m.opset_import:
+        (keep if (o.domain or 'ai.onnx') in used else dropped).append((o.domain, o.version))
+    if dropped:
+        del m.opset_import[:]
+        for d, v in keep:
+            x = m.opset_import.add()
+            x.domain = d
+            x.version = v
+    return dropped
+
+
 def parse_pys(t, block):
     out = []
     for x in [y for y in t.split(',') if y.strip()]:
@@ -450,6 +472,10 @@ def main():
                 quantize_static(src, outp, Reader(), per_channel=False, **kw)
         dt = time.time() - t0
         mq = onnx.load(outp)
+        dropped = prune_opsets(mq)
+        if dropped:
+            onnx.save(mq, outp)
+            print('  opsetِ بدون‌استفاده حذف شد: %s' % dropped)
         ops = {(o.domain or 'ai.onnx'): o.version for o in mq.opset_import}
         print('  مدل: IR %d | opset %s' % (mq.ir_version, ops))
         pys = parse_pys(a.compat, True) + parse_pys(a.compat_info, False)
@@ -516,6 +542,11 @@ def main():
         open(a.report, 'w').write(json.dumps(rep, ensure_ascii=False, indent=1))
     print('توجه: زمان‌های x86 معیار سرعت گوشی نیستند؛ سرعت واقعی را «گیت INT8» روی دستگاه می‌سنجد.')
     if not best['compat_ok']:
+        print('--- خطای سازگاری (هر پیکربندی × هر نسخهٔ ORT) ---')
+        for r in trials:
+            for v, m in r['compat'].items():
+                if m != 'OK':
+                    print('[%s/%s/%s] ORT %s ✗ %s' % (r['mode'], r['act'], r['calib'], v, m.replace(chr(10), ' ')[-300:]))
         die('هیچ پیکربندی‌ای روی ORT مقصد بارگذاری نشد؛ علت دقیق در خطوط «ORT x.y.z: ✗» بالا.', 4)
     if best['agree_cer_pct'] > a.max_agree:
         die('agree-CER %.2f%% > %.2f%% — این مدل را استفاده نکنید (calib واقعی بدهید: --calib DIR، یا --auto).'
