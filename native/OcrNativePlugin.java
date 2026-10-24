@@ -105,7 +105,7 @@ public class OcrNativePlugin extends Plugin {
             Sess n;
             if (!isDet && c.i8) {   // r85: int8؛ هر خطا (نبودن فایل/ناسازگاری EP) ⇒ fp32 و rm="fp32" در پاسخ
                 try { n = build(MODEL8, c, k); n.rm = "int8"; }
-                catch (Throwable e) { n = build(MODEL, c, k); n.rm = "fp32"; n.why = String.valueOf(e.getMessage()); }
+                catch (Throwable e) { n = build(MODEL, c, k); n.rm = "fp32"; String m = String.valueOf(e.getMessage()); n.why = m.length() > 260 ? m.substring(m.length() - 260) : m; }   /* دلیل واقعی انتهای پیام است */
             } else n = build(isDet ? DET : MODEL, c, k);
             if (cur != null) { cur.retired = true; if (cur.busy == 0) closeQuiet(cur); }
             if (isDet) detS = n; else recS = n;
