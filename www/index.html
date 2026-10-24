@@ -2556,7 +2556,8 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
     ]).then(function(r){
       var b = (r[7] && r[7].ids) || [], s = (r[8] && r[8].ids) || [], dq = {}; try { dq = window.dictStatus() || {}; } catch (e) {}
       add(r[0], 'فونت‌های فارسی', true);
-      add(r[9], 'قلم‌های بومی بیشتر (fonts-extra.css)', true);
+      var fmiss = []; try { fmiss = window.rfDiag ? window.rfDiag() : []; } catch (e) {}
+      add(r[9] && !fmiss.length, 'قلم‌های بومی بیشتر (fonts-extra.css)', true, !r[9] ? ' — فایل fonts/fonts-extra.css داخل برنامه نیست' : (fmiss.length ? ' — در فایل تعریف یا بارگذاری نشدند: ' + fmiss.join(' ، ') : ''));
       add(r[1] && r[2] && window.pdfjsLib, 'نمایش PDF (pdf.js)');
       add(r[3] && r[4], 'نگاشت‌ها و فونت‌های کمکی PDF', true);
       add(r[5], 'موتور و مدل‌های OCR (PaddleOCR)' + (r[5] ? '' : (probeBad.length ? ' — پیدا نشد: ' + probeBad.join(' ، ') : '')));
@@ -7933,7 +7934,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r90 · 2026-10-24 · dtap-backask', npBuild = '';
+  var APP_BUILD = 'html-r93 · 2026-10-24 · native-back', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10534,6 +10535,19 @@ var ocrSpell = (function(){
       st.pop(); try { if (l.c() === false) st.push(l); } catch (e) {}
       sweep(); return true;
     }
+    /* r93: برگشت بومی (کشیدن از لبه/دکمهٔ سیستم) از MainActivity/BackApp می‌آید؛ لایه را مستقیم می‌بندد و ورودی history را بی‌صدا پاک می‌کند */
+    function direct(){
+      var l, r, n = 0;
+      while (st.length && st[st.length - 1].dead) { if (st.pop().h) n++; }
+      l = st[st.length - 1];
+      if (!l) { if (n) back(n); return false; }
+      st.pop();
+      try { r = l.c(); } catch (e) { r = true; }
+      if (r === false) { st.push(l); if (n) back(n); return true; }
+      if (l.h) n++;
+      if (n) back(n);
+      sweep(); return true;
+    }
     window.addEventListener('popstate', function(){
       if (skip > 0) { skip--; if (!skip) done(); return; }
       var l = st.pop(), r; if (!l) { guard(); try { if (!looseClose()) exAsk(); } catch (e) {} return; }
@@ -10543,7 +10557,7 @@ var ocrSpell = (function(){
       sweep(); guard(); flush();
     });
     guard();
-    return { push: push, drop: drop, up: up };
+    return { push: push, drop: drop, up: up, direct: direct };
   })();
 
   /* ---------- برگشت با کشیدن از لبهٔ چپ/راست ----------
@@ -10581,7 +10595,7 @@ var ocrSpell = (function(){
     function fin(){
       var G = g, a = G ? Math.abs(G.dx) : 0, ok = !!G && G.lock && (a >= MIN || (a >= 36 && a / Math.max(1, Date.now() - G.t) > 0.5));
       stop();
-      if (!ok || Date.now() - lastPop < 450) return;
+      if (!ok || Date.now() - lastPop < 450 || Date.now() - (window.__bkAt || 0) < 450) return;
       try { if (!BK.up()) looseClose(); } catch (x) {}
     }
     document.addEventListener('touchstart', function(e){
@@ -10826,6 +10840,11 @@ var ocrSpell = (function(){
     setTimeout(function(){ try { $('#exStay').focus({ preventScroll: true }); } catch (e) {} }, 30);
   }
   function exHide(){ $('#exDlg').hidden = true; BK.drop('exit'); }
+  /* r93: برگشت سیستم‌عامل (کشیدن از لبه / دکمهٔ برگشت). true = JS آن را مصرف کرد؛ false = بومی کار پیش‌فرض را بکند */
+  window.__nativeBack = function(){
+    window.__bkAt = Date.now();
+    try { if (BK.direct()) return true; if (looseClose()) return true; exAsk(); return true; } catch (e) { return false; }
+  };
   function exDo(){
     if (exiting) return; exiting = true;
     var ok = $('#exOk'), sy = $('#exStay'), t0 = ok.textContent;
@@ -10918,19 +10937,27 @@ var ocrSpell = (function(){
     ['sys', 'قلم سیستم (بومی دستگاه)', 'system-ui,"Noto Naskh Arabic","Droid Arabic Naskh",Tahoma,sans-serif', '', 1]
   ], RFM = {}, RFD = {}, rfSel = $('#rFont');
   RF.forEach(function(r){ RFM[r[0]] = r; });
-  function rfOk(r){ return !r[3] || r[4] === 1 || !!RFD[r[3]]; }
+  var RFB = {};   /* قلم‌هایی که تعریفشان در CSS هست ولی خود فایل بارگذاری نشد */
+  function rfN(s){ return String(s || '').replace(/["']/g, '').toLowerCase().replace(/\b(variable|regular)\b/g, '').replace(/[^a-z0-9]/g, ''); }
+  function rfScan(){ RFD = {}; try { document.fonts.forEach(function(f){ var n = String(f.family).replace(/["']/g, ''); RFD[rfN(n)] = n; }); } catch (e) {} }
+  function rfOk(r){ return !r[3] || r[4] === 1 || (!!RFD[rfN(r[3])] && !RFB[r[0]]); }
+  function rfStack(r){ var real = r[3] && RFD[rfN(r[3])]; return real && real !== r[3] ? '"' + real + '",' + r[2] : r[2]; }
+  window.rfDiag = function(){ rfScan(); return RF.filter(function(x){ return !rfOk(x); }).map(function(x){ return x[3]; }); };
   function rfBuild(){
     var cur = rfSel.value;
-    RFD = {}; try { document.fonts.forEach(function(f){ RFD[String(f.family).replace(/["']/g, '')] = 1; }); } catch (e) {}
+    rfScan();
     rfSel.textContent = '';
     RF.forEach(function(r){ var o = document.createElement('option'), ok = rfOk(r); o.value = r[0]; o.textContent = r[1] + (ok ? '' : ' — فایل قلم نیست'); o.disabled = !ok; rfSel.appendChild(o); });
     rfSel.value = RFM[cur] && rfOk(RFM[cur]) ? cur : 'vazir';
   }
   function applyRFont(){
     var r = RFM[rfSel.value] || RFM.vazir, de = document.documentElement, k = r[0];
-    de.style.setProperty('--rfont', r[2]);
+    de.style.setProperty('--rfont', rfStack(r));
     if (k === 'vazir') de.removeAttribute('data-rf'); else de.setAttribute('data-rf', k);
-    if (r[3] && document.fonts && document.fonts.load) document.fonts.load('16px "' + r[3] + '"', 'سلام').then(function(){ if (rfSel.value === k && curEl) follow(curEl, 1); }, function(){});
+    if (r[3] && document.fonts && document.fonts.load) document.fonts.load('16px "' + (RFD[rfN(r[3])] || r[3]) + '"', 'سلام').then(function(){ if (rfSel.value === k && curEl) follow(curEl, 1); }, function(){
+      RFB[k] = 1; try { window.__elog.add('font', 'فایل قلم بارگذاری نشد: ' + r[3]); } catch (e) {}
+      if (rfSel.value === k) { sset('rfont', 'vazir'); rfBuild(); applyRFont(); if (curEl) follow(curEl, 1); } else rfBuild();
+    });
   }
   var rf0 = sget('rfont', 'vazir'); rfBuild(); rfSel.value = RFM[rf0] && rfOk(RFM[rf0]) ? rf0 : 'vazir';
   rfSel.onchange = function(){ sset('rfont', this.value); applyRFont(); if (curEl) follow(curEl, 1); };
@@ -11406,6 +11433,7 @@ var ocrSpell = (function(){
     Array.prototype.forEach.call(document.querySelectorAll('#hSortK button'), function(b){ b.setAttribute('aria-pressed', b.dataset.k === s.k ? 'true' : 'false'); });
     Array.prototype.forEach.call(document.querySelectorAll('#hSortD button'), function(b){ b.setAttribute('aria-pressed', b.dataset.d === s.d ? 'true' : 'false'); });
   }
+  function hFolderUp(){ hFolder = ''; hLimit = 150; hRender(); }
   function hRender(){
     if (!$('#homeView')) return Promise.resolve();
     var tabs = document.querySelectorAll('#homeView .htabs button'), s = hSortGet();
@@ -11447,7 +11475,8 @@ var ocrSpell = (function(){
       $('#homePermB').hidden = !hDecl;
       box.classList.toggle('grid', hLay === 'grid');
       thReset(); box.textContent = ''; box.classList.remove('isempty');
-      if (fo) box.appendChild(hBtn('btn hback', '→ بازگشت به همه فایل‌ها', 'بازگشت به همه فایل‌ها', function(){ hFolder = ''; hLimit = 150; hRender(); }));
+      if (fo) box.appendChild(hBtn('btn hback', '→ بازگشت به همه فایل‌ها', 'بازگشت به همه فایل‌ها', hFolderUp));
+      if (fo) BK.push('hf', hFolderUp); else BK.drop('hf');   /* r92: برگشت سیستم/کشیدن لبه داخل پوشه = همان دکمهٔ «بازگشت به همه فایل‌ها» */
       if (!list.length && !folders.length) {
         var p = document.createElement('div'), msg, ic, parts, ti, su;
         p.className = 'empty hempty';
