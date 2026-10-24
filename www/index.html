@@ -1736,7 +1736,16 @@ body:not(.view-page) #qaRot{display:none}
         <div class="slist" id="paceBox">
           <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است؛ مثل نفس‌گیری گوینده. سرعت خود صدا تغییر نمی‌کند.</small></span></label>
           <label class="chk"><input type="checkbox" id="smartPace"><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
+          <label class="chk"><input type="checkbox" id="psnOn" checked><span class="st"><b>فاصله‌گذاری و نیم‌فاصلهٔ گفتار</b><small>پیش از خواندن، «می‌روم»، «کتاب‌ها»، «دانش‌آموز»، «فصل ۱» و فاصلهٔ علائم را اصلاح می‌کند تا کلمه‌ها درست و جدا خوانده شوند؛ متن نمایشی تغییر نمی‌کند.</small></span></label>
           <label class="chk"><input type="checkbox" id="phLex" checked><span class="st"><b>واژه‌نامهٔ آوایی داخلی</b><small>برای صدها واژهٔ پرکاربرد، کوتاه‌مصوت‌ها (َ ِ ُ) را مشخص می‌کند تا تلفظ دقیق‌تر شود. اگر جایی عجیب خوانده شد خاموشش کنید.</small></span></label>
+        </div>
+        <div class="field">
+          <span class="flab">مکث نحوی گفتار</span>
+          <select id="psnLvl" data-seg aria-label="مکث نحوی گفتار">
+            <option value="0" data-short="خاموش" data-desc="ویرگول مکث به‌شیوهٔ قدیمی و محدود اضافه می‌شود.">خاموش</option>
+            <option value="1" data-short="متعادل" data-desc="مکث پیش از «اما، چون، زیرا، که…» و پس از «بنابراین، در واقع…»، و شکستن جمله‌های بسیار بلند در جای مناسب تنفس (پیشنهادی).">متعادل (پیشنهادی)</option>
+            <option value="2" data-short="کامل" data-desc="مکث در همهٔ مرزهای نحوی، حتی پیش از «که» پس از «گفت» و دو سوی «اما»؛ ممکن است کمی بریده‌بریده شنیده شود.">کامل</option>
+          </select>
         </div>
 </div>
 
@@ -6868,7 +6877,255 @@ var ocrSpell = (function(){
     for (k = 0; k < n; k++) if (ins[k]) { out += s.slice(last, T[k].e) + '،'; last = T[k].e; }
     return out + s.slice(last);
   }
-  function spk(o){ return O.pause !== false ? addPauses(o.text) : o.text; }   /* متن گفتار: ویرگول مکث فقط اینجا اضافه می‌شود، نه در متن نمایشی */
+/* ===== PSN: فاصله‌گذاری، نیم‌فاصله، مکث و اتصال علائم برای گفتار؛ خروجی { normalizedText, indexMap } (psn-3: فاصله‌گذاری، نیم‌فاصله، مکث نحوی، اتصال علائم و نگاشت اندیس) ===== */
+var PSN = (function(){
+  var Z = '\u200c', CFG = { on: true, lvl: 1, digits: false },
+      NJ = /[آادذرزژوؤإأ]$/, PL = /[\u0621-\u06D3]$/,
+      OPEN = /^[«“"'(\[]+/, CLOSE = /[،,؛;:.!?؟…»”"')\]]+$/,
+      INV = /[\u00ad\u200b\u200d\u2060\ufeff]/g, BIDI = /[\u200e\u200f\u202a-\u202e\u2066-\u2069\u061c]/g,
+      ZEDGE = /(?<![\p{L}\p{M}])\u200c|\u200c(?![\p{L}\p{M}])/gu,
+      ZOK = /^(?:ها|های|هایی|هایم|هایت|هایش|هایمان|هایتان|هایشان|تر|ترین|تری|ام|ات|اش|مان|تان|شان|ای|است|ایم|اید|اند|ی|ین|گی|گان|وار|آموز|آموزان|نامه|گذاری|گذار|پذیر|پذیری|دار|داری|شناس|شناسی|کننده|دهنده|گیری|گیر|بندی|کاری|کار|ساز|سازی|گر|گری|خانه|زاده|نویس|نویسی|پرداز|پردازی|سنج|افزار|جویی|جو|المللی|الملل|وگو|شده|کرده|یافته)$/,
+      ZPRE = /^(?:ن?می|بی|به|نا|هم|با|بر|در|پیش|پس|فرا|باز|بد|خود)$/,
+      ZPL = /^(?:ها|های|هایی|تر|ترین|تری)$/,
+      STOP = new Set('از به در با بر برای تا که را و یا هم نیز این آن من تو او ما شما ایشان آنها اینها چه هر همه یک دو سه بود شد است'.split(' ')),
+      SUF1 = new Set('ها های هایی هایم هایت هایش هایمان هایتان هایشان تر ترین تری'.split(' ')),
+      SUF2 = new Set('ام ات اش مان تان شان'.split(' ')),
+      ENC = new Set('است ایم اید اند'.split(' ')),
+      PART = /^[\u0621-\u06D3\u200c]{2,}[دتشگزنخرسبیلمکچجفپ]ه$/, NOPART = new Set(['که', 'چه', 'همه', 'بقیه']),
+      MIK = new Set('را تا از به در با بر که هم نیز یا'.split(' ')),
+      KEEPD = /^(?:ام|امین|مین|ین|م|ها|های|تا|تایی|گانه|ی|ای|ه|ین)$/,
+      RUNS = /[A-Za-z][A-Za-z0-9]*|[0-9۰-۹٠-٩]+(?:[.,٫٬\/:][0-9۰-۹٠-٩]+)*|[\u0621-\u06D3\u064B-\u065F\u0670\u200c]+|[^]/g,
+      BND = /[\u0621-\u06D3][0-9۰-۹٠-٩A-Za-z]|[0-9۰-۹٠-٩A-Za-z][\u0621-\u06D3]/,
+      CMP = {};
+  /* واژه‌های مرکب پرکاربرد: تشخیص با فاصله ← یکپارچه با نیم‌فاصله (واژهٔ آخر با پسوند ان/ها/ی هم پذیرفته می‌شود) */
+  ('دانش آموز|دانش جو|دانش پژوه|سخت افزار|نرم افزار|بین المللی|بین الملل|بین النهرین|صرفه جویی|گفت و گو|پیش بینی|پس انداز|خود رو|خود کار|هم کار|هم فکر|هم سو|دست آورد|دست نوشته|کار آمد|کار آفرین|کار شناس|کار خانه|کار گاه|راه اندازی|راه حل|راه آهن|چند رسانه ای|فرا داده|پایان نامه|پیش نویس|پیش فرض|پیش نیاز|پس زمینه|زیر ساخت|زیر بنا|بازی گر|هنر مند|ارزش مند|دانش مند|نیرو گاه|دل نشین|خوش بین|بد بین|خود آگاه|هم میهن|همه گیر|سرمایه گذاری|برنامه ریزی|نظر سنجی|خبر رسانی|اطلاع رسانی|آب و هوا|رفت و آمد|تحقیق و توسعه').split('|').forEach(function(p){
+    var a = p.split(' '); if (a.length < 2) return;
+    (CMP[a[0]] = CMP[a[0]] || []).push(a);
+  });
+  Object.keys(CMP).forEach(function(k){ CMP[k].sort(function(x, y){ return y.length - x.length; }); });
+  var EMB = /(?<=[\u0621-\u06D3\u200c\d۰-۹])[،؛!؟](?=[\u0621-\u06D3«(\d۰-۹])|(?<=[\u0621-\u06D3\u200c])(?:[,;:]|\.(?<=[\u0621-\u06D3]{3}\.))(?=[\u0621-\u06D3«(])/g;
+  function pn(p, ar){                                                                      /* پاک‌سازی دنبالهٔ علائم: تکرار، ترکیب نرم+سخت، لاتین←فارسی */
+    if (ar) p = p.replace(/,/g, '،').replace(/;/g, '؛').replace(/\?/g, '؟');
+    return p.replace(/([،؛:])\1+/g, '$1').replace(/[،؛:]+(?=[.!؟?…])/g, '').replace(/(؟|\?)\1+/g, '$1').replace(/!{2,}/g, '!').replace(/(?<!\.)\.{2}(?!\.)/g, '.').replace(/\.{4,}/g, '…').replace(/[،؛:]{2,}/g, function(m){ return m.charAt(m.length - 1); });
+  }
+  function tok(s){
+    var re = /\S+/g, m, T = [], w, a, b, pre, post, base, last, x, c, ar;
+    while ((m = re.exec(s))) {
+      w = m[0]; pre = ''; post = ''; base = m.index;
+      a = OPEN.exec(w); if (a) { pre = a[0]; w = w.slice(pre.length); base += pre.length; }
+      b = CLOSE.exec(w); if (b) { post = b[0]; w = w.slice(0, w.length - post.length); }
+      ar = /[\u0600-\u06FF]/.test(w) || (!w && /[،؛؟]/.test(post));
+      if (post) post = pn(post, ar);
+      if (w.length > 2 && EMB.test(w)) {                                                  /* «آمد،چون» ← «آمد، چون» */
+        EMB.lastIndex = 0; last = 0;
+        while ((x = EMB.exec(w))) {
+          T.push({ c: w.slice(last, x.index), pre: last ? '' : pre, post: ar ? pn(x[0], true) : x[0], o: base + last, e: base + x.index + 1 });
+          last = x.index + 1;
+        }
+        T.push({ c: w.slice(last), pre: '', post: post, o: base + last, e: m.index + m[0].length });
+        EMB.lastIndex = 0; continue;
+      }
+      EMB.lastIndex = 0;
+      T.push({ c: w, pre: pre, post: post, o: m.index, e: m.index + m[0].length });
+    }
+    return T;
+  }
+  function known(w){ try { return ocrSpell.known(w); } catch (e) { return false; } }
+  function zfix(c){
+    var p = c.split(Z), out = p[0], i, a, b, j;
+    if (p.length < 2) return c;
+    for (i = 1; i < p.length; i++) {
+      a = out; b = p[i];
+      if (!b) continue;
+      if (ZPRE.test(a) || (ZOK.test(b) && !(NJ.test(a) && ZPL.test(b)))) out += Z + b;
+      else if (NJ.test(a) && ZPL.test(b)) out += b;                                       /* کار‌ها ← کارها */
+      else if (b.length <= 2 && known((a + b).replace(/\u200c/g, ''))) out += b;           /* دان‌ش ← دانش */
+      else out += Z + b;
+    }
+    return out;
+  }
+  function cls(r){ return /^[A-Za-z]/.test(r) ? 1 : /^[0-9۰-۹٠-٩]/.test(r) ? 2 : /^[\u0621-\u06D3\u064B-\u065F\u0670\u200c]/.test(r) ? 3 : 0; }
+  function bsplit(c){                                                                      /* فصل1 ← فصل 1 ؛ 10کیلوگرم ← 10 کیلوگرم ؛ مدلX100 ← مدل X100 */
+    var rs = c.match(RUNS), P = [], cur = '', pc = 0, i, r, k;
+    for (i = 0; i < rs.length; i++) {
+      r = rs[i]; k = cls(r);
+      if (cur && k && pc && k !== pc && !((pc === 2 || pc === 1) && k === 3 && KEEPD.test(r.replace(/^\u200c+/, '')))) { P.push(cur); cur = r; }
+      else cur += r;
+      pc = k;
+    }
+    if (cur) P.push(cur);
+    return P;
+  }
+  function mg(a, b, z){ a.c += (z ? Z : '') + b.c; a.post = b.post; a.e = b.e; }
+  function spacing(T){
+    var R = [], i, t, p, n, c, k, L, a, ok, j, x, r;
+    for (i = 0; i < T.length; i++) {
+      t = T[i];
+      if (!t.c) { R.push(t); continue; }
+      c = t.c;
+      if (BIDI.test(c) && !(/[A-Za-z]/.test(c) && /[\u0600-\u06FF]/.test(c))) c = c.replace(BIDI, '');
+      c = c.replace(INV, '').replace(/\u200c{2,}/g, Z).replace(ZEDGE, '');
+      if (CFG.digits && !/[A-Za-z]/.test(c)) c = c.replace(/[0-9]/g, function(d){ return '۰۱۲۳۴۵۶۷۸۹'.charAt(d); });
+      t.c = c;
+      if (!c) { R.push(t); continue; }
+      if (BND.test(c)) {                                                                   /* مرز حرف/عدد/لاتین */
+        x = bsplit(c);
+        if (x.length > 1) {
+          for (j = 0; j < x.length; j++) R.push({ c: x[j], pre: j ? '' : t.pre, post: j === x.length - 1 ? t.post : '', o: t.o, e: t.e });
+          continue;
+        }
+      }
+      if (c.length >= 4 && /^ن?می/.test(c) && typeof miFix === 'function') { try { c = miFix(c); } catch (e) {} }
+      if (c.length >= 5 && /(?:ها|های|هایی|مان|تان|شان)$/.test(c) && typeof splitSuffix === 'function') { try { c = splitSuffix(c); } catch (e) {} }
+      t.c = c.indexOf(Z) >= 0 ? zfix(c) : c;
+      R.push(t);
+    }
+    T = R; R = [];
+    for (i = 0; i < T.length; i++) {
+      t = T[i]; c = t.c; p = R.length ? R[R.length - 1] : null;
+      if (!c) { R.push(t); continue; }
+      if (p && p.c && !p.post && !t.pre) {
+        if ((p.c === 'می' || p.c === 'نمی') && /^[\u0621-\u06D3]{2,}/.test(c) && !MIK.has(c)) { mg(p, t, true); continue; }
+        if (SUF1.has(c) && PL.test(p.c) && (c.length < 3 || (p.c.length >= 3 && !STOP.has(p.c)) || c[0] === 'ه')) { mg(p, t, !NJ.test(p.c)); continue; }
+        if (SUF2.has(c) && PL.test(p.c) && p.c.length >= 3 && !STOP.has(p.c)) { mg(p, t, !NJ.test(p.c)); continue; }
+        if ((ENC.has(c) || c === 'ای') && PART.test(p.c) && !NOPART.has(p.c) && !STOP.has(p.c)) { mg(p, t, true); continue; }
+        if (c === 'ای' && /ه$/.test(p.c) && p.c.length >= 3 && !STOP.has(p.c)) { mg(p, t, true); continue; }
+      }
+      if (CMP[c] && !t.post) {                                                              /* واژهٔ مرکب */
+        L = CMP[c]; ok = false;
+        for (k = 0; k < L.length && !ok; k++) {
+          a = L[k]; ok = true;
+          for (j = 1; j < a.length; j++) {
+            n = T[i + j];
+            if (!n || (j < a.length - 1 && (n.post || T[i + j].pre)) || (j === 1 && t.post)) { ok = false; break; }
+            r = j === a.length - 1 ? (n.c.indexOf(a[j]) === 0 && /^(?:ان|ها|های|ی|ای|هایی|یی)?$/.test(n.c.slice(a[j].length))) : n.c === a[j];
+            if (!r || (j < a.length - 1 && n.post)) { ok = false; break; }
+          }
+          if (ok) { for (j = 1; j < a.length; j++) mg(t, T[i + j], true); i += a.length - 1; if (a[1] === 'و') t.c = t.c.replace(/\u200cو\u200c/, Z + 'و'); }
+        }
+      }
+      R.push(t);
+    }
+    return R;
+  }
+
+  /* ---------- اتصال علائم (حداقلی؛ کامل‌شده در بخش ۳) و مکث نحوی ---------- */
+  var HP = /[،,؛;:.!?؟…]/, BRK = new Set('اما ولی لیکن بلکه'.split(' ')),
+      NOBEF = new Set('و یا که نیز هم را از به در با بر برای تا چه نه اما ولی لیکن بلکه این آن'.split(' ')),
+      COND = new Set('اگر چنانچه اگرچه گرچه وقتی هرچند'.split(' ')),
+      PREP = new Set('در به با از بر'.split(' ')), SUBJ = /^ن?ب[\u0621-\u06D3\u200c]{1,}(?:م|ی|د|یم|ید|ند)$/,
+      DM = {};
+  [['اما', 'b'], ['ولی', 'b'], ['لیکن', 'b'], ['بلکه', 'b'], ['بنابراین', 'b'], ['لذا', 'b'], ['در نتیجه', 'b'], ['از این رو', 'b'], ['درنتیجه', 'b'],
+   ['همچنین', 'a'], ['خوشبختانه', 'a'], ['متاسفانه', 'a'], ['متأسفانه', 'a'], ['در واقع', 'a'], ['به علاوه', 'a'], ['به عبارت دیگر', 'a'], ['با این حال', 'a'], ['به هر حال', 'a'], ['در حقیقت', 'a'], ['به طور کلی', 'a']
+  ].forEach(function(p){ var w = p[0].split(' '); (DM[w[0]] = DM[w[0]] || []).push({ w: w, y: p[1] }); });
+  Object.keys(DM).forEach(function(k){ DM[k].sort(function(a, b){ return b.w.length - a.w.length; }); });
+  function hp(t){ return HP.test(t.post); }
+  function put(t){ if (!hp(t)) t.post += '،'; }
+  function attach(T){                                                                      /* علامتِ جداافتاده به کلمهٔ قبل می‌چسبد؛ پرانتز/گیومهٔ بازِ جداافتاده به کلمهٔ بعد */
+    var R = [], i, t, p, pend = '';
+    for (i = 0; i < T.length; i++) {
+      t = T[i];
+      if (!t.c) {
+        if (t.pre && !t.post) { pend += t.pre; continue; }
+        if (R.length && t.post) { R[R.length - 1].post += t.post; R[R.length - 1].e = t.e; continue; }
+      }
+      if (pend) { t.pre = pend + t.pre; pend = ''; }
+      R.push(t);
+    }
+    return R;
+  }
+  function pros(T, lvl){
+    var W = [], S = lvl >= 2, MR = S ? 1 : 3, LIM = S ? 15 : 18, n, k, t, c, pv, st, run = 0, L, d, j, e, rem, v, best, bd, seg, x, it, ok, nx;
+    for (k = 0; k < T.length; k++) if (T[k].c) W.push(T[k]);
+    n = W.length; if (n < (S ? 4 : 6)) return;
+    for (k = 0; k < n - 1; k++) if (/[؛;:]/.test(W[k].post)) W[k].post = W[k].post.replace(/[؛;:]/g, '،');   /* علائم سنگین میانِ جمله ← مکث کوتاه */
+    for (k = 0; k < n; k++) {
+      t = W[k]; c = t.c; pv = k ? W[k - 1] : null; st = !pv || hp(pv); rem = n - 1 - k; it = null;
+      if (DM[c]) {                                                                         /* قیدهای ربطی و پیرامونی */
+        for (j = 0; j < DM[c].length && !it; j++) {
+          d = DM[c][j]; ok = true;
+          for (x = 0; x < d.w.length; x++) { nx = W[k + x]; if (!nx || nx.c !== d.w[x] || (x < d.w.length - 1 && hp(nx))) { ok = false; break; } }
+          if (ok) it = d;
+        }
+      }
+      if (it) {
+        e = k + it.w.length - 1; rem = n - 1 - e;
+        if (rem >= 1) {
+          if (st) put(W[e]);                                                               /* آغاز بند: «بنابراین، …» */
+          else {
+            if ((it.y === 'b' || S) && run >= MR + (S ? 0 : 1) && !NOBEF.has(pv.c)) put(pv);
+            if (S) put(W[e]);
+          }
+        }
+        for (x = k; x <= e; x++) run = hp(W[x]) ? 0 : run + 1;
+        k = e; continue;
+      }
+      if (!st && rem >= 2 && !NOBEF.has(pv.c)) {                                           /* ربط‌های وابسته‌ساز: ویرگول پیش از آن */
+        if (c === 'که') { if ((S || (run >= 4 && !PZ_NOPRE.has(wcore(pv.c)) && !PZ_NOPRE_V.test(wcore(pv.c)))) && !/^(?:چرا|زیرا)$/.test(pv.c)) put(pv); }
+        else if (c === 'زیرا' || (c === 'چرا' && W[k + 1] && W[k + 1].c === 'که') || (c === 'با' && W[k + 1] && W[k + 1].c === 'اینکه' && run >= MR)) { if (run >= MR) put(pv); }
+        else if ((c === 'چون' || COND.has(c)) && run >= (S ? 1 : 4)) put(pv);
+        else if (c === 'تا' && run >= (S ? 1 : 4) && (SUBJ.test(W[k + 1].c) || (W[k + 2] && SUBJ.test(W[k + 2].c)) || W[k + 1].c === 'اینکه')) put(pv);
+      }
+      if (COND.has(c)) {                                                                   /* بند شرطی/قیدی: ویرگول پس از نخستین فعل */
+        for (v = k + 1; v < n - 1 && v <= k + 12; v++) {
+          if (hp(W[v])) break;
+          if (PZ_VERB.test(wcore(W[v].c))) { nx = W[v + 1].c; if (v - k >= 2 && n - 1 - v >= 3 && nx !== 'و' && nx !== 'یا') put(W[v]); break; }
+        }
+      }
+      run = hp(t) ? 0 : run + 1;
+    }
+    function chunk(a, b){                                                                  /* تقطیع جمله‌های طولانی بدون مکث (نفس‌گیری)؛ نقطهٔ شکست نزدیک وسط بند */
+      if (b - a + 1 < LIM) return;
+      var bs = -1, bd = 1e9, mid = (a + b) / 2, j, c, d;
+      for (j = a + 5; j <= b - 4; j++) {
+        c = W[j].c;
+        if ((c === 'و' || PREP.has(c)) && !NOBEF.has(W[j - 1].c) && !hp(W[j - 1])) {
+          d = Math.abs(j - mid) + (c === 'و' && !(PZ_VERB.test(wcore(W[j - 1].c)) || /(?:است|بود|شد|شده|شدند|اند|می‌شود|می‌کند)$/.test(W[j - 1].c)) ? 8 : 0);   /* «و» پس از فعل بند را می‌شکند؛ «و» میان دو اسم هم‌پایه نه */
+          if (d < bd) { bd = d; bs = j; }
+        }
+      }
+      if (bs < 0) return;
+      put(W[bs - 1]); chunk(a, bs - 1); chunk(bs, b);
+    }
+    seg = 0;
+    for (k = 0; k < n; k++) if (hp(W[k]) || k === n - 1) { chunk(seg, k); seg = k + 1; }
+  }
+  function build(T, wm, fin){
+    var out = '', map = wm ? [] : null, k, t, w;
+    for (k = 0; k < T.length; k++) {
+      t = T[k]; w = t.pre + t.c + t.post;
+      if (!w) continue;
+      if (out) out += ' ';
+      if (wm) map.push([out.length, out.length + w.length, t.o, t.e]);
+      out += w;
+    }
+    if (fin && out && !/[.!?؟…]['"»”)\]]*$/.test(out)) out = out.replace(/[،,؛;:]+(?=['"»”)\]]*$)/, '') + '.';
+    return { normalizedText: out, indexMap: map || [] };
+  }
+  function run(s, wm, pz, fin){
+    if (!CFG.on || !s || s.length < 2) return { normalizedText: s || '', indexMap: [] };
+    var T = spacing(attach(tok(String(s))));
+    if (pz && CFG.lvl > 0) pros(T, CFG.lvl);
+    return build(T, wm, fin);
+  }
+  function at(r, i){                                                                       /* جست‌وجوی دودویی: واژهٔ خروجی شامل اندیس i */
+    var M = r.indexMap, lo = 0, hi = M.length - 1, mid;
+    if (!M.length) return -1;
+    while (lo < hi) { mid = (lo + hi + 1) >> 1; if (M[mid][0] <= i) lo = mid; else hi = mid - 1; }
+    return lo;
+  }
+  return {
+    cfg: CFG,
+    pz: function(){ return CFG.on && CFG.lvl > 0; },
+    run: function(s, fin){ return run(s, true, true, fin); },
+    norm: function(s, pz){ return CFG.on ? run(s, false, pz).normalizedText : s; },
+    /* نگاشت onboundary: اندیس در normalizedText ← بازهٔ [شروع، پایان) واژهٔ متناظر در متن اصلی (بدون سوگیری انباشته) */
+    span: function(r, i){ var k = at(r, i), w; if (k < 0) return null; w = r.indexMap[k]; return [w[2], w[3]]; },
+    pos: function(r, i){ var k = at(r, i), w; if (k < 0) return i; w = r.indexMap[k]; return Math.min(w[3], w[2] + Math.max(0, i - w[0])); }
+  };
+})();
+try { window.PSN = PSN; } catch (e) {}
+  function spk(o){ var pz = O.pause !== false, x = PSN.norm(o.text, pz); return pz && !PSN.pz() ? addPauses(x) : x; }   /* مکث نحوی: با PSN فعال، addPauses قدیمی کنار می‌رود تا ویرگول دوباره نیاید */
   function pauseSplit(s, maxl){
     if (s.length <= maxl) return [s];
     var cl = [], out = [], cur = '', p;
@@ -8002,7 +8259,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r102 · 2026-10-24 · empty-states', npBuild = '';
+  var APP_BUILD = 'html-r105 · 2026-10-25 · psn-3', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10159,6 +10416,10 @@ var ocrSpell = (function(){
   $('#smartPace').checked = sget('smartPace', '0') === '1';
   $('#humPace').checked = sget('humPace', '1') !== '0';
   $('#humPace').onchange = function(){ sset('humPace', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
+  $('#psnOn').checked = sget('psnOn', '1') !== '0'; PSN.cfg.on = $('#psnOn').checked;
+  $('#psnOn').onchange = function(){ sset('psnOn', this.checked ? '1' : '0'); PSN.cfg.on = this.checked; changed(); analyze(); warmPiper(); };
+  $('#psnLvl').value = sget('psnLvl', '1'); if (['0', '1', '2'].indexOf($('#psnLvl').value) < 0) $('#psnLvl').value = '1'; PSN.cfg.lvl = +$('#psnLvl').value;
+  $('#psnLvl').onchange = function(){ sset('psnLvl', this.value); PSN.cfg.lvl = +this.value; changed(); analyze(); warmPiper(); };
   $('#phLex').checked = sget('phLex', '1') !== '0';
   $('#phLex').onchange = function(){ sset('phLex', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   /* حافظهٔ نهان صدای بومی: نمایش حجم، سقف و پاک‌کردن */
@@ -10929,7 +11190,7 @@ var ocrSpell = (function(){
   Array.prototype.forEach.call(toolsEl.querySelectorAll('.tile,.tbanner'), function(b){ b.addEventListener('click', function(){ toolRun(b); }); });
 
   /* ---- نشانگر «تغییریافته» و بازنشانی هر بخش ---- */
-  var CFG_DEF = {"vstyle":"natural","vclean":"2","vclarity":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
+  var CFG_DEF = {"vstyle":"natural","vclean":"2","vclarity":"2","enh":true,"humPace":true,"psnOn":true,"psnLvl":"1","smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
   Array.prototype.forEach.call(document.querySelectorAll(CFG_SEC), function(s){
     var h = s.tagName === 'DETAILS' ? s.querySelector('summary .stt b') : s.querySelector('h3'), pn = s.closest('.panel');
     if (!s.id) s.id = 'cs-' + (++cfgN);
@@ -10973,7 +11234,7 @@ var ocrSpell = (function(){
   $('#mbody').addEventListener('change', chgSoon, true);
   chgScan();
 
-  var CFG_KEY = /^(hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|harakat)/;
+  var CFG_KEY = /^(hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|psn|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|harakat)/;
 
   /* وقتی برنامه در پس‌زمینه است (مثلاً پخش با صفحهٔ خاموش) انیمیشن‌ها متوقف شوند */
   document.addEventListener('visibilitychange', function(){ document.documentElement.classList.toggle('bg-paused', document.hidden); });
