@@ -38,6 +38,16 @@ jobs:
         run: npm install --legacy-peer-deps
       - name: Bundle offline web assets (fonts, pdf.js, OCR)
         run: bash native/fetch-offline.sh www
+      - name: Add extra reading fonts (fonts/ from repo, built by fonts-bot)
+        run: |
+          mkdir -p www/fonts/extra
+          if [ -s fonts/fonts-extra.css ] && [ -d fonts/extra ]; then
+            cp fonts/fonts-extra.css www/fonts/fonts-extra.css
+            cp -r fonts/extra/. www/fonts/extra/
+            echo "extra fonts copied: $(ls www/fonts/extra | wc -l) files"
+          else
+            echo "::warning::fonts/fonts-extra.css یا fonts/extra در مخزن نیست؛ قلم‌های بومی بیشتر داخل APK نخواهد بود"
+          fi
       - name: Add INT8 rec model (optional, from quantize-ocr workflow)
         run: |
           f=ocr-int8/arabic_PP-OCRv5_mobile_rec_int8.onnx
@@ -51,6 +61,10 @@ jobs:
         run: npx cap add android
       - name: Inject native Piper
         run: bash native/inject-native.sh
+      - name: Check native back handler (BackApp)
+        run: |
+          find android/app/src/main/java -name BackApp.java | grep -q . || echo "::warning::BackApp.java ساخته نشد"
+          grep -q 'android:name="\.BackApp"' android/app/src/main/AndroidManifest.xml && echo "BackApp registered" || echo "::warning::BackApp در مانیفست ثبت نشد؛ کشیدن از لبه برنامه را به خانهٔ گوشی می‌برد"
       - name: Show checksums to pin
         if: always()
         run: sort -u ~/.offline-cache/sums-seen.txt 2>/dev/null || true
@@ -92,6 +106,12 @@ jobs:
           unzip -l PdfVoiceReader.apk | grep -q "assets/public/ocr/ort/ort-wasm-simd-threaded.wasm" || echo "::warning::ort-wasm-simd-threaded.wasm داخل APK نیست؛ OCR چندنخی کار نمی‌کند"
           if [ -s ocr-int8/arabic_PP-OCRv5_mobile_rec_int8.onnx ]; then
             unzip -l PdfVoiceReader.apk | grep -q "assets/public/ocr/paddle/arabic_PP-OCRv5_mobile_rec_int8.onnx" || echo "::warning::مدل int8 در مخزن هست ولی داخل APK نیست"
+          fi
+          if [ -s fonts/fonts-extra.css ]; then
+            want=$(grep -o 'extra/[^"]*\.woff2' fonts/fonts-extra.css | sort -u | wc -l)
+            have=$(unzip -l PdfVoiceReader.apk | grep -c "assets/public/fonts/extra/.*\.woff2" || true)
+            unzip -l PdfVoiceReader.apk | grep -q "assets/public/fonts/fonts-extra.css" || echo "::warning::fonts-extra.css داخل APK نیست؛ قلم‌های بومی بیشتر غیرفعال می‌مانند"
+            [ "$have" -ge "$want" ] || echo "::warning::فایل قلم داخل APK کم است ($have از $want)"
           fi
           for f in ort/ort.min.js ort/ort-wasm-simd.wasm paddle/PP-OCRv5_mobile_det.onnx paddle/arabic_PP-OCRv5_mobile_rec.onnx paddle/arabic_PP-OCRv5_mobile_rec_dict.txt; do
             unzip -l PdfVoiceReader.apk | grep -q "assets/public/ocr/$f" || { echo "OCR file missing from APK: $f"; exit 1; }
