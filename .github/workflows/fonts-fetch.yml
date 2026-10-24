@@ -1,0 +1,29 @@
+name: fetch-fonts
+# یک‌بار دستی اجرا شود: قلم‌های فارسی را در پوشهٔ کنار fonts.css می‌گذارد و کامیت می‌کند، سپس Build APK را اجرا می‌کند.
+on: workflow_dispatch
+permissions:
+  contents: write
+  actions: write
+jobs:
+  fonts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: locate fonts dir
+        id: loc
+        run: |
+          f=$(git ls-files | grep -E '(^|/)fonts/fonts\.css$' | head -1)
+          if [ -z "$f" ]; then d=fonts; else d=$(dirname "$f"); fi
+          echo "dir=$d" >> "$GITHUB_OUTPUT"
+      - name: download fonts
+        run: python3 tools/fetch_fonts.py --out "${{ steps.loc.outputs.dir }}"
+      - name: commit
+        run: |
+          git config user.name "fonts-bot"
+          git config user.email "fonts-bot@users.noreply.github.com"
+          git add "${{ steps.loc.outputs.dir }}"
+          git diff --cached --quiet || { git commit -m "fonts: offline Persian fonts (fonts-extra.css)"; git push; }
+      - name: build apk
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run build.yml --ref "${{ github.ref_name }}" || echo "build.yml را دستی اجرا کنید"
