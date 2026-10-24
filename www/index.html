@@ -1081,6 +1081,14 @@ body.view-page .stage{touch-action:pan-x pan-y}
 .pvp canvas,.pvn canvas{image-rendering:auto}
 .pvd{position:absolute;display:block;pointer-events:none;z-index:0}
 .pvh{z-index:1}
+body:not(.view-page) #rdRot{display:none}
+.pvt{position:absolute;inset:0;overflow:hidden;z-index:2;pointer-events:none}
+.pvt span{font-family:Vazirmatn,Tahoma,"Segoe UI",sans-serif;position:absolute;display:block;white-space:pre;color:transparent;transform-origin:0 0;pointer-events:auto;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+.pvt span::selection{background:rgba(70,120,255,.38);color:transparent}
+.pv[data-pt="dark"] .pvp,.pv[data-pt="dark"] .pvn{background:#0d0e12;border-color:#262a36}
+.pv[data-pt="dark"] .pvh{mix-blend-mode:screen}
+.pv[data-pt="sepia"] .pvp,.pv[data-pt="sepia"] .pvn{background:#f1e4c6;border-color:#d8c79c}
+.pv[data-pt="sepia"] canvas{filter:sepia(.55) saturate(1.1) brightness(.97) contrast(.97)}
 #pvZb{position:fixed;z-index:90;inset-inline:0;margin:0 auto;width:max-content;top:calc(env(safe-area-inset-top,0px) + 66px);padding:5px 14px;border-radius:999px;background:rgba(15,20,40,.78);color:#fff;font-size:.82rem;font-weight:800;font-variant-numeric:tabular-nums;pointer-events:none}
 #pvZb[hidden]{display:none}
 
@@ -1431,6 +1439,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
       <b class="rdt" id="rdTitle" dir="auto"></b>
       <button class="rdb" id="rdSearch" type="button" aria-label="جستجو در متن" title="جستجو"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"/></svg></button>
       <button class="rdb" id="rdMode" type="button" aria-label="نمایش متن" aria-pressed="true" title="نمای صفحه / متن"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h7"/></svg></button>
+      <button class="rdb" id="rdRot" type="button" aria-label="چرخش صفحه ۹۰ درجه" title="چرخش صفحه"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg></button>
       <button class="rdb" id="rdFav" type="button" aria-label="افزودن به مورد علاقه" aria-pressed="false" title="مورد علاقه"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"/></svg></button>
       <button class="rdb" id="rdBm" type="button" aria-label="نشانه‌ها و یادداشت" title="نشانه‌ها"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4zM12 7v6M9 10h6"/></svg></button>
       <button class="rdb" id="rdMan" type="button" aria-label="اسکن دستی و اصلاح" title="اسکن دستی و اصلاح"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg></button>
@@ -1492,7 +1501,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
   <main class="frame">
     <div class="stage" id="stage" tabindex="-1">
       <div id="reader"></div>
-      <div class="pv" id="pv"><div id="pvU"></div><div class="pvp" id="pvp"><canvas id="pvc" width="1" height="1"></canvas><div class="pvh" id="pvh"></div></div><div id="pvD"></div><p class="hint" id="pvn" hidden></p></div>
+      <div class="pv" id="pv"><div id="pvU"></div><div class="pvp" id="pvp"><canvas id="pvc" width="1" height="1"></canvas><div class="pvh" id="pvh"></div><div class="pvt" id="pvt"></div></div><div id="pvD"></div><p class="hint" id="pvn" hidden></p></div>
     </div>
 
     <div class="home" id="homeView">
@@ -1984,6 +1993,26 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
           <button type="button" data-th="light" aria-pressed="false"><i style="background:linear-gradient(135deg,#ffffff,#d5ddf0)"></i>روشن</button>
           <button type="button" data-th="dark" aria-pressed="false"><i style="background:linear-gradient(135deg,#16224b,#050a19)"></i>تیره</button>
         </div>
+      </section>
+
+      <section class="grp" id="pvBox">
+        <h3>نمای صفحهٔ PDF</h3>
+        <div class="sw" id="pfSw" style="grid-template-columns:repeat(2,1fr)">
+          <button type="button" data-pf="w" aria-pressed="false"><i style="background:linear-gradient(90deg,var(--accent) 0 100%)"></i>تناسب با عرض</button>
+          <button type="button" data-pf="p" aria-pressed="false"><i style="background:linear-gradient(90deg,transparent 0 22%,var(--accent) 22% 78%,transparent 78% 100%)"></i>تناسب با صفحه</button>
+        </div>
+        <div class="sw" id="ptSw" style="grid-template-columns:repeat(3,1fr)">
+          <button type="button" data-pt="" aria-pressed="false"><i style="background:linear-gradient(135deg,#fff,#e6e9f2)"></i>عادی</button>
+          <button type="button" data-pt="dark" aria-pressed="false"><i style="background:linear-gradient(135deg,#1b1d24,#07080b)"></i>شب</button>
+          <button type="button" data-pt="sepia" aria-pressed="false"><i style="background:linear-gradient(135deg,#f3e5c3,#d9c293)"></i>سپیا</button>
+        </div>
+        <div class="field frow"><label><span>چرخش صفحه</span></label><div class="fsrow">
+          <button class="btn sm" id="pvRl" type="button" aria-label="چرخش ۹۰ درجه به چپ">↺</button>
+          <output id="pvRv" aria-live="polite">۰°</output>
+          <button class="btn sm" id="pvRr" type="button" aria-label="چرخش ۹۰ درجه به راست">↻</button>
+        </div></div>
+        <div class="slist"><label class="chk"><input type="checkbox" id="pvTlOn" checked><span class="st"><b>لایهٔ متنی انتخاب‌پذیر</b><small>انتخاب و کپی متن روی خود صفحه.</small></span></label></div>
+        <p class="hint">بزرگ‌نمایی از ۵۰٪ تا ۵۰۰٪ با دکمه‌های آ− / آ+ بخش «متن» یا حرکت دو انگشتی.</p>
       </section>
 
       <section class="grp" id="fxBox">
@@ -7934,7 +7963,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r93 · 2026-10-24 · native-back', npBuild = '';
+  var APP_BUILD = 'html-r94 · 2026-10-24 · pdf-view', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -8919,8 +8948,9 @@ var ocrSpell = (function(){
   }
   /* ---------- نمای صفحهٔ PDF: خود صفحه رسم می‌شود و جملهٔ در حال خواندن روی آن علامت می‌خورد ---------- */
   var pvMode = sget('rdMode', 'page') === 'text' ? 'text' : 'page', pvPage = 0, pvTok = 0, pvRT = null, pvVp = null, pvStr = {}, pvHit = {}, pvDone = {}, pvRC = {};
-  var PVZ = [1, 1.25, 1.5, 2, 2.5, 3, 4, 5], PVMAX = 5, pvW = 0, pvRz = 0,
-      pvZf = (function(){ var v = parseFloat(sget('pvzf', '')); if (!(v >= 1 && v <= PVMAX)) v = PVZ[Math.max(0, Math.min(5, parseInt(sget('pvz', '0'), 10) || 0))]; return v; })();
+  var PVZ = [0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4, 5], PVMAX = 5, PVMIN = 0.5, pvW = 0, pvH = 0, pvRz = 0,
+      pvZf = (function(){ var v = parseFloat(sget('pvzf', '')); if (!(v >= PVMIN && v <= PVMAX)) v = [1, 1.25, 1.5, 2, 2.5, 3][Math.max(0, Math.min(5, parseInt(sget('pvz', '0'), 10) || 0))]; return v; })();
+  var pvFit = sget('pvzfit', 'w') === 'p' ? 'p' : 'w', pvPt = (function(){ var v = sget('pvzpt', ''); return v === 'dark' || v === 'sepia' ? v : ''; })(), pvTL = sget('pvztl', '1') !== '0', pvRot = 0, pvVr = 0, pvAsp = {}, pvTLt = 0;
   function pvOn(){ return pvMode === 'page'; }
   function pvApply(){
     var b = $('#rdMode'), dt = $('#dText');
@@ -8929,7 +8959,7 @@ var ocrSpell = (function(){
     document.body.classList.toggle('no-sents', !sents.length);
     if (b) { b.classList.toggle('on', pvOn()); b.setAttribute('aria-pressed', pvOn() ? 'true' : 'false'); b.setAttribute('aria-label', pvOn() ? 'نمایش متن' : 'نمایش صفحهٔ PDF'); }
   }
-  function pvReset(){ pvClear(); pvPage = 0; pvTok++; pvStr = {}; pvHit = {}; pvDone = {}; pvRC = {}; pvVp = null; var h = $('#pvh'); if (h) h.textContent = ''; }
+  function pvReset(){ pvClear(); pvPage = 0; pvTok++; pvStr = {}; pvHit = {}; pvDone = {}; pvRC = {}; pvVp = null; pvRot = 0; pvVr = 0; pvAsp = {}; clearTimeout(pvTLt); var h = $('#pvh'), t = $('#pvt'); if (h) h.textContent = ''; if (t) t.textContent = ''; }
   function pvNorm(s){
     s = String(s || '');
     try { s = s.normalize('NFKC'); } catch (e) {}
@@ -9030,6 +9060,13 @@ var ocrSpell = (function(){
     bw = Math.max(2, (a1 - a0) * sx); bh = (g[4] - g[2]) * sy * 1.08;
     return { x: (mx * c + my * s + (WO - 1) / 2) * sx - bw / 2, y: (my * c - mx * s + (HO - 1) / 2) * sy - bh / 2, w: bw, h: bh, r: -th };
   }
+  function pvRotRect(b){                                           /* جعبهٔ مختصات صفحهٔ بی‌چرخش ← قاب نمایشی با چرخش کاربر (۹۰/۱۸۰/۲۷۰) */
+    if (!b || !pvVr || !pvVp) return b;
+    var W = pvVp.width, H = pvVp.height, cx = b.x + b.w / 2, cy = b.y + b.h / 2, nx, ny;
+    if (pvVr === 90) { nx = H - cy; ny = cx; } else if (pvVr === 180) { nx = W - cx; ny = H - cy; } else { nx = cy; ny = W - cx; }
+    b.x = nx - b.w / 2; b.y = ny - b.h / 2; b.r += pvVr * Math.PI / 180;
+    return b;
+  }
   function pvRectsOf(i){
     if (pvRC[i]) return pvRC[i];
     var h = pvHit[i], q = sents[i], out = [], st, a, b, u, u1, s0, s1, na, nb, f0, f1, r, last, un, x1, y1, hm;
@@ -9052,6 +9089,7 @@ var ocrSpell = (function(){
         last.x = Math.min(last.x, r.x); last.y = Math.min(last.y, r.y); last.w = x1 - last.x; last.h = y1 - last.y;
       } else out.push(r);
     }
+    if (pvVr) for (u = 0; u < out.length; u++) pvRotRect(out[u]);
     return out;
   }
   function pvHL(scroll){
@@ -9071,25 +9109,66 @@ var ocrSpell = (function(){
     if (scroll && first) follow(first);
   }
   var pvCv = {}, pvUserT = 0, pvSw = 0, pvScQ = 0;
-  function pvKey(){ return Math.round(Math.max(200, $('#pv').clientWidth) * pvZf); }
+  function pvAspOf(p, rot){ var a = pvAsp[p]; if (!(a > 0)) a = 0.707; return rot % 180 ? 1 / a : a; }
+  function pvKey(p, rot, dk){                                          /* کلید کش: عرض نمایشی (بر پایهٔ تناسب عرض/صفحه × زوم) و چرخش */
+    var w = Math.max(200, $('#pv').clientWidth), H, dh;
+    if (rot === undefined) rot = pvRot;
+    if (dk === undefined) dk = pvPt === 'dark';
+    if (pvFit === 'p') {
+      dh = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dock-h')) || 90;
+      H = Math.max(200, $('#stage').clientHeight - dh - 36);
+      w = Math.max(200, Math.min(w, H * pvAspOf(p || pvPage, rot)));
+    }
+    return Math.round(w * pvZf) + '|' + rot + '|' + (dk ? 'd' : 'n');
+  }
   function pvDrop(q){ var e = pvCv[q]; if (!e) return; delete pvCv[q]; try { if (e.rt) e.rt.cancel(); } catch (x) {} if (e.res) { try { e.res.c.width = 0; } catch (x) {} } }
   function pvClear(){ if (!pvCv) return; Object.keys(pvCv).forEach(pvDrop); var U = $('#pvU'), D = $('#pvD'); if (U) U.textContent = ''; if (D) D.textContent = ''; }
+  /* حالت شب: وارونگی بلوکی (۱۶×۱۶) فقط برای بلوک‌های متن/زمینه؛ بلوک‌های رنگی یا نیم‌تُن (عکس) دست‌نخورده می‌مانند */
+  async function pvDark(c){
+    var w = c.width, h = c.height, cx = c.getContext('2d'), B = 16, y, bx, i, j, X, id, d, x1, n, sat, mid, r, g, b, mx, mn, L, dl, ph, keep = [], q = 0;
+    for (y = 0; y < h; y += B) {
+      ph = Math.min(B, h - y); id = cx.getImageData(0, y, w, ph); d = id.data;
+      for (bx = 0; bx < w; bx += B) {
+        x1 = Math.min(w, bx + B); sat = 0; mid = 0; n = 0;
+        for (j = 0; j < ph; j++) for (X = bx, i = (j * w + bx) * 4; X < x1; X++, i += 4) {
+          r = d[i]; g = d[i + 1]; b = d[i + 2]; mx = r > g ? (r > b ? r : b) : (g > b ? g : b); mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+          if (mx - mn > 40) sat++; L = (r * 77 + g * 150 + b * 29) >> 8; if (L > 50 && L < 205) mid++; n++;
+        }
+        keep[bx / B] = sat > n * 0.12 || mid > n * 0.6;
+      }
+      for (bx = 0; bx < w; bx += B) {
+        if (keep[bx / B]) continue;
+        x1 = Math.min(w, bx + B);
+        for (j = 0; j < ph; j++) for (X = bx, i = (j * w + bx) * 4; X < x1; X++, i += 4) {
+          r = d[i]; g = d[i + 1]; b = d[i + 2]; L = (r * 77 + g * 150 + b * 29) >> 8; dl = 13 + (255 - L) * 0.92 - L;
+          r += dl; g += dl; b += dl;
+          d[i] = r < 0 ? 0 : r > 255 ? 255 : r; d[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g; d[i + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
+        }
+      }
+      cx.putImageData(id, 0, y);
+      if (++q % 10 === 0) await new Promise(function(f){ setTimeout(f, 0); });
+    }
+  }
   function pvRender(p){                                            /* رندر صفحه در بومِ کش‌شده؛ همسایه‌ها هم با همین کش آماده می‌شوند */
-    var k = pvKey(), e = pvCv[p], doc = pdfDoc, ent;
-    if (e && e.k === k && e.doc === doc) return e.pr;
+    var kk = pvKey(p), e = pvCv[p], doc = pdfDoc, ent, R = pvRot, D = pvPt === 'dark';
+    if (e && e.k === kk && e.doc === doc) return e.pr;
     pvDrop(p);
-    ent = pvCv[p] = { k: k, doc: doc, rt: null, res: null, pr: null };
+    ent = pvCv[p] = { k: kk, doc: doc, rt: null, res: null, pr: null };
     ent.pr = (async function(){
-      var page = await doc.getPage(p), v1 = page.getViewport({ scale: 1 }), ratio = v1.height / v1.width, sc = k / v1.width, big = pvZf > 1.3,
-          dpr = Math.min(window.devicePixelRatio || 1, 3), cap = big ? 4.5e6 : 7e6, c = document.createElement('canvas'), cw, ch, vp;
+      var page = await doc.getPage(p), v0 = page.getViewport({ scale: 1 }), tot = (page.rotate + R) % 360, v1, k, ratio, sc, big, dpr, cap, c, cw, ch, vp;
+      pvAsp[p] = v0.width / v0.height;
+      ent.k = kk = pvKey(p, R, D); k = parseInt(kk, 10);
+      v1 = page.getViewport({ scale: 1, rotation: tot }); ratio = v1.height / v1.width; sc = k / v1.width; big = pvZf > 1.3;
+      dpr = Math.min(window.devicePixelRatio || 1, 3); cap = big ? 4.5e6 : 7e6; c = document.createElement('canvas');
       if (big) dpr = Math.min(dpr, 1);                              /* در بزرگ‌نمایی، لایهٔ جزئیات وضوح بومی را می‌دهد */
       dpr = Math.max(0.6, Math.min(dpr, Math.sqrt(cap / (k * k * ratio))));
       cw = Math.max(2, Math.round(k * dpr)); ch = Math.max(2, Math.round(k * ratio * dpr));
-      vp = page.getViewport({ scale: cw / v1.width });
+      vp = page.getViewport({ scale: cw / v1.width, rotation: tot });
       c.width = cw; c.height = ch; c.style.width = k + 'px'; c.style.height = Math.round(k * ratio) + 'px';
       ent.rt = page.render({ canvasContext: c.getContext('2d', { alpha: false }), viewport: vp, background: '#fff' });
       await ent.rt.promise;
-      ent.res = { c: c, vp: page.getViewport({ scale: sc }) };
+      if (D) await pvDark(c);
+      ent.res = { c: c, vp: page.getViewport({ scale: sc }), rot: R };
       return ent.res;
     })();
     ent.pr.catch(function(){ if (pvCv[p] === ent) delete pvCv[p]; });
@@ -9098,7 +9177,7 @@ var ocrSpell = (function(){
   function pvKeep(fn){ var m = $('#pvp'), st = $('#stage'), b = m.getBoundingClientRect().top, d; fn(); d = m.getBoundingClientRect().top - b; if (d) st.scrollTop += d; }
   function pvPut(w, c){ c.id = ''; w.style.width = ''; w.style.height = ''; w.appendChild(c); }
   function pvFill(p){                                              /* صفحهٔ قبل (۱) و بعدها (۱ تا ۲) زیر/بالای صفحهٔ اصلی چیده می‌شوند */
-    var doc = pdfDoc, n = doc ? doc.numPages : 0, U = $('#pvU'), D = $('#pvD'), mc = $('#pvc'), mw = mc.style.width || '60%', mh = mc.style.height || '300px', tok = pvTok, ah = pvZf >= 2 ? 1 : 2, key = pvKey(), pend = [], order = [], j;
+    var doc = pdfDoc, n = doc ? doc.numPages : 0, U = $('#pvU'), D = $('#pvD'), mc = $('#pvc'), mw = mc.style.width || '60%', mh = mc.style.height || '300px', tok = pvTok, ah = pvZf >= 2 ? 1 : 2, pend = [], order = [], j;
     Object.keys(pvCv).forEach(function(k){ if (+k < p - 1 || +k > p + ah) pvDrop(k); });
     U.textContent = ''; D.textContent = '';
     order.push(p + 1); order.push(p - 1); if (ah > 1) order.push(p + 2);
@@ -9106,7 +9185,7 @@ var ocrSpell = (function(){
       if (q < 1 || q > n) return;
       var w = document.createElement('div'), e = pvCv[q]; w.className = 'pvn'; w.dataset.q = q; w.style.width = mw; w.style.height = mh;
       (q < p ? U : D).appendChild(w);
-      if (e && e.res && e.k === key && e.doc === doc) pvPut(w, e.res.c); else pend.push([q, w]);
+      if (e && e.res && e.k === pvKey(q) && e.doc === doc) pvPut(w, e.res.c); else pend.push([q, w]);
     });
     (async function(){
       for (j = 0; j < pend.length; j++) {
@@ -9117,7 +9196,7 @@ var ocrSpell = (function(){
   }
   async function pvShow(p, scroll, keep, anc){
     var tok = ++pvTok, doc = pdfDoc, wrap = $('#pv'), st = $('#stage'), r, old, nc, at = null, bf = 0;
-    pvPage = p; pvVp = null; pvRC = {}; $('#pvh').textContent = ''; $('#pvn').hidden = true;
+    pvPage = p; pvVp = null; pvRC = {}; $('#pvh').textContent = ''; $('#pvn').hidden = true; clearTimeout(pvTLt); $('#pvt').textContent = '';
     Object.keys(pvStr).forEach(function(k){ if (Math.abs(+k - p) > 2) delete pvStr[k]; });
     try {
       r = await pvRender(p);
@@ -9126,13 +9205,13 @@ var ocrSpell = (function(){
       if (keep && nc.isConnected) { at = nc; bf = nc.getBoundingClientRect().top; }
       if (old !== nc) { old.id = ''; nc.id = 'pvc'; old.parentNode.replaceChild(nc, old); }
       pvDClear();
-      pvVp = r.vp; pvW = wrap.clientWidth;
+      pvVp = r.vp; pvVr = r.rot || 0; pvW = wrap.clientWidth; pvH = st.clientHeight;
       pvFill(p);
       if (anc) { anc.done(); var ar = $('#pvp').getBoundingClientRect(); st.scrollTop += ar.top + anc.fy * ar.height - anc.oy; wrap.scrollLeft += ar.left + anc.fx * ar.width - anc.ox; }
       else if (at) st.scrollTop += at.getBoundingClientRect().top - bf;
       else { st.scrollTop += $('#pvp').getBoundingClientRect().top - st.getBoundingClientRect().top - 28; wrap.scrollLeft = 0; }
       if (keep) pgInfo(p, doc.numPages);
-      pvHL(!keep); pvDSched(250);
+      pvHL(!keep); pvDSched(250); pvTLSched();
     } catch (e) { if (tok === pvTok) status('نمایش صفحه ممکن نشد؛ نمای متن را باز کنید.'); }
   }
   function pvScan(){                                               /* اسکرول پیوسته: وقتی میانهٔ صفحه به صفحهٔ دیگری رسید، همان صفحه «صفحهٔ جاری» می‌شود (بی‌پرش) */
@@ -9151,7 +9230,7 @@ var ocrSpell = (function(){
     else pvShow(p, scroll);
   }
   function pvRedo(){ if (!pvOn() || !pdfDoc || !sents.length) return; pvPage = 0; pvVp = null; pvMark(true); }
-  function pvLbl(){ $('#fsV').textContent = nf.format(Math.round(pvZf * 100)) + '٪'; }
+  function pvLbl(){ if (!pvOn()) return; $('#fsV').textContent = nf.format(Math.round(pvZf * 100)) + '٪'; }
   function pvZoom(d){
     var i, n = pvZf;
     if (d > 0) { for (i = 0; i < PVZ.length; i++) if (PVZ[i] > pvZf + 0.01) { n = PVZ[i]; break; } }
@@ -9168,9 +9247,9 @@ var ocrSpell = (function(){
     var pvp = $('#pvp'), pr = pvp.getBoundingClientRect(), sr = $('#stage').getBoundingClientRect(), vr = $('#pv').getBoundingClientRect(),
         L = Math.max(sr.left, vr.left), R = Math.min(sr.right, vr.right), T = sr.top, B = sr.bottom,
         vx0 = Math.max(0, L - pr.left), vx1 = Math.min(pr.width, R - pr.left), vy0 = Math.max(0, T - pr.top), vy1 = Math.min(pr.height, B - pr.top),
-        A = pvDarea, dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3)), mx, my, x0, y0, x1, y1, w, h, tok, doc = pdfDoc, pg = pvPage, vp0 = pvVp;
+        A = pvDarea, dk = pvPt === 'dark', dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3)), mx, my, x0, y0, x1, y1, w, h, tok, doc = pdfDoc, pg = pvPage, vp0 = pvVp;
     if (vx1 - vx0 < 8 || vy1 - vy0 < 8) return;
-    if (A && A.p === pg && A.z === pvZf && A.w === pr.width && vx0 >= A.x0 - 1 && vx1 <= A.x1 + 1 && vy0 >= A.y0 - 1 && vy1 <= A.y1 + 1) return;
+    if (A && A.p === pg && A.z === pvZf && A.d === dk && A.w === pr.width && vx0 >= A.x0 - 1 && vx1 <= A.x1 + 1 && vy0 >= A.y0 - 1 && vy1 <= A.y1 + 1) return;
     mx = (vx1 - vx0) * 0.2; my = (vy1 - vy0) * 0.3;
     x0 = Math.max(0, vx0 - mx); x1 = Math.min(pr.width, vx1 + mx); y0 = Math.max(0, vy0 - my); y1 = Math.min(pr.height, vy1 + my);
     while ((x1 - x0) * (y1 - y0) * dpr * dpr > 5.5e6 && (x1 - x0 > vx1 - vx0 + 2 || y1 - y0 > vy1 - vy0 + 2)) { x0 += (vx0 - x0) * 0.25; x1 -= (x1 - vx1) * 0.25; y0 += (vy0 - y0) * 0.25; y1 -= (y1 - vy1) * 0.25; }
@@ -9181,12 +9260,13 @@ var ocrSpell = (function(){
       var page = await doc.getPage(pg), c, rt, old;
       if (tok !== pvDtok || doc !== pdfDoc) return;
       c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w * dpr)); c.height = Math.max(1, Math.round(h * dpr));
-      rt = page.render({ canvasContext: c.getContext('2d', { alpha: false }), viewport: page.getViewport({ scale: vp0.scale * dpr }), transform: [1, 0, 0, 1, -x0 * dpr, -y0 * dpr], background: '#fff' });
+      rt = page.render({ canvasContext: c.getContext('2d', { alpha: false }), viewport: page.getViewport({ scale: vp0.scale * dpr, rotation: (page.rotate + pvVr) % 360 }), transform: [1, 0, 0, 1, -x0 * dpr, -y0 * dpr], background: '#fff' });
       pvDrt = rt; await rt.promise; if (pvDrt === rt) pvDrt = null;
+      if (dk && tok === pvDtok) await pvDark(c);
       if (tok !== pvDtok || doc !== pdfDoc || pvPage !== pg || pvVp !== vp0) { c.width = 0; return; }
       c.id = 'pvd'; c.className = 'pvd'; c.style.cssText = 'left:' + x0 + 'px;top:' + y0 + 'px;width:' + w + 'px;height:' + h + 'px';
       old = $('#pvd'); if (old) { old.width = 0; old.remove(); }
-      pvp.insertBefore(c, $('#pvh')); pvDarea = { p: pg, z: pvZf, w: pr.width, x0: x0, y0: y0, x1: x1, y1: y1 };
+      pvp.insertBefore(c, $('#pvh')); pvDarea = { p: pg, z: pvZf, d: dk, w: pr.width, x0: x0, y0: y0, x1: x1, y1: y1 };
     })().catch(function(){});
   }
   /* ----- زوم با دو انگشت (پینچ): پیش‌نمایش لحظه‌ای با CSS، بازرسم تیز پس از رها کردن، حفظ نقطهٔ کانونی ----- */
@@ -9208,7 +9288,7 @@ var ocrSpell = (function(){
       var P = pvPin, c, z1;
       if (!P || e.touches.length < 2) return;
       if (e.cancelable) e.preventDefault();
-      c = ctr(e.touches); z1 = Math.max(1, Math.min(PVMAX, pvZf * dist(e.touches) / P.d0));
+      c = ctr(e.touches); z1 = Math.max(PVMIN, Math.min(PVMAX, pvZf * dist(e.touches) / P.d0));
       P.s = z1 / pvZf; P.cx = c.x; P.cy = c.y; show(z1);
       if (!P.raf) P.raf = requestAnimationFrame(function(){ P.raf = 0; if (pvPin === P) pv.style.transform = 'translate(' + (P.cx - P.cx0) + 'px,' + (P.cy - P.cy0) + 'px) scale(' + P.s + ')'; });
     }, { passive: false });
@@ -9216,7 +9296,7 @@ var ocrSpell = (function(){
       var P = pvPin, z1;
       if (!P || (e.touches && e.touches.length >= 2)) return;
       pvPin = null; if (P.raf) cancelAnimationFrame(P.raf);
-      z1 = Math.max(1, Math.min(PVMAX, pvZf * P.s));
+      z1 = Math.max(PVMIN, Math.min(PVMAX, pvZf * P.s));
       if (Math.abs(z1 / pvZf - 1) < 0.03) { rest(); st.scrollTop += P.cy0 - P.cy; pv.scrollLeft += P.cx0 - P.cx; pvDSched(120); return; }
       pvZf = z1; sset('pvzf', pvZf); pvLbl(); show(z1); pvBusy = 1; pvSw = 1;
       try { await pvShow(pvPage, false, true, { fx: P.fx, fy: P.fy, ox: P.cx, oy: P.cy, done: rest }); }
@@ -9230,6 +9310,7 @@ var ocrSpell = (function(){
   }
   $('#pvp').onclick = function(ev){
     if (!pvVp) return;
+    try { var sl = window.getSelection(); if (sl && !sl.isCollapsed && String(sl).length) return; } catch (e) {}
     var r = this.getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top, ids = [], k, j, rs;
     pvPrep(pvPage);
     (pageParas[pvPage] || []).forEach(function(g){ g.forEach(function(i){ ids.push(i); }); });
@@ -9241,7 +9322,50 @@ var ocrSpell = (function(){
   $('#stage').addEventListener('scroll', function(){ if (!pvOn()) return; pvDSched(220); if (pvScQ) return; pvScQ = requestAnimationFrame(function(){ pvScQ = 0; pvScan(); }); }, { passive: true });
   $('#pv').addEventListener('scroll', function(){ pvDSched(220); }, { passive: true });
   ['touchstart', 'wheel', 'pointerdown'].forEach(function(t){ $('#stage').addEventListener(t, function(){ pvUserT = Date.now(); }, { passive: true }); });
-  window.addEventListener('resize', function(){ clearTimeout(pvRz); pvRz = setTimeout(function(){ if (pvOn() && pvPage && Math.abs($('#pv').clientWidth - pvW) > 8) pvRedo(); }, 280); });
+  window.addEventListener('resize', function(){ clearTimeout(pvRz); pvRz = setTimeout(function(){ if (pvOn() && pvPage && (Math.abs($('#pv').clientWidth - pvW) > 8 || (pvFit === 'p' && Math.abs($('#stage').clientHeight - pvH) > 40))) pvRedo(); }, 280); });
+  /* ----- لایهٔ متنی شفاف: انتخاب و کپی متن روی صفحه؛ از همان آیتم‌ها/خطوط OCR و همان هندسهٔ هایلایت ساخته می‌شود (بدون getTextContent دوباره) ----- */
+  function pvTLBuild(){
+    var box = $('#pvt'), p = pvPage, V = pvVp, un, i, u, b, fz, m, kx, c, sn, sp, fr, n = 0;
+    if (!box || !pvTL || !pvOn() || !p || !V) return;
+    box.textContent = '';
+    try { pvFr('ab', 1); } catch (e) {}
+    if (!pvCx) return;
+    un = pvStream(p).un; fr = document.createDocumentFragment();
+    for (i = 0; i < un.length && n < 3000; i++) {
+      u = un[i]; if (!u.str || !/\S/.test(u.str)) continue;
+      b = pvBox(u, 0, 1); if (!b) continue;
+      b = pvRotRect(b);
+      fz = Math.max(4, b.h * 0.72);
+      m = pvCx.measureText(u.str).width * fz / 24; kx = m > 0 ? Math.max(0.15, Math.min(6, b.w / m)) : 1;
+      c = Math.cos(b.r); sn = Math.sin(b.r);
+      sp = document.createElement('span');
+      sp.style.cssText = 'left:' + (b.x + b.w / 2 - b.w / 2 * c + b.h / 2 * sn).toFixed(1) + 'px;top:' + (b.y + b.h / 2 - b.w / 2 * sn - b.h / 2 * c).toFixed(1) + 'px;font-size:' + fz.toFixed(1) + 'px;line-height:' + b.h.toFixed(1) + 'px;transform:' + (Math.abs(b.r) > 1e-4 ? 'rotate(' + b.r.toFixed(4) + 'rad) ' : '') + 'scaleX(' + kx.toFixed(3) + ')';
+      if (pvRtl(u.str)) sp.dir = 'rtl';
+      sp.textContent = u.str + ' ';
+      fr.appendChild(sp); n++;
+    }
+    box.appendChild(fr);
+  }
+  function pvTLSched(){ clearTimeout(pvTLt); var t = $('#pvt'); if (t) t.textContent = ''; if (pvTL && pvOn() && pvPage && pvVp) pvTLt = setTimeout(pvTLBuild, 140); }
+  /* ----- ظاهر نمای صفحه: تناسب (عرض/صفحه)، چرخش، تم شب/سپیا ----- */
+  function pvLook(){
+    var pv = $('#pv'), b, i;
+    if (pvPt) pv.setAttribute('data-pt', pvPt); else pv.removeAttribute('data-pt');
+    b = document.querySelectorAll('#ptSw button'); for (i = 0; i < b.length; i++) b[i].setAttribute('aria-pressed', (b[i].dataset.pt || '') === pvPt ? 'true' : 'false');
+    b = document.querySelectorAll('#pfSw button'); for (i = 0; i < b.length; i++) b[i].setAttribute('aria-pressed', b[i].dataset.pf === pvFit ? 'true' : 'false');
+    $('#pvRv').textContent = nf.format(pvRot) + '°'; $('#pvTlOn').checked = pvTL;
+  }
+  (function(){
+    var b = document.querySelectorAll('#pfSw button'), i;
+    for (i = 0; i < b.length; i++) b[i].onclick = function(){ pvFit = this.dataset.pf; pvZf = 1; sset('pvzfit', pvFit); sset('pvzf', 1); pvLbl(); pvLook(); pvRedo(); };
+    b = document.querySelectorAll('#ptSw button');
+    for (i = 0; i < b.length; i++) b[i].onclick = function(){ var was = pvPt === 'dark'; pvPt = this.dataset.pt || ''; sset('pvzpt', pvPt); pvLook(); if (was !== (pvPt === 'dark')) pvRedo(); };
+    $('#pvRl').onclick = function(){ pvRot = (pvRot + 270) % 360; pvLook(); pvRedo(); };
+    $('#pvRr').onclick = function(){ pvRot = (pvRot + 90) % 360; pvLook(); pvRedo(); };
+    $('#rdRot').onclick = function(){ pvRot = (pvRot + 90) % 360; pvLook(); pvRedo(); };
+    $('#pvTlOn').onchange = function(){ pvTL = this.checked; sset('pvztl', pvTL ? '1' : '0'); pvTLSched(); };
+  })();
+  pvLook();
   pvApply();
   var kaOn = null, kaBad = false, kaReady = true, kaAu = null;
   function kaFall(on){                                              /* صدای تقریباً بی‌صدا: پردازش (OCR) با صفحهٔ خاموش یا در پس‌زمینه از تعلیق جلوگیری می‌شود */
