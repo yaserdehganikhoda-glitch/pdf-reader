@@ -2625,6 +2625,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
     return false;
   }
   /* r85: لایهٔ متنی با انکودینگ فونتِ خراب (حروف نادر U+063B..063F یا سهم زیاد ثضظذطؾػ) مرجع معتبر نیست؛ bad() آن را نمی‌گیرد چون حروف عربی معتبرند */
+  function numHeavy(t){ var s = String(t).replace(/\s/g, ''); return s.length > 0 && (s.match(/[0-9\u0660-\u0669\u06F0-\u06F9]/g) || []).length / s.length > 0.2; }   /* فهرست/نمایه: ترتیب خواندن و ارقام مرجع را بی‌اعتبار می‌کند */
   function refBad(t){
     var s = String(t).replace(/\s/g, ''), a = (s.match(/[\u0621-\u06D3]/g) || []).length, r, f;
     if (a < 100) return false;
@@ -2898,7 +2899,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
   function i8Probe(){ if (i8Have !== null) return Promise.resolve(i8Have); return probeOpt(PADF8).then(function(ok){ return (i8Have = !!ok); }); }
   window.ocrInt8 = function(on){ sset('ocrInt8', on ? '1' : '0'); i8Have = null; return on ? 'rec INT8 فعال (از OCR بعدی؛ اگر فایل ' + PADF8 + ' نباشد خودکار fp32)' : 'rec INT8 خاموش (fp32)'; };
   function i8Eff(pj){ var dx = pj && pj.dx, k, q = false; if (pj && pj.i8 && pj.i8.nc > 0) return pj.i8.nrm === 'int8' ? 'nat' : ''; if (dx) for (k in dx) if (dx[k] && dx[k].q8 === 1) q = true; return q ? 'wasm' : ''; }   /* مدلِ واقعاً مؤثر: بومی (اگر فعال بود، فقط با اعلام rm=int8 از Java) وگرنه WASM */
-  function i8Why(pj){ var dx = pj && pj.dx, k, w = []; if (pj && pj.i8 && pj.i8.nc > 0) return 'مسیر بومی فعال است و rm=' + (pj.i8.nrm || '—') + ' برگشت (Java اعمال نکرد: فایل int8 در assetsِ بومی APK نیست یا rm نادیده گرفته شد)'; if (dx) for (k in dx) if (dx[k] && dx[k].q8e) w.push(dx[k].q8e); return w.length ? w[0] : 'int8 بارگذاری نشد (فایل نیست؟)'; }
+  function i8Why(pj){ var dx = pj && pj.dx, k, w = []; if (pj && pj.i8 && pj.i8.nc > 0) return 'مسیر بومی فعال است و rm=' + (pj.i8.nrm || '—') + ' برگشت (Java اعمال نکرد: فایل int8 در assetsِ بومی APK نیست یا rm نادیده گرفته شد)' + (pj.i8.nrmw ? ' | دلیل Java: ' + pj.i8.nrmw : ''); if (dx) for (k in dx) if (dx[k] && dx[k].q8e) w.push(dx[k].q8e); return w.length ? w[0] : 'int8 بارگذاری نشد (فایل نیست؟)'; }
   function i8Gate(res, ncm, stopped){
     var a = res[0], b = res[1], o = { ok: 0, ncm: ncm }, dC, dW, sp, t, sg = function(x){ return (x > 0 ? '+' : '') + x; };
     if (stopped || res.length < 2 || !a || !b || a.ccer == null || b.ccer == null || a.cwer == null || b.cwer == null) { o.why = 'ناتمام'; return { o: o, txt: 'گیت INT8: ناتمام یا بدون CER — تصمیمی گرفته نشد.' }; }
@@ -2923,7 +2924,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
       }
       te = performance.now(); dd = natU8(v.u); te = performance.now() - te; r = await P.rec({ b: v.b, tw: v.tw, th: th, ep: ex.ep, ith: ex.ith, spin: ex.spin, mp: ex.mp, rm: i8use() ? 'int8' : '', data: dd }); dd = null;
       tb = performance.now(); ix = natB(r.idx); vl = natB(r.val); tb = performance.now() - tb; if (ocrPerf) { ocrPerf.rEnc = (ocrPerf.rEnc || 0) + te; ocrPerf.rDec = (ocrPerf.rDec || 0) + tb; }
-      if (ocrPerf) { ocrPerf.nc = (ocrPerf.nc | 0) + 1; if (r.rm !== undefined && r.rm !== null) ocrPerf.nrm = String(r.rm).slice(0, 12); ocrPerf.nms = (ocrPerf.nms || 0) + (performance.now() - t0); ocrPerf.nin = (ocrPerf.nin || 0) + (+r.ms || 0); }
+      if (ocrPerf) { ocrPerf.nc = (ocrPerf.nc | 0) + 1; if (r.rm !== undefined && r.rm !== null) ocrPerf.nrm = String(r.rm).slice(0, 12); if (r.rmw) ocrPerf.nrmw = String(r.rmw).slice(0, 90); ocrPerf.nms = (ocrPerf.nms || 0) + (performance.now() - t0); ocrPerf.nin = (ocrPerf.nin || 0) + (+r.ms || 0); }
       ln.ow.post('natres', { id: v.id, dims: r.dims, idx: ix.buffer, val: vl.buffer }, [ix.buffer, vl.buffer]);
     } catch (e) { try { ln.ow.post('natres', { id: v.id, err: String((e && e.message) || e).slice(0, 120) }); } catch (x) {} }
   }
@@ -2996,7 +2997,7 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
       r.ppmClean = o.n > 1 && o.t1 > o.t0 && (o.t1 - o.t0) > ex2 + 1000 ? +(((o.n - 1) * 60000) / (o.t1 - o.t0 - ex2)).toFixed(2) : r.ppm;
     } catch (e) {}
     r.dev = { hc: navigator.hardwareConcurrency, dm: navigator.deviceMemory, ua: (navigator.userAgent || '').slice(0, 120) };
-    r.cool = o.cool || 0; r.tuned = sget('ocrNatTuned', ''); r.stalls = o.stalls || []; r.vis = o.vis || []; r.recH = +sget('ocrRecH', '48') || 48; r.gov = o.gov || []; r.dx = o.dx || null; r.i8 = { on: i8on() ? 1 : 0, have: i8Have, nrm: o.nrm || '', nc: o.nc | 0 }; r.gpuWhy = sget('ocrGpuWhy', ''); r.lanesEnd = (ocrLanes || []).filter(function(x){ return !x.dead; }).length; r.hpMain = mainHeap(); r.renderTop = o.rtop || []; r.thermNow = thermal(); r.thermMax = o.thMax; r.nat = { on: sget('ocrNat', '') !== '0', calls: o.nc || 0, msAvg: o.nc ? Math.round(o.nms / o.nc) : 0, detCalls: o.ndc || 0, detMsAvg: o.ndc ? Math.round(o.ndms / o.ndc) : 0, infAvg: o.nc ? Math.round((o.nin || 0) / o.nc) : 0, detInfAvg: o.ndc ? Math.round((o.ndin || 0) / o.ndc) : 0, cfg: natCfg(), ov: { rEnc: o.nc ? Math.round((o.rEnc || 0) / o.nc) : 0, rDec: o.nc ? Math.round((o.rDec || 0) / o.nc) : 0, rBr: o.nc ? Math.round((o.nms - (o.nin || 0) - (o.rEnc || 0) - (o.rDec || 0)) / o.nc) : 0, dEnc: o.ndc ? Math.round((o.dEnc || 0) / o.ndc) : 0, dDec: o.ndc ? Math.round((o.dDec || 0) / o.ndc) : 0, dBr: o.ndc ? Math.round((o.ndms - (o.ndin || 0) - (o.dEnc || 0) - (o.dDec || 0)) / o.ndc) : 0 }, bad: sget('ocrNatBad', '') }; r.epEff = (r.nat.on && r.nat.calls) ? 'native:' + ((r.nat.cfg && r.nat.cfg.ep) || 'default') : r.ep; r.ort = !!(o.dx && o.dx.ort); r.hrNow = headroom(); r.hrMax = o.hrMax; r.bigCores = bigCores(); r.lt = o.lt || []; r.pxs = o.t1 > o.t0 ? Math.round((o.wd || 0) * 1000 / (o.t1 - o.t0)) : null;
+    r.cool = o.cool || 0; r.tuned = sget('ocrNatTuned', ''); r.stalls = o.stalls || []; r.vis = o.vis || []; r.recH = +sget('ocrRecH', '48') || 48; r.gov = o.gov || []; r.dx = o.dx || null; r.i8 = { on: i8on() ? 1 : 0, have: i8Have, nrm: o.nrm || '', nrmw: o.nrmw || '', nc: o.nc | 0 }; r.gpuWhy = sget('ocrGpuWhy', ''); r.lanesEnd = (ocrLanes || []).filter(function(x){ return !x.dead; }).length; r.hpMain = mainHeap(); r.renderTop = o.rtop || []; r.thermNow = thermal(); r.thermMax = o.thMax; r.nat = { on: sget('ocrNat', '') !== '0', calls: o.nc || 0, msAvg: o.nc ? Math.round(o.nms / o.nc) : 0, detCalls: o.ndc || 0, detMsAvg: o.ndc ? Math.round(o.ndms / o.ndc) : 0, infAvg: o.nc ? Math.round((o.nin || 0) / o.nc) : 0, detInfAvg: o.ndc ? Math.round((o.ndin || 0) / o.ndc) : 0, cfg: natCfg(), ov: { rEnc: o.nc ? Math.round((o.rEnc || 0) / o.nc) : 0, rDec: o.nc ? Math.round((o.rDec || 0) / o.nc) : 0, rBr: o.nc ? Math.round((o.nms - (o.nin || 0) - (o.rEnc || 0) - (o.rDec || 0)) / o.nc) : 0, dEnc: o.ndc ? Math.round((o.dEnc || 0) / o.ndc) : 0, dDec: o.ndc ? Math.round((o.dDec || 0) / o.ndc) : 0, dBr: o.ndc ? Math.round((o.ndms - (o.ndin || 0) - (o.dEnc || 0) - (o.dDec || 0)) / o.ndc) : 0 }, bad: sget('ocrNatBad', '') }; r.epEff = (r.nat.on && r.nat.calls) ? 'native:' + ((r.nat.cfg && r.nat.cfg.ep) || 'default') : r.ep; r.ort = !!(o.dx && o.dx.ort); r.hrNow = headroom(); r.hrMax = o.hrMax; r.bigCores = bigCores(); r.lt = o.lt || []; r.pxs = o.t1 > o.t0 ? Math.round((o.wd || 0) * 1000 / (o.t1 - o.t0)) : null;
     r.gpuDx = { wgpu: !!navigator.gpu, coi: !!window.crossOriginIsolated, sab: typeof SharedArrayBuffer !== 'undefined', gpuBox: !!($('#ocrGpu') || {}).checked, gpuBad: !!sget('ocrGpuBad') };
     return JSON.stringify(r, null, 1);
   }
@@ -7880,7 +7881,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r85 · 2026-10-24 · ref-guard', npBuild = '';
+  var APP_BUILD = 'html-r87 · 2026-10-24 · cer-norm', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10239,7 +10240,7 @@ var ocrSpell = (function(){
   $('#ocrPerfClear').onclick = function(){ ocrPerfReset(); $('#ocrPerfText').value = ocrPerfJson(); };
   /* r65: مقایسهٔ متن OCR با متن مرجع (CER/WER)؛ پیش از مقایسه ی/ي، ک/ك، ارقام عربی/فارسی، اعراب و نیم‌فاصله یکسان می‌شود */
   var cerAcc = { d: 0, n: 0, wd: 0, wn: 0, k: 0, ls: [] };
-  function cerNorm(t){ return String(t == null ? '' : t).replace(/[\u064A\u0649]/g, '\u06CC').replace(/\u0643/g, '\u06A9').replace(/[\u0629\u06C0]/g, '\u0647').replace(/[\u0660-\u0669]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) + 0x06F0 - 0x0660); }).replace(/[\u064B-\u065F\u0670\u0640\u200C\u200D\u200E\u200F]/g, '').replace(/\s+/g, ' ').trim(); }
+  function cerNorm(t){ return String(t == null ? '' : t).normalize('NFKC').replace(/[\u064A\u0649]/g, '\u06CC').replace(/\u0643/g, '\u06A9').replace(/[\u0629\u06C0]/g, '\u0647').replace(/[\u0660-\u0669]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) + 0x06F0 - 0x0660); }).replace(/[0-9]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) + 0x06F0 - 0x30); }).replace(/[\u064B-\u065F\u0670\u0640\u200C\u200D\u200E\u200F]/g, '').replace(/[.:\u060C\u061B,;!\u061F?\u00AB\u00BB\"'\u201C\u201D\u2018\u2019()\[\]{}\-\u2013\u2014_\u2026]/g, '').replace(/\s+/g, ' ').trim(); }   /* r87: NFKC (فرم‌های نمایشی عربی ← حرف پایه) + حذف علائم نگارشی؛ OCR عمداً علائم را حذف می‌کند و اثرشان روی CER/Δ بی‌معنی بود */
   function cerDist(a, b){ var m = a.length, n = b.length, p, q, i, j, c; if (!m) return n; if (!n) return m; p = new Array(n + 1); for (j = 0; j <= n; j++) p[j] = j; for (i = 1; i <= m; i++) { q = [i]; for (j = 1; j <= n; j++) { c = a[i - 1] === b[j - 1] ? 0 : 1; q[j] = Math.min(p[j] + 1, q[j - 1] + 1, p[j - 1] + c); } p = q; } return p[n]; }
   $('#cerGo').onclick = function(){
     var pn = +$('#cerPg').value || (sents[idx] ? sents[idx].page : 1), ref = cerNorm($('#cerRef').value), r = $('#cerRes'), hy, rw, hw, dc, dw, pc = function(x, y){ return nf.format(+(100 * x / Math.max(1, y)).toFixed(1)) + '٪'; };
@@ -10318,7 +10319,8 @@ var ocrSpell = (function(){
     pns = Object.keys(refs).map(Number).filter(function(q){ return q >= 1 && q <= rawItems.length && cerNorm(refs[q]).length >= 20; }).sort(function(x, y){ return x - y; });
     if (!pns.length) {
       src = 'لایهٔ متنی PDF'; refs = {}; c = [];
-      for (i = 1; i <= rawItems.length; i++) { fl = cerLayer(i); if (fl.replace(/\s/g, '').length >= 400 && !bad(fl) && !refBad(fl)) { c.push(i); refs[i] = fl; } }
+      for (i = 1; i <= rawItems.length; i++) { fl = cerLayer(i); if (fl.replace(/\s/g, '').length >= 400 && !bad(fl) && !refBad(fl) && !numHeavy(fl)) { c.push(i); refs[i] = fl; } }
+      if (c.length < 3) { say('لایهٔ متنی سالم فقط ' + c.length + ' صفحه است (حداقل ۳)؛ مرجع دستی با قالب «--- 12 ---» برای ۸–۲۰ صفحه بچسبانید.'); return; }
       pns = []; for (i = 0; i < 4 && i < c.length; i++) pns.push(c[Math.floor(i * c.length / Math.min(4, c.length))]);
     }
     if (!pns.length) { say('مرجعی نیست: متن مرجع را با قالب «--- 12 ---» بچسبانید (لایهٔ متنی سالم هم در PDF نیست؛ شاید انکودینگ فونت خراب است).'); return; }
