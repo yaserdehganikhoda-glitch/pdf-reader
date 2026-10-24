@@ -18,7 +18,7 @@ quantize_ocr.py — INT8 (QDQ) برای مدل rec پدل‌اُسی‌آر (ara
 (agree-CER). اگر از --max-agree (پیش‌فرض ۲٪) بیشتر شد کد خروج ۳ برمی‌گردد (فایل نوشته می‌شود
 ولی commit/استفاده نشود). گیت اصلی همچنان در برنامه است: «گیت INT8» (ΔCER ≤ +0.3، ΔWER ≤ +1).
 """
-import argparse, contextlib, gc, glob, io, shutil, hashlib, json, os, random, re, sys, tempfile, time
+import argparse, contextlib, gc, glob, io, shutil, subprocess, hashlib, json, os, random, re, sys, tempfile, time
 
 H = 48
 PLW = re.compile(r'[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC]{2,}')
@@ -279,6 +279,37 @@ def pick_excludes(m, keep_first, quant_attn):
     return list(dict.fromkeys(ex))
 
 
+def parse_pys(t, block):
+    out = []
+    for x in [y for y in t.split(',') if y.strip()]:
+        py, ver = x.rsplit(':', 1)
+        out.append((py, ver, block))
+    return out
+
+
+COMPAT_CODE = """import sys, numpy as np, onnxruntime as o
+s = o.InferenceSession(sys.argv[1], providers=['CPUExecutionProvider'])
+i = s.get_inputs()[0]
+sh = [d if isinstance(d, int) and d > 0 else ([1, 3, 48, 320][k] if k < 4 else 1) for k, d in enumerate(i.shape)]
+s.run(None, {i.name: np.zeros(sh, 'float32')})
+print('OK')
+"""
+
+
+def compat_run(path, pys, timeout=240):
+    """هر نسخهٔ ORT مقصد در فرایند جدا: ساخت session (IR/opset/kernel) + یک اجرا. خروجی: [(ver, ok, msg, block)]"""
+    res = []
+    for py, ver, block in pys:
+        try:
+            r = subprocess.run([py, '-c', COMPAT_CODE, path], capture_output=True, text=True, timeout=timeout)
+            ok = r.returncode == 0 and 'OK' in r.stdout
+            msg = '' if ok else (r.stderr.strip() or r.stdout.strip())[-400:]
+        except Exception as e:
+            ok, msg = False, 'اجرا نشد: %s' % str(e)[:200]
+        res.append((ver, ok, msg, block))
+    return res
+
+
 AUTO = [('static', 'u8', 'percentile'), ('static', 's8', 'percentile'), ('static', 'u8', 'entropy'),
         ('static', 'u8', 'minmax'), ('dynamic', 'u8', 'percentile')]
 
@@ -296,6 +327,8 @@ def main():
     ap.add_argument('--calib-method', choices=['percentile', 'entropy', 'minmax'], default='percentile')
     ap.add_argument('--auto', action='store_true', help='چند پیکربندی را پشت‌سرهم امتحان و بهترین را نگه می‌دارد')
     ap.add_argument('--quant-attn', action='store_true', help='MatMulهای attention (بدون وزن) هم کوانتیزه شوند (پیش‌فرض: fp32)')
+    ap.add_argument('--compat', default='', help='PY:VER,... نسخه‌های ORT مقصد؛ مدل باید روی همه بارگذاری و یک‌بار اجرا شود (الزامی)')
+    ap.add_argument('--compat-info', default='', help='مثل --compat ولی فقط گزارش (غیرالزامی)')
     ap.add_argument('--n', type=int, default=240)
     ap.add_argument('--nval', type=int, default=120)
     ap.add_argument('--max-agree', type=float, default=2.0)
@@ -417,8 +450,22 @@ def main():
                 quantize_static(src, outp, Reader(), per_channel=False, **kw)
         dt = time.time() - t0
         mq = onnx.load(outp)
+        ops = {(o.domain or 'ai.onnx'): o.version for o in mq.opset_import}
+        print('  مدل: IR %d | opset %s' % (mq.ir_version, ops))
+        pys = parse_pys(a.compat, True) + parse_pys(a.compat_info, False)
+        cres = compat_run(outp, pys) if pys else []
+        lim = [int(g.group(1)) for _, ok, msg, _b in cres if not ok for g in [re.search(r'max supported IR version: (\d+)', msg)] if g]
+        if lim and min(lim) < mq.ir_version:      # خودِ ORT مقصد سقف IR را اعلام کرده؛ همان را اعمال و دوباره می‌سنجیم
+            print('  IR %d → %d (طبق پیام ORT مقصد)' % (mq.ir_version, min(lim)))
+            mq.ir_version = min(lim)
+            onnx.save(mq, outp)
+            cres = compat_run(outp, pys)
+        for ver, ok, msg, blk in cres:
+            print('  ORT %s: %s%s' % (ver, 'OK' if ok else '✗ ' + msg.replace(chr(10), ' ')[-300:], '' if blk else '  (فقط گزارش)'))
+        cok = all(ok for _v, ok, _m, blk in cres if blk)
         n8 = sum(1 for i in mq.graph.initializer if i.data_type in (2, 3))
         nqdq = sum(1 for n in mq.graph.node if n.op_type in ('QuantizeLinear', 'DequantizeLinear', 'DynamicQuantizeLinear'))
+        ir_final = mq.ir_version
         del mq
         sq = ort.InferenceSession(outp, so, providers=['CPUExecutionProvider'])
         nq = sq.get_inputs()[0].name
@@ -435,7 +482,8 @@ def main():
              'agree_cer_pct': round(100.0 * ed / max(1, tot), 3), 'n_val': len(vx), 'size_fp32': sz0, 'size_int8': sz1,
              'ratio': round(sz1 / sz0, 3), 'int8_initializers': n8, 'qdq_nodes': nqdq, 'quant_s': round(dt, 1),
              'cpu_x86_ms_fp32': round(1000 * tf / len(vx), 1), 'cpu_x86_ms_int8': round(1000 * tq / len(vx), 1),
-             'exclude': ex, 'path': outp}
+             'ir': ir_final, 'opset': ops, 'compat_ok': cok,
+             'compat': {v: (m or 'OK') for v, _o, m, _b in cres}, 'exclude': ex, 'path': outp}
         print('→ %s/%s/%s: agree-CER %.2f%% | حجم ×%.2f | وزن int8: %d | Q/DQ: %d | %.0fs'
               % (mode, act, r['calib'], r['agree_cer_pct'], r['ratio'], n8, nqdq, dt), flush=True)
         if mode == 'static' and r['ratio'] > 0.7:
@@ -452,21 +500,23 @@ def main():
         except Exception as e:
             print('WARN: پیکربندی %s/%s/%s شکست خورد: %s' % (mo, ac, cm, str(e)[:160]))
             continue
-        if trials[-1]['agree_cer_pct'] <= a.max_agree:
+        if trials[-1]['agree_cer_pct'] <= a.max_agree and trials[-1]['compat_ok']:
             break
     if not trials:
         die('هیچ پیکربندی‌ای اجرا نشد.')
-    best = min(trials, key=lambda r: r['agree_cer_pct'])
+    best = min(trials, key=lambda r: (not r['compat_ok'], r['agree_cer_pct']))
     shutil.copyfile(best.pop('path'), a.out)
     for r in trials:
         r.pop('path', None)
     sha = hashlib.sha256(open(a.out, 'rb').read()).hexdigest()
     open(a.out + '.sha256', 'w').write(sha + '  ' + os.path.basename(a.out) + '\n')
-    rep = dict(best, sha256=sha, trials=[{k: r[k] for k in ('mode', 'act', 'calib', 'agree_cer_pct', 'ratio')} for r in trials])
+    rep = dict(best, sha256=sha, trials=[{k: r[k] for k in ('mode', 'act', 'calib', 'agree_cer_pct', 'ratio', 'compat_ok')} for r in trials])
     print(json.dumps(rep, ensure_ascii=False, indent=1))
     if a.report:
         open(a.report, 'w').write(json.dumps(rep, ensure_ascii=False, indent=1))
     print('توجه: زمان‌های x86 معیار سرعت گوشی نیستند؛ سرعت واقعی را «گیت INT8» روی دستگاه می‌سنجد.')
+    if not best['compat_ok']:
+        die('هیچ پیکربندی‌ای روی ORT مقصد بارگذاری نشد؛ علت دقیق در خطوط «ORT x.y.z: ✗» بالا.', 4)
     if best['agree_cer_pct'] > a.max_agree:
         die('agree-CER %.2f%% > %.2f%% — این مدل را استفاده نکنید (calib واقعی بدهید: --calib DIR، یا --auto).'
             % (best['agree_cer_pct'], a.max_agree), 3)
