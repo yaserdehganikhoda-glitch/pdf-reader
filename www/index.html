@@ -2924,7 +2924,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
       }
       te = performance.now(); dd = natU8(v.u); te = performance.now() - te; r = await P.rec({ b: v.b, tw: v.tw, th: th, ep: ex.ep, ith: ex.ith, spin: ex.spin, mp: ex.mp, rm: i8use() ? 'int8' : '', data: dd }); dd = null;
       tb = performance.now(); ix = natB(r.idx); vl = natB(r.val); tb = performance.now() - tb; if (ocrPerf) { ocrPerf.rEnc = (ocrPerf.rEnc || 0) + te; ocrPerf.rDec = (ocrPerf.rDec || 0) + tb; }
-      if (ocrPerf) { ocrPerf.nc = (ocrPerf.nc | 0) + 1; if (r.rm !== undefined && r.rm !== null) ocrPerf.nrm = String(r.rm).slice(0, 12); if (r.rmw) ocrPerf.nrmw = String(r.rmw).slice(0, 90); ocrPerf.nms = (ocrPerf.nms || 0) + (performance.now() - t0); ocrPerf.nin = (ocrPerf.nin || 0) + (+r.ms || 0); }
+      if (ocrPerf) { ocrPerf.nc = (ocrPerf.nc | 0) + 1; if (r.rm !== undefined && r.rm !== null) ocrPerf.nrm = String(r.rm).slice(0, 12); if (r.rmw) ocrPerf.nrmw = String(r.rmw).slice(0, 260); ocrPerf.nms = (ocrPerf.nms || 0) + (performance.now() - t0); ocrPerf.nin = (ocrPerf.nin || 0) + (+r.ms || 0); }
       ln.ow.post('natres', { id: v.id, dims: r.dims, idx: ix.buffer, val: vl.buffer }, [ix.buffer, vl.buffer]);
     } catch (e) { try { ln.ow.post('natres', { id: v.id, err: String((e && e.message) || e).slice(0, 120) }); } catch (x) {} }
   }
@@ -7881,7 +7881,7 @@ var ocrSpell = (function(){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r87 · 2026-10-24 · cer-norm', npBuild = '';
+  var APP_BUILD = 'html-r88 · 2026-10-24 · i8-why', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
