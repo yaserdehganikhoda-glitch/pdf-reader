@@ -1747,6 +1747,17 @@ body:not(.view-page) #qaRot{display:none}
             <option value="2" data-short="کامل" data-desc="مکث در همهٔ مرزهای نحوی، حتی پیش از «که» پس از «گفت» و دو سوی «اما»؛ ممکن است کمی بریده‌بریده شنیده شود.">کامل</option>
           </select>
         </div>
+        <label class="chk"><input type="checkbox" id="psnDev"><span class="st"><b>ابزار بازبینی PSN (پیشرفته)</b><small>تفاوت ورودی/خروجی، شاخص‌های آماری و ثبت جمله‌های خطادار برای ساخت آزمون. فقط هنگام روشن‌بودن اجرا می‌شود.</small></span></label>
+        <div id="psnDevBox" hidden style="margin-top:8px">
+          <textarea id="psnDevIn" dir="auto" rows="4" style="width:100%" placeholder="هر خط یک جمله" aria-label="متن آزمایشی PSN"></textarea>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"><button class="btn sm" id="psnDevRun" type="button">بررسی</button><button class="btn sm" id="psnDevRep" type="button">ثبت در گزارش</button><button class="btn sm" id="psnDevSave" type="button">ذخیرهٔ گزارش .md</button></div>
+          <div id="psnDevOut" dir="rtl" style="line-height:2"></div>
+          <pre id="psnDevSt" dir="rtl" style="font:12px monospace;white-space:pre-wrap"></pre>
+          <details><summary>داده‌های PSN (JSON)</summary>
+            <textarea id="psnDevData" dir="ltr" rows="8" style="width:100%;font:11px monospace" aria-label="داده‌های PSN"></textarea>
+            <div style="display:flex;gap:6px;margin-top:6px"><button class="btn sm" id="psnDevApply" type="button">اعمال و ذخیره</button><button class="btn sm" id="psnDevReset" type="button">پیش‌فرض</button></div>
+          </details>
+        </div>
 </div>
 
 <div class="cfgv">
@@ -6891,18 +6902,16 @@ var PSN = (function(){
       SUF1 = new Set('ها های هایی هایم هایت هایش هایمان هایتان هایشان تر ترین تری'.split(' ')),
       SUF2 = new Set('ام ات اش مان تان شان'.split(' ')),
       ENC = new Set('است ایم اید اند'.split(' ')),
-      PART = /^[\u0621-\u06D3\u200c]{2,}[دتشگزنخرسبیلمکچجفپ]ه$/, NOPART = new Set(['که', 'چه', 'همه', 'بقیه']),
+      PART = /^[\u0621-\u06D3\u200c]{2,}[تد]ه$/, NOPART = new Set('که چه همه بقیه ماده اراده آماده فرشته دسته بنده زنده'.split(' ')), NZ = /نده$/,   /* صفت فعلی گذشته فقط «…ته/…ده» (نه خانه/نامه/دوشنبه)؛ اسم‌های رایج استثنا */
+      AMB = new Set(['هم', 'خود', 'کار']), PRN = new Set('او من ما تو شما آنها ایشان این آن همه'.split(' ')),
+      EZ = /(?:[\u06C0\u0654\u0650]|\u200cی)$/, EXC = new Set(), ADD = [], KERR = 0, MEMO = new Map(), MCAP = 500, V = 'r106',
       MIK = new Set('را تا از به در با بر که هم نیز یا'.split(' ')),
       KEEPD = /^(?:ام|امین|مین|ین|م|ها|های|تا|تایی|گانه|ی|ای|ه|ین)$/,
       RUNS = /[A-Za-z][A-Za-z0-9]*|[0-9۰-۹٠-٩]+(?:[.,٫٬\/:][0-9۰-۹٠-٩]+)*|[\u0621-\u06D3\u064B-\u065F\u0670\u200c]+|[^]/g,
       BND = /[\u0621-\u06D3][0-9۰-۹٠-٩A-Za-z]|[0-9۰-۹٠-٩A-Za-z][\u0621-\u06D3]/,
-      CMP = {};
+      CMP = {};   /* ساخته‌شدن در ld() */
   /* واژه‌های مرکب پرکاربرد: تشخیص با فاصله ← یکپارچه با نیم‌فاصله (واژهٔ آخر با پسوند ان/ها/ی هم پذیرفته می‌شود) */
-  ('دانش آموز|دانش جو|دانش پژوه|سخت افزار|نرم افزار|بین المللی|بین الملل|بین النهرین|صرفه جویی|گفت و گو|پیش بینی|پس انداز|خود رو|خود کار|هم کار|هم فکر|هم سو|دست آورد|دست نوشته|کار آمد|کار آفرین|کار شناس|کار خانه|کار گاه|راه اندازی|راه حل|راه آهن|چند رسانه ای|فرا داده|پایان نامه|پیش نویس|پیش فرض|پیش نیاز|پس زمینه|زیر ساخت|زیر بنا|بازی گر|هنر مند|ارزش مند|دانش مند|نیرو گاه|دل نشین|خوش بین|بد بین|خود آگاه|هم میهن|همه گیر|سرمایه گذاری|برنامه ریزی|نظر سنجی|خبر رسانی|اطلاع رسانی|آب و هوا|رفت و آمد|تحقیق و توسعه').split('|').forEach(function(p){
-    var a = p.split(' '); if (a.length < 2) return;
-    (CMP[a[0]] = CMP[a[0]] || []).push(a);
-  });
-  Object.keys(CMP).forEach(function(k){ CMP[k].sort(function(x, y){ return y.length - x.length; }); });
+  var DATA = { cmp: 'دانش آموز|دانش جو|دانش پژوه|سخت افزار|نرم افزار|بین المللی|بین الملل|بین النهرین|صرفه جویی|گفت و گو|پیش بینی|پس انداز|خود رو|خود کار|هم کار|هم فکر|هم سو|دست آورد|دست نوشته|کار آمد|کار آفرین|کار شناس|کار خانه|کار گاه|راه اندازی|راه حل|راه آهن|چند رسانه ای|فرا داده|پایان نامه|پیش نویس|پیش فرض|پیش نیاز|پس زمینه|زیر ساخت|زیر بنا|بازی گر|هنر مند|ارزش مند|دانش مند|نیرو گاه|دل نشین|خوش بین|بد بین|خود آگاه|هم میهن|همه گیر|سرمایه گذاری|برنامه ریزی|نظر سنجی|خبر رسانی|اطلاع رسانی|آب و هوا|رفت و آمد|تحقیق و توسعه', dm: [], nobef: '' }, DEF = '';   /* داده‌های قابل‌ذخیره (JSON): فهرست مرکب‌ها، قیدهای ربطی و واژه‌های بدون ویرگول پیش از خود؛ ساخت ساختار کاری در ld() */
   var EMB = /(?<=[\u0621-\u06D3\u200c\d۰-۹])[،؛!؟](?=[\u0621-\u06D3«(\d۰-۹])|(?<=[\u0621-\u06D3\u200c])(?:[,;:]|\.(?<=[\u0621-\u06D3]{3}\.))(?=[\u0621-\u06D3«(])/g;
   function pn(p, ar){                                                                      /* پاک‌سازی دنبالهٔ علائم: تکرار، ترکیب نرم+سخت، لاتین←فارسی */
     if (ar) p = p.replace(/,/g, '،').replace(/;/g, '؛').replace(/\?/g, '؟');
@@ -6930,7 +6939,10 @@ var PSN = (function(){
     }
     return T;
   }
-  function known(w){ try { return ocrSpell.known(w); } catch (e) { return false; } }
+  function known(w){ try { return ocrSpell.known(w); } catch (e) { KERR = 1; return false; } }
+  function kn(w){ try { return ocrSpell.known(w); } catch (e) { KERR = 1; return null; } }   /* null = فرهنگ‌واژه در دسترس نیست ← قاعدهٔ قدیمی */
+  function partOk(w){ var k; if (!PART.test(w) || NOPART.has(w) || STOP.has(w) || NZ.test(w)) return false; k = kn(w.slice(0, -1).replace(/\u200c/g, '')); return k !== false; }   /* ریشهٔ گذشته (رفت/گفت…) باید در فرهنگ‌واژه باشد */
+  function cmpOk(a, p){ var k; if ((a[0] === 'هم' || a[0] === 'خود') && p && p.c && !p.post && PRN.has(p.c)) return false; k = kn(a.join('')); if (k === null) return true; return k || kn(a.join(Z)) === true; }   /* «او هم کار می‌کند» ≠ هم‌کار */
   function zfix(c){
     var p = c.split(Z), out = p[0], i, a, b, j;
     if (p.length < 2) return c;
@@ -6984,11 +6996,11 @@ var PSN = (function(){
     for (i = 0; i < T.length; i++) {
       t = T[i]; c = t.c; p = R.length ? R[R.length - 1] : null;
       if (!c) { R.push(t); continue; }
-      if (p && p.c && !p.post && !t.pre) {
+      if (p && p.c && !p.post && !t.pre && !(EXC.size && EXC.has(p.c + ' ' + c))) {
         if ((p.c === 'می' || p.c === 'نمی') && /^[\u0621-\u06D3]{2,}/.test(c) && !MIK.has(c)) { mg(p, t, true); continue; }
         if (SUF1.has(c) && PL.test(p.c) && (c.length < 3 || (p.c.length >= 3 && !STOP.has(p.c)) || c[0] === 'ه')) { mg(p, t, !NJ.test(p.c)); continue; }
         if (SUF2.has(c) && PL.test(p.c) && p.c.length >= 3 && !STOP.has(p.c)) { mg(p, t, !NJ.test(p.c)); continue; }
-        if ((ENC.has(c) || c === 'ای') && PART.test(p.c) && !NOPART.has(p.c) && !STOP.has(p.c)) { mg(p, t, true); continue; }
+        if ((ENC.has(c) || c === 'ای') && partOk(p.c)) { mg(p, t, true); continue; }
         if (c === 'ای' && /ه$/.test(p.c) && p.c.length >= 3 && !STOP.has(p.c)) { mg(p, t, true); continue; }
       }
       if (CMP[c] && !t.post) {                                                              /* واژهٔ مرکب */
@@ -7001,6 +7013,7 @@ var PSN = (function(){
             r = j === a.length - 1 ? (n.c.indexOf(a[j]) === 0 && /^(?:ان|ها|های|ی|ای|هایی|یی)?$/.test(n.c.slice(a[j].length))) : n.c === a[j];
             if (!r || (j < a.length - 1 && n.post)) { ok = false; break; }
           }
+          if (ok && ((EXC.size && EXC.has(a.join(' '))) || (AMB.has(c) && !cmpOk(a, p)))) ok = false;
           if (ok) { for (j = 1; j < a.length; j++) mg(t, T[i + j], true); i += a.length - 1; if (a[1] === 'و') t.c = t.c.replace(/\u200cو\u200c/, Z + 'و'); }
         }
       }
@@ -7011,16 +7024,34 @@ var PSN = (function(){
 
   /* ---------- اتصال علائم (حداقلی؛ کامل‌شده در بخش ۳) و مکث نحوی ---------- */
   var HP = /[،,؛;:.!?؟…]/, BRK = new Set('اما ولی لیکن بلکه'.split(' ')),
-      NOBEF = new Set('و یا که نیز هم را از به در با بر برای تا چه نه اما ولی لیکن بلکه این آن'.split(' ')),
+      NOBEF = new Set(),
       COND = new Set('اگر چنانچه اگرچه گرچه وقتی هرچند'.split(' ')),
       PREP = new Set('در به با از بر'.split(' ')), SUBJ = /^ن?ب[\u0621-\u06D3\u200c]{1,}(?:م|ی|د|یم|ید|ند)$/,
       DM = {};
-  [['اما', 'b'], ['ولی', 'b'], ['لیکن', 'b'], ['بلکه', 'b'], ['بنابراین', 'b'], ['لذا', 'b'], ['در نتیجه', 'b'], ['از این رو', 'b'], ['درنتیجه', 'b'],
+  DATA.dm = [['اما', 'b'], ['ولی', 'b'], ['لیکن', 'b'], ['بلکه', 'b'], ['بنابراین', 'b'], ['لذا', 'b'], ['در نتیجه', 'b'], ['از این رو', 'b'], ['درنتیجه', 'b'],
    ['همچنین', 'a'], ['خوشبختانه', 'a'], ['متاسفانه', 'a'], ['متأسفانه', 'a'], ['در واقع', 'a'], ['به علاوه', 'a'], ['به عبارت دیگر', 'a'], ['با این حال', 'a'], ['به هر حال', 'a'], ['در حقیقت', 'a'], ['به طور کلی', 'a']
-  ].forEach(function(p){ var w = p[0].split(' '); (DM[w[0]] = DM[w[0]] || []).push({ w: w, y: p[1] }); });
-  Object.keys(DM).forEach(function(k){ DM[k].sort(function(a, b){ return b.w.length - a.w.length; }); });
+  ];
+  DATA.nobef = 'و یا که نیز هم را از به در با بر برای تا چه نه اما ولی لیکن بلکه این آن';
+  function ld(){                                                                           /* ساخت CMP/DM/NOBEF از DATA (+ «+»های واژه‌نامهٔ کاربر) و تخلیهٔ حافظهٔ میانی */
+    var c = {}, d = {};
+    DATA.cmp.split('|').concat(ADD).forEach(function(p){ var a = p.split(' '); if (a.length < 2) return; (c[a[0]] = c[a[0]] || []).push(a); });
+    Object.keys(c).forEach(function(k){ c[k].sort(function(x, y){ return y.length - x.length; }); });
+    CMP = c;
+    NOBEF.clear(); DATA.nobef.split(' ').forEach(function(w){ if (w) NOBEF.add(w); });
+    DATA.dm.forEach(function(p){ var w = p[0].split(' '); (d[w[0]] = d[w[0]] || []).push({ w: w, y: p[1] }); });
+    Object.keys(d).forEach(function(k){ d[k].sort(function(a, b){ return b.w.length - a.w.length; }); });
+    DM = d; MEMO.clear();
+  }
+  ld(); DEF = JSON.stringify(DATA);
   function hp(t){ return HP.test(t.post); }
-  function put(t){ if (!hp(t)) t.post += '،'; }
+  function put(t, nx){ if (!hp(t) && !EZ.test(t.c) && !(nx && nx.c === 'را')) t.post += '،'; }   /* نه پس از مضاف با کسرهٔ نوشته‌شده و نه پیش از «را» */
+  var VRB = /^(?:ن?می\u200c?\p{L}{2,}(?:م|ی|د|یم|ید|ند)|ن?ب[\p{L}\u200c]{1,}(?:م|ی|د|یم|ید|ند)|\p{L}{2,}(?:ید|ند|یم)|[\p{L}\u200c]{2,}ه\u200c?(?:ام|ای|است|اند|ایم|اید))$/u;
+  function isV(w){ w = wcore(w); return PZ_VERB.test(w) || VRB.test(w); }
+  function chun(W, k){                                                                    /* «چون» به‌معنای زیرا: ضمیر پس از آن، یا فعل بند در ۳ تا ۵ توکن بعد؛ «چون کوه ایستاد» (مانند) ویرگول نمی‌گیرد */
+    var j, nx = W[k + 1]; if (!nx) return false; if (PRN.has(nx.c)) return true;
+    for (j = k + 1; j <= k + 5 && j < W.length; j++) { if (isV(W[j].c)) return j - k >= 3; if (j > k + 1 && hp(W[j - 1])) break; }
+    return false;
+  }
   function attach(T){                                                                      /* علامتِ جداافتاده به کلمهٔ قبل می‌چسبد؛ پرانتز/گیومهٔ بازِ جداافتاده به کلمهٔ بعد */
     var R = [], i, t, p, pend = '';
     for (i = 0; i < T.length; i++) {
@@ -7051,10 +7082,10 @@ var PSN = (function(){
       if (it) {
         e = k + it.w.length - 1; rem = n - 1 - e;
         if (rem >= 1) {
-          if (st) put(W[e]);                                                               /* آغاز بند: «بنابراین، …» */
+          if (st) put(W[e], W[e + 1]);                                                               /* آغاز بند: «بنابراین، …» */
           else {
             if ((it.y === 'b' || S) && run >= MR + (S ? 0 : 1) && !NOBEF.has(pv.c)) put(pv);
-            if (S) put(W[e]);
+            if (S) put(W[e], W[e + 1]);
           }
         }
         for (x = k; x <= e; x++) run = hp(W[x]) ? 0 : run + 1;
@@ -7063,7 +7094,7 @@ var PSN = (function(){
       if (!st && rem >= 2 && !NOBEF.has(pv.c)) {                                           /* ربط‌های وابسته‌ساز: ویرگول پیش از آن */
         if (c === 'که') { if ((S || (run >= 4 && !PZ_NOPRE.has(wcore(pv.c)) && !PZ_NOPRE_V.test(wcore(pv.c)))) && !/^(?:چرا|زیرا)$/.test(pv.c)) put(pv); }
         else if (c === 'زیرا' || (c === 'چرا' && W[k + 1] && W[k + 1].c === 'که') || (c === 'با' && W[k + 1] && W[k + 1].c === 'اینکه' && run >= MR)) { if (run >= MR) put(pv); }
-        else if ((c === 'چون' || COND.has(c)) && run >= (S ? 1 : 4)) put(pv);
+        else if ((c === 'چون' ? chun(W, k) : COND.has(c)) && run >= (S ? 1 : 4)) put(pv);
         else if (c === 'تا' && run >= (S ? 1 : 4) && (SUBJ.test(W[k + 1].c) || (W[k + 2] && SUBJ.test(W[k + 2].c)) || W[k + 1].c === 'اینکه')) put(pv);
       }
       if (COND.has(c)) {                                                                   /* بند شرطی/قیدی: ویرگول پس از نخستین فعل */
@@ -7118,7 +7149,64 @@ var PSN = (function(){
     cfg: CFG,
     pz: function(){ return CFG.on && CFG.lvl > 0; },
     run: function(s, fin){ return run(s, true, true, fin); },
-    norm: function(s, pz){ return CFG.on ? run(s, false, pz).normalizedText : s; },
+    norm: function(s, pz){                                                                 /* حافظهٔ میانی LRU (≈۵۰۰ مدخل)؛ هنگام نبود فرهنگ‌واژه ذخیره نمی‌شود */
+      if (!CFG.on) return s;
+      var k, v;
+      if (!s || s.length > 1500) return run(s, false, pz).normalizedText;
+      k = (pz ? 1 : 0) + '|' + CFG.lvl + (CFG.digits ? 'd' : '') + '|' + s;
+      v = MEMO.get(k);
+      if (v !== undefined) { MEMO.delete(k); MEMO.set(k, v); return v; }
+      KERR = 0; v = run(s, false, pz).normalizedText;
+      if (!KERR) { MEMO.set(k, v); if (MEMO.size > MCAP) MEMO.delete(MEMO.keys().next().value); }
+      return v;
+    },
+    V: V,
+    clear: function(){ MEMO.clear(); },
+    user: function(ex, ad){ EXC = new Set(ex || []); ADD = (ad || []).filter(function(p){ return p.split(' ').length > 1; }); ld(); },   /* «!عبارت» جلوگیری از ادغام؛ «+عبارت» افزودن مرکب */
+    data: function(){ return JSON.parse(JSON.stringify(DATA)); },
+    load: function(d){
+      var ok = false;
+      if (!d || typeof d !== 'object') return false;
+      if (typeof d.cmp === 'string' && d.cmp.length < 30000) { DATA.cmp = d.cmp; ok = true; }
+      if (typeof d.nobef === 'string' && d.nobef.length < 3000) { DATA.nobef = d.nobef; ok = true; }
+      if (Array.isArray(d.dm) && d.dm.length < 500 && d.dm.every(function(p){ return Array.isArray(p) && typeof p[0] === 'string' && (p[1] === 'a' || p[1] === 'b'); })) { DATA.dm = d.dm; ok = true; }
+      if (ok) ld();
+      return ok;
+    },
+    reset: function(){ DATA = JSON.parse(DEF); ld(); },
+    /* ابزار بازبینی: تفاوت واژه‌به‌واژهٔ ورودی/خروجی (LCS؛ حداکثر ۳۰۰ واژه) — فقط هنگام فراخوانی هزینه دارد */
+    diff: function(s){
+      var o = run(String(s), false, true).normalizedText, A = String(s).split(/\s+/).filter(Boolean), B = o.split(/\s+/).filter(Boolean), n = A.length, m = B.length, w = m + 1, L, i, j, R = [];
+      if (!n || n > 300 || m > 300) return [{ t: 'same', s: o }];
+      L = new Uint16Array((n + 1) * w);
+      for (i = n - 1; i >= 0; i--) for (j = m - 1; j >= 0; j--) L[i * w + j] = A[i] === B[j] ? L[(i + 1) * w + j + 1] + 1 : Math.max(L[(i + 1) * w + j], L[i * w + j + 1]);
+      i = j = 0;
+      while (i < n && j < m) {
+        if (A[i] === B[j]) { R.push({ t: 'same', s: B[j] }); i++; j++; }
+        else if (L[(i + 1) * w + j] >= L[i * w + j + 1]) R.push({ t: 'del', s: A[i++] });
+        else R.push({ t: 'add', s: B[j++] });
+      }
+      while (i < n) R.push({ t: 'del', s: A[i++] });
+      while (j < m) R.push({ t: 'add', s: B[j++] });
+      return R;
+    },
+    /* شاخص‌های ثابت هر نسخه: ویرگول تزریقی/۱۰۰ واژه، متوسط طول بند (واژه)، درصد جمله‌های تغییرکرده، ادغام/جداسازی */
+    stats: function(list, wpm){
+      var r = { sents: 0, words: 0, changed: 0, injected: 0, merges: 0, splits: 0, marks: 0 }, i, s, o, a, b, c1, c2, seg = 0, segW = 0;
+      for (i = 0; i < list.length; i++) {
+        s = String(list[i]); if (!s.trim()) continue;
+        o = run(s, false, true).normalizedText; r.sents++;
+        a = s.split(/\s+/).filter(Boolean).length; b = o.split(/\s+/).filter(Boolean).length; r.words += b;
+        if (o !== s) r.changed++;
+        c1 = (s.match(/[،؛]/g) || []).length; c2 = (o.match(/[،؛]/g) || []).length; if (c2 > c1) r.injected += c2 - c1;
+        if (a > b) r.merges += a - b; else r.splits += b - a;
+        r.marks += (o.match(/[،؛.!؟?…:]/g) || []).length;
+        o.split(/[،؛.!؟?…:]+/).forEach(function(p){ var k = p.split(/\s+/).filter(Boolean).length; if (k) { seg++; segW += k; } });
+      }
+      wpm = wpm || 130;
+      return { sents: r.sents, words: r.words, changedPct: r.sents ? +(r.changed * 100 / r.sents).toFixed(1) : 0, injectedPer100: r.words ? +(r.injected * 100 / r.words).toFixed(2) : 0,
+               avgClause: seg ? +(segW / seg).toFixed(2) : 0, merges: r.merges, splits: r.splits, pausesPerMin: r.words ? +(r.marks / (r.words / wpm)).toFixed(1) : 0, wpm: wpm };
+    },
     /* نگاشت onboundary: اندیس در normalizedText ← بازهٔ [شروع، پایان) واژهٔ متناظر در متن اصلی (بدون سوگیری انباشته) */
     span: function(r, i){ var k = at(r, i), w; if (k < 0) return null; w = r.indexMap[k]; return [w[2], w[3]]; },
     pos: function(r, i){ var k = at(r, i), w; if (k < 0) return i; w = r.indexMap[k]; return Math.min(w[3], w[2] + Math.max(0, i - w[0])); }
@@ -7452,10 +7540,12 @@ try { window.PSN = PSN; } catch (e) {}
     } catch (e) {}
   }
   function parseDict0(){
+    var pex = [], pad = [];
     userDict = []; ocrFx = []; userTok = new Map(); userTokI = new Map(); userCx = [];
     /* واژه‌نامهٔ همین فایل اول می‌آید تا بر واژه‌نامهٔ همهٔ فایل‌ها اولویت داشته باشد */
     (dictP + '\n' + dictG).split('\n').forEach(function(l){
       l = l.replace(/^\s+/, ''); if (!l || l.charAt(0) === '#') return;
+      if ((l.charAt(0) === '!' || l.charAt(0) === '+') && l.indexOf('=') < 0) { var ph = l.slice(1).trim().replace(/\s+/g, ' '); if (ph) (l.charAt(0) === '!' ? pex : pad).push(ph); return; }   /* «!خانه است» جلوگیری از ادغام؛ «+دانش آموز» افزودن مرکب */
       var ar = l.indexOf('=>'); if (ar > 0) { ocrFxAdd(l.slice(0, ar).trim(), l.slice(ar + 2).trim()); return; }
       var p = l.indexOf('='); if (p < 1) return;
       var lhs = l.slice(0, p).trim(), b = l.slice(p + 1).trim(), rm = /^\/(.+)\/([iu]*)$/.exec(lhs);
@@ -7463,9 +7553,10 @@ try { window.PSN = PSN; } catch (e) {}
       lhs.split(/\s*\|\s*/).forEach(function(a){
         a = normCh(a.trim()); if (!a) return;
         if (/^[\p{L}\p{N}\u200c]+$/u.test(a)) { userDict.push({ tok: 1, to: b, src: a }); return; }   /* کلمهٔ ساده: جست‌وجوی Map به‌جای regex جدا برای هر مدخل (T-12) */
-        try { userDict.push({ re: new RegExp('(?<![\\p{L}\\p{N}\\u200c])' + a.replace(/[\\^$.*+?()[\]{}|\/]/g, '\\$&') + '(?=' + DICT_SUF + '(?![\\p{L}\\p{N}\\u200c]))', /^[\x20-\x7e]+$/.test(a) ? 'giu' : 'gu'), to: b, src: a }); } catch (e) {}
+        try { userDict.push({ re: new RegExp('(?<![\\p{L}\\p{N}\\u200c])' + a.replace(/[\\^$.*+?()[\]{}|\/]/g, '\\$&').replace(/ +/g, '[ \\u200c]') + '(?=' + DICT_SUF + '(?![\\p{L}\\p{N}\\u200c]))', /^[\x20-\x7e]+$/.test(a) ? 'giu' : 'gu'), to: b, src: a }); } catch (e) {}
       });
     });
+    try { PSN.user(pex, pad); } catch (e) {}
     if (userDict.length > DICT_MAX) {                                /* نشانگر تک‌نویسه فقط تا ۶۱۴۴ مدخل در محدودهٔ PUA جا دارد؛ بیشتر از آن حذف و گزارش می‌شود (T-12) */
       try { if (window.__elog) window.__elog.add('dict', 'واژه‌نامه بیش از ' + DICT_MAX + ' مدخل دارد؛ ' + (userDict.length - DICT_MAX) + ' مدخل آخر نادیده گرفته شد'); } catch (e) {}
       userDict.length = DICT_MAX;
@@ -8176,6 +8267,7 @@ try { window.PSN = PSN; } catch (e) {}
     if (why.length) row('اصلاح‌ها', why.join(' · '));
     var u = Object.keys(r.uns).map(function(w){ return w + ' ← ' + r.uns[w]; });
     if (u.length) row('تلفظ تقریبی', u.join(' ، '));
+    if (PSN.dev && PSN.dev.on) { var rb = document.createElement('button'); rb.type = 'button'; rb.className = 'btn sm'; rb.textContent = 'گزارش این جمله'; rb.onclick = function(){ rb.textContent = PSN.dev.rep(s.text) ? 'ثبت شد' : 'ناموفق'; rb.disabled = true; }; tip.appendChild(rb); }
     tip.hidden = false;
   }
   var rd = $('#reader');
@@ -8789,7 +8881,7 @@ try { window.PSN = PSN; } catch (e) {}
     var h = 5381, z = c.text + '|' + (c.parts || []).map(function(x){ return x.s + ':' + x.g; }).join(','), i = z.length, st = '';
     while (i) h = (h * 33) ^ z.charCodeAt(--i);
     try { st = styleParams(v.id).join(','); } catch (e) {}
-    return ['piper', v.id, c.start, (h >>> 0).toString(36) + st, c.end].join('|');
+    return ['piper', v.id, c.start, (h >>> 0).toString(36) + st + 'p' + (window.PSN && PSN.V || ''), c.end].join('|');   /* PSN.V: با تغییر قواعد، کش قدیمی خودکار نامعتبر می‌شود */
   }
   function piperFetchRaw(c){
     var v = currentVoice();
@@ -10416,10 +10508,53 @@ try { window.PSN = PSN; } catch (e) {}
   $('#smartPace').checked = sget('smartPace', '0') === '1';
   $('#humPace').checked = sget('humPace', '1') !== '0';
   $('#humPace').onchange = function(){ sset('humPace', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
+  try { var pd0 = sget('psnData', ''); if (pd0) PSN.load(JSON.parse(pd0)); } catch (e) {}   /* داده‌های PSN (در «ذخیرهٔ کل تنظیمات» می‌آید: کلید psnData) */
   $('#psnOn').checked = sget('psnOn', '1') !== '0'; PSN.cfg.on = $('#psnOn').checked;
   $('#psnOn').onchange = function(){ sset('psnOn', this.checked ? '1' : '0'); PSN.cfg.on = this.checked; changed(); analyze(); warmPiper(); };
   $('#psnLvl').value = sget('psnLvl', '1'); if (['0', '1', '2'].indexOf($('#psnLvl').value) < 0) $('#psnLvl').value = '1'; PSN.cfg.lvl = +$('#psnLvl').value;
   $('#psnLvl').onchange = function(){ sset('psnLvl', this.value); PSN.cfg.lvl = +this.value; changed(); analyze(); warmPiper(); };
+  (function(){                                                                             /* ابزار بازبینی PSN (P5): تا وقتی روشن نشود هیچ کاری نمی‌کند */
+    var chk = $('#psnDev'), box = $('#psnDevBox'), inp = $('#psnDevIn'), out = $('#psnDevOut'), st = $('#psnDevSt'), dat = $('#psnDevData'), reps = [], nrep = $('#psnDevRep');
+    if (!chk || !box) return;
+    var CA = 'background:rgba(0,150,70,.28);border-radius:3px;padding:0 2px', CD = 'background:rgba(210,50,50,.28);text-decoration:line-through;border-radius:3px;padding:0 2px';
+    function say(m){ try { status(m); } catch (e) {} }
+    function lines(){ return inp.value.split(/\n+/).filter(function(x){ return x.trim(); }); }
+    function show(){
+      var L = lines(), i, j, d, e, sp, r;
+      out.textContent = '';
+      for (i = 0; i < L.length; i++) {
+        d = PSN.diff(L[i]); e = document.createElement('div');
+        for (j = 0; j < d.length; j++) { sp = document.createElement('span'); sp.textContent = d[j].s + ' '; if (d[j].t === 'add') sp.style.cssText = CA; else if (d[j].t === 'del') sp.style.cssText = CD; e.appendChild(sp); }
+        out.appendChild(e);
+      }
+      r = PSN.stats(L);
+      st.textContent = 'نسخهٔ قواعد: ' + PSN.V + '\nجمله‌ها: ' + r.sents + ' | واژه‌ها: ' + r.words + '\nجمله‌های تغییرکرده: ' + r.changedPct + '٪\nویرگول تزریقی در هر ۱۰۰ واژه: ' + r.injectedPer100 + '\nمتوسط طول بند (واژه): ' + r.avgClause + '\nمکث در دقیقه (تقریبی، با ' + r.wpm + ' واژه در دقیقه): ' + r.pausesPerMin + '\nادغام‌ها: ' + r.merges + ' | جداسازی‌ها: ' + r.splits;
+    }
+    function cnt(){ nrep.textContent = 'ثبت در گزارش (' + reps.length + ')'; }
+    function add(t){ t = String(t || '').trim(); if (!t) return false; if (reps.length >= 200) reps.shift(); reps.push({ i: t, o: PSN.norm(t, true) }); cnt(); return true; }
+    function md(){
+      var d = new Date(), o = '# گزارش خطای PSN ' + PSN.V + ' — ' + d.toISOString().slice(0, 10) + '\n\nقالب هر مورد مثل آزمون طلایی است (علامت _ = نیم‌فاصله). «خروجی درست» را پر کنید و در psn-golden-test.js بیفزایید.\n\n', q = function(x){ return x.replace(/`/g, "'").replace(/\u200c/g, '_'); };
+      reps.forEach(function(r, k){ o += '## ' + (k + 1) + '\n- ورودی: `' + q(r.i) + '`\n- خروجی PSN: `' + q(r.o) + '`\n- خروجی درست: ``\n\n'; });
+      return o;
+    }
+    function dl(){
+      if (!reps.length) { say('گزارشی ثبت نشده است.'); return; }
+      var b = new Blob([md()], { type: 'text/markdown' }), n = 'psn-report-' + PSN.V + '.md', u, a;
+      if (typeof msDl === 'function') { msDl(b, n); return; }
+      u = URL.createObjectURL(b); a = document.createElement('a'); a.href = u; a.download = n; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(u); }, 60000);
+    }
+    PSN.dev = { on: false, rep: add };
+    chk.onchange = function(){ PSN.dev.on = chk.checked; box.hidden = !chk.checked; if (chk.checked) { dat.value = JSON.stringify(PSN.data(), null, 1); cnt(); } };
+    $('#psnDevRun').onclick = show;
+    nrep.onclick = function(){ var L = lines(), k = 0; L.forEach(function(x){ if (add(x)) k++; }); say(k ? k + ' جمله در گزارش ثبت شد.' : 'جمله‌ای وارد نشده است.'); };
+    $('#psnDevSave').onclick = dl;
+    $('#psnDevApply').onclick = function(){
+      try { if (!PSN.load(JSON.parse(dat.value))) throw 0; sset('psnData', JSON.stringify(PSN.data())); changed(); analyze(); warmPiper(); say('داده‌های PSN اعمال شد.'); }
+      catch (e) { say('JSON نامعتبر است.'); }
+    };
+    $('#psnDevReset').onclick = function(){ PSN.reset(); sset('psnData', ''); dat.value = JSON.stringify(PSN.data(), null, 1); changed(); analyze(); warmPiper(); say('داده‌های PSN به پیش‌فرض برگشت.'); };
+  })();
   $('#phLex').checked = sget('phLex', '1') !== '0';
   $('#phLex').onchange = function(){ sset('phLex', this.checked ? '1' : '0'); changed(); analyze(); warmPiper(); };
   /* حافظهٔ نهان صدای بومی: نمایش حجم، سقف و پاک‌کردن */
