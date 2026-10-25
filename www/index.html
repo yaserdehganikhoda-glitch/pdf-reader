@@ -4940,6 +4940,31 @@ var ocrSpell = (function(){
       if (Z(k) !== 'و' || brk(k - 1) || !V(k - 1) || V(k + 1) || VG_PREP[Z(k + 1)] || !hasV(k + 1, n)) continue;
       if (VG_PRON[Z(k + 1)] || VG_NAME[Z(k + 1)]) add(k - 1, 'R10', .78);
     }
+    /* R11: مرز بند در متن بی‌نشانه (خروجی OCR/متن‌های بلند بدون ویرگول): پس از فعل بند، پیش از آغاز بند تازه — فاعل ضمیری، «تا»ی هدف، «و» + بند با فاعل مستقل، یا هر واژهٔ غیرربطی در رشتهٔ بسیار بلند */
+    if (n >= 8) {
+      var lb = 0, runon = n >= 15, tl, nx, nv, bt;
+      for (i = 0; i < n; i++) if (brk(i) && i < n - 1) { runon = false; break; }
+      for (k = 0; k < n - 4; k++) {
+        if (brk(k) || ins[k]) { lb = k + 1; continue; }
+        if (!V(k) || T[k].op) continue;
+        if (VG_AMB[Z(k)] && V(k + 1)) continue;
+        if (/خواه|توان/.test(T[k].c) && (V(k + 1) || /^ب/.test(T[k + 1].c))) continue;
+        e = k; while (e + 1 < n - 4 && VG_AUX[Z(e + 1)] && !brk(e)) e++;
+        k = e; if (brk(k) || ins[k]) { lb = k + 1; continue; }
+        tl = n - 1 - k; nx = Z(k + 1);
+        if (k - lb + 1 < 5 || tl < 3 || !hasV(k + 1, n) || VG_COORD[nx] && nx !== 'تا' && nx !== 'و') continue;
+        if (nx === 'تا') { if (tl >= 2 && hasV(k + 2, n) && add(k, 'R11', .9)) lb = k + 1; continue; }
+        if (nx === 'و') {
+          nv = -1; for (j = k + 2; j < n; j++) if (V(j)) { nv = j; break; }
+          if (nv < 0 || nv - (k + 2) < 2 || tl < 5 || k - lb + 1 < 6 || V(k + 2)) continue;
+          if (add(k, 'R11', runon ? .9 : .78)) lb = k + 1;
+          continue;
+        }
+        if (VG_PREP[nx] || /^ن?می/.test(nx)) continue;
+        bt = VG_PRON[nx] && !VG_SAY.test(T[k].c) ? .9 : (k - lb + 1 >= 7 ? (runon ? .9 : .76) : 0);
+        if (bt && add(k, 'R11', bt)) lb = k + 1;
+      }
+    }
     /* N1..N7: حذف ویرگول اشتباه */
     for (k = 0; k < n; k++) {
       t = T[k]; if (t.op || t.tr.indexOf('،') < 0) continue;
