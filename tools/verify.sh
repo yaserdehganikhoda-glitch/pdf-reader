@@ -30,4 +30,6 @@ const r=JSON.parse(require("fs").readFileSync("/tmp/emo.out","utf8").split("\n")
 if(r.macroF1_5<0.7||r.ms_per_sentence_node>5){console.log("FAIL آستانهٔ احساس");process.exit(1)}console.log("OK احساس")' || E=1
 node "$D/evalemo.js" "$F" --holdout | head -1
 node "$D/emopar.js" "$F" | tail -1
+node "$D/emph.js" "$F" | tail -2 || E=1
+node "$D/prio.js" "$F" || E=1
 exit $E
