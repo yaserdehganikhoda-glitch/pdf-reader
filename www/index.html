@@ -7708,13 +7708,11 @@ var ocrSpell = (function(){
   }
   function endMark(t, cont){ return /[.!?;:,]$/.test(t) ? t : t + (cont ? ',' : '.'); }
   /* تلفظ پیشرفتهٔ فارسی: espeak (موتور آوانگار همهٔ صداها) برای «می، نمی، ها، ام، ات، اش، ای، اید، اند، تر…» وقتی با نیم‌فاصله جدا باشند واژهٔ بی‌تکیه و درست می‌شناسد، و «ۀ» را «-eje» می‌خواند */
-  function phFa(){ return true; }
   /* ---------- کسرهٔ اضافهٔ خودکار ----------
      موتور آوایی بدون نشانهٔ اضافه، «صدای کتاب» را بی‌کسره و رباتی می‌خواند. این‌جا بین دو کلمهٔ پشت‌سرهم (اسم/صفت) که
      هیچ نشانه‌گذاری میانشان نیست، کسره می‌گذاریم. کلمه‌های ربطی، فعل، ضمیر، عدد و حرف اضافه را رد می‌کنیم؛ تحلیل دستوری نیست و تقریبی است. */
   function ezOn(){ return sget('ezMod', '') === '1'; }   /* ماژول کسرهٔ اضافهٔ قاعده‌محور (ezApply)؛ پیش‌فرض خاموش تا F1 ≥ ۸۸٪ روی Golden Set تأیید شود؛ فعال‌سازی: ezSet(1) در کنسول */
   function humOn(){ var e = document.getElementById('humPace'); return !e || e.checked; }
-  function lexOn(){ return true; }
   function hStr(s){ var h = 0, i; for (i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
   var EZ_STOP = {};
   ('به که از در را با تا یا و این آن او ما تو من شما آنها اینها آنان ایشان اما ولی اگر چون زیرا بلکه پس هم نیز هر همه هیچ چه چرا کجا کی کدام چند چندین نه بله خیلی بسیار کم بیش بیشتر کمتر خود همان همین چنین چنان اکنون امروز دیروز فردا حالا هنوز همیشه هرگز دیگر فقط تنها حتی مثلاً یعنی البته شاید باید نباید است نیست هست نبود بود شد شود شده باشد باشند دارد دارند داشت کرد کند کنند کرده کردند گفت گفته رفت آمد آمده دید داد داده گرفت خورد خواهد خواست توانست بر برای بی بدون مگر جز طی نزد سوی مانند مثل طبق بعد قبل ' +
@@ -7971,7 +7969,7 @@ var ocrSpell = (function(){
   }
   function ttsBase(t, eng, cont, pre){
     eng = eng || engine();
-    if (phFa()) t = t.replace(/\u0647\u0654/g, '\u06C0');
+    t = t.replace(/\u0647\u0654/g, '\u06C0');
     t = stripHar(normCh(t)).replace(/\u00A0/g, ' ')
       .replace(/[\u00ad\u200b\u200d-\u200f\u202a-\u202e\u2066-\u2069\ufeff\u061c\u2060\u180e\u206a-\u206f]/g, '');
     if (!pre) t = dictIn(t);
@@ -7988,7 +7986,7 @@ var ocrSpell = (function(){
       .replace(/(?<![\d\/.\-])(0?[1-9]|[12]\d|3[01])\s*[\/\-.]\s*(0?[1-9]|1[0-2])\s*[\/\-.]\s*((?:19|20)\d\d)(?!\d)/g, function(_, d, m, y){ return dmy(d, m, y, MON_EN); })
       .replace(RE_DMEN, function(_, d, m, y){ return dmy(d, monIdx(m), y, MON_EN); })
       .replace(RE_MDEN, function(_, m, d, y){ return dmy(d, monIdx(m), y, MON_EN); })
-      .replace(/(?<!\d)([01]?\d|2[0-3]):([0-5]\d)(?![\d:])/g, function(_, h, m, off, str){ if (REF_PRE.test(str.slice(Math.max(0, off - 16), off))) return ' ' + numFa(String(+h)) + ', ' + numFa(String(+m)) + ' '; h = +h; m = +m; var hw = ' ' + numFa(String(h)); if (lexOn() && h >= 1 && h <= 12) { if (m === 30) return hw + ' و نیم '; if (m === 15) return hw + ' و ربع '; } return hw + (m ? ' و ' + numFa(String(m)) + ' دقیقه' : '') + ' '; })
+      .replace(/(?<!\d)([01]?\d|2[0-3]):([0-5]\d)(?![\d:])/g, function(_, h, m, off, str){ if (REF_PRE.test(str.slice(Math.max(0, off - 16), off))) return ' ' + numFa(String(+h)) + ', ' + numFa(String(+m)) + ' '; h = +h; m = +m; var hw = ' ' + numFa(String(h)); if (h >= 1 && h <= 12) { if (m === 30) return hw + ' و نیم '; if (m === 15) return hw + ' و ربع '; } return hw + (m ? ' و ' + numFa(String(m)) + ' دقیقه' : '') + ' '; })
       .replace(/(?<![\d\-\/.])(\d{1,4})\s*[-–—]\s*(\d{1,4})(?![\d\-\/])/g, '$1 تا $2')
       .replace(/(\d)\s*(km|cm|mm|m)\s*([23])(?![\d\p{L}])/giu, function(_, d, u, p){ return d + ' ' + ({ km: 'کیلومتر', cm: 'سانتی‌متر', mm: 'میلی‌متر', m: 'متر' })[u.toLowerCase()] + (p === '2' ? ' مربع ' : ' مکعب '); })
       .replace(/(\d)\s*(km\/h|m\/s|kbps|mbps|gbps|kcal|kwh|kw|rpm|fps|mmhg|bpm|km|cm|mm|kg|mg|ml|kb|mb|gb|tb|khz|mhz|ghz|hz)(?![a-z])/gi, function(_, d, u){ return d + ' ' + UNIT[u.toLowerCase()] + ' '; })
@@ -8001,10 +7999,10 @@ var ocrSpell = (function(){
     if (phLexOn()) t = lexApply(t);
     t = dictOut(t, fixOn());
     if (ezOn()) t = ezApply(t);
-    if (phFa()) {
+    {
       t = t.replace(/\u0647\u200c\u06CC(?![\p{L}\u200c])/gu, '\u06C0')
         .replace(/\u200c+/g, '\u200c').replace(/(?<![\p{L}\p{M}])\u200c|\u200c(?![\p{L}\p{M}])/gu, '');
-    } else t = t.replace(/\u200c/g, '');
+    }
     t = t.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, ' ').replace(/\.{4,}/g, ', ').replace(/[_=\-–—]{3,}/g, ' ').replace(/&/g, ' و ')
       .replace(/[»”]\s+(?=(?!(?:را|است|که|و|یا|هم|نیز|بود|می|نه)(?![\p{L}\u200c]))[\p{L}\p{N}])/gu, ', ').replace(/[«»"“”]/g, '').replace(/\s*[(\[]\s*/g, ', ').replace(/\s*[)\]]\s*/g, ', ')
       .replace(/[•▪■◆●○◦*_#|~^<>{}\\\/]/g, ' ').replace(/\s*[–—]\s*/g, ', ')
@@ -8194,7 +8192,7 @@ var ocrSpell = (function(){
     if (CUR && !CUR.uns) CUR.uns = {};
     try {
       t = normCh(t);
-      t = fxr(t, /(?:[\u0647\u06D5]\u0654|\u06C0|\u0647\u0621)/g, 'ez', function(){ return phFa() ? '\u06C0' : 'ه\u200cی'; });
+      t = fxr(t, /(?:[\u0647\u06D5]\u0654|\u06C0|\u0647\u0621)/g, 'ez', function(){ return '\u06C0'; });
       t = fxr(t, /(?<=[\u0621-\u064A])(?:\u064B\u0627|\u0627\u064B|\u064B)/g, 'spell', 'ن');
       t = stripHar(t).replace(/\u00A0/g, ' ').replace(/[\u00ad\u200b\u200d-\u200f\u202a-\u202e\u2066-\u2069\ufeff\u061c\u2060\u180e\u206a-\u206f]/g, '');
       t = dictIn(t);
@@ -8626,7 +8624,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ var q = { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }, ep = emoPar(i + j); if (ep) { if (ep.ls) q.s = Math.round(q.s / ep.ls * 100) / 100; if (ep.ns != null) q.n = ep.ns; if (ep.nw != null) q.w = ep.nw; if (ep.pad != null) q.g = Math.max(q.g, ep.pad); } return q; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r105 · 2026-10-26 · emo-s3', npBuild = '';
+  var APP_BUILD = 'html-r106 · 2026-10-26 · clean-s4', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -8825,7 +8823,6 @@ function chunkAt(i, lim){
       return new Blob([wavHdr(sr, len * 2), out], { type: 'audio/wav' });
     });
   }
-  var actx = null, fxSrcs = [], fxIn = null;
   /* latencyHint=playback: بافر بزرگ‌تر و مصرف کمتر CPU/باتری؛ sampleRate هم‌نرخ صدای Piper (۲۲٫۰۵kHz) تا بازنمونه‌برداری و بار فیلترها کم شود */
   function mkCtx(sr){
     var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
@@ -8835,116 +8832,12 @@ function chunkAt(i, lim){
     try { return new AC(); } catch (e) {}
     return null;
   }
-  function setupFx(){
-    if (actx || npOK || !$('#enh').checked) return;   /* در موتور بومی، EQ و لیمیتر در Kotlin اعمال می‌شود */
-    try {
-      actx = mkCtx(22050); if (!actx) return; fxSrcs = [actx.createMediaElementSource(audioA), actx.createMediaElementSource(audioB)];
-      function bq(type, f, q, g){ var n = actx.createBiquadFilter(); n.type = type; n.frequency.value = f; n.Q.value = q; if (g !== undefined) n.gain.value = g; return n; }
-      /* HP/LP مرتبهٔ ۴ باتروورث (دو بخش پشت‌سرهم): ۲۴dB/اکتاو برای حذف هوم/لرزش پایین و خش‌خش بالا */
-      var hp = bq('highpass', 75, 0.5412), hp2 = bq('highpass', 75, 1.3066);
-      var ls = bq('lowshelf', 180, 0.707, 1.3);
-      var ds = bq('peaking', 7000, 1.3, -1.8);
-      var pk = bq('peaking', 2800, 0.9, 2.5);
-      var hs = bq('highshelf', 6000, 0.707, 2);
-      var lp = bq('lowpass', 10500, 0.5412), lp2 = bq('lowpass', 10500, 1.3066);
-      /* کمپرسور هموارکنندهٔ بلندی: attack کندتر تا گذراهای واجی (ک ت پ) له نشوند، knee نرم و ratio ملایم؛ آستانه و گین جبرانی هوشمند در fxLoop تنظیم می‌شوند */
-      var cp = actx.createDynamicsCompressor(); cp.threshold.value = -25; cp.knee.value = 30; cp.ratio.value = 2.5; cp.attack.value = 0.012; cp.release.value = 0.2;
-      var gn = actx.createGain(); gn.gain.value = 1.1;
-      /* لیمیتر نهایی (ceiling ‎-3dB) + برش نرم WaveShaper به‌عنوان تور ایمنی برای هر قلهٔ باقی‌مانده (جلوگیری از کلیپ) */
-      var lm = actx.createDynamicsCompressor(); lm.threshold.value = -3; lm.knee.value = 0; lm.ratio.value = 20; lm.attack.value = 0.001; lm.release.value = 0.1;
-      var ws = actx.createWaveShaper(), cv = new Float32Array(1025), ci, cx, cy;
-      for (ci = 0; ci < 1025; ci++) { cx = ci / 512 - 1; cy = Math.abs(cx); cy = cy < 0.8 ? cy : 0.8 + 0.18 * Math.tanh((cy - 0.8) / 0.18); cv[ci] = cx < 0 ? -cy : cy; }
-      ws.curve = cv; ws.oversample = 'none';
-      /* گیت/اکسپندر زمان‌واقعی: AnalyserNode سطح را پیش از DelayNode (۴۰ms lookahead) می‌سنجد و GainNode پس از آن، نویز سکوت‌ها را تا ۶dB- نرم کم می‌کند؛ lv = تراز خودکار آهستهٔ بلندی */
-      var an = actx.createAnalyser(); an.fftSize = 512; an.smoothingTimeConstant = 0;
-      var dl = actx.createDelay(0.1); dl.delayTime.value = 0.04;
-      var gt = actx.createGain(), lv = actx.createGain();
-      hp.connect(hp2); hp2.connect(ls); ls.connect(pk); pk.connect(ds); ds.connect(hs); hs.connect(lp); lp.connect(lp2);
-      lp2.connect(an); lp2.connect(dl); dl.connect(gt); gt.connect(lv); lv.connect(cp); cp.connect(gn); gn.connect(lm); lm.connect(ws); ws.connect(actx.destination);
-      fxIn = hp; fxN = { pk: pk, hs: hs, lp: lp, lp2: lp2, hp: hp, hp2: hp2, ds: ds, cp: cp, an: an, gt: gt, lv: lv, dl: dl };
-      fxUpgrade(actx);
-      applyFxProfile();
-    } catch (e) { actx = null; fxN = null; }
-  }
   /* پروفایل تقویت صدا برای هر گوینده: صداهای کم‌کیفیت‌تر نویز زیر/بالا دارند، پس بالابَر نرم‌تر و حذف فرکانس‌های بالای بی‌فایده */
-  var FXD = { pk: 2, hs: 0.8, lp: 10500 }, fxN = null,
+  var FXD = { pk: 2, hs: 0.8, lp: 10500 },
       FXP = [[/-coqui$/i, { pk: 1.4, hs: 0.3, lp: 9500 }]];   /* Coqui: مدل بزرگ‌تر با ترِبل کم‌تر؛ بالابَر نرم‌تر و کات بالای ۹٫۵kHz تا هوای صدا خفه نشود */
   function fxProf(id){
     var i; if (id) for (i = 0; i < FXP.length; i++) if (FXP[i][0].test(id)) return FXP[i][1];
     return FXD;
-  }
-  /* شدت «حالت کند» ۰…۱: از سرعت ۰٫۹۷ (۰) تا ۰٫۵ (۱)؛ کشیدن زمان نویز و دانه‌دانه‌شدن فرکانس‌های بالا را بارزتر می‌کند */
-  function slowAmt(){ var r = +$('#rate').value || 1; return r >= 0.97 ? 0 : Math.min(1, (0.97 - r) / 0.47); }
-  function applyFxProfile(){
-    if (!actx || !fxN) return;
-    var v = currentVoice(), p = FXD, i, t = actx.currentTime, s = slowAmt(), lpf;
-    if (v) for (i = 0; i < FXP.length; i++) if (FXP[i][0].test(v.id)) { p = FXP[i][1]; break; }
-    lpf = p.lp > 9000 ? p.lp - (p.lp - 9000) * s : p.lp;
-    try {
-      fxN.pk.gain.setTargetAtTime(p.pk * (1 - 0.3 * s), t, 0.05);
-      fxN.hs.gain.setTargetAtTime(p.hs * (1 - s), t, 0.05);
-      fxN.lp.frequency.setTargetAtTime(lpf, t, 0.05);
-      fxN.lp2.frequency.setTargetAtTime(lpf, t, 0.05);
-      fxN.hp.frequency.setTargetAtTime(75 + 25 * s, t, 0.05);
-      fxN.hp2.frequency.setTargetAtTime(75 + 25 * s, t, 0.05);
-      fxN.ds.gain.setTargetAtTime(-1.8 - 1.4 * s, t, 0.05);
-      fxN.cp.release.setTargetAtTime(0.2 + 0.2 * s, t, 0.05);
-    } catch (e) {}
-  }
-  /* حلقهٔ کنترل هوشمند (هر ۲۵ms، فقط هنگام پخش): گیت نرم سکوت + تراز آهستهٔ بلندی + آستانهٔ تطبیقی کمپرسور؛ بافر و تایمر یکتا → بدون نشت حافظه */
-  /* ارتقا به AudioWorklet: گیت + تراز بلندی روی ترد صوتی (نمونه‌دقیق، lookahead ‎۱۲ms)؛ دیگر تایمر/Analyser در رشتهٔ اصلی لازم نیست. اگر پشتیبانی/بارگذاری نشد، حلقهٔ Analyser می‌ماند. */
-  var FXW = 'class P extends AudioWorkletProcessor{constructor(){super();var L=Math.max(1,Math.round(sampleRate*0.012));this.L=L;this.r=new Float32Array(L);this.w=0;this.pe=0.05;this.g=1;this.lv=-21;this.lg=1;this.ca=1-Math.exp(-128/(sampleRate*0.008));this.cr=1-Math.exp(-128/(sampleRate*0.07));this.cl=1-Math.exp(-128/(sampleRate*0.4));}' +
-    'process(i,o){var x=i[0]&&i[0][0],y=o[0];if(!x)return true;var n=x.length,s=0,k,r,th,t,g0,g1,l0,l1,c,v,a=y[0],R=this.r,L=this.L,w=this.w,m;for(k=0;k<n;k++)s+=x[k]*x[k];r=Math.sqrt(s/n);this.pe=r>this.pe?r:this.pe*0.9977;th=Math.max(0.001,this.pe*0.02);t=r>=th?1:Math.max(0.5,r/th);g0=this.g;this.g+=(t-g0)*(t>g0?this.ca:this.cr);g1=this.g;if(r>th*6&&r>0.01)this.lv+=(20*Math.log10(r)-this.lv)*0.0093;t=Math.max(0.8,Math.min(1.6,Math.pow(10,(-21-this.lv)/20)));l0=this.lg;this.lg+=(t-l0)*this.cl;l1=this.lg;for(k=0;k<n;k++){c=k/n;v=R[w];R[w]=x[k];if(++w>=L)w=0;a[k]=v*(g0+(g1-g0)*c)*(l0+(l1-l0)*c);}this.w=w;for(m=1;m<y.length;m++)y[m].set(a);return true;}}registerProcessor("fx-ctl",P);';
-  function fxUpgrade(ctx){
-    if (!ctx.audioWorklet || !window.AudioWorkletNode) return;
-    var url; try { url = URL.createObjectURL(new Blob([FXW], { type: 'text/javascript' })); } catch (e) { return; }
-    ctx.audioWorklet.addModule(url).then(function(){
-      URL.revokeObjectURL(url);
-      if (actx !== ctx || !fxN) return;
-      var N = fxN, wk = new AudioWorkletNode(ctx, 'fx-ctl', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
-      N.lp2.connect(wk); wk.connect(N.cp);
-      N.lp2.disconnect(N.an); N.lp2.disconnect(N.dl); N.lv.disconnect(N.cp);
-      N.wk = wk; fxStop();
-      try { N.cp.threshold.cancelScheduledValues(ctx.currentTime); N.cp.threshold.value = -25; } catch (e) {}
-      wk.onprocessorerror = function(){
-        try { N.lp2.connect(N.an); N.lp2.connect(N.dl); N.lv.connect(N.cp); N.lp2.disconnect(wk); wk.disconnect(); } catch (e) {}
-        N.wk = null; if (playing) fxStart();
-      };
-    }).catch(function(){ try { URL.revokeObjectURL(url); } catch (e) {} });
-  }
-  var fxTm = 0, fxBuf = null, fxPe = 0.05, fxLv = -21, fxG = 1;
-  function fxStop(){
-    if (fxTm) { clearInterval(fxTm); fxTm = 0; }
-    try { if (actx && fxN) fxN.gt.gain.setTargetAtTime(1, actx.currentTime, 0.02); } catch (e) {}
-    fxG = 1;
-  }
-  function fxLoop(){
-    if (!actx || !fxN || fxN.wk || !playing || actx.state !== 'running') { fxStop(); return; }
-    var an = fxN.an, b = fxBuf || (fxBuf = new Float32Array(an.fftSize)), i, sq = 0, r, t = actx.currentTime, th, g, lg, pl;
-    if (document.hidden) { if (fxG !== 1) { fxG = 1; try { fxN.gt.gain.setTargetAtTime(1, t, 0.02); } catch (e) {} } return; }   /* تایمر پس‌زمینه کند می‌شود؛ گیت باز می‌ماند */
-    an.getFloatTimeDomainData(b);
-    for (i = 0; i < b.length; i++) sq += b[i] * b[i];
-    r = Math.sqrt(sq / b.length);
-    fxPe = r > fxPe ? r : fxPe * 0.99;
-    th = Math.max(0.001, fxPe * 0.02);   /* ‎-34dB زیر قلهٔ سطح گفتار */
-    g = r >= th ? 1 : Math.max(0.5, r / th);
-    try {
-      fxN.gt.gain.setTargetAtTime(g, t, g >= fxG ? 0.008 : 0.07);
-      if (r > th * 6 && r > 0.01) fxLv += (20 * Math.log(r) / Math.LN10 - fxLv) * 0.04;
-      lg = Math.max(0.8, Math.min(1.6, Math.pow(10, (-21 - fxLv) / 20)));
-      pl = fxLv + 20 * Math.log(lg) / Math.LN10;
-      fxN.lv.gain.setTargetAtTime(lg, t, 0.4);
-      fxN.cp.threshold.setTargetAtTime(Math.max(-34, Math.min(-16, pl - 5)), t, 0.4);
-    } catch (e) {}
-    fxG = g;
-  }
-  function fxStart(){ if (!fxTm && actx && fxN && !fxN.wk) fxTm = setInterval(fxLoop, 25); }
-  $('#enh').addEventListener('change', function(){ if (playing) { setupFx(); wireFx(true); } });
-  function wireFx(on){
-    if (!actx) return;
-    var e = on && $('#enh').checked;
-    try { fxSrcs.forEach(function(f){ f.disconnect(); f.connect(e ? fxIn : actx.destination); }); if (actx.state !== 'running') actx.resume(); } catch (x) {}
-    if (e) fxStart(); else fxStop();
   }
   /* ---------- slow speech: pitch-preserving time-stretch (WSOLA), baked into the audio ---------- */
   /* WSOLA با اتصال «توان‌ثابت»: هر هم‌پوشانی صریح میان‌محو می‌شود و وزن‌ها با همبستگی دو تکه (rho) طوری‌اند که توان ثابت بماند.
@@ -9444,7 +9337,6 @@ function chunkAt(i, lim){
     var other = el === audioA ? audioB : audioA;
     other.onended = null; other.ontimeupdate = null; other.onerror = null;
     audio = el; curC = c; el._b = baked || 1; wdSet('play', 0, false);
-    wireFx(true);
     var done = 0, late = 0, goFn = null, LAT = 45;
     function hand(delay){
       var n = nxt;
@@ -9526,7 +9418,6 @@ function chunkAt(i, lim){
     wdSet('prep'); wdLen = 200;
     if (typeof i === 'number') npCancel();   /* پرش به جای دیگر: ساخت‌های کهنهٔ صف را رها کن تا شروع جدید معطل نماند */
     cancelAll();
-    setupFx();
     [audioA, audioB].forEach(function(a){ a.src = SILENT; a.play().catch(function(){}); });
     ui(); mark(true); status('');
     setTimeout(function(){ if (my === token && playing) speakNow(); }, 80);
@@ -10650,7 +10541,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   function setRate(v){
     v = Math.round(Math.max(RMIN, Math.min(RMAX, +v || 1)) / RSTEP) * RSTEP; v = Math.round(v * 100) / 100;
     $('#rate').value = v; showVals(); sset('rate', v);
-    [audioA, audioB].forEach(applyRate); applyFxProfile();
+    [audioA, audioB].forEach(applyRate);
     if (npPlay) npSetRate();
     clearTimeout(rpT); rpT = setTimeout(function(){ if (!npPlay && playing && curC) primeNext(curC, token); }, 250);
   }
@@ -10731,7 +10622,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   function restartIfPlaying(){ if (playing) start(); }
   function changed(){ clearCache(); restartIfPlaying(); }
   $('#rate').oninput = function(){ setRate(this.value); };
-  $('#voice').onchange = function(){ sset('voice', this.value); if (engine() === 'piper') updatePiperStatus(); applyFxProfile(); changed(); warmPiper(); };
+  $('#voice').onchange = function(){ sset('voice', this.value); if (engine() === 'piper') updatePiperStatus(); changed(); warmPiper(); };
   $('#allLangs').onchange = renderVoices;
   $('#engine').onchange = function(){
     var was = playing;
@@ -10788,7 +10679,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   };
   setTimeout(function(){ achTrim(); }, 5000);
   $('#smartPace').onchange = function(){ sset('smartPace', this.checked ? '1' : '0'); changed(); warmPiper(); };
-  $('#enh').onchange = function(){ sset('enh', this.checked ? '1' : '0'); if (npOK) { changed(); return; } setupFx(); wireFx(engine() === 'piper'); };
+  $('#enh').onchange = function(){ sset('enh', this.checked ? '1' : '0'); changed(); };
   /* ===== r42: صفحهٔ مجزای واژه‌نامهٔ تلفظ — آمار، افزودن سریع، فهرست جست‌وجوپذیر، ابزارها و آزمون ===== */
   var dx = { lim: 40, q: '', tm: 0, tt: 0, undo: null, edit: false, stale: false, clr: 0 };
   function dxKey(s){ return String(s).replace(/[\u064B-\u0652\u0670\u200c]/g, '').replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/\s+/g, ' ').trim().toLowerCase(); }
@@ -11664,6 +11555,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
       fb = document.querySelector('#fxSw button[data-fx="' + fx + '"]'); if (fb) fb.click();
       prCtl('rate', id === 'read' ? 0.9 : 1, 'input');
       prCtl('bgmOn', id === 'bal', 'change');
+      if (id === 'low') prCtl('emoLvl', '0', 'change');   /* مصرف کم: بدون پارامتر اضافه */
     } finally { prLock = false; }
     sset('preset', id); prSync();
   }
