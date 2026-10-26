@@ -1695,6 +1695,14 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
             <option value="lively" data-short="پرحالت" data-desc="پرحال‌تر و پرتنوع‌تر؛ مناسب داستان و گفت‌وگو.">گویا (پرحالت‌تر)</option>
           </select>
         </div>
+        <div class="field">
+          <span class="flab">احساس گفتار</span>
+          <select id="emoLvl" data-seg aria-label="احساس گفتار">
+            <option value="0" data-short="خاموش" data-desc="لحن یکنواخت مدل؛ هیچ تغییری در سرعت و مکث جمله‌ها داده نمی‌شود (پیش‌فرض).">خاموش</option>
+            <option value="1" data-short="طبیعی" data-desc="تغییر ملایم سرعت و مکث بر پایهٔ احساس جمله (شادی، غم، خشم، ترس، شگفتی، پرسش)؛ فقط سرعت و مکث، بدون دست‌زدن به صدا.">طبیعی</option>
+            <option value="2" data-short="بیانی" data-desc="همان تغییرها با شدت کامل؛ مناسب داستان و گفت‌وگو. اگر ربات‌گونه شد به «طبیعی» برگردید.">بیانی</option>
+          </select>
+        </div>
 </section>
 <section class="grp" id="qualBox">
         <h3>کیفیت صدا</h3>
@@ -2522,7 +2530,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
     predict: function(o){
       /* ضریب پایه برای همهٔ گوینده‌ها یکسان است (۱ = سرعت اصلی مدل) */
       var tempo = VOICE_TEMPOS[o.voiceId] || VOICE_TEMPO, fxp = $('#enh').checked ? fxProf(o.voiceId) : null;
-      var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo), g: p.g }; }) : undefined;
+      var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo), g: p.g, n: p.n, w: p.w }; }) : undefined;
       return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cleanLevel(), clarity: clarityLevel(), keep: npPlay, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; return b; });
     }
   };
@@ -4483,7 +4491,7 @@ var ocrSpell = (function(){
   function achSig(c, v){
     var tempo = VOICE_TEMPOS[v.id] || VOICE_TEMPO, fxp = $('#enh').checked ? fxProf(v.id) : null, st = styleParams(v.id);
     return [ACH_VER, v.id, st[0], st[1], cleanLevel(), clarityLevel(), fxp ? fxp.pk + ',' + fxp.hs + ',' + fxp.lp : 0, tempo, PART_GAP, c.mid ? 1 : 0, paceSpeed(c.text),
-      (c.parts || []).map(function(q){ return q.s + ':' + (q.g || 0) + ':' + q.t; }).join('\u0001'), c.text].join('|');
+      (c.parts || []).map(function(q){ return q.s + ':' + (q.g || 0) + (q.n != null || q.w != null ? ':e' + EMO_V + ':' + q.n + ':' + q.w : '') + ':' + q.t; }).join('\u0001'), c.text].join('|');
   }
   function achHash(str){
     var u = new TextEncoder().encode(str), i;
@@ -7617,6 +7625,10 @@ var ocrSpell = (function(){
       return ' ' + numFa(q[0]) + ' ممیز ' + (f.length <= 3 ? numFa(String(+f)) + ' ' + FRD[f.length] : f.split('').map(function(x){ return ON[+x]; }).join(' ')) + ' ';
     });
   }
+  var MON_ENW = 'jan feb mar apr may jun jul aug sep oct nov dec'.split(' '), MON_ENR = '(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
+  var RE_DMEN = new RegExp('(?<![\\p{L}\\d])(0?[1-9]|[12]\\d|3[01])(?:st|nd|rd|th)?\\s+(' + MON_ENR + ')\\.?,?\\s+((?:19|20)\\d\\d)(?![\\d\\p{L}])', 'giu'),
+      RE_MDEN = new RegExp('(?<![\\p{L}\\d])(' + MON_ENR + ')\\.?\\s+(0?[1-9]|[12]\\d|3[01])(?:st|nd|rd|th)?,?\\s+((?:19|20)\\d\\d)(?![\\d\\p{L}])', 'giu');
+  function monIdx(m){ return MON_ENW.indexOf(m.slice(0, 3).toLowerCase()) + 1; }
   function dmy(d, m, y, mons){ return ' ' + ordFa(+d) + ' ' + mons[+m] + ' ' + numFa(String(+y)) + ' '; }
   var NEG_RE = /(?<!\d\s*)(?<![\p{L}\d\-–\/.])[-−](?=\d)/gu;
   var userDict = [], dictG = '', dictP = '', docName = '';
@@ -7700,7 +7712,7 @@ var ocrSpell = (function(){
   /* ---------- کسرهٔ اضافهٔ خودکار ----------
      موتور آوایی بدون نشانهٔ اضافه، «صدای کتاب» را بی‌کسره و رباتی می‌خواند. این‌جا بین دو کلمهٔ پشت‌سرهم (اسم/صفت) که
      هیچ نشانه‌گذاری میانشان نیست، کسره می‌گذاریم. کلمه‌های ربطی، فعل، ضمیر، عدد و حرف اضافه را رد می‌کنیم؛ تحلیل دستوری نیست و تقریبی است. */
-  function ezOn(){ return false; }   /* کسرهٔ اضافهٔ خودکار حذف شد: تلفظ را به‌هم می‌ریخت */
+  function ezOn(){ return sget('ezMod', '') === '1'; }   /* ماژول کسرهٔ اضافهٔ قاعده‌محور (ezApply)؛ پیش‌فرض خاموش تا F1 ≥ ۸۸٪ روی Golden Set تأیید شود؛ فعال‌سازی: ezSet(1) در کنسول */
   function humOn(){ var e = document.getElementById('humPace'); return !e || e.checked; }
   function lexOn(){ return true; }
   function hStr(s){ var h = 0, i; for (i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
@@ -7751,6 +7763,54 @@ var ocrSpell = (function(){
      فارسی بدون اعراب نوشته می‌شود و موتور آوایی کوتاه‌مصوت‌ها را برای واژه‌های پرکاربرد گاهی اشتباه حدس می‌زند.
      این‌جا برای همین واژه‌ها شکل اعرابدار می‌گذاریم. نشانه‌ها (بعد از حرف): a = فتحه ، e = کسره ، o = ضمه.
      واژه‌نامهٔ کاربر همیشه اولویت دارد (چون پیش از این مرحله با نشانگر جایگزین شده). برای افزودن واژه، فقط به LEX_SRC اضافه کنید. */
+  /* ---------- کسرهٔ اضافهٔ قاعده‌محور (C-1، پیش‌فرض خاموش) ----------
+     برچسب‌گذاری سبک: واژهٔ چپ باید «اسم/صفت» محتمل باشد (نه حرف/فعل/عدد/قید فهرست‌شده) و واژهٔ راست اسم/صفت/ضمیر ملکی؛ بدون فاصلهٔ سجاوندی.
+     درج پس از lexApply و پیش از پاک‌سازی نهایی؛ واژه‌های دارای اعرابِ پایانی دست نمی‌خورند. فهرست‌های EZ_STOP/EZ_STOP2/EZ_V/EZ_VBX مصرف می‌شوند. */
+  var EZ_PRON = {}, EZ_NOL = {}, EZ_NOR = {}, EZ_HC = {};
+  'من تو او ما شما ایشان آنها آنان اینها'.split(' ').forEach(function(w){ EZ_PRON[w] = 1; });
+  'بله خیر آری سلام متاسفانه خوشبختانه البته لطفا لطفاً آقا خانم دکتر مهندس اولین دومین سومین آخرین همین چنین همچنین آخر نخست نخستین اول دوم سوم'.split(' ').forEach(function(w){ EZ_NOL[w] = 1; });
+  'قرار صورت'.split(' ').forEach(function(w){ EZ_NOR[w] = 1; });
+  'توجه وجه فقه شبه تنبیه مواجهه تفقه نزه'.split(' ').forEach(function(w){ EZ_HC[w] = 1; });
+  var EZ_PUNC = /[,.;:!?]+$/, EZ_FAL = /^[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC\u06C0\u0622\u200c\u064B-\u0652]+$/;
+  var EZ_DET = {}, EZ_COP = {};
+  'این آن همین همان هر'.split(' ').forEach(function(w){ EZ_DET[w] = 1; });
+  'است نیست بود نبود هست نبودند بودند باشد نباشد شد شدند'.split(' ').forEach(function(w){ EZ_COP[w] = 1; });
+  var EZ_PADJ = {};
+  'شلوغ آبی زیبا سرد گرم مهم بزرگ کوچک طولانی مثبت منفی جالب شور مهربان خوب بد قدیمی جدید ساده سخت آسان زیاد کم مفید لازم ضروری ممکن درست غلط تمیز کثیف تازه قشنگ زشت پیر جوان سبز قرمز سفید سیاه زرد شیرین تلخ غم‌انگیز شاد ارزان گران خطرناک مناسب مشهور معروف عالی فارسی ایرانی'.split(' ').forEach(function(w){ EZ_PADJ[w] = 1; });
+  function ezIsV(w){ return !!(EZ_V[w] || EZ_VBX[w] || EZ_STOP[w] || /^ن?می\u200c/.test(w) || /\u200c(?:ام|ای|ایم|اید|اند)$/.test(w) || EZ_COP[w]); }
+  function ezBase(w){ return w.replace(/[\u064B-\u0652]/g, ''); }
+  function ezLeftOk(w, b){
+    if (!b || b.length < 2 || EZ_STOP2[b] || EZ_NOL[b] || NUMW[b] || ezIsV(b)) return false;
+    if (/(?:ترین|مین)$/.test(b)) return false;
+    return true;
+  }
+  function ezRightOk(w, b){
+    if (!b || EZ_PRON[b] || EZ_DET[b]) return !!b;
+    if (b.length < 2 || EZ_STOP2[b] || EZ_NOR[b] || NUMW[b] || ezIsV(b)) return false;
+    return true;
+  }
+  function ezSuffix(w){
+    var c = w.charCodeAt(w.length - 1), b;
+    if (c === 0x06C0 || (c >= 0x064B && c <= 0x0652)) return w;                                   /* از پیش اضافه/اعراب‌دار */
+    if (/\u0647\u200c\u06CC$/.test(w)) return w.slice(0, -2) + '\u06C0';                         /* خانه‌ی ← خانهٔ */
+    if (c === 0x0647) { b = ezBase(w); if (!EZ_HC[b] && !/[\u0627\u0648\u06CC]\u0647$/.test(b)) return w.slice(0, -1) + '\u06C0'; return w + '\u0650'; }
+    if (c === 0x0627 || c === 0x0648) return w + '\u06CC\u0650';                                  /* دانا ← دانایِ */
+    return w + '\u0650';                                                                          /* همخوان/ی ← کسره */
+  }
+  function ezApply(t){
+    var ws = t.split(' '), n = ws.length, i, a, b, wa, wb, pa, pb, ca, cb;
+    for (i = 0; i + 1 < n; i++) {
+      a = ws[i]; b = ws[i + 1];
+      if (EZ_PUNC.test(a) || /[^\u0621-\u06D3\u200c\u064B-\u0652,.;:!?]/.test(a) || /[^\u0621-\u06D3\u200c\u064B-\u0652,.;:!?]/.test(b)) continue;
+      pb = EZ_PUNC.exec(b); wb = pb ? b.slice(0, pb.index) : b;
+      if (!EZ_FAL.test(a) || !EZ_FAL.test(wb)) continue;
+      ca = ezBase(a); cb = ezBase(wb);
+      if (!ezLeftOk(a, ca) || !ezRightOk(wb, cb)) continue;
+      if (!pb && i + 2 < n && EZ_COP[ezBase(ws[i + 2]).replace(EZ_PUNC, '')] && (EZ_ADJ[cb] || EZ_PADJ[cb] || EZ_DET[cb] || EZ_PRON[cb])) continue;   /* «کتاب خوب است»: گزاره، نه ترکیب اضافی */
+      ws[i] = ezSuffix(a); bump('ez');
+    }
+    return ws.join(' ');
+  }
   function phLexOn(){ var e = document.getElementById('phLex'); return !e || e.checked; }
   var LEX_SRC = 'کeتاب کeشوaر مaدرeسه دانeشگاه دانeش مaردoم زaمان زaمین جaهان اeنسان اeجتeماع اeقتeصاد سیاسaت حoکومaت دaولaت قoدرaت عaدالaت حoقوق حaق مaسئaله مoشکeل رaوeش هaفته ساعaت دaقیقه قaرن نaتیجه دaلیل عeلaت هaدaف بaرنامه سیستeم اeطلاعات تaحقیق پoژوهeش مoطالeعه آموزeش دانeشجو مoعaلeم اoستاد دانeشمaند نویسaنده شاعeر کeتابخانه خانeواده پeدaر مادaر فaرزaند بaرادaر دoشمaن عeشق زeندگی مaرگ زaن کoدaک جaوان بoزoرگ کوچaک سaخت مoهeم لازeم مoمکeن دoرoست غaلaط اeشتeباه واقeعی حaقیقaت واقeعیaت مaفهوم کaلeمه جoمله صaفحه مaتن فaصل بaخش قeسمaت نaوع شaکل رaنگ صeدا صaوت گویaنده نeگاه چaشم دaست قaلب دeل جeسم بaدaن مaغز آتaش دaریا جaنگaل دaرaخت گoل غaذا قaهوه رeستوران فaلافeل تeهران اeصفaهان مaشهaد تaبریز خoراسان زaبان اaدaبیات شeعر رoمان هoنaر نaقاشی عeلم پeزeشک پeزeشکی بیمارeستان دaرمان سaلامaت بaهداشت وaرزeش موسابeقه شoغل شeرکaت مoدیر مoدیریaت تaولید فoروش خaرید قeیمaت هaزینه دaرآمaد تeجارaت صaنعaت کeشاوaرزی لeباس نaخ چaرخ مaسیر سaفaر موسافeر هoتل قeطار هaواپeیما بeسیار هaمه چaند چaندین بaعضی بaرخی دیگaر هaمین هaمان چaنین چaنان مeثل مانaند مeثال نaمونه هaمیشه هaنوز اaکنون هaرگز هaمواره بaعد قaبل بaین طaبaق عeلاوه کaمتaر بeهتaر بaدتaر تaمام کامeل چeطور چeگونه چaقدر کoجا کoدام هaر هیچکaس هaمگی وaقت دaفعه مaرتaبه کoل پoر پoل پoشت خoد خoدaم خoدeت خoدeش خoدeمان خoدeتان خoدeشان شoکر عoذر ذeکر فeکر ذeهن صaبر عoمر عaصر شoهرaت ثaروaت گaرم سaرد سaبز سoرخ زaرد سeفید قeرمeز نارaنجی بaنaفش بoلند کوشeش تaند سaریع نeشان نeشانه نaقش نoقطه نaظaر نeظام مeللaت مeللی مaذهaب خoدا خoداوaند پیامبaر قoرآن اoمید غaم خaشم تaرس مeهرaبان مeهر اaصل اaساس اeرتeباط اeجازه اeستeفاده اaهaمیaت اeمکان اeحتeمال اeطلاع اeعتeماد اeقدام اeنتeخاب اeنتeظار اaرزeش اaثaر اeدامه اeبتeدا اeنتeها اaکثaر اaکثaریaت اeجرا اeصلاح اeضافه اaفزایeش رoشد توسeعه تaوaجoه تaفاوoت تaغییر تaصمیم تaجرoبه تeعداد تaلاش تaرکیب تaرجoمه جeهaت جaدید قaدیمی موختaلeف موشابeه موستaقیم موناسeب مaجموعه مoحیط مaحصول مaنبaع مaوقeعیaت مaسئول مaسئولیaت موشارeکaت مaعمولی مaعرeفی مeعیار مaنطeق مaنطeقه نaسل نeسبaت نeظارaت وaضع وaضعیaت وoجود وaظیفه هaدaف هaمکاری هaمراه مoحaمaد عaلی حaسaن حoسeین رeضا مaهدی اaحمaد اaمیر مaحمود اeبراهیم اeسماعیل یوسoف جaعفaر کاظeم باقeر تaقی هادی صادeق سaعید حaمید مaجید فaرهاد بaهرام کامران پaرویز شaهرام فاطeمه زaهرا مaریaم زaینaب';
   var LEX = null, LEX_SUF = {};
@@ -7763,6 +7823,8 @@ var ocrSpell = (function(){
     [NOCOMMA_PREV, P_SPLIT, NUMW].forEach(function(o){ Object.keys(o).forEach(add); });
     [PH_INIT, PH_INIT_H, PH_STRONG, PH_WEAK].forEach(function(l){ l.forEach(function(p){ p.forEach(add); }); });
     TA_SKIP.source.replace(/^\^\(\?:|\)\$$/g, '').split('|').forEach(add);
+    if (!HOM) homInit();
+    Object.keys(HOM).forEach(add);   /* همنگاشت‌ها را فقط ماژول بافتی (homApply) اعراب می‌گذارد؛ وگرنه اعرابِ پیش‌فرض LEX جلوی تشخیص بافتی را می‌گرفت */
     LEX_SRC.split(/\s+/).forEach(function(v){
       var k = v.replace(/[aeo]/g, '');
       if (!k || skip[k] || LEX[k]) return;
@@ -7789,20 +7851,20 @@ var ocrSpell = (function(){
      «ک+» پیشوندی. مرز بند (ویرگول/نقطه…) از پنجره عبور داده نمی‌شود. حس برنده باید ≥۲ امتیاز و ≥۱ اختلاف داشته باشد، وگرنه حس پیش‌فرض (*) یا هیچ (شکل ساده).
      #p: افزودن امتیاز جمع «ها/های»، #r: حس فقط با نشانهٔ راست معتبر است. این مرحله پس از سایر مراحل اجرا می‌شود و واژه‌های اعراب‌دار (واژه‌نامهٔ کاربر) را دست نمی‌زند. */
   var HOM_SRC = [
-    'گل:گُل* L[باغ بوته شاخه دسته بوی عطر رز بنفشه غنچه ساقه کاشت چید پرپر خوشبو سرخ سفید زرد صورتی زیبا گلدان بازی] R[رز سرخ سفید زرد صورتی بنفش لاله نرگس یاس زیبا پرپر زد زدن خوشبو تساوی]|گِل L[کاه خشت آجر کوزه سفال خاک پا_در پا_توی] R[و_لای و_لجن رس سفال کوزه آجر خشت سیمان گلی]',
+    'گل:گُل* L[باغ بوته شاخه دسته بوی عطر رز بنفشه غنچه ساقه کاشت چید پرپر خوشبو سرخ سفید زرد صورتی زیبا گلدان بازی] R[رز سرخ سفید زرد صورتی بنفش لاله نرگس یاس زیبا پرپر زد زدن خوشبو تساوی]|گِل L[کاه کاه_و خشت آجر کوزه سفال خاک پا_در پایش_در پایم_در پا_توی] R[و_لای و_لجن رس سفال کوزه آجر خشت سیمان گلی فرو]',
     'مهر:مِهر* L[ماه عشق محبت لطف] R[و_محبت و_ماه و_وفا و_عطوفت مادری پدری ورز ورزی ورزید]|مُهر L[امضا_و پای زیر] R[و_موم تأیید تایید باطل زد زدن زدند امضا لاک سربی پستی دولتی رسمی خورد]|مَهر L[قبول تعیین] R[عروس مهریه و_مهریه]',
     'کرد:کُرد#p L[قوم زبان مردم اهالی اهل شهروندان عرب_و ترک_و لر_و فارس_و بلوچ_و آذری_و ایران عراق ترکیه سوریه] R[زبان زبانان و_ترک و_لر و_عرب و_فارس و_بلوچ و_ترکمن]',
     'مرد:مَرد* L[یک آن این هر هیچ چند دو سه چهار پنج پیر جوان خوب بد آقا تنها] R[و_زن مسن میانسال جوان عمل و_زنان و_کودک]|مُرد#r L[او وی پدرم مادرم پدرش مادرش مادربزرگ پدربزرگ که تا وقتی بالاخره سرانجام آنگاه] R[$ و که تا اما ولی پس بعد چون سپس]',
     'پر:پُر* R[از شد شدند شده کرد کنید کن است بود میشود میکند انرژی رنگ مصرف تکرار طرفدار بازدید سر_و_صدا]|پَر L[بال_و] R[زد زدن کشید پرواز قو طاووس کبوتر مرغ پرنده و_بال کاه]',
     'گرد:گَرد R[و_غبار و_خاک غبار خاک]|گِرد L[صورت چهره میز] R[هم آمدند آمد آوردند آورد آورده]',
-    'علم:عِلم* L[دانش کسب تحصیل] R[و_دین و_صنعت و_فناوری و_دانش و_ادب و_عمل]|عَلَم L[پرچم افراشتن افراشته برافراشت درفش سینهزنی عزاداری] R[و_کتل کشی علمدار]',
-    'ترک:تُرک#p L[زبان قوم آذری مردم ایرانی] R[زبان تبار استانبول و_فارس و_کرد و_لر]|تَرک R[کرد کردن کنید کنم کن میکند کند کردند شد شده نمود تحصیل اعتیاد وطن خانه]|تَرَک R[برداشت برداشته خورد خورده خوردگی میخورد برمیدارد]',
+    'علم:عِلم* L[دانش کسب تحصیل] R[و_دین و_صنعت و_فناوری و_دانش و_ادب و_عمل]|عَلَم L[پرچم پرچم_و افراشتن افراشته برافراشت درفش سینهزنی عزاداری] R[و_کتل کشی علمدار را_افراشتند را_برافراشت]',
+    'ترک:تُرک#p L[زبان قوم آذری مردم ایرانی] R[زبان+ تبار استانبول و_فارس و_کرد و_لر]|تَرک R[کرد کردن کنید کنم کن میکند کند کردند شد شده نمود تحصیل اعتیاد وطن خانه]|تَرَک R[برداشت برداشته خورد خورده خوردگی میخورد برمیدارد]',
     'شکر:شُکر L[خدا_را] R[خدا کرد کردن کنم گزار گزاری الهی]|شِکَر L[قاشق چای قند_و کیسه] R[ریخت بریز نریز و_قند قند میریزی شیرین]',
     'کشت:کِشت L[زمین سطح] R[و_کار و_صنعت و_زرع برنج گندم محصول بذر]|کُشت L[را] R[$ و_کشتار]',
     'کرم:کِرم R[ابریشم خاکی شبتاب سیب میوه]|کَرَم L[لطف رحمت احسان] R[و_بخشش و_لطف و_رحمت و_احسان خدا]|کِرِم L[دست صورت ضدآفتاب آرایشی مرطوب پودر] R[دست صورت ضدآفتاب ضدچروک ضدلک پودر مرطوبکننده]',
     'دور:دَور L[یک دو سه چهار چند هر] R[دوم اول سوم آخر باطل انتخابات]',
     'سیر:سَیر R[و_سیاحت و_سفر و_سلوک تاریخی تکاملی تحول نزولی صعودی]',
-    'ده:دِه L[شهر_و] R[و_شهر نشین کدخدا آبادی]',
+    'ده:دِه L[شهر_و] R[و_شهر نشین کدخدا آبادی زندگی روستا اهالی]',
     'ملک:مَلَک L[فرشته] R[مقرب الموت و_فرشته]|مِلک L[خرید فروش اجاره سند] R[شخصی سند اجاره فروش خرید مسکونی]',
     'قدر:قَدَر L[این آن همین همان هر چه به]|قَدر L[شب] R[دانی]',
     'نقل:نُقل L[شیرینی عروسی] R[و_نبات و_شیرینی نبات]|نَقل R[قول مکان کرد کردن میکند شد]',
@@ -7810,9 +7872,15 @@ var ocrSpell = (function(){
     'نفس:نَفس L[عزت اعتماد_به تزکیه تهذیب] R[اماره لوامه پرستی]|نَفَس L[یک] R[کشید کشیدن بکش عمیق تنگی میکشد بکشید]',
     'خرد:خِرَد L[عقل دانش] R[ورزی ورز و_دانش جمعی]|خُرد L[پول] R[شد کرد کن کنید میشود میکند و_ریز و_کلان]',
     'حسن:حَسَن*|حُسن R[نیت نظر خلق و_قبح تفاهم سلیقه]',
-    'چرا:چَرا L[گوسفند گاو دام گله] R[میکردند رفتند مرتع علف میروند]',
+    'چرا:چَرا L[گوسفند+ گاو دام+ گله مرتع] R[میکردند میکنند میکرد رفتند مرتع علف میروند]',
     'بنا:بِنا*|بَنّا L[استاد] R[و_نجار و_کارگر و_معمار]',
-    'سر:سِر L[افشای کشف] R[دل نهان الهی خدا مگو]'
+    'سر:سِر L[افشای کشف] R[دل نهان الهی خدا مگو]',
+    'برد:بُرد* L[او آن را من تو ما که تا]|بَرد L[حداکثر بیشینه کمینه حداقل] R[و_باخت موشک رادار موشکی مؤثر مفید کوتاه بلند بیشتر کمتر پرواز]',
+    'دم:دُم L[گربه سگ گاو اسب موش روباه شیر ماهی طاووس گرگ سر_و] R[گربه سگ کوتاه بلند دراز اسبی ماهی طاووس موش روباه]|دَم L[چای قهوه دمنوش هر یک آن این همان] R[در غروب صبح سحر دست مرگ زد زدن زدند نزن کرد کردن کن کنید]',
+    'در:دُر L[گوهر_و مروارید] R[و_گوهر و_مرجان شاهوار یتیم گرانبها ثمین مکنون]',
+    'قسم:قَسَم L[سوگند] R[خورد خوردن خوردند خورده میخورد بخور یاد دروغ]',
+    'جرم:جُرم L[ارتکاب مرتکب] R[و_جنایت و_جنایات ارتکاب سنگین شدید ثابت]|جِرم R[آسمانی سماوی ماه زمین خورشید سیاره جسم و_حجم]',
+    'کشتی:کِشتی L[سوار ناخدا اسکله ناو] R[جنگی تجاری مسافربری باری نجات غرق اقیانوس‌پیما بادبانی]|کُشتی L[مسابقه مسابقات رشته ورزش فدراسیون قهرمان قهرمانی مربی] R[گیر گیری آزاد فرنگی پهلوان]'
   ];
   var HOM = null, HOM_D = /[\u064B-\u065F\u0670\u200c]/g, HOM_TK = /^([^\p{L}\p{M}\u200c]*)([\p{L}\p{M}\u200c]*)([\s\S]*)$/u;
   function homNorm(w){ return w.replace(HOM_D, ''); }
@@ -7828,6 +7896,12 @@ var ocrSpell = (function(){
         if (m) ent.push({ v: m[1], def: !!m[2], p: m[3].indexOf('#p') >= 0, r: m[3].indexOf('#r') >= 0, L: cu(m[4]), R: cu(m[5]) });
       });
       HOM[homNorm(ln.slice(0, i))] = ent;
+    });
+    LEX_SRC.split(/\s+/).forEach(function(v){   /* پیش‌فرض قبلی LEX برای همنگاشتِ بدون «*» */
+      var k = v.replace(/[aeo]/g, ''), e = HOM[k], j, has = false;
+      if (!e) return;
+      for (j = 0; j < e.length; j++) if (e[j].def) has = true;
+      if (!has) e.push({ v: v.replace(/a/g, '\u064E').replace(/e/g, '\u0650').replace(/o/g, '\u064F'), def: true, p: false, r: false, L: [], R: [] });
     });
   }
   function homSide(cues, W, B, i, dir){
@@ -7912,6 +7986,8 @@ var ocrSpell = (function(){
       .replace(/(?<![\d\/.\-])([3-9]\d)\s*\/\s*(0?[1-9]|1[0-2])\s*\/\s*(0?[1-9]|[12]\d|3[01])(?![\d\/])/g, function(_, y, m, d){ return dmy(d, m, '13' + y, MON_FA); })
       .replace(/(?<![\d\/.\-])(0?[1-9]|1[0-2])\s*[\/\-]\s*(1[3-9]|2\d|3[01])\s*[\/\-]\s*((?:19|20)\d\d)(?!\d)/g, function(_, m, d, y){ return dmy(d, m, y, MON_EN); })
       .replace(/(?<![\d\/.\-])(0?[1-9]|[12]\d|3[01])\s*[\/\-.]\s*(0?[1-9]|1[0-2])\s*[\/\-.]\s*((?:19|20)\d\d)(?!\d)/g, function(_, d, m, y){ return dmy(d, m, y, MON_EN); })
+      .replace(RE_DMEN, function(_, d, m, y){ return dmy(d, monIdx(m), y, MON_EN); })
+      .replace(RE_MDEN, function(_, m, d, y){ return dmy(d, monIdx(m), y, MON_EN); })
       .replace(/(?<!\d)([01]?\d|2[0-3]):([0-5]\d)(?![\d:])/g, function(_, h, m, off, str){ if (REF_PRE.test(str.slice(Math.max(0, off - 16), off))) return ' ' + numFa(String(+h)) + ', ' + numFa(String(+m)) + ' '; h = +h; m = +m; var hw = ' ' + numFa(String(h)); if (lexOn() && h >= 1 && h <= 12) { if (m === 30) return hw + ' و نیم '; if (m === 15) return hw + ' و ربع '; } return hw + (m ? ' و ' + numFa(String(m)) + ' دقیقه' : '') + ' '; })
       .replace(/(?<![\d\-\/.])(\d{1,4})\s*[-–—]\s*(\d{1,4})(?![\d\-\/])/g, '$1 تا $2')
       .replace(/(\d)\s*(km|cm|mm|m)\s*([23])(?![\d\p{L}])/giu, function(_, d, u, p){ return d + ' ' + ({ km: 'کیلومتر', cm: 'سانتی‌متر', mm: 'میلی‌متر', m: 'متر' })[u.toLowerCase()] + (p === '2' ? ' مربع ' : ' مکعب '); })
@@ -7924,6 +8000,7 @@ var ocrSpell = (function(){
     }
     if (phLexOn()) t = lexApply(t);
     t = dictOut(t, fixOn());
+    if (ezOn()) t = ezApply(t);
     if (phFa()) {
       t = t.replace(/\u0647\u200c\u06CC(?![\p{L}\u200c])/gu, '\u06C0')
         .replace(/\u200c+/g, '\u200c').replace(/(?<![\p{L}\p{M}])\u200c|\u200c(?![\p{L}\p{M}])/gu, '');
@@ -8224,6 +8301,56 @@ var ocrSpell = (function(){
     }).join(' ');
   }
 
+
+  /* ---------- تحلیل احساس جمله (emo-s3): قاعده‌محور، پیش از ttsBase، با کش FIFO ≤۵۰۰ ----------
+     خروجی {e: neutral|joy|sad|anger|fear|surprise|question|emph|whisper، k: ۰..۱، d: درون گفت‌وگو}. مصرف: emoPar (بیرون از بلوک). */
+  var EMO_RX = {}, EMO_RP = {}, EMO_C = new Map(), EMO_N = 0;
+  (function(){
+    var L = {
+      joy: 'خوشحال|شاد|خند|لبخند|شوق|ذوق|نشاط|سرحال|خوشبخت|عالی|بهترین|فوقالعاده|جشن|سرور|لذت|مسرور|موفق|پیروز|برنده|شعف|دلنشین|قشنگ|هورا|بهبه|خوشمزه|سرشار|شادمان',
+      sad: 'غم|اندوه|گریه|گریست|اشک|افسوس|دلتنگ|حسرت|سوگ|ناامید|تنهایی|جدایی|دردناک|غصه|غربت|ماتم|بیوفایی|جانکاه|ایکاش|بیکسی|تلخ|دلشکسته',
+      anger: 'خشم|عصبان|فریاد|نفرت|لعنت|کفری|توبیخ|سرزنش|مزخرف|بیانصاف|ظلم|بیعدالت|دندانها|مشت|دشمن|کوبید|اعتراض|عربده|غرید|بیشرم',
+      fear: 'ترس|وحشت|هراس|لرز|اضطراب|دلهره|رعب|نگران|کابوس|تاریکی|مبادا|ترسناک|جیغ|رعد|هراسان',
+      surprise: 'شگفت|تعجب|حیرت|مبهوت|ناگهان|غافلگیر|غیرمنتظره|غیرممکن|معجزه|ناباور|عجب|هرگز|مات'
+    }, P = {
+      joy: 'قبولشد|دستزد|کفزد|روشنشد',
+      sad: 'آهکشید|دلگرفت|گرفتهگفت|دلشکسته',
+      anger: 'دادزد|خجالتبکش|اوقاتتلخ|بسکن|تحملندارم|نمیبخشم|محکمبست|حوصلهیاین|حوصلهندارم|جرأتکردی|جراتکردی',
+      fear: 'فرارکرد|یخکرد|نفسشبند|زبانشبند',
+      surprise: 'باورمنمیشود|جاخورد|انگشتبهدهان|فکرشرا|حدسشرا|نمیشدحدس|انتظارنداشتم|ماتماند'
+    };
+    Object.keys(L).forEach(function(k){ EMO_RX[k] = new RegExp(L[k], 'g'); EMO_RP[k] = new RegExp(P[k], 'g'); });
+  })();
+  var EMO_INT = /(?:خیلی|بسیار|واقعا|بهشدت|اصلا|هرگز|فوقالعاده|بیاندازه)/, EMO_NEG = /(?:^|\s)(?:نه|نیست|نمی|نمیتوانم|هرگز)(?:\s|$)/;
+  var EMO_VERB = [[/(?:فریاد|دادزد|غرید|عربده|نعره)/, 'anger', 0.5], [/(?:نجوا|آهسته|زمزمه|پچپچ|درگوش)/, 'whisper', 0.6], [/(?:ناله|گریست|هقهق)/, 'sad', 0.4]];
+  var EMO_INJ = [[/^(?:اوه|هان|عجب)(?![\p{L}])/u, 'surprise', 0.7], [/^(?:افسوس|آخر)(?![\p{L}])/u, 'sad', 0.6], [/^(?:بهبه|هورا|آفرین)(?![\p{L}])/u, 'joy', 0.7], [/^وای(?![\p{L}])/u, 'surprise', 0.45], [/^آه(?![\p{L}])/u, 'sad', 0.4], [/^آخ(?![\p{L}])/u, 'sad', 0.3], [/^کمک(?![\p{L}])/u, 'fear', 0.5]];
+  function emoNorm(t){ return t.replace(/[\u064B-\u0652\u0640\u200c\u200d]/g, '').replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/ـ/g, '').replace(/‌/g, ''); }
+  function emoTag(raw){
+    var hit = EMO_C.get(raw); if (hit) return hit;
+    var t = emoNorm(raw), tn = t.replace(/\s+/g, ''), sc = { joy: 0, sad: 0, anger: 0, fear: 0, surprise: 0 }, wh = 0, k, m, n, i, e, best = 'neutral', bs = 0, r;
+    var ex = (t.match(/[!！]/g) || []).length, q = /[؟?][\s"»”')\]]*$/.test(t), qx = /[؟?]\s*!|![\s]*[؟?]/.test(t), dots = /(?:…|\.{3})[\s"»”')\]]*$/.test(t);
+    var dia = /[«“"]/.test(t) && /[»”"]/.test(t), el = /([\u0621-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC])\1{2,}/.test(t);
+    var tw = t.replace(/[^\u0621-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC\u0622]+/g, ' ');
+    for (e in sc) { m = tw.match(EMO_RX[e]); r = tn.match(EMO_RP[e]); n = (m ? m.length : 0) + (r ? r.length : 0); if (n) sc[e] = 0.5 + (n > 1 ? 0.25 : 0) + (n > 2 ? 0.1 : 0); }
+    if (sc.joy && EMO_NEG.test(t) && /(?:نیست|نمی)/.test(t)) { sc.sad += sc.joy * 0.5; sc.joy *= 0.2; }   /* نفی: قطبیت برعکس */
+    if (EMO_INT.test(tn)) for (e in sc) if (sc[e]) sc[e] *= 1.3;
+    for (i = 0; i < EMO_VERB.length; i++) if (EMO_VERB[i][0].test(tn)) { if (EMO_VERB[i][1] === 'whisper') wh = EMO_VERB[i][2]; else sc[EMO_VERB[i][1]] += EMO_VERB[i][2]; }
+    for (i = 0; i < EMO_INJ.length; i++) { r = EMO_INJ[i]; if (r[0].test(t.replace(/^[\s«“"(\[]+/, ''))) sc[r[1]] += r[2]; }
+    if (ex) for (e in sc) if (sc[e]) sc[e] *= 1 + Math.min(0.5, ex * 0.2);
+    if (qx) sc.surprise += 0.3;
+    if (dots) { if (sc.sad) sc.sad += 0.2; else if (!ex && !q) wh = Math.max(wh, 0.35); }
+    for (e in sc) if (sc[e] > bs) { bs = sc[e]; best = e; }
+    k = Math.min(1, bs);
+    if (el) k = Math.min(1, k * 1.3);
+    if (bs < 0.35) { best = 'neutral'; k = 0; if (q) { best = 'question'; k = 0.6; } else if (wh >= 0.35) { best = 'whisper'; k = wh; } else if (ex) { best = 'emph'; k = Math.min(0.6, 0.3 + ex * 0.15); } }
+    else if (q && !qx && bs < 0.6) { best = 'question'; k = 0.6; }
+    else if (wh > bs) { best = 'whisper'; k = wh; }
+    if (best !== 'neutral' && !dia && ((tn.replace(/[^\d\u06F0-\u06F9A-Za-z]/g, '').length / Math.max(1, tn.length)) > 0.04 || /(?:جدول|نمودار|فرمول|آزمایش|درصد|معادله|دادهها|نتایج)/.test(tn))) k = Math.min(k, 0.3);   /* متن علمی/آموزشی: سقف ۰٫۳ */
+    var o = { e: best, k: Math.round(k * 100) / 100, d: dia };
+    if (EMO_N >= 500) { EMO_C.delete(EMO_C.keys().next().value); EMO_N--; }
+    EMO_C.set(raw, o); EMO_N++;
+    return o;
+  }
 /*@@TXW:/B*/
   /* r101: خارج از بستهٔ Worker متن (فقط رابط/OCR/صدا؛ توابع hoist می‌شوند و ترتیب اجرا تغییری نمی‌کند) */
 
@@ -8446,16 +8573,60 @@ var ocrSpell = (function(){
     }
     return Promise.reject(new Error('موتور صدای بومی آماده نشده است؛ برنامه را از روی APK اجرا کنید.'));
   }
-  function chunkAt(i, lim){
+  /* emo-s1: خط‌لولهٔ پارامتر هر جمله تا Piper. emoPar(k) برای جملهٔ k یا null یا {ls: ضریب length_scale (ضرب در سرعت)، ns: noise_scale، nw: noise_w، pad: مکث پس از جمله (ثانیه؛ بیشینه با مکث موجود)} برمی‌گرداند؛ پر شدن در مرحلهٔ ۳. null = رفتار قبلی بدون هیچ تغییری. EMO_V در کلید کش (فقط وقتی n/w هست) نسخهٔ سامانه را وارد می‌کند. */
+var EMO_V = 2;
+/* g2p-s2: ابزار کنسول. ezSet(1|0): کسرهٔ اضافهٔ قاعده‌محور (پیش‌فرض خاموش؛ F1 اندازه‌گیری‌شده < گیت ۸۸٪ روی داده‌های مستقل)؛ g2pStat(): وضعیت ماژول‌های تلفظ */
+window.ezSet = function(v){ try { localStorage.setItem('ezMod', v ? '1' : '0'); } catch (e) {} if (typeof clearCache === 'function') try { clearCache(); } catch (e) {} return ezOn(); };
+window.g2pStat = function(){ if (!HOM) homInit(); if (!LEX) lexInit(); return { build: APP_BUILD, hom: Object.keys(HOM).length, lex: Object.keys(LEX).length, ez: ezOn() }; };
+var emoForce = null, emoVKs = '', emoVKo = {}, emoSeen = {};
+function emoLvl(){ if (emoForce !== null) return emoForce; var v = +sget('emoLvl', '0'); return v === 1 || v === 2 ? v : 0; }
+function emoVK(){ var v = currentVoice(), id = v && v.id, s0 = sget('emoVK', '{}'); if (s0 !== emoVKs) { emoVKs = s0; try { emoVKo = JSON.parse(s0) || {}; } catch (e) { emoVKo = {}; } } return id && +emoVKo[id] > 0 ? +emoVKo[id] : 1; }
+var EMO_T = { neutral: [0, 0, 0], joy: [-0.04, 0, 80], sad: [0.08, 120, 250], anger: [-0.03, 0, 60], fear: [-0.06, 0, 40], surprise: [-0.02, 100, 100], question: [0, 0, 160], whisper: [0.06, 80, 180], dialogue: [-0.02, 100, 100], emph: [0, 0, 60] },
+    EMO_WH = /(?:^|\s)(?:چرا|کجا|چه|کی|چطور|چگونه|کدام|چند|کیست|چیست)(?![\u0621-\u06D3])/;
+function emoOne(k, sc, vk){   /* {d: Δ length_scale، b/a: مکث قبل/بعد (ms)} برای جملهٔ k؛ همه ×k×sc */
+  var q = sents[k]; if (!q) return null;
+  var tg = emoTag(q.text), e = tg.e, kk = tg.k, t, d, nw, tx = q.text;
+  if (e === 'neutral' && tg.d) { e = 'dialogue'; kk = 0.5; }
+  t = EMO_T[e] || EMO_T.neutral; d = t[0] * kk;
+  if (e === 'question') d = (EMO_WH.test(tx) ? 0.05 : 0.08) * kk;
+  if (e === 'joy' || e === 'anger' || e === 'fear' || e === 'surprise') d = Math.max(-0.03, Math.min(0.03, d * sc * vk)) / sc / vk;   /* مجموع |Δ نرخ| ≤ ۳٪ */
+  d *= sc * vk;
+  nw = tx.split(/\s+/).length;
+  if (e !== 'question' && /[.!؟?…]["»”')\]]*$/.test(tx) && nw >= 14) d += 0.025 * sc;   /* افت پایان جملهٔ خبری بلند */
+  if (/^\s*\(.*\)\s*[.!؟?]*\s*$/.test(tx)) d -= 0.03 * sc;                                  /* جملهٔ معترضه */
+  return { e: e, d: d, b: t[1] * kk * sc, a: Math.max(t[2] * kk * sc, nw > 18 ? 185 * sc : 0), n: nw, par: /^\s*\(/.test(tx) };
+}
+function emoPar(k){
+  var lv = emoLvl(); if (!lv || !sents[k]) return null;
+  var sc = lv === 1 ? 0.5 : 1, vk = emoVK(), a = emoOne(k, sc, vk), p1, p2, n1, d, d1 = 0, d2 = 0, pad, ls;
+  if (!a) return null;
+  if (k > 0 && !sents[k - 1].pe && sents[k - 1].page === sents[k].page) { p1 = emoOne(k - 1, sc, vk); d1 = p1 ? p1.d : 0; }
+  if (p1 && k > 1 && !sents[k - 2].pe && sents[k - 2].page === sents[k].page) { p2 = emoOne(k - 2, sc, vk); d2 = p2 ? p2.d : 0; }
+  d = a.e === 'neutral' ? a.d + 0.5 * d1 + 0.25 * d2 : 0.7 * a.d + 0.3 * d1;                 /* انتقال بافت با افت ۰٫۵ */
+  d = d1 + Math.max(-0.125 * sc, Math.min(0.125 * sc, d - d1));                                 /* هموارسازی: ≤ ۵۰٪ دامنه */
+  ls = Math.max(0.9, Math.min(1.15, 1 + d));
+  pad = a.a;
+  if (sents[k + 1] && !sents[k].pe && sents[k + 1].page === sents[k].page) {
+    n1 = emoOne(k + 1, sc, vk);
+    if (n1) { pad = Math.max(pad, n1.b); if ((a.e === 'dialogue' || emoTag(sents[k].text).d) !== (n1.e === 'dialogue' || emoTag(sents[k + 1].text).d)) pad = Math.max(pad, 120 * sc); }   /* روایت↔گفت‌وگو */
+  }
+  pad = pad / 1000 / Math.pow(mRate(), 0.6);
+  if (window.emoDbg && !emoSeen[k]) { emoSeen[k] = 1; try { console.log('[emo]', k, a.e, emoTag(sents[k].text).k, 'ls=' + ls.toFixed(3), 'pad=' + Math.round(pad * 1000) + 'ms'); } catch (x) {} }
+  return Math.abs(ls - 1) < 0.002 && pad < 0.02 ? null : { ls: Math.round(ls * 1000) / 1000, pad: pad > 0.02 ? pad : null };
+}
+window.emoVoiceK = function(id, v){ var o; try { o = JSON.parse(sget('emoVK', '{}')) || {}; } catch (e) { o = {}; } if (v > 0) o[id] = v; else delete o[id]; sset('emoVK', JSON.stringify(o)); changed(); return o; };
+window.emoAB = function(i, on){ if (i === undefined) { emoForce = null; changed(); return 'emoForce=null'; } emoForce = on ? 2 : 0; clearCache(); emoSeen = {}; start(i); return on ? 'بیانی' : 'بدون احساس'; };   /* A/B همان جمله: emoAB(i,0) سپس emoAB(i,1)؛ emoAB() بازنشانی */
+window.emoStat = function(){ var c = {}, t0 = performance.now(), i, e; for (i = 0; i < sents.length; i++) { e = emoTag(sents[i].text).e; c[e] = (c[e] || 0) + 1; } return { n: sents.length, counts: c, msPerSentence: sents.length ? +((performance.now() - t0) / sents.length).toFixed(3) : 0, cache: EMO_N, lvl: emoLvl(), voiceK: emoVK() }; };
+function chunkAt(i, lim){
     var rb = mRate(), e = i, len = sents[i].text.length;
     while (lim > 1 && !sents[e].pe && e + 1 < sents.length && sents[e + 1].page === sents[i].page && len + 1 + sents[e + 1].text.length <= lim) { e++; len += 1 + sents[e].text.length; }
     var t = [];
     for (var k = i; k <= e; k++) t.push(ttsText(spk(sents[k]), undefined, undefined, sents[k].cont));
     if (rsm && rsm.i === i && t.length) { var rw = String(t[0]).split(/\s+/), rk = Math.floor(rsm.f * rw.length); if (rk > 0 && rk < rw.length - 1) t[0] = rw.slice(rk).join(' '); }   /* ادامه از واژهٔ ذخیره‌شده (فقط نخستین تکه) */
-    return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ return { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
+    return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: t.map(function(x, j){ var q = { t: x, s: paceSpeed(x), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }, ep = emoPar(i + j); if (ep) { if (ep.ls) q.s = Math.round(q.s / ep.ls * 100) / 100; if (ep.ns != null) q.n = ep.ns; if (ep.nw != null) q.w = ep.nw; if (ep.pad != null) q.g = Math.max(q.g, ep.pad); } return q; }) };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r102 · 2026-10-25 · dropped-lines', npBuild = '';
+  var APP_BUILD = 'html-r105 · 2026-10-26 · emo-s3', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -8984,7 +9155,7 @@ var ocrSpell = (function(){
   }
   /* کلید کش شامل همهٔ ورودی‌های ساخت است (متن نهایی، مکث و سرعت هر جمله، سبک)؛ پس تغییر واژه‌نامه/تنظیمات بدون clearCache هم نتیجهٔ کهنه نمی‌دهد. آخرین جزء باید c.end بماند (trimCache) */
   function ckey(c, v){
-    var h = 5381, z = c.text + '|' + (c.parts || []).map(function(x){ return x.s + ':' + x.g; }).join(','), i = z.length, st = '';
+    var h = 5381, z = c.text + '|' + (c.parts || []).map(function(x){ return x.s + ':' + x.g + (x.n != null || x.w != null ? ':e' + EMO_V + ':' + x.n + ':' + x.w : ''); }).join(','), i = z.length, st = '';
     while (i) h = (h * 33) ^ z.charCodeAt(--i);
     try { st = styleParams(v.id).join(','); } catch (e) {}
     return ['piper', v.id, c.start, (h >>> 0).toString(36) + st, c.end].join('|');
@@ -10573,6 +10744,8 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   if (sget('vstyleV', '') !== '5') { sset('vstyle', 'natural'); sset('vstyleV', '5'); }   /* پیش‌فرض «انسانی» = پیش‌فرض خود مدل (یک‌بار) */   /* سبک «بسیار آرام» پیش‌فرض تازه (یک‌بار) */
   $('#vstyle').value = sget('vstyle', 'natural'); if (!STYLES[$('#vstyle').value]) $('#vstyle').value = 'natural';
   $('#vstyle').onchange = function(){ sset('vstyle', this.value); changed(); warmPiper(); };
+  $('#emoLvl').value = ['0', '1', '2'].indexOf(sget('emoLvl', '0')) >= 0 ? sget('emoLvl', '0') : '0';
+  $('#emoLvl').onchange = function(){ sset('emoLvl', this.value); changed(); };
   ['vclean', 'vclarity'].forEach(function(id){
     var el = $('#' + id); el.value = sget(id, '2'); if (['0', '1', '2', '3'].indexOf(el.value) < 0) el.value = '2';
     el.onchange = function(){ sset(id, this.value); changed(); warmPiper(); };   /* کش خام بومی می‌ماند؛ پس تغییر سطح سریع اعمال می‌شود */
@@ -11416,7 +11589,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   Array.prototype.forEach.call(toolsEl.querySelectorAll('.tile,.tbanner'), function(b){ b.addEventListener('click', function(){ toolRun(b); }); });
 
   /* ---- نشانگر «تغییریافته» و بازنشانی هر بخش ---- */
-  var CFG_DEF = {"vstyle":"natural","vclean":"2","vclarity":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"oVg":true,"oVgMode":"safe","ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
+  var CFG_DEF = {"vstyle":"natural","emoLvl":"0","vclean":"2","vclarity":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"oVg":true,"oVgMode":"safe","ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
   Array.prototype.forEach.call(document.querySelectorAll(CFG_SEC), function(s){
     var h = s.tagName === 'DETAILS' ? s.querySelector('summary .stt b') : s.querySelector('h3'), pn = s.closest('.panel');
     if (!s.id) s.id = 'cs-' + (++cfgN);
@@ -11460,7 +11633,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   $('#mbody').addEventListener('change', chgSoon, true);
   chgScan();
 
-  var CFG_KEY = /^(hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|harakat)/;
+  var CFG_KEY = /^(hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|emoLvl$|harakat)/;
 
   /* وقتی برنامه در پس‌زمینه است (مثلاً پخش با صفحهٔ خاموش) انیمیشن‌ها متوقف شوند */
   document.addEventListener('visibilitychange', function(){ document.documentElement.classList.toggle('bg-paused', document.hidden); });
