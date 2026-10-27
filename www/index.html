@@ -2550,7 +2550,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
     predict: function(o){
       /* ضریب پایه برای همهٔ گوینده‌ها یکسان است (۱ = سرعت اصلی مدل) */
       var tempo = VOICE_TEMPOS[o.voiceId] || VOICE_TEMPO, fxp = $('#enh').checked ? fxProf(o.voiceId) : null;
-      var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo), g: p.g, n: p.n, w: p.w }; }) : undefined;
+      var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo), g: p.g, n: p.n != null ? p.n : (o.st && o.st[0]), w: p.w != null ? p.w : (o.st && o.st[1]) }; }) : undefined;
       return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cleanLevel(), clarity: clarityLevel(), keep: npPlay, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; return b; });
     }
   };
@@ -8587,7 +8587,7 @@ var ocrSpell = (function(){
   function paceBase(t){
     var smart = $('#smartPace').checked, cf = [1, 0.97, 0.94, 0.88][calmLvl()];   /* آرام: ۶٪ کندتر، بسیار آرام: ۱۲٪ کندتر؛ بی‌شتاب */
     if (!smart) return cf;
-    var n = t.length; if (n < 8) return 1;
+    var n = t.length; if (n < 8) return cf;
     var sp = 1;
     if (smart) {
       var words = t.split(/\s+/).filter(Boolean), wl = 0, i;
@@ -10801,7 +10801,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     if (was) start();
   };
   $('#enh').checked = sget('enh', '1') !== '0';
-  if (sget('vstyleV', '') !== '5') { sset('vstyle', 'natural'); sset('vstyleV', '5'); }   /* پیش‌فرض «انسانی» = پیش‌فرض خود مدل (یک‌بار) */   /* سبک «بسیار آرام» پیش‌فرض تازه (یک‌بار) */
+  if (sget('vstyle', '') === '') sset('vstyle', 'natural');   /* پیش‌فرض «انسانی» فقط وقتی هنوز سبکی انتخاب نشده؛ انتخاب کاربر (آرام/بسیار آرام/…) هرگز بازنشانی نمی‌شود */
   $('#vstyle').value = sget('vstyle', 'natural'); if (!STYLES[$('#vstyle').value]) $('#vstyle').value = 'natural';
   $('#vstyle').onchange = function(){ sset('vstyle', this.value); changed(); warmPiper(); };
   $('#emoLvl').value = ['0', '1', '2'].indexOf(sget('emoLvl', '0')) >= 0 ? sget('emoLvl', '0') : '0';
