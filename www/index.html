@@ -224,6 +224,10 @@ input[type=range]:not(.rng){width:100%;accent-color:var(--accent)}
 #seekTip{z-index:31;bottom:calc(var(--dock-h) + 40px + env(safe-area-inset-bottom,0px));border-radius:16px;padding:8px 14px;pointer-events:none}
 #fixTip{z-index:30;bottom:calc(var(--dock-h) + 24px + env(safe-area-inset-bottom,0px));border-radius:20px;padding:12px 16px;max-height:45vh;max-height:45dvh;overflow:auto}
 #seekTip b,#fixTip b{color:var(--accent)}
+#spdPop{position:fixed;inset-inline:12px;margin:0 auto;max-width:560px;z-index:32;bottom:calc(var(--dock-h) + 14px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:10px;background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-radius:16px;padding:8px 12px}
+#spdPop[hidden]{display:none}
+#spdPop input{flex:1;min-width:0}
+#spdPop b{min-width:46px;text-align:center;color:var(--accent);font-variant-numeric:tabular-nums;direction:ltr}
 
 /* ===== منو ===== */
 .scrim{position:fixed;inset:0;z-index:40;background:var(--scrim);opacity:0;pointer-events:none;transition:opacity .3s;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
@@ -436,7 +440,7 @@ details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
 
 /* ===== روان‌سازی اسکرول و جابه‌جایی تب‌ها ===== */
 :root:root{--glass:color-mix(in srgb,var(--card) 96%,transparent);--dock-bg:var(--glass)}
-.ibtn.round,.note,.dock,#seekTip,#fixTip,.scrim,.selbar{-webkit-backdrop-filter:none;backdrop-filter:none}
+.ibtn.round,.note,.dock,#seekTip,#fixTip,#spdPop,.scrim,.selbar{-webkit-backdrop-filter:none;backdrop-filter:none}
 
 /* ===== نوار پخش فشرده: حدود نصف ارتفاع قبلی (≈۲۲۰ ← ≈۱۱۵px)؛ همهٔ دکمه‌ها سر جایشان ماندند ===== */
 :root:root{--dock-h:122px}
@@ -1600,6 +1604,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
       </div>
       <div class="pills" hidden><button class="pill" id="stop" type="button" disabled>توقف</button></div>
     </section>
+    <div id="spdPop" hidden role="group" aria-label="سرعت خواندن"><button type="button" class="btn sm rstep" id="spdDn" aria-label="کندتر">−</button><input type="range" class="rng" id="spdSl" min="0.4" max="2.5" step="0.05" value="1" aria-label="سرعت خواندن"><button type="button" class="btn sm rstep" id="spdUp" aria-label="تندتر">+</button><b id="spdVal">1×</b></div>
     <div class="dpeek" id="dockPeek" hidden>
       <button class="mplay" id="peekPlay" type="button" aria-label="پخش یا توقف" disabled>
         <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4L18.2 12z"/></svg>
@@ -1733,7 +1738,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <div class="cfgv">
         <div class="slist" id="paceBox">
           <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است؛ مثل نفس‌گیری گوینده. سرعت خود صدا تغییر نمی‌کند.</small></span></label>
-          <label class="chk"><input type="checkbox" id="smartPace"><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
+          <label class="chk" style="display:none"><input type="checkbox" id="smartPace"><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
           <label class="chk"><input type="checkbox" id="phLex" checked><span class="st"><b>واژه‌نامهٔ آوایی داخلی</b><small>برای صدها واژهٔ پرکاربرد، کوتاه‌مصوت‌ها (َ ِ ُ) را مشخص می‌کند تا تلفظ دقیق‌تر شود. اگر جایی عجیب خوانده شد خاموشش کنید.</small></span></label>
         </div>
 </div>
@@ -2487,7 +2492,7 @@ var mnAF = 0, mnName = '', mnOn = false, mnBad = false, mnK = '', mnT = 0, mnL =
     for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
     return new Blob([u], { type: type });
   }
-  var VOICE_TEMPOS = { 'fa_IR-gyro-medium': 0.92 };   /* ضریب سرعت اختصاصی هر گوینده در ساخت صدا (بدون کشیدن صدا)؛ کمتر از ۱ = کندتر. گوینده‌ای که اینجا نیست با سرعت اصلی خودش می‌خواند */
+  var VOICE_TEMPOS = {};   /* ضریب سرعت اختصاصی هر گوینده در ساخت صدا (بدون کشیدن صدا)؛ کمتر از ۱ = کندتر. گوینده‌ای که اینجا نیست با سرعت اصلی خودش می‌خواند */
   var VOICE_TEMPO = 1;   /* ۱ = سرعت اصلی و دست‌نخوردهٔ مدل، همان لحظهٔ نصب صدا */
   var PART_GAP = 0.12;   /* ثانیه: سکوت بین جمله‌های یک تکه (هر جمله جدا ساخته و در حافظهٔ نهان نگه داشته می‌شود) */
   function npCancel(){ try { if (npOK && NP && NP.cancel) NP.cancel().catch(function(){}); } catch (e) {} }   /* کارهای صف‌شده و در حال ساختِ کهنه را فوری رها می‌کند */
@@ -4570,6 +4575,7 @@ var ocrSpell = (function(){
       }
       return '';
     }).replace(/[\u00b2\u00b3]/g, function(c){ return c === '\u00b2' ? '\uE0B2' : '\uE0B3'; }).normalize('NFKC').replace(/\uE0B2/g, '\u00b2').replace(/\uE0B3/g, '\u00b3').replace(/[\u00ad\u200b\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff\u061c\u2060\u180e\u206a-\u206f]/g, '');   /* نشانگر خصوصی: NFKC نباید ²/³ را به 2/3 بدل کند */
+    t = t.replace(/^[ \t]*[\uE000-\uF8FF\uFFFC\uFFFD\u25A1\u25AF]+[ \t]*(?=\S)/gm, '- ').replace(/[\uE000-\uF8FF\uFFFC-\uFFFF]/g, '');   /* r117: گلیف خصوصی/نامعتبر (بولت Symbol/Wingdings) = مربع ▯ در متن؛ ابتدای سطر → آیتم فهرست */
     t = t.replace(/(?<=\S)(?:[ \t\u00a0]{3,}|\t+)(?=\S)/g, '\u001f');   /* فاصلهٔ ستونی جدول پیش از فشرده‌سازی نشانه‌گذاری می‌شود (T-06) */
     t = t.replace(/[ \t\u00a0]+/g, ' ').replace(/ *\n */g, '\n');
     t = t.replace(/\u200c{2,}/g, '\u200c').replace(/\u200c+(?=[ .,،;؛:!?؟…)»"\]])/g, '').replace(/(?<=[ («"\[])\u200c+/g, '');   /* نیم‌فاصلهٔ زائد: تکراری، چسبیده به فاصله/نگارشی؛ نیم‌فاصلهٔ پایان سطر برای چسباندن سطر شکسته می‌ماند */
@@ -8573,7 +8579,7 @@ var ocrSpell = (function(){
 
 
   /* ---------- سبک گفتار و سرعت هوشمند (نسخهٔ بومی) ---------- */
-  var STYLES = { serene: [0.667, 0.8], calm: [0.55, 0.65], soft: [0.6, 0.72], stable: [0.5, 0.6], balanced: [0.6, 0.7], natural: [0.667, 0.8], lively: [0.75, 0.9] };   /* calm: لحن نرم و یکدست، کمی آهسته‌تر و با مکث‌های بازتر */   /* «انسانی» = مقدار پیش‌فرض خودِ مدل‌های Piper */
+  var STYLES = { serene: [0.55, 0.45], calm: [0.45, 0.4], soft: [0.5, 0.45], stable: [0.4, 0.35], balanced: [0.5, 0.45], natural: [0.55, 0.5], lively: [0.65, 0.6] };   /* r118: noise_w پایین = طول واج‌ها/سرعت یکنواخت (نوسان تصادفی سرعت میان جمله‌ها)، noise_scale پایین = هیس/نویز کمتر */   /* calm: لحن نرم و یکدست، کمی آهسته‌تر و با مکث‌های بازتر */   /* «انسانی» = مقدار پیش‌فرض خودِ مدل‌های Piper */
   function calmLvl(){ var s = $('#vstyle').value; return s === 'serene' ? 3 : s === 'calm' ? 2 : s === 'soft' ? 1 : 0; }   /* سطح آرامش: ۰ عادی، ۱ ملایم، ۲ آرام، ۳ بسیار آرام (کنترل واحد = سبک گفتار) */
   function styleParams(id){
     PART_GAP = [0.12, 0.16, 0.2, 0.3][calmLvl()];   /* مقدار پیش‌فرض؛ مکث هر جمله در chunkAt با pauseMs جداگانه تعیین می‌شود */
@@ -8587,24 +8593,7 @@ var ocrSpell = (function(){
   /* سرعت نسبی ۰٫۹۱ تا ۱: هرچه جمله سنگین‌تر (کلمهٔ بلند، عدد، لاتین، نشانه‌گذاری زیاد)، کمی آهسته‌تر */
   function mRate(){ return npPlay ? Math.max(0.5, Math.min(1.5, Math.round((+$('#rate').value || 1) * 20) / 20)) : 1; }   /* r115: سقف ۱٫۵ = سقف speed ساخت صدا (نه ۲، که مازاد گم می‌شد؛ نه ۱٫۳۵، که کشش اضافه و آرتیفکت می‌ساخت)؛ مازاد بالای ۱٫۵ با playerRate */   /* سرعت کاربر با گام ۰٫۰۵ داخل خود مدل (length_scale)؛ باقی‌مانده با playerRate */
   function paceSpeed(t){ return Math.round(paceBase(t) * mRate() * 100) / 100; }
-  function paceBase(t){
-    var smart = $('#smartPace').checked, cf = [1, 0.97, 0.94, 0.88][calmLvl()];   /* آرام: ۶٪ کندتر، بسیار آرام: ۱۲٪ کندتر؛ بی‌شتاب */
-    if (!smart) return cf;
-    var n = t.length; if (n < 8) return 1;
-    var sp = 1;
-    if (smart) {
-      var words = t.split(/\s+/).filter(Boolean), wl = 0, i;
-      for (i = 0; i < words.length; i++) wl += words[i].length;
-      var avgW = words.length ? wl / words.length : 0;
-      var dig = (t.match(/[0-9\u06F0-\u06F9\u0660-\u0669]/g) || []).length / n;
-      var lat = (t.match(/[A-Za-z]/g) || []).length / n;
-      var com = (t.match(/[،,؛;:()«»]/g) || []).length / Math.max(1, words.length);
-      var d = Math.min(1, Math.max(0, (avgW - 5.2) / 2.5)) * 0.4 + Math.min(1, dig * 6) * 0.3 + Math.min(1, lat * 5) * 0.2 + Math.min(1, com * 2.5) * 0.1;
-      d = Math.min(1, d * 1.8);
-      sp = 1 - 0.09 * d;
-    }
-    return Math.round(sp * cf * 100) / 100;
-  }
+  function paceBase(t){ return 1; }   /* r119: سرعت ثابت — بدون ضریب سبک/جملهٔ سنگین/گوینده؛ سرعت واقعی = سرعت انتخابی */
   function piperPredict(text, id, l, parts){
     if (npOK) {
       var nat = function(tx, pts){ return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: tx, voiceId: id, st: styleParams(), sp: paceSpeed(tx), parts: pts })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.'); };
@@ -8669,7 +8658,7 @@ function emoSplit(j, q){   /* شکست تأکید (فقط سطح «بیانی»)
   a = tk.slice(0, em.i).join(' '); w = tk[em.i]; b = tk.slice(em.i + 1).join(' ');
   if (!L.test(a) || !L.test(w) || !L.test(b)) return null;
   function mk(t, sp, g){ var o = { t: t, s: sp, g: g }; if (q.n != null) o.n = q.n; if (q.w != null) o.w = q.w; return o; }
-  return [mk(a, q.s, 0.08), mk(w, Math.round(q.s * 90) / 100, 0.08), mk(b, q.s, q.g)];
+  return [mk(a, q.s, 0.08), mk(w, q.s, 0.08), mk(b, q.s, q.g)];
 }
 function emoFoldMarks(mk, pm, n){   /* مرزهای واقعی پلاگین (به‌ازای هر part) ⇒ مرز هر جمله؛ null = ناسازگار ⇒ برآورد وزنی */
   var o = [], k;
@@ -8698,14 +8687,14 @@ function chunkAt(i, lim){
     var P = [], pm = [], sp = false, j, q, ep, r;
     for (j = 0; j < t.length; j++) {
       q = { t: t[j], s: paceSpeed(t[j]), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; ep = emoPar(i + j);
-      if (ep) { if (ep.ls) q.s = Math.round(q.s / ep.ls * 100) / 100; if (ep.ns != null) q.n = ep.ns; if (ep.nw != null) q.w = ep.nw; if (ep.pad != null) q.g = Math.max(q.g, ep.pad); }
+      if (ep) { if (ep.ns != null) q.n = ep.ns; if (ep.nw != null) q.w = ep.nw; if (ep.pad != null) q.g = Math.max(q.g, ep.pad); }
       r = emoSplit(i + j, q);
       if (r) { sp = true; r.forEach(function(x){ P.push(x); pm.push(j); }); } else { P.push(q); pm.push(j); }
     }
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r116 · 2026-10-28 · serene-noise', npBuild = '';
+  var APP_BUILD = 'html-r119 · 2026-10-28 · fixed-speed', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -8914,7 +8903,7 @@ function chunkAt(i, lim){
     return null;
   }
   /* پروفایل تقویت صدا برای هر گوینده: صداهای کم‌کیفیت‌تر نویز زیر/بالا دارند، پس بالابَر نرم‌تر و حذف فرکانس‌های بالای بی‌فایده */
-  var FXD = { pk: 2, hs: 0.8, lp: 10500 },
+  var FXD = { pk: 1.5, hs: 0, lp: 9000 },
       FXP = [[/-coqui$/i, { pk: 1.4, hs: 0.3, lp: 9500 }]];   /* Coqui: مدل بزرگ‌تر با ترِبل کم‌تر؛ بالابَر نرم‌تر و کات بالای ۹٫۵kHz تا هوای صدا خفه نشود */
   function fxProf(id){
     var i; if (id) for (i = 0; i < FXP.length; i++) if (FXP[i][0].test(id)) return FXP[i][1];
@@ -11912,7 +11901,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     var s = $('#seek'), mx = +s.max, el = $('#posPct');
     el.textContent = mx > 0 && !s.disabled ? nf.format(Math.round((+s.value) / mx * 100)) + '٪' : '';
   }
-  function syncSpd(){ var b = $('#spdBtn'); if (b) var r = +$('#rate').value || 1; b.textContent = 'سرعت ' + nf.format(r) + '×' + effTxt(r); }
+  function syncSpd(){ var b = $('#spdBtn'), r = +$('#rate').value || 1, sl = $('#spdSl'), v = $('#spdVal'); if (b) b.textContent = 'سرعت ' + nf.format(r) + '×' + effTxt(r); if (sl) { sl.value = r; fillRng(sl); } if (v) v.textContent = nf.format(r) + '×'; }
   function applyHide(){
     document.body.classList.toggle('dock-hide', dockHidden);
     $('#dockPeek').hidden = !dockHidden;
@@ -11923,11 +11912,14 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   $('#dockHide').onclick = function(){ dockHidden = true; sset('dockHide', '1'); applyHide(); setTimeout(function(){ $('#peekShow').focus(); }, 40); };
   $('#peekShow').onclick = function(){ dockHidden = false; sset('dockHide', '0'); applyHide(); setTimeout(function(){ $('#dockHide').focus(); }, 40); };
   $('#peekPlay').onclick = function(){ $('#play').click(); };
-  $('#spdBtn').onclick = function(){
-    var r = +$('#rate').value || 1, n = SPD[0], i;
-    for (i = 0; i < SPD.length; i++) if (SPD[i] > r + 0.001) { n = SPD[i]; break; }
-    setRate(n);
-  };
+  var spP = $('#spdPop'), spSl = $('#spdSl'), spT = 0;   /* r119: تغییر سرعت در کادر پخش با نوار لغزنده (لمس دکمهٔ سرعت = نمایش/پنهان؛ ۴ ثانیه بی‌کاری = بسته) */
+  function spShow(on){ clearTimeout(spT); spP.hidden = !on; if (on) { syncSpd(); spT = setTimeout(function(){ spP.hidden = true; }, 4000); } }
+  function spKeep(){ clearTimeout(spT); spT = setTimeout(function(){ spP.hidden = true; }, 4000); }
+  $('#spdBtn').onclick = function(){ spShow(spP.hidden); };
+  spSl.oninput = function(){ setRate(this.value); spKeep(); };
+  $('#spdDn').onclick = function(){ setRate((+$('#rate').value || 1) - 0.05); spKeep(); };
+  $('#spdUp').onclick = function(){ setRate((+$('#rate').value || 1) + 0.05); spKeep(); };
+  document.addEventListener('pointerdown', function(e){ if (!spP.hidden && !spP.contains(e.target) && !$('#spdBtn').contains(e.target)) spShow(false); }, true);
   $('#seek').addEventListener('input', syncPct);
   applyHide();
 
