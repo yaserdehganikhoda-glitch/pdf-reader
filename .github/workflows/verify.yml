@@ -10,9 +10,13 @@ jobs:
           node-version: 20
       - name: Diagnose
         run: |
-          ls -l index.html www/index.html index.min.html 2>&1 || true
-          md5sum index.html www/index.html index.min.html 2>&1 || true
-          for m in 'TXW:A\*/' 'TXW:/A\*/' 'TXW:B\*/' 'TXW:/B\*/' 'var TXW_PRE'; do
-            printf '%s -> ' "$m"; grep -c "$m" www/index.html || true
+          f=www/index.html
+          ls -l $f; md5sum $f; wc -l $f
+          for n in 1 2775 3555 3558; do printf '%s: ' $n; sed -n "${n}p" $f | cut -c1-70; done
+          i=0
+          for e in 233947 ac9bf5 7b0779 c110bc c405aa f4a2c6 22a8d4 1232f4 465a9d 571167 5a98fb 0ea53c b00fc0 e2a0c9 dc4121 7f7148 6aa46d 1a24d9; do
+            h=$(dd if=$f bs=65536 skip=$i count=1 2>/dev/null | md5sum | cut -c1-6)
+            if [ "$h" = "$e" ]; then echo "chunk $i same"; else echo "chunk $i DIFF"; fi
+            i=$((i+1))
           done
       - run: sh tools/verify.sh www/index.html
