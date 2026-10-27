@@ -8,4 +8,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Diagnose
+        run: |
+          ls -l index.html www/index.html index.min.html 2>&1 || true
+          md5sum index.html www/index.html index.min.html 2>&1 || true
+          for m in 'TXW:A\*/' 'TXW:/A\*/' 'TXW:B\*/' 'TXW:/B\*/' 'var TXW_PRE'; do
+            printf '%s -> ' "$m"; grep -c "$m" www/index.html || true
+          done
       - run: sh tools/verify.sh www/index.html
