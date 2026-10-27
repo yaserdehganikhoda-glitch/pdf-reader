@@ -6548,7 +6548,6 @@ var ocrSpell = (function(){
     if (/\u0647\u0654$/.test(w)) return w.slice(0, -2) + '\u0647';
     return /\u0650$/.test(w) ? w.slice(0, -1) : w;
   }
-  function ezVerb(k){ return EZ_COP.test(k) || PZ_VERB.test(k) || !!EZ_V[k] || !!EZ_VBX[k] || !!MF_P3[k]; }
   function ezBad(k){ return !k || EZ_STOP[k] || EZ_STOP2[k] || EZ_V[k] || EZ_VBX[k] || PZ_VERB.test(k) || /^ن?می\u200c/.test(k); }
   function manEz(l){                                                /* کسرهٔ اضافهٔ محافظه‌کار: فقط میان دو واژهٔ پیاپی بی‌نشانه که فعل/حرف/ضمیر/قید نیستند */
     if (!MF_PERS.test(l)) return l;
@@ -7784,6 +7783,8 @@ var ocrSpell = (function(){
   'شلوغ آبی زیبا سرد گرم مهم بزرگ کوچک طولانی مثبت منفی جالب شور مهربان خوب بد قدیمی جدید ساده سخت آسان زیاد کم مفید لازم ضروری ممکن درست غلط تمیز کثیف تازه قشنگ زشت پیر جوان سبز قرمز سفید سیاه زرد شیرین تلخ غم‌انگیز شاد ارزان گران خطرناک مناسب مشهور معروف عالی فارسی ایرانی'.split(' ').forEach(function(w){ EZ_PADJ[w] = 1; });
   var EZ_LVB = {};
   'کرد کردند کند کنند کرده شد شدند شود شوند شده داد دادند دهد دهند زد زدند گرفت گرفتند کشید کشیدند داشت دارد دارند'.split(' ').forEach(function(w){ EZ_LVB[w] = 1; });
+  /* r-fix: ezVerb داخل بلوک TXW:B تا ابزار تست (load.js) آن را ببیند؛ در دامنهٔ IIFE اصلی hoist می‌شود و رفتار برنامه تغییر نمی‌کند */
+  function ezVerb(k){ return EZ_COP.test(k) || PZ_VERB.test(k) || !!EZ_V[k] || !!EZ_VBX[k] || !!MF_P3[k]; }
   function ezIsV(w){ return !!(EZ_V[w] || EZ_VBX[w] || EZ_STOP[w] || /^ن?می\u200c/.test(w) || /\u200c(?:ام|ای|ایم|اید|اند)$/.test(w) || EZ_COPS[w]); }
   function ezBase(w){ return w.replace(/[\u064B-\u0652]/g, ''); }
   function ezLeftOk(w, b){
