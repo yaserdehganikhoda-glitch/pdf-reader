@@ -1688,7 +1688,8 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
           <span class="flab">سبک گفتار</span>
           <select id="vstyle" data-seg aria-label="سبک گفتار">
             <option value="serene" data-short="بسیار آرام" data-desc="آرام‌ترین حالت: کندتر، یکدست‌تر و با مکث‌های بازتر میان جمله‌ها؛ جمله‌ها هرگز پشت‌سرهم و بی‌نفس نمی‌آیند. مناسب کتاب و گوش‌دادن طولانی.">بسیار آرام (نفس‌دار و بی‌شتاب)</option>
-            <option value="calm" data-short="آرام" data-desc="لحن نرم، یکدست و بی‌شتاب با مکث‌های بازتر؛ شنیدن راحت و آرامش‌بخش.">آرام (دلنشین و آرامش‌بخش)</option>
+            <option value="soft" data-short="ملایم" data-desc="کمی نرم‌تر و بی‌شتاب‌تر از حالت انسانی، با مکث‌های اندکی بازتر؛ نزدیک به طبیعی.">ملایم (کمی آرام‌تر)</option>
+<option value="calm" data-short="آرام" data-desc="لحن نرم، یکدست و بی‌شتاب با مکث‌های بازتر؛ شنیدن راحت و آرامش‌بخش.">آرام (دلنشین و آرامش‌بخش)</option>
             <option value="stable" data-short="پایدار" data-desc="یکنواخت و بی‌نوسان؛ مناسب کتاب‌های بلند و متن‌های رسمی.">پایدار (یکنواخت‌تر، مناسب کتاب)</option>
             <option value="balanced" data-short="متعادل" data-desc="تعادل میان پایداری و حالت؛ مناسب بیشتر متن‌ها.">متعادل</option>
             <option value="natural" data-short="انسانی" data-desc="نزدیک‌ترین حالت به لحن یک گوینده انسانی: زیر و بمی و ریتم طبیعی (پیشنهادی).">انسانی (پیشنهادی)</option>
@@ -2383,6 +2384,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
     e.title = 'صفحهٔ ' + nf.format(p) + ' از ' + nf.format(t || p);
   }
   var sents = [], idx = 0, playing = false, token = 0, voices = [], curEl = null;
+var mnName = '', mnOn = false, mnBad = false, mnK = '', mnT = 0, mnL = 0;   /* r107: اعلان رسانه‌ای بومی */
 
   if (window.pdfjsLib) {
     pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('lib/pdf.worker.min.js', location.href).href;
@@ -2492,12 +2494,14 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
     on('playerStart', function(e){ npStarted(e.h); });
     on('playerPos', function(e){ if (e.h === npCur && npCurC && playing) { wdProg = Date.now(); wdPosN++; followFrac(npCurC, e.p); } });
     on('playerEnd', function(e){ npEnded(e.h); });
+on('mediaAction', function(e){ mnAct(e); });
+on('playerResume', function(){ if (!playing && sents.length) start(); });   /* r109: بازگشت فوکوس پس از توقف گذرا؛ بومی فقط پس از LOSS_TRANSIENT می‌فرستد */
     on('playerError', function(e){ if (e.h === npCur) fail(npMy, 'پخش صدا ناموفق بود: ' + (e.msg || '')); });
     /* تماس تلفنی یا جداشدن هدفون: بومی پخش را قطع کرده؛ وضعیت برنامه هم متوقف می‌شود */
     on('playerInterrupted', function(e){
       if (!playing) return;
       pause();
-      status(e && e.reason === 'call' ? 'پخش به‌خاطر تماس تلفنی متوقف شد.' : 'پخش با جداشدن هدفون یا بلندگو متوقف شد.');
+      status(e && e.reason === 'call' ? 'پخش به‌خاطر تماس تلفنی متوقف شد.' : e && e.reason === 'focus_t' ? 'پخش موقتاً به‌دلیل صدای برنامهٔ دیگر متوقف شد؛ پس از پایان آن ادامه می‌یابد.' : e && e.reason === 'focus' ? 'پخش به‌دلیل پخش صدای برنامهٔ دیگر متوقف شد.' : 'پخش با جداشدن هدفون یا بلندگو متوقف شد.');
     });
   }
   /* مدل‌های زنانهٔ Coqui پس از نصب برنامه دانلود می‌شوند؛ نشانی و آینه‌ها داخل پلاگین بومی (DOWNLOADABLE) است و فقط شناسه رد می‌شود */
@@ -7485,7 +7489,7 @@ var ocrSpell = (function(){
         mark(true);
       }
       libSave(file, pdf.numPages, sents.length); recAdd(file);
-      try { if (navigator.mediaSession) navigator.mediaSession.metadata = new MediaMetadata({ title: file.name }); } catch (e) {}
+      mnName = file.name; try { if (navigator.mediaSession) navigator.mediaSession.metadata = new MediaMetadata({ title: file.name }); } catch (e) {}
       if (!sents.length) status(ocrHint().replace(/^ — /, '')); else status(file.name + ' — ' + nf.format(pdf.numPages) + ' صفحه، ' + nf.format(sents.length) + ' جمله' + (idx ? ' — ادامه از جملهٔ ' + nf.format(idx + 1) : '') + ocrHint());
       if (O.ocr !== 'off' && ocrTodo().length) runOcr();
     } catch (e) {
@@ -8555,10 +8559,10 @@ var ocrSpell = (function(){
 
 
   /* ---------- سبک گفتار و سرعت هوشمند (نسخهٔ بومی) ---------- */
-  var STYLES = { serene: [0.5, 0.58], calm: [0.55, 0.65], stable: [0.5, 0.6], balanced: [0.6, 0.7], natural: [0.667, 0.8], lively: [0.75, 0.9] };   /* calm: لحن نرم و یکدست، کمی آهسته‌تر و با مکث‌های بازتر */   /* «انسانی» = مقدار پیش‌فرض خودِ مدل‌های Piper */
-  function calmLvl(){ var s = $('#vstyle').value; return s === 'serene' ? 2 : s === 'calm' ? 1 : 0; }   /* سطح آرامش: ۰ عادی، ۱ آرام، ۲ بسیار آرام */
+  var STYLES = { serene: [0.5, 0.58], calm: [0.55, 0.65], soft: [0.6, 0.72], stable: [0.5, 0.6], balanced: [0.6, 0.7], natural: [0.667, 0.8], lively: [0.75, 0.9] };   /* calm: لحن نرم و یکدست، کمی آهسته‌تر و با مکث‌های بازتر */   /* «انسانی» = مقدار پیش‌فرض خودِ مدل‌های Piper */
+  function calmLvl(){ var s = $('#vstyle').value; return s === 'serene' ? 3 : s === 'calm' ? 2 : s === 'soft' ? 1 : 0; }   /* سطح آرامش: ۰ عادی، ۱ ملایم، ۲ آرام، ۳ بسیار آرام (کنترل واحد = سبک گفتار) */
   function styleParams(id){
-    PART_GAP = [0.12, 0.2, 0.3][calmLvl()];   /* مقدار پیش‌فرض؛ مکث هر جمله در chunkAt با pauseMs جداگانه تعیین می‌شود */
+    PART_GAP = [0.12, 0.16, 0.2, 0.3][calmLvl()];   /* مقدار پیش‌فرض؛ مکث هر جمله در chunkAt با pauseMs جداگانه تعیین می‌شود */
     var st = STYLES[$('#vstyle').value] || STYLES.natural, v;
     if (id === undefined) { v = currentVoice(); id = v && v.id; }
     return st;
@@ -8570,7 +8574,7 @@ var ocrSpell = (function(){
   function mRate(){ return npPlay ? Math.max(0.5, Math.min(2, Math.round((+$('#rate').value || 1) * 20) / 20)) : 1; }   /* سرعت کاربر با گام ۰٫۰۵ داخل خود مدل (length_scale)؛ باقی‌مانده با playerRate */
   function paceSpeed(t){ return Math.round(paceBase(t) * mRate() * 100) / 100; }
   function paceBase(t){
-    var smart = $('#smartPace').checked, cf = [1, 0.94, 0.88][calmLvl()];   /* آرام: ۶٪ کندتر، بسیار آرام: ۱۲٪ کندتر؛ بی‌شتاب */
+    var smart = $('#smartPace').checked, cf = [1, 0.97, 0.94, 0.88][calmLvl()];   /* آرام: ۶٪ کندتر، بسیار آرام: ۱۲٪ کندتر؛ بی‌شتاب */
     if (!smart) return cf;
     var n = t.length; if (n < 8) return 1;
     var sp = 1;
@@ -8687,7 +8691,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r106 · 2026-10-26 · clean-s4', npBuild = '';
+  var APP_BUILD = 'html-r110 · 2026-10-27 · calm-bench', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -9298,7 +9302,7 @@ function chunkAt(i, lim){
     } else if (q.pe) ms = (!strong && !soft && t.length < 80) ? 720 : (/[?؟]["»”')\]]*$/.test(t) ? 470 : 410);
     else if (q.cont && !strong) ms = 25;
     else ms = strong ? 170 : soft ? 130 : 160;
-    ms *= [1, 1.3, 1.6][calmLvl()];   /* آرام: مکث‌ها بازتر (×۱٫۳)، بسیار آرام (×۱٫۶)، مثل نفس‌گیری آرام گوینده */
+    ms *= [1, 1.15, 1.3, 1.6][calmLvl()];   /* آرام: مکث‌ها بازتر (×۱٫۳)، بسیار آرام (×۱٫۶)، مثل نفس‌گیری آرام گوینده */
     return Math.round(nr ? ms : ms / Math.pow(r, 0.6));
   }
   function gap(my){
@@ -9492,7 +9496,7 @@ function chunkAt(i, lim){
     ui();
   }
   function stopAll(){
-    pause(); idx = 0; mark(false);
+    pause(); idx = 0; mark(false); mnStop();
   }
   var posT = 0, hlK = '', hlM = {}, posF = 0, posFi = -1, rsm = null, hlU = [], hlT = 0, selSnap = null, selT = 0;
   function hlLoad(){ var k = curKey; hlK = k; hlM = {}; hlU = []; if (k) kvGet('hl:' + k.slice(4)).then(function(a){ if (hlK === k && Array.isArray(a)) { a.forEach(function(m){ if (m.x) hlU.push(m); else hlM[m.i] = 1; }); hlPaintSoon(); } }); }
@@ -9547,7 +9551,7 @@ function chunkAt(i, lim){
       if (rsm && rsm.i !== idx) rsm = null;
       if (hlK !== curKey) hlLoad(); curEl.classList.toggle('hlu', !!hlM[idx]); hlPaintSoon();
       if (pvOn()) pvMark(scroll); else if (scroll) follow(curEl);
-      $('#pos').textContent = 'جملهٔ ' + nf.format(idx + 1) + ' از ' + nf.format(sents.length);
+      $('#pos').textContent = 'جملهٔ ' + nf.format(idx + 1) + ' از ' + nf.format(sents.length); mnSync();
       pgInfo(sents[idx].page, pdfDoc ? pdfDoc.numPages : sents[idx].page);
       $('#seek').max = sents.length - 1; $('#seek').value = idx; fillRng($('#seek'));
       if (curKey) posSave();
@@ -10022,7 +10026,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   }
   setInterval(function(){ if (ocrBusy || (man && (man.busy || man.fx))) kaSync(); }, 4000);
   document.addEventListener('visibilitychange', function(){ kaSync(); try { if (ocrBusy && ocrPerf && ocrPerf.vis && ocrPerf.vis.length < 60) ocrPerf.vis.push([ocrPerf.n, document.visibilityState, Math.round(performance.now() / 1000)]); } catch (e) {} });
-  function ui(){
+  function ui(){ mnSync();
     kaSync(); manPbSync();
     var has = sents.length > 0 && canSpeak();
     $('#play').disabled = !has;
@@ -10043,6 +10047,97 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     try { if (navigator.mediaSession) navigator.mediaSession.playbackState = playing ? 'playing' : 'paused'; } catch (e) {}
   }
 
+  /* ---------- r107: اعلان رسانه‌ای بومی (MediaStyle). فقط روی تغییر جمله/صفحه/وضعیت/سرعت و حداکثر ۱ بار در ثانیه؛ بدون تیک پیوسته ---------- */
+  function mnSync(){
+    if (mnBad || !NP || !npOK || !npPlay || !sents.length || (!playing && !mnOn)) return;
+    var s = sents[idx], pg = s && s.page, rt = Math.round((+$('#rate').value || 1) * 100) / 100, nm = (mnName || '').replace(/\.pdf$/i, '') || 'خوانندهٔ صوتی PDF';
+    var sub = pg ? 'صفحهٔ ' + nf.format(pg) + ' از ' + nf.format(pdfDoc ? pdfDoc.numPages : pg) : '';
+    var k = [nm, sub, idx, sents.length, playing ? 1 : 0, rt].join('|');
+    if (k === mnK) return;
+    var d = Date.now() - mnL;
+    clearTimeout(mnT);
+    if (d < 900) { mnT = setTimeout(mnSync, 900 - d); return; }
+    mnK = k; mnL = Date.now();
+    var o = { title: nm, sub: sub, total: sents.length, index: idx, playing: !!playing, rate: rt }, first = !mnOn;
+    mnOn = true;
+    try { Promise.resolve(first ? NP.mediaStart(o) : NP.mediaUpdate(o)).catch(function(e){ mnOn = false; mnK = ''; if (!/NO_MEDIA/.test(String((e && e.message) || e))) mnBad = true; }); } catch (e) { mnBad = true; }
+  }
+  function mnStop(){
+    clearTimeout(mnT); mnK = '';
+    if (!mnOn) return;
+    mnOn = false;
+    try { if (NP && NP.mediaStop) Promise.resolve(NP.mediaStop()).catch(function(){}); } catch (e) {}
+  }
+  function mnAct(e){
+    var a = e && e.action;
+    if (a === 'play') { if (!playing) start(); }
+    else if (a === 'pause') { if (playing) pause(); }
+    else if (a === 'next') { seekTo(idx + 1); mnSync(); }
+    else if (a === 'prev') { seekTo(idx - 1); mnSync(); }
+    else if (a === 'seek') { var p = +e.pos; if (p >= 0 && p < sents.length) { seekTo(p | 0); mnSync(); } }
+    else if (a === 'speed') { var r = +$('#rate').value || 1, L = [0.75, 1, 1.25, 1.5].filter(function(v){ return v > r + 0.001; }); setRate(L.length ? L[0] : 0.75); mnSync(); }
+    else if (a === 'stop') { if (playing) pause(); mnStop(); }
+  }
+  /* ---------- r110: calmBench() — اندازه‌گیری قبل/بعد برای سطوح آرامش (A-7). فقط از کنسول/پیشرفته؛ روی ۱۰ جملهٔ ثابت با صدای فعلی ---------- */
+  var CB_S = ['امروز هوا بسیار خوب است و ما تصمیم گرفتیم به پارک برویم.', 'کتاب‌خانهٔ شهر صبح‌ها ساعت هشت باز می‌شود، اما روزهای جمعه تعطیل است.', 'آیا می‌دانید که نخستین دانشگاه جهان در کجا تأسیس شد؟', 'او با صدایی آرام گفت: «من هنوز منتظر پاسخ شما هستم.»', 'سیستم جدید، سرعت پردازش را تا دو برابر افزایش می‌دهد و مصرف انرژی را کاهش می‌دهد.', 'باران از صبح شروع به باریدن کرد؛ خیابان‌ها خلوت و آسمان خاکستری بود.', 'به گزارش خبرگزاری‌ها، نشست امسال در تهران برگزار خواهد شد.', 'ساده‌ترین راه برای یادگیری یک زبان، شنیدن و تکرار روزانه است.', 'شب‌ها که همه‌جا ساکت می‌شود، صدای رودخانه از دور به گوش می‌رسد.', 'لطفاً پیش از ورود، کفش‌های خود را در جای مخصوص قرار دهید.'];
+  function cbPcm(b64){
+    var bin = atob(b64), n = bin.length, u8 = new Uint8Array(n), k, i = 12, o = 44, m, x, v, id, sz;
+    for (k = 0; k < n; k++) u8[k] = bin.charCodeAt(k);
+    while (i < n - 8) { id = String.fromCharCode(u8[i], u8[i + 1], u8[i + 2], u8[i + 3]); sz = (u8[i + 4] | (u8[i + 5] << 8) | (u8[i + 6] << 16) | (u8[i + 7] << 24)) >>> 0; if (id === 'data') { o = i + 8; break; } i += 8 + sz; }
+    m = (n - o) >> 1; x = new Float32Array(m);
+    for (k = 0; k < m; k++) { v = u8[o + 2 * k] | (u8[o + 2 * k + 1] << 8); x[k] = (v > 32767 ? v - 65536 : v) / 32768; }
+    return x;
+  }
+  function cbStats(x, sr, nch){
+    var N = Math.round(sr * 0.02), nf = Math.floor(x.length / N), r = new Float32Array(nf), i, j, s, mx = 0, pk = 0, a, b, c, hp, e0, e1, f0 = [], vs;
+    for (i = 0; i < nf; i++) { s = 0; for (j = 0; j < N; j++) { a = x[i * N + j]; s += a * a; if (Math.abs(a) > pk) pk = Math.abs(a); } r[i] = Math.sqrt(s / N); if (r[i] > mx) mx = r[i]; }
+    var thr = mx * 0.01, f1 = 0, f2 = nf - 1;   /* آستانهٔ سکوت: ۴۰- dB زیر بلندترین فریم */
+    while (f1 < nf && r[f1] < thr) f1++; while (f2 > f1 && r[f2] < thr) f2--;
+    var tot = f2 - f1 + 1, sil = 0; for (i = f1; i <= f2; i++) if (r[i] < thr) sil++;
+    var s0 = f1 * N, s1 = (f2 + 1) * N, ss = 0; for (i = s0; i < s1; i++) ss += x[i] * x[i];
+    /* HF: بایکواد بالاگذر RBJ در ۶kHz (Q=0.707) */
+    var w = 2 * Math.PI * 6000 / sr, cs = Math.cos(w), al = Math.sin(w) / 1.414, a0 = 1 + al;
+    b = [(1 + cs) / 2 / a0, -(1 + cs) / a0, (1 + cs) / 2 / a0]; c = [-2 * cs / a0, (1 - al) / a0];
+    var x1 = 0, x2 = 0, y1 = 0, y2 = 0, y, sh = 0;
+    for (i = s0; i < s1; i++) { y = b[0] * x[i] + b[1] * x1 + b[2] * x2 - c[0] * y1 - c[1] * y2; x2 = x1; x1 = x[i]; y2 = y1; y1 = y; sh += y * y; }
+    /* F0: خودهمبستگی روی سیگنال نیم‌نمونه‌شده، فریم ۴۰ms، گام ۲۰ms، بازهٔ ۷۰–۴۰۰Hz، آستانهٔ واک‌داری ۰٫۵ */
+    var d = new Float32Array(x.length >> 1), sr2 = sr / 2, F = Math.round(sr2 * 0.04), H = Math.round(sr2 * 0.02), lo = Math.floor(sr2 / 400), hi = Math.ceil(sr2 / 70), p, l, bestR, bestL, r0, rr, ac = new Float32Array(hi + 3);
+    for (i = 0; i < d.length; i++) d[i] = (x[2 * i] + x[2 * i + 1]) * 0.5;
+    for (p = Math.floor(s0 / 2); p + F + hi + 2 < Math.floor(s1 / 2); p += H) {
+      r0 = 0; for (j = 0; j < F; j++) r0 += d[p + j] * d[p + j];
+      if (r0 < 1e-6 * F) continue;
+      bestR = 0; bestL = 0;
+      for (l = lo - 1; l <= hi + 1; l++) { rr = 0; for (j = 0; j < F; j++) rr += d[p + j] * d[p + j + l]; ac[l] = rr; if (l >= lo && l <= hi && rr > bestR) bestR = rr; }
+      for (l = lo; l <= hi; l++) if (ac[l] >= 0.9 * bestR && ac[l] >= ac[l - 1] && ac[l] >= ac[l + 1]) { bestL = l; break; }   /* کوچک‌ترین قلهٔ نزدیک به بیشینه: جلوگیری از خطای اکتاو (لگ دوبرابر) */
+      if (bestL && ac[bestL] / r0 > 0.5) f0.push(12 * Math.log(sr2 / bestL) / Math.LN2);
+    }
+    var mu = 0, sd = 0; f0.forEach(function(v){ mu += v; }); mu = f0.length ? mu / f0.length : 0; f0.forEach(function(v){ sd += (v - mu) * (v - mu); }); sd = f0.length > 3 ? Math.sqrt(sd / f0.length) : NaN;
+    return { sec: (s1 - s0) / sr, sil: sil / tot, rmsDb: 20 * Math.log10(Math.sqrt(ss / (s1 - s0)) + 1e-9), hf: sh / (ss + 1e-12), f0sd: sd, peak: pk, b0: Math.abs(x[0]) * 32768, b1: Math.abs(x[x.length - 1]) * 32768 };
+  }
+  function cbMean(a){ var s = 0, n = 0; a.forEach(function(v){ if (isFinite(v)) { s += v; n++; } }); return n ? s / n : NaN; }
+  function cbSd(a){ var m = cbMean(a), s = 0, n = 0; a.forEach(function(v){ if (isFinite(v)) { s += (v - m) * (v - m); n++; } }); return n > 1 ? Math.sqrt(s / n) : NaN; }
+  /* calmBench(levels?) ← پیش‌فرض ['natural','soft','calm','serene']؛ خروجی: جدول کنسول + window.__calmBench */
+  window.calmBench = async function(levels){
+    if (!NP || !npOK) throw new Error('calmBench: پلاگین بومی در دسترس نیست.');
+    var v = currentVoice(); if (!v) throw new Error('calmBench: گویندهٔ Piper انتخاب نشده.');
+    levels = levels || ['natural', 'soft', 'calm', 'serene'];
+    var vs = $('#vstyle'), old = vs.value, rows = [], tempo = VOICE_TEMPOS[v.id] || VOICE_TEMPO, fxp = $('#enh').checked ? fxProf(v.id) : null, li, si, st, sp, r, pcm, m, M, t0 = performance.now();
+    try {
+      for (li = 0; li < levels.length; li++) {
+        vs.value = levels[li]; st = styleParams(v.id); M = [];
+        for (si = 0; si < CB_S.length; si++) {
+          sp = paceSpeed(CB_S[si]);
+          r = await NP.synthesize({ id: v.id, text: CB_S[si], noiseScale: st[0], noiseScaleW: st[1], clean: cleanLevel(), clarity: clarityLevel(), keep: false, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, sp * tempo), gap: PART_GAP });
+          pcm = cbPcm(r.wav); m = cbStats(pcm, r.sampleRate || 22050); m.cps = CB_S[si].replace(/\s/g, '').length / m.sec; M.push(m);
+          await new Promise(function(z){ setTimeout(z, 0); });
+        }
+        rows.push({ سطح: levels[li], 'نویسه/ثانیه': +cbMean(M.map(function(q){ return q.cps; })).toFixed(2), 'سکوت‌داخلی٪': +(cbMean(M.map(function(q){ return q.sil; })) * 100).toFixed(1), 'F0-σ(نیم‌پرده)': +cbMean(M.map(function(q){ return q.f0sd; })).toFixed(2), 'RMS-σ(dB)': +cbSd(M.map(function(q){ return q.rmsDb; })).toFixed(2), 'HF>6k٪': +(cbMean(M.map(function(q){ return q.hf; })) * 100).toFixed(2), 'قله': +Math.max.apply(null, M.map(function(q){ return q.peak; })).toFixed(3), 'مرز-LSB': Math.round(Math.max.apply(null, M.map(function(q){ return Math.max(q.b0, q.b1); }))) });
+      }
+    } finally { vs.value = old; styleParams(v.id); }
+    window.__calmBench = { voice: v.id, build: APP_BUILD, ms: Math.round(performance.now() - t0), rows: rows };
+    try { console.table(rows); } catch (e) {}
+    return window.__calmBench;
+  };
   /* ---------- PDF library (IndexedDB) ---------- */
   function kvDelMany(keys){ return kvDelMany0(keys).then(function(n){ opfsDel(keys); return n; }); }
   function kvDelMany0(keys){
@@ -11723,7 +11818,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     var ok = $('#exOk'), sy = $('#exStay'), t0 = ok.textContent;
     ok.disabled = sy.disabled = true; ok.textContent = 'در حال ذخیرهٔ تنظیمات…';
     var rst = function(){ exiting = false; ok.disabled = sy.disabled = false; ok.textContent = t0; };
-    try { if (playing) pause(); } catch (e) {}
+    try { if (playing) pause(); } catch (e) {} try { mnStop(); } catch (e) {}
     try { posFlush(); } catch (e) {}
     try { if (ocrBusy && ocrFlush) ocrFlush(); } catch (e) {}
     var go = function(){ rst(); exHide(); try { if (NP && NP.exitApp) { Promise.resolve(NP.exitApp()).catch(exitFallback); return; } } catch (e) {} exitFallback(); };
@@ -12652,7 +12747,8 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     var GEN = "<circle cx=\"32\" cy=\"30\" r=\"31\" fill=\"url(#avBg)\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"#e9eefc\"/><path d=\"M4 64c1.5-11 11-18.500 28-18.500S58.500 53 60 64z\" fill=\"url(#avBd)\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"#e6b794\"/><path d=\"M27 35.5h10v9.2c0 2.600-2.300 4.600-5 4.600s-5-2-5-4.600z\" fill=\"url(#avNk)\"/><g transform=\"translate(21.2 28.5) scale(1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#e6b794\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><g transform=\"translate(42.8 28.5) scale(-1 1)\"><ellipse rx=\"2.2\" ry=\"3.5\" fill=\"#e6b794\"/><ellipse cx=\".3\" rx=\"1.1\" ry=\"2.2\" fill=\"url(#avSh)\" opacity=\".55\"/></g><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"#e6b794\"/><path d=\"M21.2 25.5C21 17 25.5 12.6 32 12.6S43 17 42.8 25.5c-.1 4-1 8-3 11.2C37.6 40.2 35 42.2 32 42.2s-5.6-2-7.8-5.5c-2-3.2-3-7.2-3-11.2z\" fill=\"url(#avF)\"/><ellipse cx=\"25\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"39\" cy=\"32\" rx=\"3.4\" ry=\"2.6\" fill=\"url(#avBl)\"/><ellipse cx=\"26.5\" cy=\"21\" rx=\"3.6\" ry=\"2\" fill=\"url(#avHi)\" opacity=\".5\"/><ellipse cx=\"32\" cy=\"16.5\" rx=\"5\" ry=\"2.2\" fill=\"url(#avHi)\" opacity=\".45\"/><path d=\"M20.800 26.500c-1.400-9 3-15.500 11.400-15.500 7.800 0 12.400 5.300 11 15.200-.6-4.300-2.200-7-4.800-8.600-3.600 2-9 2.400-12.800 1.400-2.400 1.800-4.200 4.500-4.800 7.500z\" fill=\"#3b3040\"/><path d=\"M20.800 26.500c-1.400-9 3-15.500 11.400-15.500 7.800 0 12.400 5.300 11 15.200-.6-4.300-2.200-7-4.800-8.600-3.600 2-9 2.400-12.800 1.400-2.400 1.800-4.200 4.500-4.800 7.500z\" fill=\"url(#avHr)\"/><g transform=\"translate(27.3 26.8)\"><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a2f1d\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.5 .3C-1.815 -2.9 1.815 -2.9 3.5 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><g transform=\"translate(36.7 26.8)\"><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"#f6f1ec\"/><path d=\"M-3.3 .2C-1.815 -2.5 1.815 -2.5 3.3 .2 1.815 2.2 -1.815 2.2 -3.3 .2z\" fill=\"url(#avSh)\" opacity=\".28\"/><circle cy=\".05\" r=\"1.85\" fill=\"#4a2f1d\"/><circle cy=\".05\" r=\"1.85\" fill=\"url(#avIr)\"/><circle cy=\".05\" r=\".85\" fill=\"#0d0705\"/><circle cx=\"-.65\" cy=\"-.75\" r=\".55\" fill=\"#fff\"/><circle cx=\".6\" cy=\".7\" r=\".25\" fill=\"#fff\" opacity=\".7\"/><path d=\"M-3.5 .3C-1.815 -2.9 1.815 -2.9 3.5 .3\" fill=\"none\" stroke=\"#1a0f0b\" stroke-width=\"0.85\" stroke-linecap=\"round\"/></g><path d=\"M32 27.2c-.6 2.4-1.5 4.2-1.9 5.6.9.9 2.9.9 3.8 0-.4-1.4-1.3-3.2-1.9-5.6z\" fill=\"url(#avSh)\" opacity=\".42\"/><ellipse cx=\"30.8\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"33.2\" cy=\"33.1\" rx=\".75\" ry=\".45\" fill=\"#2a0e04\" opacity=\".38\"/><ellipse cx=\"32\" cy=\"32.1\" rx=\"1.4\" ry=\".9\" fill=\"url(#avHi)\" opacity=\".8\"/><path d=\"M29.6 26.6c.6-.5 1-.3 1.2.2\" fill=\"none\" stroke=\"#2a0e04\" stroke-width=\".4\" opacity=\".25\" stroke-linecap=\"round\"/><path d=\"M28.8 36.6c1.2-1.0 2.3-.6 3.2-.2 1.7-.4 2.8-1 3.2.2-.9 1-2.100 1.500-3.2 1.500s-2.3000000000000003 -.5-3.2 -1.500z\" fill=\"#b56a5a\"/><path d=\"M29.2 36.800000000000004c.8 1.7 4.800000000000001 1.7 5.6000000000000005 0-3.2 .6-3.3000000000000003 .6-5.6000000000000005 0z\" fill=\"#b56a5a\"/><path d=\"M29.2 36.800000000000004c.8 1.7 4.800000000000001 1.7 5.6000000000000005 0-3.2 .6-3.3000000000000003 .6-5.6000000000000005 0z\" fill=\"url(#avLip)\"/><ellipse cx=\"32\" cy=\"37.95\" rx=\"1.4\" ry=\".45\" fill=\"#fff\" opacity=\".45\"/><path d=\"M29.0 36.7q3.0 .7 6.0 0\" fill=\"none\" stroke=\"#3a1008\" stroke-width=\".45\" opacity=\".55\" stroke-linecap=\"round\"/><ellipse cx=\"32\" cy=\"64\" rx=\"26\" ry=\"6\" fill=\"#000\" opacity=\"0\"/><circle cx=\"32\" cy=\"32\" r=\"32\" fill=\"url(#avVg)\"/><ellipse cx=\"22\" cy=\"10\" rx=\"24\" ry=\"13\" transform=\"rotate(-18 22 10)\" fill=\"url(#avGl)\"/>";
     var ST = {   /* آیکون و رنگ هر سبک */
       serene: ['M20 14.500A8 8 0 0 1 9.500 4 8 8 0 1 0 20 14.500z', '#6c7bff'],
-      calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
+      soft: ['M4 12c3-4 5-4 8 0s5 4 8 0', '#4cb7a5'],
+calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
       stable: ['M4 9h16M4 15h16', '#3b8fe0'],
       balanced: ['M12 4v16M5 8h14M5 8l-2 6a3 3 0 0 0 4 0zM19 8l-2 6a3 3 0 0 0 4 0z', '#d99a12'],
       natural: ['M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM6 11a6 6 0 0 0 12 0M12 17v4', '#ef5da8'],
