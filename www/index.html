@@ -2387,6 +2387,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 var mdSet = new Set(), mdLast = 0;   /* r112: ردیابی قطعی عناصر صوتی/تصویری درون WebView (آن‌ها خودشان فوکوس سیستم می‌گیرند) */
 try { var mdPlay = HTMLMediaElement.prototype.play; HTMLMediaElement.prototype.play = function(){ mdSet.add(this); mdLast = Date.now(); return mdPlay.apply(this, arguments); }; } catch (e) {}
 function inAppMedia(){ var f = Date.now() - mdLast < 2500; mdSet.forEach(function(m){ if (m.paused || m.ended) { if (Date.now() - mdLast > 2500) mdSet.delete(m); } else f = true; }); return f; }
+var effNow = 0;   /* r113: سرعت واقعی تکهٔ جاری (نسبت به سرعت طبیعی مدل) برای نمایش کنار سرعت انتخابی */
 var mnAF = 0, mnName = '', mnOn = false, mnBad = false, mnK = '', mnT = 0, mnL = 0;   /* r107: اعلان رسانه‌ای بومی */
 
   if (window.pdfjsLib) {
@@ -2405,9 +2406,10 @@ var mnAF = 0, mnName = '', mnOn = false, mnBad = false, mnK = '', mnT = 0, mnL =
   $('#rate').value = sget('rate', '1');
   if (sget('rateBase', '') !== '1') { sset('rateBase', '1'); sset('rate', '1'); $('#rate').value = '1'; }   /* یک‌بار: بازگشت سرعت به ۱× (حالت اولیه) */
   function fillRng(el){ var mn = +el.min, mx = +el.max, p = mx > mn ? (el.value - mn) / (mx - mn) * 100 : 0; el.style.setProperty('--p', Math.max(0, Math.min(100, p)) + '%'); }
+  function effTxt(r){ return effNow && Math.abs(effNow - r) >= 0.03 ? ' (واقعی ' + nf.format(effNow) + '×)' : ''; }
   function showVals(){ try { syncSpd(); } catch (e) {}
     var r = +$('#rate').value, ch = document.querySelectorAll('#rateChips .chip'), i;
-    $('#rateV').textContent = nf.format(r) + '×';
+    $('#rateV').textContent = nf.format(r) + '×' + effTxt(r);
     fillRng($('#rate'));
     for (i = 0; i < ch.length; i++) ch[i].classList.toggle('on', Math.abs(+ch[i].dataset.v - r) < 0.001);
   }
@@ -7577,6 +7579,7 @@ var ocrSpell = (function(){
   var SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
   function cancelAll(){
     gen++; nxt = null; curC = null; clearTimeout(hoT);
+    if (effNow) { effNow = 0; try { showVals(); } catch (e) {} }
     if (npPlay) { npCur = 0; try { NP.playerStop().catch(function(){}); } catch (e) {} }
     [audioA, audioB].forEach(function(a){ try { a.onended = null; a.onerror = null; a.ontimeupdate = null; a.pause(); } catch (e) {} });
   }
@@ -8570,7 +8573,7 @@ var ocrSpell = (function(){
 
 
   /* ---------- سبک گفتار و سرعت هوشمند (نسخهٔ بومی) ---------- */
-  var STYLES = { serene: [0.5, 0.58], calm: [0.55, 0.65], soft: [0.6, 0.72], stable: [0.5, 0.6], balanced: [0.6, 0.7], natural: [0.667, 0.8], lively: [0.75, 0.9] };   /* calm: لحن نرم و یکدست، کمی آهسته‌تر و با مکث‌های بازتر */   /* «انسانی» = مقدار پیش‌فرض خودِ مدل‌های Piper */
+  var STYLES = { serene: [0.667, 0.8], calm: [0.55, 0.65], soft: [0.6, 0.72], stable: [0.5, 0.6], balanced: [0.6, 0.7], natural: [0.667, 0.8], lively: [0.75, 0.9] };   /* calm: لحن نرم و یکدست، کمی آهسته‌تر و با مکث‌های بازتر */   /* «انسانی» = مقدار پیش‌فرض خودِ مدل‌های Piper */
   function calmLvl(){ var s = $('#vstyle').value; return s === 'serene' ? 3 : s === 'calm' ? 2 : s === 'soft' ? 1 : 0; }   /* سطح آرامش: ۰ عادی، ۱ ملایم، ۲ آرام، ۳ بسیار آرام (کنترل واحد = سبک گفتار) */
   function styleParams(id){
     PART_GAP = [0.12, 0.16, 0.2, 0.3][calmLvl()];   /* مقدار پیش‌فرض؛ مکث هر جمله در chunkAt با pauseMs جداگانه تعیین می‌شود */
@@ -8582,7 +8585,7 @@ var ocrSpell = (function(){
   function cleanLevel(){ return lvl03('#vclean'); }     /* حذف نویز و صداهای اضافه در موتور بومی: ۰ خاموش … ۳ قوی */
   function clarityLevel(){ return lvl03('#vclarity'); } /* شفافیت و رسایی: ۰ خاموش … ۳ قوی */
   /* سرعت نسبی ۰٫۹۱ تا ۱: هرچه جمله سنگین‌تر (کلمهٔ بلند، عدد، لاتین، نشانه‌گذاری زیاد)، کمی آهسته‌تر */
-  function mRate(){ return npPlay ? Math.max(0.5, Math.min(2, Math.round((+$('#rate').value || 1) * 20) / 20)) : 1; }   /* سرعت کاربر با گام ۰٫۰۵ داخل خود مدل (length_scale)؛ باقی‌مانده با playerRate */
+  function mRate(){ return npPlay ? Math.max(0.5, Math.min(1.5, Math.round((+$('#rate').value || 1) * 20) / 20)) : 1; }   /* r115: سقف ۱٫۵ = سقف speed ساخت صدا (نه ۲، که مازاد گم می‌شد؛ نه ۱٫۳۵، که کشش اضافه و آرتیفکت می‌ساخت)؛ مازاد بالای ۱٫۵ با playerRate */   /* سرعت کاربر با گام ۰٫۰۵ داخل خود مدل (length_scale)؛ باقی‌مانده با playerRate */
   function paceSpeed(t){ return Math.round(paceBase(t) * mRate() * 100) / 100; }
   function paceBase(t){
     var smart = $('#smartPace').checked, cf = [1, 0.97, 0.94, 0.88][calmLvl()];   /* آرام: ۶٪ کندتر، بسیار آرام: ۱۲٪ کندتر؛ بی‌شتاب */
@@ -8702,7 +8705,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r112 · 2026-10-27 · focus-media', npBuild = '';
+  var APP_BUILD = 'html-r116 · 2026-10-28 · serene-noise', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -9334,6 +9337,15 @@ function chunkAt(i, lim){
   }
   function isNoHandle(e){ return /NO_HANDLE/.test(String((e && e.message) || e)); }
   var npLastR = 0, dbg = { skip: 0, under: 0, log: [] }, failN = {};
+  function effSpeed(c){   /* سرعت واقعی = میانگین وزنی speed ساخته‌شده (با آرامش/ضرب‌آهنگ هوشمند/احساس/تمپوی گوینده و سقف ۱٫۵) × باقی‌ماندهٔ پخش */
+    var P = c && c.parts, v = null, tm, a = 0, w = 0, i, L;
+    if (!P || !P.length) return 0;
+    try { v = currentVoice(); } catch (e) {}
+    tm = (v && VOICE_TEMPOS[v.id]) || VOICE_TEMPO;
+    for (i = 0; i < P.length; i++) { L = ((P[i].t || '').length) || 1; a += Math.min(1.5, (P[i].s || 1) * tm) * L; w += L; }
+    return w ? Math.round(a / w * (+$('#rate').value || 1) / (c.rb || 1) * 100) / 100 : 0;
+  }
+  function effShow(c){ var e = effSpeed(c); if (e !== effNow) { effNow = e; try { showVals(); } catch (x) {} } }
   function npResid(c){ return Math.max(0.5, Math.min(2.5, (+$('#rate').value || 1) / ((c && c.rb) || 1))); }
   function npSetRate(c){ var r = npResid(c || npCurC || curC); if (Math.abs(r - npLastR) < 0.004) return; npLastR = r; try { NP.playerRate({ rate: r }).catch(function(){}); } catch (e) {} }
   function npQueue(n, c, my, retry){
@@ -9372,7 +9384,7 @@ function chunkAt(i, lim){
   }
   function playNp(c, url, my, chained){
     c.marks = markMap[url] || null;
-    curC = c; npCur = npH(url); npCurC = c; npMy = my; wdSet('play', 0, true);
+    curC = c; npCur = npH(url); npCurC = c; npMy = my; wdSet('play', 0, true); effShow(c);
     if (chained) npSetRate(c); else npLastR = npResid(c);
     if (!chained) NP.playerPlay({ handle: npCur, rate: npResid(c) }).catch(function(e){
       if (isNoHandle(e) && !c._rec) {
@@ -9414,7 +9426,7 @@ function chunkAt(i, lim){
     c.marks = markMap[url] || null;
     var other = el === audioA ? audioB : audioA;
     other.onended = null; other.ontimeupdate = null; other.onerror = null;
-    audio = el; curC = c; el._b = baked || 1; wdSet('play', 0, false);
+    audio = el; curC = c; el._b = baked || 1; wdSet('play', 0, false); effShow(c);
     var done = 0, late = 0, goFn = null, LAT = 45;
     function hand(delay){
       var n = nxt;
@@ -10059,6 +10071,30 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   }
 
   /* ---------- r107: اعلان رسانه‌ای بومی (MediaStyle). فقط روی تغییر جمله/صفحه/وضعیت/سرعت و حداکثر ۱ بار در ثانیه؛ بدون تیک پیوسته ---------- */
+  /* r113: خط زمان تخمینی (میلی‌ثانیه، ۶۸ms/نویسه در سرعت ۱) برای نوار پیشرفت/زمان اعلان؛ جلد صفحهٔ ۱ به‌عنوان تصویر پلیر */
+  var mnCum = null, mnCumS = null, mnCover = '', mnCoverDoc = null, mnCoverSent = null, MN_K = 68;
+  function mnCumBuild(){
+    if (mnCumS === sents && mnCum && mnCum.length === sents.length + 1) return;
+    var a = new Float64Array(sents.length + 1), i;
+    for (i = 0; i < sents.length; i++) a[i + 1] = a[i] + ((sents[i].text || '').length + 1) * MN_K;
+    mnCum = a; mnCumS = sents;
+  }
+  function mnCoverGet(){
+    var d = pdfDoc;
+    if (!d) return Promise.resolve('');
+    if (mnCoverDoc === d) return Promise.resolve(mnCover);
+    mnCoverDoc = d; mnCover = '';
+    return d.getPage(1).then(function(pg){
+      var v1 = pg.getViewport({ scale: 1 }), vp = pg.getViewport({ scale: 360 / Math.max(v1.width, v1.height) }), cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.ceil(vp.width)); cv.height = Math.max(1, Math.ceil(vp.height));
+      return pg.render({ canvasContext: cv.getContext('2d', { alpha: false }), viewport: vp, background: '#fff' }).promise.then(function(){
+        var u = cv.toDataURL('image/jpeg', 0.75); cv.width = cv.height = 0;
+        if (mnCoverDoc === d) mnCover = u.split(',')[1] || '';
+        try { pg.cleanup(); } catch (e) {}
+        return mnCover;
+      });
+    }).catch(function(){ return ''; });
+  }
   function mnSync(){
     if (mnBad || !NP || !npOK || !npPlay || !sents.length || (!playing && !mnOn)) return;
     var s = sents[idx], pg = s && s.page, rt = Math.round((+$('#rate').value || 1) * 100) / 100, nm = (mnName || '').replace(/\.pdf$/i, '') || 'خوانندهٔ صوتی PDF';
@@ -10070,11 +10106,16 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     if (d < 900) { mnT = setTimeout(mnSync, 900 - d); return; }
     mnK = k; mnL = Date.now();
     var o = { title: nm, sub: sub, total: sents.length, index: idx, playing: !!playing, rate: rt }, first = !mnOn;
+    mnCumBuild(); o.pos = Math.round(mnCum[idx]); o.dur = Math.round(mnCum[sents.length]);
+    if (mnCoverSent !== pdfDoc) {
+      if (mnCoverDoc === pdfDoc && mnCover) { o.cover = mnCover; mnCoverSent = pdfDoc; }
+      else if (mnCoverDoc !== pdfDoc) mnCoverGet().then(function(c){ if (c) { mnK = ''; mnSync(); } });
+    }
     mnOn = true;
     try { Promise.resolve(first ? NP.mediaStart(o) : NP.mediaUpdate(o)).catch(function(e){ mnOn = false; mnK = ''; if (!/NO_MEDIA/.test(String((e && e.message) || e))) mnBad = true; }); } catch (e) { mnBad = true; }
   }
   function mnStop(){
-    clearTimeout(mnT); mnK = '';
+    clearTimeout(mnT); mnK = ''; mnCoverSent = null;
     if (!mnOn) return;
     mnOn = false;
     try { if (NP && NP.mediaStop) Promise.resolve(NP.mediaStop()).catch(function(){}); } catch (e) {}
@@ -10085,7 +10126,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     else if (a === 'pause') { if (playing) pause(); }
     else if (a === 'next') { seekTo(idx + 1); mnSync(); }
     else if (a === 'prev') { seekTo(idx - 1); mnSync(); }
-    else if (a === 'seek') { var p = +e.pos; if (p >= 0 && p < sents.length) { seekTo(p | 0); mnSync(); } }
+    else if (a === 'seek') { var p = +e.pos; if (p >= 0 && sents.length) { mnCumBuild(); var lo = 0, hi = sents.length - 1, m; while (lo < hi) { m = (lo + hi + 1) >> 1; if (mnCum[m] <= p) lo = m; else hi = m - 1; } seekTo(lo); mnSync(); } }
     else if (a === 'speed') { var r = +$('#rate').value || 1, L = [0.75, 1, 1.25, 1.5].filter(function(v){ return v > r + 0.001; }); setRate(L.length ? L[0] : 0.75); mnSync(); }
     else if (a === 'stop') { if (playing) pause(); mnStop(); }
   }
@@ -10712,6 +10753,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     $('#rate').value = v; showVals(); sset('rate', v);
     [audioA, audioB].forEach(applyRate);
     if (npPlay) npSetRate();
+    if (playing && (npCurC || curC)) effShow(npPlay ? npCurC : curC);
     clearTimeout(rpT); rpT = setTimeout(function(){ if (!npPlay && playing && curC) primeNext(curC, token); }, 250);
   }
   [0.5, 0.75, 1, 1.25, 1.5, 2].forEach(function(v){
@@ -11870,7 +11912,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     var s = $('#seek'), mx = +s.max, el = $('#posPct');
     el.textContent = mx > 0 && !s.disabled ? nf.format(Math.round((+s.value) / mx * 100)) + '٪' : '';
   }
-  function syncSpd(){ var b = $('#spdBtn'); if (b) b.textContent = 'سرعت ' + nf.format(+$('#rate').value || 1) + '×'; }
+  function syncSpd(){ var b = $('#spdBtn'); if (b) var r = +$('#rate').value || 1; b.textContent = 'سرعت ' + nf.format(r) + '×' + effTxt(r); }
   function applyHide(){
     document.body.classList.toggle('dock-hide', dockHidden);
     $('#dockPeek').hidden = !dockHidden;
