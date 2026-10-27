@@ -358,8 +358,8 @@ class PiperNativePlugin : Plugin() {
                     context.checkSelfPermission("android.permission.POST_NOTIFICATIONS") != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                     try { activity?.requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 9317) } catch (e: Throwable) {}
                 }
-                if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(si) else context.startService(si)
-            } else if (!MediaBridge.active) context.stopService(si)
+                PlayerService.startFgs(context, si)
+            } else if (!MediaBridge.active) PlayerService.stopSafe(context)
         } catch (e: Throwable) { /* بدون اعلان یا مجوز: پخش بدون سرویس ادامه دارد */ }
         call.resolve()
     }
@@ -372,11 +372,16 @@ class PiperNativePlugin : Plugin() {
         call.getInt("index")?.let { MediaBridge.index = it }
         call.getBoolean("playing")?.let { MediaBridge.playing = it }
         call.getFloat("rate")?.let { MediaBridge.rate = it }
+        call.getDouble("dur")?.let { MediaBridge.durMs = it.toLong() }
+        call.getDouble("pos")?.let { MediaBridge.posMs = it.toLong() }
+        call.getString("cover")?.let { b64 ->
+            try { val by = android.util.Base64.decode(b64, android.util.Base64.DEFAULT); MediaBridge.cover = android.graphics.BitmapFactory.decodeByteArray(by, 0, by.size) } catch (e: Throwable) {}
+        }
     }
     private fun mediaPush() {
         try {
             val si = Intent(context, PlayerService::class.java).setAction(PlayerService.A_SYNC)
-            if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(si) else context.startService(si)
+            PlayerService.startFgs(context, si)
         } catch (e: Throwable) { /* شروع سرویس از پس‌زمینه ممنوع/بدون مجوز: پخش بدون اعلان ادامه دارد */ }
     }
     @PluginMethod
@@ -393,8 +398,8 @@ class PiperNativePlugin : Plugin() {
     }
     @PluginMethod
     fun mediaStop(call: PluginCall) {
-        MediaBridge.active = false; MediaBridge.playing = false; MediaBridge.cb = null
-        try { context.stopService(Intent(context, PlayerService::class.java)) } catch (e: Throwable) {}
+        MediaBridge.active = false; MediaBridge.playing = false; MediaBridge.cb = null; MediaBridge.cover = null
+        PlayerService.stopSafe(context)
         call.resolve()
     }
 
@@ -1560,7 +1565,7 @@ class PiperNativePlugin : Plugin() {
         noisyRx = null
         MediaBridge.cb = null; MediaBridge.active = false
         afLostT = false; afAbandon()
-        try { context.stopService(Intent(context, PlayerService::class.java)) } catch (e: Throwable) {}
+        PlayerService.stopSafe(context)
         try { if (wl?.isHeld == true) wl?.release() } catch (e: Throwable) {}
         cpu.execute { try { tts?.release() } catch (e: Throwable) {}; tts = null; ttsId = null; ttsKey = null }
         cpu.shutdown(); io.shutdown()
@@ -2175,12 +2180,32 @@ object MediaBridge {
     @Volatile var index = 0
     @Volatile var playing = false
     @Volatile var rate = 1f
+    @Volatile var durMs = 0L
+    @Volatile var posMs = 0L
+    @Volatile var cover: android.graphics.Bitmap? = null
 }
 
 /** سرویس پیش‌زمینهٔ پخش (mediaPlayback) + MediaSession + اعلان MediaStyle (فقط کلاس‌های فریم‌ورک؛ بدون وابستگی جدید).
  *  پخش صوت را AudioTrack در پلاگین انجام می‌دهد؛ این سرویس فقط اعلان/کنترل از راه دور است. بدون mediaStart همان اعلان ساده‌ی قبلی. */
 class PlayerService : android.app.Service() {
-    companion object { const val A_SYNC = "pv.sync"; const val A_CMD = "pv.cmd"; const val NID = 7421; const val CH = "pdfvoice_play" }
+    companion object {
+        const val A_SYNC = "pv.sync"; const val A_CMD = "pv.cmd"; const val NID = 7421; const val CH = "pdfvoice_play"
+        /* r113: startForegroundService هایی که onStartCommand‌شان هنوز اجرا نشده؛ تا آن زمان stopService ممنوع (علت ForegroundServiceDidNotStartInTimeException) */
+        val PENDING = java.util.concurrent.atomic.AtomicInteger(0)
+        @Volatile var pendAt = 0L
+        @Volatile var stopReq = false
+        fun startFgs(ctx: Context, si: Intent) {
+            if (android.os.Build.VERSION.SDK_INT >= 26) {
+                PENDING.incrementAndGet(); pendAt = android.os.SystemClock.elapsedRealtime(); stopReq = false
+                try { ctx.startForegroundService(si) } catch (e: Throwable) { PENDING.updateAndGet { if (it > 0) it - 1 else 0 }; throw e }
+            } else ctx.startService(si)
+        }
+        fun stopSafe(ctx: Context) {
+            if (PENDING.get() > 0 && android.os.SystemClock.elapsedRealtime() - pendAt < 10000L) { stopReq = true; return }
+            PENDING.set(0); stopReq = false
+            try { ctx.stopService(Intent(ctx, PlayerService::class.java)) } catch (e: Throwable) {}
+        }
+    }
     private var ms: android.media.session.MediaSession? = null
     private val h = android.os.Handler(android.os.Looper.getMainLooper())
     private var clicks = 0
@@ -2238,14 +2263,17 @@ class PlayerService : android.app.Service() {
             .putString(android.media.MediaMetadata.METADATA_KEY_TITLE, st.title)
             .putString(android.media.MediaMetadata.METADATA_KEY_ARTIST, st.sub)
             .putString(android.media.MediaMetadata.METADATA_KEY_ALBUM, "خوانندهٔ صوتی PDF")
-            .putLong(android.media.MediaMetadata.METADATA_KEY_DURATION, st.total.toLong()).build())
+            .putLong(android.media.MediaMetadata.METADATA_KEY_DURATION, if (st.durMs > 0) st.durMs else st.total.toLong() * 1000L)
+            .also { mb -> st.cover?.let { mb.putBitmap(android.media.MediaMetadata.METADATA_KEY_ALBUM_ART, it) } }.build())
         val A = android.media.session.PlaybackState.ACTION_PLAY or android.media.session.PlaybackState.ACTION_PAUSE or android.media.session.PlaybackState.ACTION_PLAY_PAUSE or
             android.media.session.PlaybackState.ACTION_SKIP_TO_NEXT or android.media.session.PlaybackState.ACTION_SKIP_TO_PREVIOUS or
             android.media.session.PlaybackState.ACTION_SEEK_TO or android.media.session.PlaybackState.ACTION_STOP
-        /* سرعت پخش ۰: موقعیت بر حسب جمله است و سیستم نباید آن را با ساعت درون‌یابی کند؛ فقط روی تغییر جمله به‌روز می‌شود */
+        /* r113: موقعیت/مدت بر حسب میلی‌ثانیهٔ تخمینی؛ سرعت = نرخ پخش تا نوار بین به‌روزرسانی‌ها خودش جلو برود، هنگام مکث ۰ */
         s.setPlaybackState(android.media.session.PlaybackState.Builder().setActions(A)
-            .setState(if (st.playing) android.media.session.PlaybackState.STATE_PLAYING else android.media.session.PlaybackState.STATE_PAUSED, st.index.toLong(), 0f).build())
+            .setState(if (st.playing) android.media.session.PlaybackState.STATE_PLAYING else android.media.session.PlaybackState.STATE_PAUSED,
+                if (st.durMs > 0) st.posMs else st.index.toLong() * 1000L, if (st.playing) st.rate else 0f).build())
         val rt = String.format(java.util.Locale.US, "%.2f", st.rate).trimEnd('0').trimEnd('.')
+        st.cover?.let { b.setLargeIcon(it) }
         b.setContentText(st.sub).setOngoing(st.playing).setDeleteIntent(pi("stop", 5))
             .addAction(act(android.R.drawable.ic_media_previous, "جملهٔ قبل", "prev", 1))
             .addAction(if (st.playing) act(android.R.drawable.ic_media_pause, "توقف", "pause", 2) else act(android.R.drawable.ic_media_play, "پخش", "play", 2))
@@ -2262,17 +2290,36 @@ class PlayerService : android.app.Service() {
         stopSelf()
     }
 
+    /* r113: اعلان حداقلی و فوری برای startForeground؛ هیچ کار سنگینی (MediaSession و…) قبل از آن نیست */
+    private fun quick(): android.app.Notification {
+        val b = if (android.os.Build.VERSION.SDK_INT >= 26) android.app.Notification.Builder(this, CH) else android.app.Notification.Builder(this)
+        return b.setSmallIcon(android.R.drawable.ic_media_play).setContentTitle(MediaBridge.title).setContentText("در حال خواندن…")
+            .setOngoing(true).setOnlyAlertOnce(true).setShowWhen(false).build()
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
         if (android.os.Build.VERSION.SDK_INT >= 26) {
-            nm.createNotificationChannel(android.app.NotificationChannel(CH, "پخش صوتی", android.app.NotificationManager.IMPORTANCE_LOW).also { it.setShowBadge(false) })
+            try { nm.createNotificationChannel(android.app.NotificationChannel(CH, "پخش صوتی", android.app.NotificationManager.IMPORTANCE_LOW).also { it.setShowBadge(false) }) } catch (e: Throwable) {}
         }
-        if (intent?.action == A_CMD) {   /* دکمهٔ اعلان: فقط به JS منتقل می‌شود؛ وضعیت جدید را JS با mediaUpdate می‌فرستد */
+        val cmd = intent?.action == A_CMD
+        var n0: android.app.Notification? = null
+        if (!cmd) {   /* هر startForegroundService باید همین‌جا و بی‌قید‌وشرط startForeground بگیرد */
+            try {
+                n0 = quick()
+                if (android.os.Build.VERSION.SDK_INT >= 29) startForeground(NID, n0, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+                else startForeground(NID, n0)
+            } catch (e: Throwable) { n0 = null }
+            PENDING.updateAndGet { if (it > 0) it - 1 else 0 }
+            if (stopReq && PENDING.get() == 0) { stopReq = false; end(); return START_NOT_STICKY }   /* توقفِ به‌تعویق‌افتاده: حالا امن است */
+        }
+        if (cmd) {   /* دکمهٔ اعلان: فقط به JS منتقل می‌شود؛ وضعیت جدید را JS با mediaUpdate می‌فرستد */
             val cb = MediaBridge.cb
-            if (cb == null) { end() } else cb.invoke(intent.getStringExtra("c") ?: "", 0L)
+            if (cb == null) { end() } else cb.invoke(intent?.getStringExtra("c") ?: "", 0L)
             return START_NOT_STICKY
         }
-        val n = build()
+        val n = try { build() } catch (e: Throwable) { n0 }
+        if (n == null) { stopSelf(); return START_NOT_STICKY }
         try {
             if (android.os.Build.VERSION.SDK_INT >= 29) startForeground(NID, n, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
             else startForeground(NID, n)
@@ -2280,7 +2327,7 @@ class PlayerService : android.app.Service() {
                 if (android.os.Build.VERSION.SDK_INT >= 24) stopForeground(android.app.Service.STOP_FOREGROUND_DETACH) else @Suppress("DEPRECATION") stopForeground(false)
                 nm.notify(NID, n)
             }
-        } catch (e: Throwable) { stopSelf() }
+        } catch (e: Throwable) { if (n0 == null) stopSelf() }
         return START_NOT_STICKY
     }
 
