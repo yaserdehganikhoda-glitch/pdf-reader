@@ -359,14 +359,48 @@ class PiperNativePlugin : Plugin() {
                     try { activity?.requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 9317) } catch (e: Throwable) {}
                 }
                 if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(si) else context.startService(si)
-            } else context.stopService(si)
+            } else if (!MediaBridge.active) context.stopService(si)
         } catch (e: Throwable) { /* بدون اعلان یا مجوز: پخش بدون سرویس ادامه دارد */ }
+        call.resolve()
+    }
+
+    /* ---- اعلان رسانه‌ای: mediaStart/mediaUpdate/mediaStop؛ رویداد mediaAction {action: play|pause|next|prev|seek|speed|stop, pos} ---- */
+    private fun mediaApply(call: PluginCall) {
+        call.getString("title")?.let { MediaBridge.title = it }
+        call.getString("sub")?.let { MediaBridge.sub = it }
+        call.getInt("total")?.let { MediaBridge.total = it }
+        call.getInt("index")?.let { MediaBridge.index = it }
+        call.getBoolean("playing")?.let { MediaBridge.playing = it }
+        call.getFloat("rate")?.let { MediaBridge.rate = it }
+    }
+    private fun mediaPush() {
+        try {
+            val si = Intent(context, PlayerService::class.java).setAction(PlayerService.A_SYNC)
+            if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(si) else context.startService(si)
+        } catch (e: Throwable) { /* شروع سرویس از پس‌زمینه ممنوع/بدون مجوز: پخش بدون اعلان ادامه دارد */ }
+    }
+    @PluginMethod
+    fun mediaStart(call: PluginCall) {
+        mediaApply(call)
+        MediaBridge.active = true
+        MediaBridge.cb = { a, p -> notifyListeners("mediaAction", JSObject().put("action", a).put("pos", p)) }
+        mediaPush(); call.resolve()
+    }
+    @PluginMethod
+    fun mediaUpdate(call: PluginCall) {
+        if (!MediaBridge.active) { call.reject("NO_MEDIA"); return }
+        mediaApply(call); mediaPush(); call.resolve()
+    }
+    @PluginMethod
+    fun mediaStop(call: PluginCall) {
+        MediaBridge.active = false; MediaBridge.playing = false; MediaBridge.cb = null
+        try { context.stopService(Intent(context, PlayerService::class.java)) } catch (e: Throwable) {}
         call.resolve()
     }
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r5-marks"))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r7-focus").put("media", true))
     }
 
     @PluginMethod
@@ -1279,6 +1313,48 @@ class PiperNativePlugin : Plugin() {
         emitInterrupt(reason)
     }
 
+    /* ---- AudioFocus: GAIN هنگام پخش؛ LOSS ⇒ توقف، LOSS_TRANSIENT ⇒ توقف + رویداد playerResume هنگام بازگشت، CAN_DUCK ⇒ بلندی ۳۰٪ ---- */
+    private var afReq: android.media.AudioFocusRequest? = null
+    @Volatile private var afOn = false
+    @Volatile private var afLostT = false
+    @Volatile private var afDuck = false
+    private val afl = AudioManager.OnAudioFocusChangeListener { c ->
+        try {
+            val act = synchronized(plLock) { plActive }
+            when (c) {
+                AudioManager.AUDIOFOCUS_LOSS -> { afLostT = false; afAbandon(); if (act) { stopPlayer(); emitInterrupt("focus") } }
+                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> if (act) { afLostT = true; stopPlayer(); emitInterrupt("focus_t") }
+                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> { afDuck = true; try { plTrack?.setVolume(0.3f) } catch (e: Throwable) {} }
+                AudioManager.AUDIOFOCUS_GAIN -> {
+                    afDuck = false; try { plTrack?.setVolume(1f) } catch (e: Throwable) {}
+                    if (afLostT) { afLostT = false; notifyListeners("playerResume", JSObject()) }
+                }
+            }
+        } catch (e: Throwable) {}
+    }
+    private fun afRequest() {
+        afLostT = false
+        if (afOn) return
+        try {
+            val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            val r = if (android.os.Build.VERSION.SDK_INT >= 26) {
+                val rq = android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                    .setAudioAttributes(android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_MEDIA).setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH).build())
+                    .setOnAudioFocusChangeListener(afl).build()
+                afReq = rq; am.requestAudioFocus(rq)
+            } else @Suppress("DEPRECATION") am.requestAudioFocus(afl, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
+            afOn = r == AudioManager.AUDIOFOCUS_REQUEST_GRANTED   // اگر رد شد (مثلاً تماس) پخش مسدود نمی‌شود؛ دفعهٔ بعد دوباره تلاش می‌شود
+        } catch (e: Throwable) {}
+    }
+    private fun afAbandon() {
+        try {
+            val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            if (android.os.Build.VERSION.SDK_INT >= 26) afReq?.let { am.abandonAudioFocusRequest(it) }
+            else @Suppress("DEPRECATION") am.abandonAudioFocus(afl)
+        } catch (e: Throwable) {}
+        afOn = false; afDuck = false
+    }
+
     /** جداشدن هدفون/بلوتوث: صدا ناگهان از بلندگو پخش نشود */
     private fun ensureNoisyReceiver() {
         if (noisyRx != null) return
@@ -1313,6 +1389,7 @@ class PiperNativePlugin : Plugin() {
             val t = makeTrack(sr)
             track = t
             synchronized(plLock) { if (gen == plGen) plTrack = t }
+            if (afDuck) try { t.setVolume(0.3f) } catch (e: Throwable) {}
             if (gen != plGen) return
             t.play()
             val base = t.playbackHeadPosition
@@ -1439,6 +1516,7 @@ class PiperNativePlugin : Plugin() {
         try { old?.pause(); old?.flush() } catch (e: Throwable) {}
         val g = gen
         ensureNoisyReceiver()
+        afRequest()
         plEx.execute { runPlayer(g, PlItem(h, pcm, 0)) }
         call.resolve()
     }
@@ -1463,6 +1541,7 @@ class PiperNativePlugin : Plugin() {
     @PluginMethod
     fun playerStop(call: PluginCall) {
         stopPlayer()
+        if (!afLostT) afAbandon()
         call.resolve()
     }
 
@@ -1477,6 +1556,9 @@ class PiperNativePlugin : Plugin() {
         try { stopPlayer(); plEx.shutdownNow(); stEx.shutdownNow() } catch (e: Throwable) {}
         try { noisyRx?.let { context.unregisterReceiver(it) } } catch (e: Throwable) {}
         noisyRx = null
+        MediaBridge.cb = null; MediaBridge.active = false
+        afLostT = false; afAbandon()
+        try { context.stopService(Intent(context, PlayerService::class.java)) } catch (e: Throwable) {}
         try { if (wl?.isHeld == true) wl?.release() } catch (e: Throwable) {}
         cpu.execute { try { tts?.release() } catch (e: Throwable) {}; tts = null; ttsId = null; ttsKey = null }
         cpu.shutdown(); io.shutdown()
@@ -2081,27 +2163,136 @@ private object Stretch {
     }
 }
 
-/** سرویس پیش‌زمینهٔ پخش (نوع mediaPlayback)؛ فقط اعلان نگه می‌دارد و پخش را AudioTrack در پلاگین انجام می‌دهد. */
+/** وضعیت مشترک پلاگین ↔ سرویس (اعلان رسانه‌ای). واحد موقعیت/مدت = جمله. */
+object MediaBridge {
+    @Volatile var cb: ((String, Long) -> Unit)? = null
+    @Volatile var active = false
+    @Volatile var title = "خوانندهٔ صوتی PDF"
+    @Volatile var sub = ""
+    @Volatile var total = 0
+    @Volatile var index = 0
+    @Volatile var playing = false
+    @Volatile var rate = 1f
+}
+
+/** سرویس پیش‌زمینهٔ پخش (mediaPlayback) + MediaSession + اعلان MediaStyle (فقط کلاس‌های فریم‌ورک؛ بدون وابستگی جدید).
+ *  پخش صوت را AudioTrack در پلاگین انجام می‌دهد؛ این سرویس فقط اعلان/کنترل از راه دور است. بدون mediaStart همان اعلان ساده‌ی قبلی. */
 class PlayerService : android.app.Service() {
+    companion object { const val A_SYNC = "pv.sync"; const val A_CMD = "pv.cmd"; const val NID = 7421; const val CH = "pdfvoice_play" }
+    private var ms: android.media.session.MediaSession? = null
+    private val h = android.os.Handler(android.os.Looper.getMainLooper())
+    private var clicks = 0
+    private val fire = Runnable {
+        val c = clicks; clicks = 0
+        MediaBridge.cb?.invoke(if (c >= 3) "prev" else if (c == 2) "next" else if (MediaBridge.playing) "pause" else "play", 0L)
+    }
+
     override fun onBind(intent: Intent?): android.os.IBinder? = null
 
+    private fun session(): android.media.session.MediaSession {
+        ms?.let { return it }
+        val s = android.media.session.MediaSession(this, "PdfVoice")
+        if (android.os.Build.VERSION.SDK_INT < 26) try { @Suppress("DEPRECATION") s.setFlags(3) } catch (e: Throwable) {}
+        s.setCallback(object : android.media.session.MediaSession.Callback() {
+            override fun onPlay() { MediaBridge.cb?.invoke("play", 0L) }
+            override fun onPause() { MediaBridge.cb?.invoke("pause", 0L) }
+            override fun onSkipToNext() { MediaBridge.cb?.invoke("next", 0L) }
+            override fun onSkipToPrevious() { MediaBridge.cb?.invoke("prev", 0L) }
+            override fun onSeekTo(pos: Long) { MediaBridge.cb?.invoke("seek", pos) }
+            override fun onStop() { MediaBridge.cb?.invoke("stop", 0L) }
+            /* هدست: یک‌بار = پخش/توقف، دوبار = بعدی، سه‌بار = قبلی */
+            override fun onMediaButtonEvent(i: Intent): Boolean {
+                val ev = if (android.os.Build.VERSION.SDK_INT >= 33) i.getParcelableExtra(Intent.EXTRA_KEY_EVENT, android.view.KeyEvent::class.java)
+                         else @Suppress("DEPRECATION") i.getParcelableExtra<android.view.KeyEvent>(Intent.EXTRA_KEY_EVENT)
+                if (ev != null && (ev.keyCode == android.view.KeyEvent.KEYCODE_HEADSETHOOK || ev.keyCode == android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)) {
+                    if (ev.action == android.view.KeyEvent.ACTION_DOWN && ev.repeatCount == 0) { clicks++; h.removeCallbacks(fire); h.postDelayed(fire, 380) }
+                    return true
+                }
+                return super.onMediaButtonEvent(i)
+            }
+        })
+        s.isActive = true
+        ms = s
+        return s
+    }
+
+    private fun pi(c: String, rc: Int): android.app.PendingIntent =
+        android.app.PendingIntent.getService(this, rc, Intent(this, PlayerService::class.java).setAction(A_CMD).putExtra("c", c),
+            android.app.PendingIntent.FLAG_IMMUTABLE or android.app.PendingIntent.FLAG_UPDATE_CURRENT)
+
+    @Suppress("DEPRECATION")
+    private fun act(icon: Int, label: String, c: String, rc: Int) = android.app.Notification.Action.Builder(icon, label, pi(c, rc)).build()
+
+    private fun build(): android.app.Notification {
+        val st = MediaBridge
+        val b = if (android.os.Build.VERSION.SDK_INT >= 26) android.app.Notification.Builder(this, CH) else android.app.Notification.Builder(this)
+        b.setSmallIcon(android.R.drawable.ic_media_play).setContentTitle(st.title).setOnlyAlertOnce(true).setShowWhen(false)
+            .setVisibility(android.app.Notification.VISIBILITY_PUBLIC)
+        val launch = packageManager.getLaunchIntentForPackage(packageName)
+        if (launch != null) b.setContentIntent(android.app.PendingIntent.getActivity(this, 0, launch, android.app.PendingIntent.FLAG_IMMUTABLE or android.app.PendingIntent.FLAG_UPDATE_CURRENT))
+        if (!st.active) return b.setContentText("در حال خواندن…").setOngoing(true).build()
+        val s = session()
+        s.setMetadata(android.media.MediaMetadata.Builder()
+            .putString(android.media.MediaMetadata.METADATA_KEY_TITLE, st.title)
+            .putString(android.media.MediaMetadata.METADATA_KEY_ARTIST, st.sub)
+            .putString(android.media.MediaMetadata.METADATA_KEY_ALBUM, "خوانندهٔ صوتی PDF")
+            .putLong(android.media.MediaMetadata.METADATA_KEY_DURATION, st.total.toLong()).build())
+        val A = android.media.session.PlaybackState.ACTION_PLAY or android.media.session.PlaybackState.ACTION_PAUSE or android.media.session.PlaybackState.ACTION_PLAY_PAUSE or
+            android.media.session.PlaybackState.ACTION_SKIP_TO_NEXT or android.media.session.PlaybackState.ACTION_SKIP_TO_PREVIOUS or
+            android.media.session.PlaybackState.ACTION_SEEK_TO or android.media.session.PlaybackState.ACTION_STOP
+        /* سرعت پخش ۰: موقعیت بر حسب جمله است و سیستم نباید آن را با ساعت درون‌یابی کند؛ فقط روی تغییر جمله به‌روز می‌شود */
+        s.setPlaybackState(android.media.session.PlaybackState.Builder().setActions(A)
+            .setState(if (st.playing) android.media.session.PlaybackState.STATE_PLAYING else android.media.session.PlaybackState.STATE_PAUSED, st.index.toLong(), 0f).build())
+        val rt = String.format(java.util.Locale.US, "%.2f", st.rate).trimEnd('0').trimEnd('.')
+        b.setContentText(st.sub).setOngoing(st.playing).setDeleteIntent(pi("stop", 5))
+            .addAction(act(android.R.drawable.ic_media_previous, "جملهٔ قبل", "prev", 1))
+            .addAction(if (st.playing) act(android.R.drawable.ic_media_pause, "توقف", "pause", 2) else act(android.R.drawable.ic_media_play, "پخش", "play", 2))
+            .addAction(act(android.R.drawable.ic_media_next, "جملهٔ بعد", "next", 3))
+            .addAction(act(android.R.drawable.ic_menu_recent_history, "سرعت ${rt}×", "speed", 4))
+            .addAction(act(android.R.drawable.ic_menu_close_clear_cancel, "توقف کامل", "stop", 5))
+            .setStyle(android.app.Notification.MediaStyle().setMediaSession(s.sessionToken).setShowActionsInCompactView(0, 1, 2))
+        return b.build()
+    }
+
+    private fun end() {
+        MediaBridge.active = false; MediaBridge.playing = false
+        try { if (android.os.Build.VERSION.SDK_INT >= 24) stopForeground(android.app.Service.STOP_FOREGROUND_REMOVE) else @Suppress("DEPRECATION") stopForeground(true) } catch (e: Throwable) {}
+        stopSelf()
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val ch = "pdfvoice_play"
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
         if (android.os.Build.VERSION.SDK_INT >= 26) {
-            nm.createNotificationChannel(android.app.NotificationChannel(ch, "پخش صوتی", android.app.NotificationManager.IMPORTANCE_LOW))
+            nm.createNotificationChannel(android.app.NotificationChannel(CH, "پخش صوتی", android.app.NotificationManager.IMPORTANCE_LOW).also { it.setShowBadge(false) })
         }
-        val launch = packageManager.getLaunchIntentForPackage(packageName)
-        val pi = if (launch != null) android.app.PendingIntent.getActivity(this, 0, launch, android.app.PendingIntent.FLAG_IMMUTABLE or android.app.PendingIntent.FLAG_UPDATE_CURRENT) else null
-        val b = if (android.os.Build.VERSION.SDK_INT >= 26) android.app.Notification.Builder(this, ch) else android.app.Notification.Builder(this)
-        b.setContentTitle("خوانندهٔ صوتی PDF").setContentText("در حال خواندن…").setSmallIcon(android.R.drawable.ic_media_play).setOngoing(true)
-        if (pi != null) b.setContentIntent(pi)
-        val n = b.build()
+        if (intent?.action == A_CMD) {   /* دکمهٔ اعلان: فقط به JS منتقل می‌شود؛ وضعیت جدید را JS با mediaUpdate می‌فرستد */
+            val cb = MediaBridge.cb
+            if (cb == null) { end() } else cb.invoke(intent.getStringExtra("c") ?: "", 0L)
+            return START_NOT_STICKY
+        }
+        val n = build()
         try {
-            if (android.os.Build.VERSION.SDK_INT >= 29) startForeground(7421, n, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
-            else startForeground(7421, n)
+            if (android.os.Build.VERSION.SDK_INT >= 29) startForeground(NID, n, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+            else startForeground(NID, n)
+            if (MediaBridge.active && !MediaBridge.playing) {   /* مکث: اعلان قابل سوایپ می‌شود، پیش‌زمینه آزاد */
+                if (android.os.Build.VERSION.SDK_INT >= 24) stopForeground(android.app.Service.STOP_FOREGROUND_DETACH) else @Suppress("DEPRECATION") stopForeground(false)
+                nm.notify(NID, n)
+            }
         } catch (e: Throwable) { stopSelf() }
         return START_NOT_STICKY
     }
-}
 
+    /** حذف برنامه از لیست اخیر: اعلان شبح نماند */
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        try { MediaBridge.cb?.invoke("stop", 0L) } catch (e: Throwable) {}
+        end()
+        super.onTaskRemoved(rootIntent)
+    }
+
+    override fun onDestroy() {
+        h.removeCallbacks(fire)
+        try { ms?.isActive = false; ms?.release() } catch (e: Throwable) {}
+        ms = null
+        super.onDestroy()
+    }
+}
