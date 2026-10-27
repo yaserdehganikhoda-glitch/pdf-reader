@@ -400,7 +400,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r7-focus").put("media", true))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r8-focus").put("media", true))
     }
 
     @PluginMethod
@@ -1318,12 +1318,13 @@ class PiperNativePlugin : Plugin() {
     @Volatile private var afOn = false
     @Volatile private var afLostT = false
     @Volatile private var afDuck = false
+    @Volatile private var afAt = 0L   // لحظهٔ آخرین درخواست فوکوس؛ JS با آن تداخل هم‌فرایندی WebView را از برنامهٔ دیگر تشخیص می‌دهد
     private val afl = AudioManager.OnAudioFocusChangeListener { c ->
         try {
             val act = synchronized(plLock) { plActive }
             when (c) {
-                AudioManager.AUDIOFOCUS_LOSS -> { afLostT = false; afAbandon(); if (act) { stopPlayer(); emitInterrupt("focus") } }
-                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> if (act) { afLostT = true; stopPlayer(); emitInterrupt("focus_t") }
+                AudioManager.AUDIOFOCUS_LOSS -> { afLostT = false; afAbandon(); if (act) notifyListeners("playerFocus", JSObject().put("kind", "loss").put("dt", android.os.SystemClock.elapsedRealtime() - afAt)) }
+                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> if (act) { afLostT = true; notifyListeners("playerFocus", JSObject().put("kind", "loss_t").put("dt", android.os.SystemClock.elapsedRealtime() - afAt)) }
                 AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> { afDuck = true; try { plTrack?.setVolume(0.3f) } catch (e: Throwable) {} }
                 AudioManager.AUDIOFOCUS_GAIN -> {
                     afDuck = false; try { plTrack?.setVolume(1f) } catch (e: Throwable) {}
@@ -1335,14 +1336,15 @@ class PiperNativePlugin : Plugin() {
     private fun afRequest() {
         afLostT = false
         if (afOn) return
+        afAt = android.os.SystemClock.elapsedRealtime()
         try {
             val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
             val r = if (android.os.Build.VERSION.SDK_INT >= 26) {
-                val rq = android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                val rq = android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
                     .setAudioAttributes(android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_MEDIA).setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH).build())
                     .setOnAudioFocusChangeListener(afl).build()
                 afReq = rq; am.requestAudioFocus(rq)
-            } else @Suppress("DEPRECATION") am.requestAudioFocus(afl, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
+            } else @Suppress("DEPRECATION") am.requestAudioFocus(afl, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
             afOn = r == AudioManager.AUDIOFOCUS_REQUEST_GRANTED   // اگر رد شد (مثلاً تماس) پخش مسدود نمی‌شود؛ دفعهٔ بعد دوباره تلاش می‌شود
         } catch (e: Throwable) {}
     }
