@@ -1497,7 +1497,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
           <div class="tbody">
             <div class="tpanel on" id="tpanel-voice" role="tabpanel" aria-labelledby="ttab-voice" data-tp="voice">
 <p class="tlbl">تنظیمات صدا</p>
-<div class="cfgrow c2"><button type="button" class="tile t-a" data-go="voice" data-only="#spkBox,#styleBox,#rateBox,#paceBox,#ezmBox" data-title="گوینده و گفتار" data-sub="سبک، سرعت و مکث"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg></span><span class="tx"><b>گوینده و گفتار</b><small>سبک، سرعت و مکث</small></span></button><button type="button" class="tile t-b" data-go="voice" data-only="#qualBox,#bgmBox" data-title="کیفیت و موسیقی" data-sub="نویز، شفافیت و موسیقی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8v8M8 5v14M12 9v6M16 6v12M20 10v4"/></svg></span><span class="tx"><b>کیفیت و موسیقی</b><small>نویز، شفافیت و موسیقی</small></span></button><button type="button" class="tile t-g" data-go="voice" data-only="#sleepBox,#advBox" data-title="تایمر و پیشرفته" data-sub="خواب و اطلاعات فنی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/></svg></span><span class="tx"><b>تایمر و پیشرفته</b><small>خواب و اطلاعات فنی</small></span></button></div>
+<div class="cfgrow c2"><button type="button" class="tile t-a" data-go="voice" data-only="#spkBox,#styleBox,#rateBox,#paceBox" data-title="گوینده و گفتار" data-sub="سبک، سرعت و مکث"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg></span><span class="tx"><b>گوینده و گفتار</b><small>سبک، سرعت و مکث</small></span></button><button type="button" class="tile t-b" data-go="voice" data-only="#qualBox,#bgmBox" data-title="کیفیت و موسیقی" data-sub="نویز، شفافیت و موسیقی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8v8M8 5v14M12 9v6M16 6v12M20 10v4"/></svg></span><span class="tx"><b>کیفیت و موسیقی</b><small>نویز، شفافیت و موسیقی</small></span></button><button type="button" class="tile t-g" data-go="voice" data-only="#sleepBox,#advBox" data-title="تایمر و پیشرفته" data-sub="خواب و اطلاعات فنی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/></svg></span><span class="tx"><b>تایمر و پیشرفته</b><small>خواب و اطلاعات فنی</small></span></button></div>
             </div>
             <div class="tpanel" id="tpanel-text" role="tabpanel" aria-labelledby="ttab-text" data-tp="text">
 <p class="tlbl">تنظیمات متن</p>
@@ -1742,18 +1742,15 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
           <label class="chk"><input type="checkbox" id="phLex" checked><span class="st"><b>واژه‌نامهٔ آوایی داخلی</b><small>برای صدها واژهٔ پرکاربرد، کوتاه‌مصوت‌ها (َ ِ ُ) را مشخص می‌کند تا تلفظ دقیق‌تر شود. اگر جایی عجیب خوانده شد خاموشش کنید.</small></span></label>
         </div>
 </div>
-
-      <details class="acc" id="ezmBox">
-        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></i><span class="stt"><b>واج‌نگاری مانا</b><small>کسرهٔ اضافهٔ هوشمند با مدل ALBERT (آفلاین)</small></span></summary>
-        <div class="in">
-          <div class="slist">
-            <label class="chk"><input type="checkbox" id="ezmOn"><span class="st"><b>کسرهٔ اضافهٔ مدل ALBERT برای صدای مانا</b><small>فقط وقتی صدای مانا انتخاب باشد و مدل دانلود و آزموده شده باشد.</small></span></label>
-          </div>
-          <div class="two"><button class="btn primary" id="ezmDl" type="button">دانلود و آزمایش مدل</button><button class="btn dgr" id="ezmRm" type="button">حذف مدل</button></div>
-          <p class="hint" id="ezmSt" aria-live="polite"></p>
-          <details class="sub hintbox"><summary>این بخش چه می‌کند؟</summary><div class="in"><p class="hint">صدای مانا با واج‌نگاری آگاه از بافت بهتر کار می‌کند. این بخش مدل کوچک تشخیص کسرهٔ اضافه (persian-ezafe-albert، حدود ۴۰ مگابایت) را یک بار از Hugging Face دانلود می‌کند و بعد آفلاین روی دستگاه اجرا می‌کند. پیش از خواندن هر جمله، کسرهٔ اضافه را روی واژه‌هایی می‌گذارد که مدل تشخیص داده است؛ متن نمایش‌داده‌شده دست‌نخورده می‌ماند. پس از دانلود، یک خودآزمایی اجرا می‌شود و اگر نتیجه درست نبود، این بخش خودکار غیرفعال می‌ماند. به پوشهٔ ocr/ort کنار برنامه (onnxruntime-web) نیاز دارد.</p></div></details>
-        </div>
-      </details>
+<section class="grp" id="ezmBox">
+  <h3>واج‌نگاری مانا</h3>
+  <div class="slist">
+    <label class="chk"><input type="checkbox" id="ezmOn"><span class="st"><b>کسرهٔ اضافهٔ هوشمند برای صدای مانا</b><small>با مدل ALBERT (آفلاین)؛ فقط وقتی صدای مانا انتخاب باشد و مدل دانلود و آزموده شده باشد.</small></span></label>
+  </div>
+  <div class="btnrow"><button class="btn sm primary" id="ezmDl" type="button">دانلود و آزمایش مدل</button><button class="btn sm" id="ezmRm" type="button">حذف مدل</button></div>
+  <p class="hint" id="ezmSt" aria-live="polite"></p>
+  <p class="hint">مدل کوچک تشخیص کسرهٔ اضافه (persian-ezafe-albert، حدود ۴۰ مگابایت) یک بار از Hugging Face دانلود می‌شود و بعد آفلاین کار می‌کند. پس از دانلود، یک خودآزمایی اجرا می‌شود و اگر نتیجه درست نبود، این بخش خودکار غیرفعال می‌ماند. به پوشهٔ ocr/ort کنار برنامه نیاز دارد.</p>
+</section>
 
 <div class="cfgv">
       <section class="grp" id="rateBox">
@@ -8830,7 +8827,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r124 · 2026-10-28 · mana-ezafe', npBuild = '';
+  var APP_BUILD = 'html-r125 · 2026-10-28 · mana-ezafe-ui', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -11762,7 +11759,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
 
   /* ---------- صفحه‌های تکی، منوی ابزار و پخش‌کنندهٔ کوچک ---------- */
   var pagesEl = $('#menu'), curTab = 'read', TAB_ORDER = ['lib', 'voice', 'text', 'view'];
-  var DEFONLY = { voice: '#spkBox,#styleBox,#rateBox,#paceBox,#ezmBox', text: '#txtbox,#cleanBox,#fixbox,#txtReset', view: '#presetBox,#themeBox,#fxBox' };   /* ورود بی‌انتخاب به یک تب = نخستین صفحهٔ گروهی */
+  var DEFONLY = { voice: '#spkBox,#styleBox,#rateBox,#paceBox', text: '#txtbox,#cleanBox,#fixbox,#txtReset', view: '#presetBox,#themeBox,#fxBox' };   /* ورود بی‌انتخاب به یک تب = نخستین صفحهٔ گروهی */
   var TAB_META = {
     lib: ['کتابخانه', 'فایل‌های ذخیره‌شده', 'M5 4h4v16H5zM11 4h4v16h-4zM17.5 5l3 .8-3.6 14-3-.8z'],
     voice: ['صدا', 'گوینده، سرعت و گفتار', 'M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4'],
