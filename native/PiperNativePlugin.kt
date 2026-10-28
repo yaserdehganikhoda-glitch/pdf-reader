@@ -1131,6 +1131,7 @@ class PiperNativePlugin : Plugin() {
                 val trim = IntArray(1)   // نمونه‌هایی که صیقل از ابتدای بافر بریده (مرزها باید همین‌قدر جابه‌جا شوند)
                 val pol = polish(all, sr, trim)
                 val fin = if (fxOn) MasterFx.process(pol, sr, fxPk, fxHs, fxLp, strong) else pol
+                for (i in fin.indices) fin[i] *= OUT_TRIM   // r120: ۳dB headroom (پیک ≈ −۳ dBFS)؛ بعد از کش و مسترینگ، پس کش بی‌اثر می‌ماند
                 // مرز واقعی شروع هر جمله (کسری از ۰ تا ۱ از کل خروجی)؛ برای هم‌گام‌سازی هایلایت به‌جای تخمین از نسبت نویسه‌ها (T-14)
                 // playerPos بومی هم کسری از همین بافر است (مستقل از سرعت پخش)؛ در وب نسبت زمان به مدت صداست
                 val marks: JSArray? = if (partsArr != null && partsArr.length() > 0 && fin.isNotEmpty()) {
@@ -1174,6 +1175,8 @@ class PiperNativePlugin : Plugin() {
         e = kotlin.math.min(f.size - 1, e + (sr * 0.06).toInt())
         return f.copyOfRange(s, e + 1)
     }
+
+    private val OUT_TRIM = 0.708f   // −3 dB
 
     private fun polish(f: FloatArray, sr: Int, trim: IntArray? = null): FloatArray {
         if (f.size < sr / 5) return f
