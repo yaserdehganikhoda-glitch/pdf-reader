@@ -4576,6 +4576,8 @@ var ocrSpell = (function(){
       return '';
     }).replace(/[\u00b2\u00b3]/g, function(c){ return c === '\u00b2' ? '\uE0B2' : '\uE0B3'; }).normalize('NFKC').replace(/\uE0B2/g, '\u00b2').replace(/\uE0B3/g, '\u00b3').replace(/[\u00ad\u200b\u200e\u200f\u202a-\u202e\u2066-\u2069\ufeff\u061c\u2060\u180e\u206a-\u206f]/g, '');   /* نشانگر خصوصی: NFKC نباید ²/³ را به 2/3 بدل کند */
     t = t.replace(/^[ \t]*[\uE000-\uF8FF\uFFFC\uFFFD\u25A1\u25AF]+[ \t]*(?=\S)/gm, '- ').replace(/[\uE000-\uF8FF\uFFFC-\uFFFF]/g, '');   /* r117: گلیف خصوصی/نامعتبر (بولت Symbol/Wingdings) = مربع ▯ در متن؛ ابتدای سطر → آیتم فهرست */
+    t = t.replace(/(?<![\u0621-\u06D3])\u0648(?=(?:\u0632\u0645\u0627\u0646|\u0645\u06a9\u0627\u0646|\u062a\u0636\u0627\u062f|\u0647\u0645\u0647|\u0627\u06cc\u0646|\u0622\u0646|\u0634\u0645\u0627)(?![\u0621-\u06D3]))/g, '\u0648 ');   /* r120: «وزمان» ← «و زمان» (فقط چند واژهٔ بی‌ابهام) */
+    t = t.replace(/(?<![\u0621-\u06D3\u200c])(\u0646?)\u0645\u06cc(?=(?:\u06af\u0648\u06cc|\u0628\u0648\u06cc|\u062e\u0648\u0627\u0646|\u0628\u06cc\u0646|\u06a9\u0646|\u0634\u0648|\u062e\u0648\u0627\u0647|\u062f\u0647)(?:\u0645|\u06cc|\u062f|\u06cc\u0645|\u06cc\u062f|\u0646\u062f)(?![\u0621-\u06D3])|(?:\u06af\u0641\u062a|\u06a9\u0631\u062f|\u0634\u062f|\u062e\u0648\u0627\u0633\u062a|\u062f\u06cc\u062f|\u062f\u0627\u062f|\u0631\u0641\u062a|\u0622\u0645\u062f|\u0628\u0648\u062f)(?:\u0645|\u06cc|\u06cc\u0645|\u06cc\u062f|\u0646\u062f)?(?![\u0621-\u06D3]))/g, '$1\u0645\u06cc\u200c');   /* r120: «میگوییم» ← «می‌گوییم» (فعل‌های رایج؛ «میدان/میز/میوه» دست نمی‌خورند) */
     t = t.replace(/(?<=\S)(?:[ \t\u00a0]{3,}|\t+)(?=\S)/g, '\u001f');   /* فاصلهٔ ستونی جدول پیش از فشرده‌سازی نشانه‌گذاری می‌شود (T-06) */
     t = t.replace(/[ \t\u00a0]+/g, ' ').replace(/ *\n */g, '\n');
     t = t.replace(/\u200c{2,}/g, '\u200c').replace(/\u200c+(?=[ .,،;؛:!?؟…)»"\]])/g, '').replace(/(?<=[ («"\[])\u200c+/g, '');   /* نیم‌فاصلهٔ زائد: تکراری، چسبیده به فاصله/نگارشی؛ نیم‌فاصلهٔ پایان سطر برای چسباندن سطر شکسته می‌ماند */
@@ -8694,7 +8696,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r119 · 2026-10-28 · fixed-speed', npBuild = '';
+  var APP_BUILD = 'html-r120 · 2026-10-28 · pause-glue', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -9305,6 +9307,7 @@ function chunkAt(i, lim){
     } else if (q.pe) ms = (!strong && !soft && t.length < 80) ? 720 : (/[?؟]["»”')\]]*$/.test(t) ? 470 : 410);
     else if (q.cont && !strong) ms = 25;
     else ms = strong ? 170 : soft ? 130 : 160;
+    if (!q.pe && !(q.cont && !strong)) ms = Math.max(ms, /[?\u061f]["\u00bb\u201d')\]]*$/.test(t) ? 380 : strong ? 320 : soft ? 220 : 0);   /* r120: کف مکث پایان جمله */
     ms *= [1, 1.15, 1.3, 1.6][calmLvl()];   /* آرام: مکث‌ها بازتر (×۱٫۳)، بسیار آرام (×۱٫۶)، مثل نفس‌گیری آرام گوینده */
     return Math.round(nr ? ms : ms / Math.pow(r, 0.6));
   }
