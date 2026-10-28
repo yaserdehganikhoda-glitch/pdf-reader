@@ -1497,7 +1497,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
           <div class="tbody">
             <div class="tpanel on" id="tpanel-voice" role="tabpanel" aria-labelledby="ttab-voice" data-tp="voice">
 <p class="tlbl">تنظیمات صدا</p>
-<div class="cfgrow c2"><button type="button" class="tile t-a" data-go="voice" data-only="#spkBox,#styleBox,#rateBox,#paceBox" data-title="گوینده و گفتار" data-sub="سبک، سرعت و مکث"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg></span><span class="tx"><b>گوینده و گفتار</b><small>سبک، سرعت و مکث</small></span></button><button type="button" class="tile t-b" data-go="voice" data-only="#qualBox,#bgmBox" data-title="کیفیت و موسیقی" data-sub="نویز، شفافیت و موسیقی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8v8M8 5v14M12 9v6M16 6v12M20 10v4"/></svg></span><span class="tx"><b>کیفیت و موسیقی</b><small>نویز، شفافیت و موسیقی</small></span></button><button type="button" class="tile t-g" data-go="voice" data-only="#sleepBox,#advBox" data-title="تایمر و پیشرفته" data-sub="خواب و اطلاعات فنی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/></svg></span><span class="tx"><b>تایمر و پیشرفته</b><small>خواب و اطلاعات فنی</small></span></button></div>
+<div class="cfgrow c2"><button type="button" class="tile t-a" data-go="voice" data-only="#spkBox,#styleBox,#rateBox,#paceBox,#ezmBox,#nzBox" data-title="گوینده و گفتار" data-sub="سبک، سرعت و مکث"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg></span><span class="tx"><b>گوینده و گفتار</b><small>سبک، سرعت و مکث</small></span></button><button type="button" class="tile t-b" data-go="voice" data-only="#qualBox,#bgmBox" data-title="کیفیت و موسیقی" data-sub="نویز، شفافیت و موسیقی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8v8M8 5v14M12 9v6M16 6v12M20 10v4"/></svg></span><span class="tx"><b>کیفیت و موسیقی</b><small>نویز، شفافیت و موسیقی</small></span></button><button type="button" class="tile t-g" data-go="voice" data-only="#sleepBox,#advBox" data-title="تایمر و پیشرفته" data-sub="خواب و اطلاعات فنی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/></svg></span><span class="tx"><b>تایمر و پیشرفته</b><small>خواب و اطلاعات فنی</small></span></button></div>
             </div>
             <div class="tpanel" id="tpanel-text" role="tabpanel" aria-labelledby="ttab-text" data-tp="text">
 <p class="tlbl">تنظیمات متن</p>
@@ -1750,6 +1750,34 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
   <div class="btnrow"><button class="btn sm primary" id="ezmDl" type="button">دانلود و آزمایش مدل</button><button class="btn sm" id="ezmRm" type="button">حذف مدل</button></div>
   <p class="hint" id="ezmSt" aria-live="polite"></p>
   <p class="hint">مدل کوچک تشخیص کسرهٔ اضافه (persian-ezafe-albert، حدود ۴۰ مگابایت) یک بار از Hugging Face دانلود می‌شود و بعد آفلاین کار می‌کند. پس از دانلود، یک خودآزمایی اجرا می‌شود و اگر نتیجه درست نبود، این بخش خودکار غیرفعال می‌ماند. به پوشهٔ ocr/ort کنار برنامه نیاز دارد.</p>
+</section>
+<section class="grp" id="nzBox">
+  <h3>تنظیم دقیق نویز</h3>
+  <div class="field">
+    <span class="flab">حالت</span>
+    <select id="nzMode" data-seg aria-label="حالت تنظیم نویز">
+      <option value="auto" data-short="خودکار" data-desc="مقدارها از «سبک گفتار» تعیین می‌شود (برای مانا پایدارتر از بقیه). پیشنهادی.">خودکار (پیشنهادی)</option>
+      <option value="manual" data-short="دستی" data-desc="دو لغزندهٔ زیر مستقیماً به مدل داده می‌شود و جایگزین مقدار سبک گفتار می‌شود.">دستی</option>
+    </select>
+  </div>
+  <div class="field">
+    <label for="nzNs"><span>تنوع صدا و خش (noise_scale)</span><span id="nzNsV"></span></label>
+    <input type="range" class="rng" id="nzNs" min="0.15" max="0.9" step="0.01" value="0.4">
+  </div>
+  <div class="field">
+    <label for="nzNw"><span>نوسان طول واج‌ها (noise_w)</span><span id="nzNwV"></span></label>
+    <input type="range" class="rng" id="nzNw" min="0.1" max="0.9" step="0.01" value="0.4">
+  </div>
+  <div class="field">
+    <span class="flab">حذف وزوز مکث‌ها (مانا)</span>
+    <select id="nzPause" data-seg aria-label="حذف وزوز مکث‌ها">
+      <option value="0" data-short="خاموش" data-desc="مکث‌ها دست‌نخورده می‌مانند.">خاموش</option>
+      <option value="1" data-short="ملایم" data-desc="فقط مکث‌های بسیار ساکت بی‌صدا می‌شوند؛ کمترین دخالت.">ملایم</option>
+      <option value="2" data-short="متعادل" data-desc="مکث‌های بلندتر از ۰٫۱ ثانیه که حدود ۳۰ دسی‌بل زیر گفتارند بی‌صدا می‌شوند (پیشنهادی).">متعادل (پیشنهادی)</option>
+      <option value="3" data-short="قوی" data-desc="وزوز بلندتر هم گرفته می‌شود؛ اگر پایان واژه‌ها بریده شد به متعادل برگردید.">قوی</option>
+    </select>
+  </div>
+  <p class="hint">مقدار کمتر = صدای یکدست‌تر و بی‌خش‌تر، ولی خیلی کم باشد صدا تخت و فلزی می‌شود. تغییر لغزنده‌ها برای جمله‌های بعدی اعمال می‌شود (ساخت دوبارهٔ صدا). گزینهٔ حذف وزوز فوری اعمال می‌شود.</p>
 </section>
 
 <div class="cfgv">
@@ -2568,7 +2596,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       /* ضریب پایه برای همهٔ گوینده‌ها یکسان است (۱ = سرعت اصلی مدل) */
       var tempo = VOICE_TEMPOS[o.voiceId] || VOICE_TEMPO, fxp = $('#enh').checked ? fxProf(o.voiceId) : null;
       var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo), g: p.g, n: p.n, w: p.w }; }) : undefined;
-      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cleanLevel(), clarity: clarityLevel(), keep: npPlay, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; return b; });
+      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cleanLevel(), clarity: clarityLevel(), pause: pauseLevel(), keep: npPlay, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; return b; });
     }
   };
 
@@ -4527,7 +4555,7 @@ var ocrSpell = (function(){
   /* امضای کامل پارامترهای ساخت صدا؛ هر تغییری در آن‌ها کلید دیگری می‌سازد */
   function achSig(c, v){
     var tempo = VOICE_TEMPOS[v.id] || VOICE_TEMPO, fxp = $('#enh').checked ? fxProf(v.id) : null, st = styleParams(v.id);
-    return [ACH_VER, v.id, st[0], st[1], cleanLevel(), clarityLevel(), fxp ? fxp.pk + ',' + fxp.hs + ',' + fxp.lp : 0, tempo, PART_GAP, c.mid ? 1 : 0, paceSpeed(c.text),
+    return [ACH_VER, v.id, st[0], st[1], cleanLevel(), clarityLevel() + (/mana/i.test(v.id) ? 'p' + pauseLevel() : ''), fxp ? fxp.pk + ',' + fxp.hs + ',' + fxp.lp : 0, tempo, PART_GAP, c.mid ? 1 : 0, paceSpeed(c.text),
       (c.parts || []).map(function(q){ return q.s + ':' + (q.g || 0) + (q.n != null || q.w != null ? ':e' + EMO_V + ':' + q.n + ':' + q.w : '') + ':' + q.t; }).join('\u0001'), c.text].join('|');
   }
   function achHash(str){
@@ -8546,9 +8574,11 @@ var ocrSpell = (function(){
     var st = STYLES[$('#vstyle').value] || STYLES.natural, v;
     if (id === undefined) { v = currentVoice(); id = v && v.id; }
     /* مانا: نمونه‌برداری نویز VITS پایدارتر (تغییر رنگ صدا میان جمله‌ها، دوصدایی و خش از واریانس زیاد z و طول واج‌ها) — با هر سبک، متناسب کمتر */
+    if (sget('nzMode', 'auto') === 'manual') { var a = parseFloat(sget('nzNs', '0.4')), b = parseFloat(sget('nzNw', '0.4')); return [Math.round(Math.max(0.15, Math.min(0.9, isFinite(a) ? a : 0.4)) * 100) / 100, Math.round(Math.max(0.1, Math.min(0.9, isFinite(b) ? b : 0.4)) * 100) / 100]; }   /* تنظیم دقیق نویز (دستی) */
     if (/mana/i.test(id || '')) return [Math.round(Math.max(0.24, Math.min(0.36, st[0] * 0.6)) * 100) / 100, Math.round(Math.min(0.42, st[1] * 0.8) * 100) / 100];
     return st;
   }
+  function pauseLevel(){ var v = +sget('nzPause', '2'); return v >= 0 && v <= 3 ? v : 2; }   /* حذف وزوز مکث‌ها (مانا): ۰ خاموش … ۳ قوی */
   function lvl03(id){ var v = +$(id).value; return v >= 0 && v <= 3 ? v : 2; }
   function cleanLevel(){ return lvl03('#vclean'); }     /* حذف نویز و صداهای اضافه در موتور بومی: ۰ خاموش … ۳ قوی */
   function clarityLevel(){ return lvl03('#vclarity'); } /* شفافیت و رسایی: ۰ خاموش … ۳ قوی */
@@ -8829,7 +8859,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r127 · 2026-10-29 · mana-stable2', npBuild = '';
+  var APP_BUILD = 'html-r129 · 2026-10-29 · noise-fine-tune', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -9256,7 +9286,7 @@ function chunkAt(i, lim){
     var h = 5381, z = c.text + '|' + (c.parts || []).map(function(x){ return x.s + ':' + x.g + (x.n != null || x.w != null ? ':e' + EMO_V + ':' + x.n + ':' + x.w : ''); }).join(','), i = z.length, st = '';
     while (i) h = (h * 33) ^ z.charCodeAt(--i);
     try { st = styleParams(v.id).join(','); } catch (e) {}
-    return ['piper', v.id, c.start, (h >>> 0).toString(36) + st + (ezmWant(v.id) ? '~ezm' : ''), c.end].join('|');
+    return ['piper', v.id, c.start, (h >>> 0).toString(36) + st + (/mana/i.test(v.id) ? '~p' + pauseLevel() : '') + (ezmWant(v.id) ? '~ezm' : ''), c.end].join('|');
   }
   function piperFetchRaw(c){
     var v = currentVoice();
@@ -10304,7 +10334,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
         vs.value = levels[li]; st = styleParams(v.id); M = [];
         for (si = 0; si < CB_S.length; si++) {
           sp = paceSpeed(CB_S[si]);
-          r = await NP.synthesize({ id: v.id, text: CB_S[si], noiseScale: st[0], noiseScaleW: st[1], clean: cleanLevel(), clarity: clarityLevel(), keep: false, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, sp * tempo), gap: PART_GAP });
+          r = await NP.synthesize({ id: v.id, text: CB_S[si], noiseScale: st[0], noiseScaleW: st[1], clean: cleanLevel(), clarity: clarityLevel(), pause: pauseLevel(), keep: false, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, sp * tempo), gap: PART_GAP });
           pcm = cbPcm(r.wav); m = cbStats(pcm, r.sampleRate || 22050); m.cps = CB_S[si].replace(/\s/g, '').length / m.sec; M.push(m);
           await new Promise(function(z){ setTimeout(z, 0); });
         }
@@ -10977,6 +11007,20 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     var el = $('#' + id); el.value = sget(id, '2'); if (['0', '1', '2', '3'].indexOf(el.value) < 0) el.value = '2';
     el.onchange = function(){ sset(id, this.value); changed(); warmPiper(); };   /* کش خام بومی می‌ماند؛ پس تغییر سطح سریع اعمال می‌شود */
   });
+  (function(){   /* تنظیم دقیق نویز */
+    var md = $('#nzMode'), ns = $('#nzNs'), nw = $('#nzNw'), pz = $('#nzPause');
+    function rd(k, d, a, b){ var v = parseFloat(sget(k, d)); return isFinite(v) ? Math.max(a, Math.min(b, v)) : parseFloat(d); }
+    md.value = sget('nzMode', 'auto') === 'manual' ? 'manual' : 'auto';
+    ns.value = rd('nzNs', '0.4', 0.15, 0.9); nw.value = rd('nzNw', '0.4', 0.1, 0.9);
+    pz.value = ['0', '1', '2', '3'].indexOf(sget('nzPause', '2')) >= 0 ? sget('nzPause', '2') : '2';
+    function ui(){ var m = md.value === 'manual'; ns.disabled = nw.disabled = !m; $('#nzNsV').textContent = m ? nf.format(+ns.value) : 'خودکار'; $('#nzNwV').textContent = m ? nf.format(+nw.value) : 'خودکار'; fillRng(ns); fillRng(nw); }
+    ns.oninput = function(){ sset('nzNs', this.value); ui(); };
+    nw.oninput = function(){ sset('nzNw', this.value); ui(); };
+    ns.onchange = nw.onchange = function(){ changed(); warmPiper(); };
+    md.onchange = function(){ sset('nzMode', this.value); ui(); changed(); warmPiper(); };
+    pz.onchange = function(){ sset('nzPause', this.value); changed(); warmPiper(); };
+    ui();
+  })();
   if (sget('smartV', '') !== '1') { sset('smartV', '1'); sset('smartPace', '0'); }   /* سرعت صدا دقیقاً مثل حالت اولیه؛ فقط با تیک‌زدن دستی فعال می‌شود */
   $('#smartPace').checked = sget('smartPace', '0') === '1';
   $('#humPace').checked = sget('humPace', '1') !== '0';
@@ -11761,7 +11805,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
 
   /* ---------- صفحه‌های تکی، منوی ابزار و پخش‌کنندهٔ کوچک ---------- */
   var pagesEl = $('#menu'), curTab = 'read', TAB_ORDER = ['lib', 'voice', 'text', 'view'];
-  var DEFONLY = { voice: '#spkBox,#styleBox,#rateBox,#paceBox', text: '#txtbox,#cleanBox,#fixbox,#txtReset', view: '#presetBox,#themeBox,#fxBox' };   /* ورود بی‌انتخاب به یک تب = نخستین صفحهٔ گروهی */
+  var DEFONLY = { voice: '#spkBox,#styleBox,#rateBox,#paceBox,#ezmBox,#nzBox', text: '#txtbox,#cleanBox,#fixbox,#txtReset', view: '#presetBox,#themeBox,#fxBox' };   /* ورود بی‌انتخاب به یک تب = نخستین صفحهٔ گروهی */
   var TAB_META = {
     lib: ['کتابخانه', 'فایل‌های ذخیره‌شده', 'M5 4h4v16H5zM11 4h4v16h-4zM17.5 5l3 .8-3.6 14-3-.8z'],
     voice: ['صدا', 'گوینده، سرعت و گفتار', 'M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4'],
@@ -11865,7 +11909,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   Array.prototype.forEach.call(toolsEl.querySelectorAll('.tile,.tbanner'), function(b){ b.addEventListener('click', function(){ toolRun(b); }); });
 
   /* ---- نشانگر «تغییریافته» و بازنشانی هر بخش ---- */
-  var CFG_DEF = {"vstyle":"natural","emoLvl":"0","vclean":"2","vclarity":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"oSpellTL":false,"oVg":true,"oVgMode":"safe","ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
+  var CFG_DEF = {"vstyle":"natural","emoLvl":"0","vclean":"2","vclarity":"2","nzMode":"auto","nzNs":"0.4","nzNw":"0.4","nzPause":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"oSpellTL":false,"oVg":true,"oVgMode":"safe","ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
   Array.prototype.forEach.call(document.querySelectorAll(CFG_SEC), function(s){
     var h = s.tagName === 'DETAILS' ? s.querySelector('summary .stt b') : s.querySelector('h3'), pn = s.closest('.panel');
     if (!s.id) s.id = 'cs-' + (++cfgN);
@@ -11909,7 +11953,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   $('#mbody').addEventListener('change', chgSoon, true);
   chgScan();
 
-  var CFG_KEY = /^(hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|emoLvl$|harakat)/;
+  var CFG_KEY = /^(hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|emoLvl$|nz|harakat)/;
 
   /* وقتی برنامه در پس‌زمینه است (مثلاً پخش با صفحهٔ خاموش) انیمیشن‌ها متوقف شوند */
   document.addEventListener('visibilitychange', function(){ document.documentElement.classList.toggle('bg-paused', document.hidden); });
