@@ -405,7 +405,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r10-mana").put("media", true))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r12-nz").put("media", true))
     }
 
     @PluginMethod
@@ -1189,6 +1189,7 @@ class PiperNativePlugin : Plugin() {
         val partsArr = call.getArray("parts")
         val lvlClean = (call.getInt("clean") ?: 2).coerceIn(0, 3)       // حذف نویز و صداهای اضافه
         val lvlClarity = (call.getInt("clarity") ?: 2).coerceIn(0, 3)   // شفافیت و رسایی
+        val lvlPause = (call.getInt("pause") ?: 2).coerceIn(0, 3)       // حذف وزوز مکث‌ها (فقط مانا): ۰ خاموش … ۳ قوی
         val keep = call.getBoolean("keep") ?: false                      // true: PCM در حافظهٔ بومی می‌ماند و فقط handle برمی‌گردد (پخش بومی)
         val fxOn = call.getBoolean("master") ?: false                    // زنجیرهٔ EQ + کمپرسور + لیمیتر (MasterFx)
         val fxPk = (call.getFloat("fxPk") ?: 2f).coerceIn(-6f, 8f)
@@ -1260,7 +1261,7 @@ class PiperNativePlugin : Plugin() {
                 }
                 val trim = IntArray(1)   // نمونه‌هایی که صیقل از ابتدای بافر بریده (مرزها باید همین‌قدر جابه‌جا شوند)
                 val pol = polish(all, sr, trim)
-                val fin = if (fxOn) MasterFx.process(pol, sr, fxPk, fxHs, fxLp, strong) else pol
+                val fin = if (fxOn) MasterFx.process(pol, sr, fxPk, fxHs, fxLp, strong, lvlPause) else pol
                 for (i in fin.indices) fin[i] *= OUT_TRIM   // r120: ۳dB headroom (پیک ≈ −۳ dBFS)؛ بعد از کش و مسترینگ، پس کش بی‌اثر می‌ماند
                 // مرز واقعی شروع هر جمله (کسری از ۰ تا ۱ از کل خروجی)؛ برای هم‌گام‌سازی هایلایت به‌جای تخمین از نسبت نویسه‌ها (T-14)
                 // playerPos بومی هم کسری از همین بافر است (مستقل از سرعت پخش)؛ در وب نسبت زمان به مدت صداست
@@ -2193,6 +2194,55 @@ private object MasterFx {
         }
     }
 
+    /** مکث‌بُر: در ضبط واقعی، لابه‌لای مکث‌ها (۱٫۴ثانیه) خطوط هارمونیک ثابت حدود −۵۰ تا −۵۶ dBFS بود که هر ~۰٫۳ثانیه فرکانسشان پله‌ای عوض می‌شد
+     *  (وزوز «گیژ»)؛ دُم/لِید ساکت خروجی مدل. حذف‌کنندهٔ طیفی نویز ایستا را فرض می‌کند و خط‌های پله‌ای را نمی‌گیرد.
+     *  اینجا فقط بازه‌های پیوستهٔ ≥ minMs که انرژی‌شان ≥ |relDb| زیر سطح گفتار است تا floorDb کم می‌شوند (با محوشدن نرم). گفتار و مکث‌های کوتاه بین واژه‌ها دست‌نخورده‌اند. */
+    private fun pauseMute(x: DoubleArray, sr: Int, relDb: Double, minMs: Double, floorDb: Double, fadeMs: Double) {
+        val n = x.size
+        val blk = maxOf(8, (sr * 0.004).toInt())
+        val nb = (n + blk - 1) / blk
+        if (nb < 24) return
+        val env = DoubleArray(nb)
+        for (b in 0 until nb) {
+            val a = b * blk; val e = minOf(n, a + blk)
+            var s = 0.0
+            for (i in a until e) s += x[i] * x[i]
+            env[b] = Math.sqrt(s / (e - a))
+        }
+        val sorted = env.copyOf(); java.util.Arrays.sort(sorted)
+        val top = maxOf(3, (nb * 0.3).toInt())
+        var ref = 0.0
+        for (i in 0 until top) ref += sorted[nb - 1 - i]
+        ref /= top
+        if (ref < 1e-4) return
+        val th = ref * Math.pow(10.0, relDb / 20.0)
+        val blkMs = blk * 1000.0 / sr
+        val minB = Math.ceil(minMs / blkMs).toInt()
+        val gmin = Math.pow(10.0, floorDb / 20.0)
+        val g = DoubleArray(nb) { 1.0 }
+        var b = 0
+        var any = false
+        while (b < nb) {
+            if (env[b] < th) {
+                var e = b
+                while (e < nb && env[e] < th) e++
+                if (e - b >= minB) { for (j in b until e) g[j] = gmin; any = true }
+                b = e
+            } else b++
+        }
+        if (!any) return
+        val c = 1.0 - Math.exp(-4.0 / (fadeMs / blkMs))
+        for (i in 1 until nb) g[i] = g[i - 1] + c * (g[i] - g[i - 1])
+        for (i in nb - 2 downTo 0) g[i] = g[i + 1] + c * (g[i] - g[i + 1])
+        for (i in 0 until n) {
+            val pos = (i - blk / 2.0) / blk
+            val b0 = Math.floor(pos).toInt().coerceIn(0, nb - 1)
+            val b1 = minOf(nb - 1, b0 + 1)
+            val f = (pos - b0).coerceIn(0.0, 1.0)
+            x[i] *= minOf(1.0, g[b0] + (g[b1] - g[b0]) * f)
+        }
+    }
+
     private fun softClip(v: Double): Float {
         val a = Math.abs(v)
         if (a <= 0.98) return v.toFloat()
@@ -2200,7 +2250,7 @@ private object MasterFx {
         return (if (v < 0) -y else y).toFloat()
     }
 
-    fun process(src: FloatArray, sr: Int, pk: Float, hs: Float, lp: Float, strong: Boolean = false): FloatArray {
+    fun process(src: FloatArray, sr: Int, pk: Float, hs: Float, lp: Float, strong: Boolean = false, pauseLvl: Int = 2): FloatArray {
         if (src.isEmpty()) return src
         val x = DoubleArray(src.size) { src[it].toDouble() }
         highpass(75.0, 1.122, sr).run(x)
@@ -2212,6 +2262,7 @@ private object MasterFx {
         comp(x, sr, -22.0, 24.0, 3.0, 0.005, 0.15, 0.006)
         for (i in x.indices) x[i] *= 1.1
         gate(x, sr, if (strong) -32.0 else -34.0, if (strong) -7.0 else -6.0)   // مانا: گیت ملایم‌تر؛ حذف نویز طیفی کار اصلی را می‌کند و گیت تند، صامت‌های ضعیف و پایان واژه را به‌صورت «غ‌غ‌غ» می‌برد
+        if (strong && pauseLvl > 0) pauseMute(x, sr, when (pauseLvl) { 1 -> -35.0; 2 -> -30.0; else -> -25.0 }, 100.0, -42.0, 18.0)   // مانا: حذف وزوز هارمونیک مکث‌ها (بالا)
         comp(x, sr, -2.0, 0.0, 20.0, 0.001, 0.08, 0.003)
         return FloatArray(x.size) { softClip(x[it]) }
     }
