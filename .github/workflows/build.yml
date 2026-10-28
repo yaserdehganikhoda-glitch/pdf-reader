@@ -61,6 +61,8 @@ jobs:
         run: npx cap add android
       - name: Inject native Piper
         run: bash native/inject-native.sh
+      - name: Apply app icon
+        run: bash native/apply-icon.sh
       - name: Check native back handler (BackApp)
         run: |
           find android/app/src/main/java -name BackApp.java | grep -q . || echo "::warning::BackApp.java ساخته نشد"
