@@ -1992,6 +1992,18 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
       </details>
 </div>
 
+      <details class="acc" id="ezmBox">
+        <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></i><span class="stt"><b>واج‌نگاری مانا</b><small>کسرهٔ اضافهٔ هوشمند با مدل ALBERT (آفلاین)</small></span></summary>
+        <div class="in">
+          <div class="slist">
+            <label class="chk"><input type="checkbox" id="ezmOn"><span class="st"><b>کسرهٔ اضافهٔ مدل ALBERT برای صدای مانا</b><small>فقط وقتی صدای مانا انتخاب باشد و مدل دانلود و آزموده شده باشد.</small></span></label>
+          </div>
+          <div class="two"><button class="btn primary" id="ezmDl" type="button">دانلود و آزمایش مدل</button><button class="btn dgr" id="ezmRm" type="button">حذف مدل</button></div>
+          <p class="hint" id="ezmSt" aria-live="polite"></p>
+          <details class="sub hintbox"><summary>این بخش چه می‌کند؟</summary><div class="in"><p class="hint">صدای مانا با واج‌نگاری آگاه از بافت بهتر کار می‌کند. این بخش مدل کوچک تشخیص کسرهٔ اضافه (persian-ezafe-albert، حدود ۴۰ مگابایت) را یک بار از Hugging Face دانلود می‌کند و بعد آفلاین روی دستگاه اجرا می‌کند. پیش از خواندن هر جمله، کسرهٔ اضافه را روی واژه‌هایی می‌گذارد که مدل تشخیص داده است؛ متن نمایش‌داده‌شده دست‌نخورده می‌ماند. پس از دانلود، یک خودآزمایی اجرا می‌شود و اگر نتیجه درست نبود، این بخش خودکار غیرفعال می‌ماند. به پوشهٔ ocr/ort کنار برنامه (onnxruntime-web) نیاز دارد.</p></div></details>
+        </div>
+      </details>
+
       <details class="acc" id="dictBox">
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h10"/></svg></i><span class="stt"><b>واژه‌نامهٔ تلفظ</b><small>تلفظ دلخواه برای کلمه‌های خاص</small></span></summary>
         <div class="in">
@@ -8545,17 +8557,191 @@ var ocrSpell = (function(){
   function mRate(){ return npPlay ? Math.max(0.5, Math.min(1.5, Math.round((+$('#rate').value || 1) * 20) / 20)) : 1; }   /* r115: سقف ۱٫۵ = سقف speed ساخت صدا (نه ۲، که مازاد گم می‌شد؛ نه ۱٫۳۵، که کشش اضافه و آرتیفکت می‌ساخت)؛ مازاد بالای ۱٫۵ با playerRate */   /* سرعت کاربر با گام ۰٫۰۵ داخل خود مدل (length_scale)؛ باقی‌مانده با playerRate */
   function paceSpeed(t){ return Math.round(paceBase(t) * mRate() * 100) / 100; }
   function paceBase(t){ return 1; }   /* r119: سرعت ثابت — بدون ضریب سبک/جملهٔ سنگین/گوینده؛ سرعت واقعی = سرعت انتخابی */
+  /* ===== r124: واج‌نگاری مانا — کسرهٔ اضافهٔ هوشمند با مدل ALBERT (abreza/persian-ezafe-albert، نسخهٔ quantized؛ برچسب‌گذاری هر واژه) =====
+     فقط وقتی کاربر روشنش کند، صدای انتخابی «مانا» باشد، مدل دانلود شده باشد و خودآزمایی موفق باشد. هر خطایی ⇒ متن بدون تغییر خوانده می‌شود. */
+  var EZM = { base: 'https://huggingface.co/abreza/persian-ezafe-albert/resolve/main/quantized/', cache: 'ezm-v1', tok: null, sess: null, ld: null, ok: null, why: '', q: Promise.resolve(), memo: {}, nm: 0, bad: 0 };
+  function ezmWant(id){ return sget('ezmOn', '0') === '1' && /mana/i.test(id || '') && EZM.ok !== false; }
+  function ezmTokInit(j){
+    var m = (j && j.model) || {}, vc = m.vocab || [], T = { map: Object.create(null), sc: [], unk: m.unk_id != null ? m.unk_id : 1, norm: (j && j.normalizer) || null, mx: 1, cls: -1, sep: -1 }, i, k;
+    if (!vc.length) throw new Error('واژگان tokenizer.json خالی است');
+    for (i = 0; i < vc.length; i++) { T.map[vc[i][0]] = i; T.sc[i] = vc[i][1]; if (vc[i][0].length > T.mx) T.mx = vc[i][0].length; }
+    ((j && j.added_tokens) || []).forEach(function(a){ if (a.content === '[CLS]') T.cls = a.id; if (a.content === '[SEP]') T.sep = a.id; });
+    if (T.cls < 0 && T.map['[CLS]'] !== undefined) T.cls = T.map['[CLS]'];
+    if (T.sep < 0 && T.map['[SEP]'] !== undefined) T.sep = T.map['[SEP]'];
+    if (T.cls < 0 || T.sep < 0) throw new Error('نشانهٔ [CLS]/[SEP] پیدا نشد');
+    return T;
+  }
+  function ezmNorm(n, s){   /* مفسّر ساده برای normalizer در tokenizer.json (HuggingFace) */
+    var t = n && n.type, p;
+    if (!t) return s;
+    if (t === 'Sequence') { (n.normalizers || []).forEach(function(x){ s = ezmNorm(x, s); }); return s; }
+    if (t === 'Replace') { p = n.pattern || {}; try { return p.Regex != null ? s.replace(new RegExp(p.Regex, 'gu'), n.content) : (p.String != null ? s.split(p.String).join(n.content) : s); } catch (e) { return s; } }
+    if (t === 'NFC' || t === 'NFD' || t === 'NFKC' || t === 'NFKD') return s.normalize(t);
+    if (t === 'Lowercase') return s.toLowerCase();
+    if (t === 'StripAccents') return s.replace(/\p{M}/gu, '');
+    if (t === 'Strip') return s.trim();
+    if (t === 'Precompiled') return s.normalize('NFKC');   /* تقریب نگاشت charsmap */
+    return s;
+  }
+  function ezmUni(T, w){   /* Unigram (Viterbi) روی یک واژهٔ ▁دار */
+    var n = w.length, best = [0], prev = [], i, j, id, sc, ok, o = [], k;
+    for (i = 1; i <= n; i++) best[i] = -Infinity;
+    for (i = 0; i < n; i++) {
+      if (best[i] === -Infinity) continue;
+      ok = false;
+      for (j = i + 1; j <= n && j <= i + T.mx; j++) {
+        id = T.map[w.slice(i, j)];
+        if (id === undefined) continue;
+        if (j === i + 1) ok = true;
+        sc = best[i] + T.sc[id];
+        if (sc > best[j]) { best[j] = sc; prev[j] = [i, id]; }
+      }
+      if (!ok) { sc = best[i] - 20; if (sc > best[i + 1]) { best[i + 1] = sc; prev[i + 1] = [i, T.unk]; } }
+    }
+    for (k = n; k > 0; k = prev[k][0]) o.unshift(prev[k][1]);
+    return o;
+  }
+  function ezmEnc(T, words){
+    var ids = [T.cls], wi = [-1];
+    words.forEach(function(w, k){
+      var s = ezmNorm(T.norm, w).replace(/\s+/g, '');
+      if (!s) return;
+      ezmUni(T, '\u2581' + s).forEach(function(id){ ids.push(id); wi.push(k); });
+    });
+    ids.push(T.sep); wi.push(-1);
+    return ids.length > 400 ? null : { ids: ids, wi: wi };
+  }
+  function ezmOrt(){
+    return new Promise(function(res, rej){
+      if (window.ort) return res(window.ort);
+      var s = document.createElement('script');
+      s.src = 'ocr/ort/ort.min.js'; s.onload = function(){ window.ort ? res(window.ort) : rej(new Error('ort بارگذاری نشد')); }; s.onerror = function(){ rej(new Error('ocr/ort/ort.min.js پیدا نشد (پوشهٔ ocr کنار برنامه لازم است)')); };
+      document.head.appendChild(s);
+    }).then(function(o){ o.env.wasm.wasmPaths = new URL('ocr/ort/', location.href).href; o.env.wasm.numThreads = 1; o.env.wasm.proxy = false; return o; });
+  }
+  function ezmRun(ids){   /* برچسب ۰/۱ برای هر نشانه؛ اجرای پشت‌سرهم (ORT-web همزمانی ندارد) */
+    var job = EZM.q.then(function(){
+      var S = EZM.sess, n = ids.length, ort = window.ort, feeds = {};
+      S.inputNames.forEach(function(nm){
+        var a = new BigInt64Array(n), i;
+        for (i = 0; i < n; i++) a[i] = BigInt(/mask/i.test(nm) ? 1 : /type/i.test(nm) ? 0 : ids[i]);
+        feeds[nm] = new ort.Tensor('int64', a, [1, n]);
+      });
+      return S.run(feeds).then(function(o){
+        var lg = o[S.outputNames[0]], d = lg.data, k = lg.dims[lg.dims.length - 1], r = [], i;
+        for (i = 0; i < n; i++) r.push(d[i * k + 1] > d[i * k] ? 1 : 0);
+        return r;
+      });
+    });
+    EZM.q = job.catch(function(){});
+    return job;
+  }
+  function ezmFlags(words){   /* [true/undefined] برای هر واژه */
+    var e = ezmEnc(EZM.tok, words);
+    if (!e) return Promise.resolve(null);
+    return ezmRun(e.ids).then(function(lab){ var f = [], i; for (i = 0; i < lab.length; i++) if (lab[i] === 1 && e.wi[i] >= 0) f[e.wi[i]] = true; return f; });
+  }
+  function ezmMark(s){   /* جمله ← جمله با کسرهٔ اضافه روی واژه‌های برچسب‌خورده */
+    if (EZM.memo[s] !== undefined) return Promise.resolve(EZM.memo[s]);
+    var words = s.split(' ');
+    return ezmFlags(words).then(function(f){
+      var out = words.map(function(w, i){ return f && f[i] && i < words.length - 1 && /^[\p{L}\u200c]{2,}$/u.test(w) && !EZ_HAS.test(w) ? ezMark(w) : w; }).join(' ');
+      if (++EZM.nm > 800) { EZM.memo = {}; EZM.nm = 0; }
+      return (EZM.memo[s] = out);
+    });
+  }
+  function ezmSelfTest(){   /* خودآزمایی: اگر مدل/توکنایزر ناسازگار باشد ماژول خودکار غیرفعال می‌ماند */
+    var w = 'کتابخانه مرکزی دانشگاه شریف، فضای وسیع و چشم‌نوازی دارد.'.split(' ');
+    return ezmFlags(w).then(function(f){
+      f = f || [];
+      var hit = [0, 1, 2, 4].filter(function(i){ return f[i]; }).length, fp = [3, 6, 7, 8].filter(function(i){ return f[i]; }).length;
+      EZM.why = 'برچسب‌ها: ' + w.map(function(x, i){ return x + (f[i] ? '‹ِ›' : ''); }).join(' ');
+      return hit >= 3 && fp === 0;
+    });
+  }
+  function ezmLoad(){
+    if (!window.caches) return Promise.reject(new Error('ذخیره‌سازی (Cache) در این محیط موجود نیست'));
+    return caches.open(EZM.cache).then(function(ch){ return Promise.all([ch.match(EZM.base + 'tokenizer.json'), ch.match(EZM.base + 'model_quantized.onnx')]); }).then(function(r){
+      if (!r[0] || !r[1]) return null;
+      return Promise.all([r[0].json(), r[1].arrayBuffer(), ezmOrt()]).then(function(a){
+        EZM.tok = ezmTokInit(a[0]);
+        return a[2].InferenceSession.create(new Uint8Array(a[1]), { executionProviders: ['wasm'], graphOptimizationLevel: 'all' });
+      }).then(function(sess){ EZM.sess = sess; return ezmSelfTest(); }).then(function(ok){ EZM.ok = ok; return ok ? true : null; });
+    });
+  }
+  function ezmReady(){
+    if (EZM.ok === false) return Promise.resolve(null);
+    if (EZM.sess && EZM.ok) return Promise.resolve(true);
+    if (EZM.na && Date.now() - EZM.na < 5000) return Promise.resolve(null);
+    if (!EZM.ld) EZM.ld = ezmLoad().then(function(r){ if (!r) { EZM.ld = null; EZM.na = Date.now(); } return r; }, function(e){ EZM.ld = null; EZM.why = String((e && e.message) || e); if (++EZM.bad >= 3) EZM.ok = false; return null; });
+    return EZM.ld;
+  }
+  function ezmApply(text, parts){   /* → { text, parts } یا null (بدون تغییر) */
+    return withTimeout(ezmReady(), 20000, 'ezm').then(function(r){
+      if (!r) return null;
+      var src = parts && parts.length ? parts.map(function(p){ return p.t; }) : [text], res = [], k = Promise.resolve();
+      src.forEach(function(s, i){ k = k.then(function(){ return /[\p{L}]/u.test(s) ? ezmMark(s) : s; }).then(function(m){ res[i] = m; }); });
+      return k.then(function(){
+        if (!parts || !parts.length) return { text: res[0], parts: parts };
+        return { text: res.join(' '), parts: parts.map(function(p, i){ return Object.assign({}, p, { t: res[i] }); }) };
+      });
+    }).catch(function(){ return null; });
+  }
+  async function ezmDownload(cb){
+    var ch = await caches.open(EZM.cache), fs = ['tokenizer.json', 'model_quantized.onnx'], i, r, rd, tot, got, parts, x, url;
+    for (i = 0; i < fs.length; i++) {
+      url = EZM.base + fs[i];
+      r = await fetch(url);
+      if (!r.ok) throw new Error('دانلود ' + fs[i] + ' ناموفق بود (' + r.status + ')');
+      tot = +r.headers.get('content-length') || 0; got = 0; parts = [];
+      rd = r.body && r.body.getReader();
+      if (rd) { for (;;) { x = await rd.read(); if (x.done) break; parts.push(x.value); got += x.value.length; cb && cb(fs[i], got, tot); } }
+      else { parts.push(new Uint8Array(await r.arrayBuffer())); }
+      await ch.put(url, new Response(new Blob(parts)));
+    }
+  }
+  function ezmInit(){
+    var on = $('#ezmOn'), dl = $('#ezmDl'), rm = $('#ezmRm'), st = $('#ezmSt');
+    if (!on || !dl || !rm || !st) return;
+    function say(m){ st.textContent = m; }
+    function refresh(){
+      if (!window.caches) { say('ذخیره‌سازی (Cache) در این محیط موجود نیست.'); return Promise.resolve(); }
+      return caches.open(EZM.cache).then(function(ch){ return ch.match(EZM.base + 'model_quantized.onnx'); }).then(function(r){
+        var m = r ? 'مدل دانلود شده است.' : 'مدل هنوز دانلود نشده است.';
+        if (EZM.ok === true) m += ' خودآزمایی موفق بود؛ آمادهٔ استفاده.';
+        else if (EZM.ok === false) m += ' خودآزمایی ناموفق بود؛ غیرفعال ماند. ' + (EZM.why || '');
+        if (on.checked && !/mana/i.test((currentVoice() || {}).id || '')) m += ' (فقط با صدای مانا اعمال می‌شود.)';
+        say(m);
+      });
+    }
+    on.checked = sget('ezmOn', '0') === '1';
+    on.addEventListener('change', function(){ sset('ezmOn', on.checked ? '1' : '0'); if (on.checked) { EZM.ok = null; EZM.bad = 0; ezmReady().then(refresh); } refresh(); });
+    dl.addEventListener('click', function(){
+      dl.disabled = true; say('در حال دانلود…');
+      ezmDownload(function(f, g, t){ say('دانلود ' + f + ' … ' + (t ? Math.round(g * 100 / t) + '٪' : Math.round(g / 1048576) + ' MB')); })
+        .then(function(){ EZM.ok = null; EZM.ld = null; EZM.sess = null; EZM.memo = {}; EZM.bad = 0; say('دانلود تمام شد؛ در حال آزمایش…'); return ezmReady(); })
+        .then(refresh, function(e){ say('خطا: ' + ((e && e.message) || e)); })
+        .then(function(){ dl.disabled = false; });
+    });
+    rm.addEventListener('click', function(){
+      caches.delete(EZM.cache).then(function(){ EZM.sess = null; EZM.tok = null; EZM.ld = null; EZM.ok = null; EZM.memo = {}; return refresh(); });
+    });
+    refresh();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ezmInit); else ezmInit();
   function piperPredict(text, id, l, parts){
     if (npOK) {
       var nat = function(tx, pts){ return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: tx, voiceId: id, st: styleParams(), sp: paceSpeed(tx), parts: pts })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.'); };
       /* خطای گذرا یا نویسهٔ عجیب در یک جمله کل خواندن را متوقف نکند: یک بار دیگر با متن ساده‌شده (فقط حرف، عدد و نشانه‌های رایج) */
-      return nat(text, parts).catch(function(e){
+      var plain = function(e){
         var m = String((e && e.message) || e);
         if (/دانلود نشده|نصب نشده|آماده نشده|espeak|مدل پیدا نشد|بیش از حد|NATIVE_CANCELLED/.test(m)) throw e;
         var simple = text.replace(/:+/g, ',').replace(/[^\p{L}\p{N}\s.,;!?'\-]/gu, ' ').replace(/\s+/g, ' ').trim();
         if (!/[\p{L}\p{N}]/u.test(simple)) throw e;
         return nat(simple, null);
-      });
+      };
+      if (!ezmWant(id)) return nat(text, parts).catch(plain);
+      return ezmApply(text, parts).then(function(r){ return r ? nat(r.text, r.parts) : nat(text, parts); }, function(){ return nat(text, parts); }).catch(plain);
     }
     return Promise.reject(new Error('موتور صدای بومی آماده نشده است؛ برنامه را از روی APK اجرا کنید.'));
   }
@@ -8644,7 +8830,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r123 · 2026-10-28 · mana-voice', npBuild = '';
+  var APP_BUILD = 'html-r124 · 2026-10-28 · mana-ezafe', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -9071,7 +9257,7 @@ function chunkAt(i, lim){
     var h = 5381, z = c.text + '|' + (c.parts || []).map(function(x){ return x.s + ':' + x.g + (x.n != null || x.w != null ? ':e' + EMO_V + ':' + x.n + ':' + x.w : ''); }).join(','), i = z.length, st = '';
     while (i) h = (h * 33) ^ z.charCodeAt(--i);
     try { st = styleParams(v.id).join(','); } catch (e) {}
-    return ['piper', v.id, c.start, (h >>> 0).toString(36) + st, c.end].join('|');
+    return ['piper', v.id, c.start, (h >>> 0).toString(36) + st + (ezmWant(v.id) ? '~ezm' : ''), c.end].join('|');
   }
   function piperFetchRaw(c){
     var v = currentVoice();
