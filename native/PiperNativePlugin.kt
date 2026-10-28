@@ -712,12 +712,131 @@ class PiperNativePlugin : Plugin() {
         }
     }
 
+    // ---------- صدای مانا (Piper فارسی MahtaFetrat؛ MIT): onnx خام + json ⇒ تبدیل به قالب sherpa ----------
+    // مدل خام Piper متادیتای sherpa و tokens.txt ندارد؛ بعد از دانلود، tokens.txt از phoneme_id_map ساخته و متادیتا به انتهای onnx افزوده می‌شود.
+    private val MANA_ID = "fa_IR-mana-medium"
+    private val MANA_BASES = listOf(
+        "https://huggingface.co/MahtaFetrat/Mana-Persian-Piper/resolve/main/",
+        "https://hf-mirror.com/MahtaFetrat/Mana-Persian-Piper/resolve/main/"
+    )
+
+    private fun fetchFrom(bases: List<String>, path: String, part: File, emit: (Long, Long) -> Unit) {
+        var last: Throwable? = null
+        for (b in bases) {
+            try { fetchResumable(b + path, part, emit); return } catch (e: IllegalStateException) { last = e }
+        }
+        throw last ?: IllegalStateException("دانلود ناموفق")
+    }
+
+    private fun pbVarint(n: Int): ByteArray {
+        val o = java.io.ByteArrayOutputStream()
+        var v = n
+        while (v >= 0x80) { o.write((v and 0x7F) or 0x80); v = v ushr 7 }
+        o.write(v)
+        return o.toByteArray()
+    }
+
+    /** ModelProto.metadata_props (فیلد ۱۴) = StringStringEntryProto{key=1, value=2}؛ افزودن در انتهای فایل در protobuf معتبر است */
+    private fun pbMetaEntry(k: String, v: String): ByteArray {
+        val kb = k.toByteArray(Charsets.UTF_8)
+        val vb = v.toByteArray(Charsets.UTF_8)
+        val inner = java.io.ByteArrayOutputStream()
+        inner.write(0x0A); inner.write(pbVarint(kb.size)); inner.write(kb)
+        inner.write(0x12); inner.write(pbVarint(vb.size)); inner.write(vb)
+        val ib = inner.toByteArray()
+        val out = java.io.ByteArrayOutputStream()
+        out.write(0x72); out.write(pbVarint(ib.size)); out.write(ib)
+        return out.toByteArray()
+    }
+
+    private fun addOnnxMeta(onnx: File, meta: List<Pair<String, String>>) {
+        FileOutputStream(onnx, true).use { o -> for (kv in meta) o.write(pbMetaEntry(kv.first, kv.second)) }
+    }
+
+    /** tokens.txt برای sherpa از phoneme_id_map پیکربندی Piper: «نماد شناسه» در هر خط */
+    private fun tokensFromPiperJson(json: org.json.JSONObject): String {
+        val map = json.getJSONObject("phoneme_id_map")
+        val rows = ArrayList<Pair<Int, String>>()
+        val keys = map.keys()
+        while (keys.hasNext()) {
+            val k = keys.next()
+            val ids = map.getJSONArray(k)
+            if (ids.length() > 0) rows.add(Pair(ids.getInt(0), k))
+        }
+        rows.sortBy { it.first }
+        val sb = StringBuilder()
+        for (r in rows) sb.append(r.second).append(' ').append(r.first).append('\n')
+        return sb.toString()
+    }
+
+    private fun downloadMana(call: PluginCall, id: String) {
+        io.execute {
+            if (okMark(id).exists() && findOnnx(voiceDir(id)) != null) { call.resolve(); return@execute }
+            val partOnnx = File(root(), "$id.dl")
+            val partJson = File(root(), "$id.json.dl")
+            try {
+                if (ttsId == id) releaseEngine(id)
+                if (root().usableSpace < 450_000_000L) throw IllegalStateException("فضای خالی گوشی کافی نیست (حداقل ۴۵۰ مگابایت)")
+                val emit = { l: Long, t: Long -> notifyListeners("progress", JSObject().put("loaded", l).put("total", t)) }
+                // ۱) espeak-ng-data: از صدای gyro (اگر نصب نیست، یک‌بار دانلود می‌شود)
+                var donorBytes = 0L
+                var espeakSrc: File? = sharedEspeak(id)
+                if (espeakSrc == null) {
+                    val dpart = File(root(), "$ESPEAK_DONOR.dl")
+                    fetchResumable("$VOICE_BASE/vits-piper-$ESPEAK_DONOR.tar.bz2", dpart) { l, t -> emit(l, t + 64_000_000L) }
+                    donorBytes = dpart.length()
+                    val dd = voiceDir(ESPEAK_DONOR)
+                    dd.deleteRecursively(); dd.mkdirs()
+                    java.io.FileInputStream(dpart).use { extract(it, dd) }
+                    if (findOnnx(dd) == null || !File(findRoot(dd), "tokens.txt").exists())
+                        throw IllegalStateException("فایل‌های espeak کامل نیست")
+                    okMark(ESPEAK_DONOR).writeText("1")
+                    dpart.delete()
+                    espeakSrc = File(findRoot(dd), "espeak-ng-data").takeIf { it.isDirectory }
+                }
+                if (espeakSrc == null) throw IllegalStateException("espeak-ng-data پیدا نشد")
+                // ۲) پیکربندی و مدل (با ادامه پس از قطع شبکه)
+                fetchFrom(MANA_BASES, "fa_IR-mana-medium.onnx.json", partJson) { _, _ -> }
+                fetchFrom(MANA_BASES, "fa_IR-mana-medium.onnx", partOnnx) { l, t -> emit(donorBytes + l, donorBytes + t) }
+                if (partOnnx.length() < 20_000_000L) { partOnnx.delete(); throw IllegalStateException("فایل مدل ناقص یا نامعتبر است؛ دوباره امتحان کنید") }
+                val cfg = try { org.json.JSONObject(partJson.readText(Charsets.UTF_8)) } catch (e: Throwable) { partJson.delete(); throw IllegalStateException("فایل پیکربندی مانا خراب است؛ دوباره امتحان کنید") }
+                val tokens = tokensFromPiperJson(cfg)
+                if (tokens.length < 40) throw IllegalStateException("جدول نمادهای مانا نامعتبر است")
+                val sr = cfg.optJSONObject("audio")?.optInt("sample_rate", 22050) ?: 22050
+                val ns = cfg.optInt("num_speakers", 1)
+                val voice = cfg.optJSONObject("espeak")?.optString("voice", "fa") ?: "fa"
+                val lang = cfg.optJSONObject("language")?.optString("name_english", "Persian") ?: "Persian"
+                // ۳) چیدن فایل‌ها: onnx (+متادیتای sherpa) + tokens.txt + espeak-ng-data
+                val dst = voiceDir(id)
+                dst.deleteRecursively(); dst.mkdirs()
+                val outOnnx = File(dst, "$id.onnx")
+                partOnnx.copyTo(outOnnx, overwrite = true)
+                addOnnxMeta(outOnnx, listOf(
+                    Pair("model_type", "vits"), Pair("comment", "piper"), Pair("language", lang),
+                    Pair("voice", voice), Pair("has_espeak", "1"), Pair("n_speakers", ns.toString()), Pair("sample_rate", sr.toString())
+                ))
+                File(dst, "tokens.txt").writeText(tokens, Charsets.UTF_8)
+                espeakSrc.copyRecursively(File(dst, "espeak-ng-data"), overwrite = true)
+                if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists())
+                    throw IllegalStateException("فایل‌های مدل کامل نیست")
+                okMark(id).writeText("1")
+                partOnnx.delete(); partJson.delete()
+                emit(1, 1)
+                call.resolve()
+            } catch (e: Throwable) {
+                voiceDir(id).deleteRecursively()   // فایل‌های ناقص دانلود (.dl) برای ادامه می‌مانند
+                call.reject("نصب ناموفق: ${e.message}")
+            }
+        }
+    }
+
     /** نصب صدا: از assets اگر همراه APK باشد، وگرنه دانلود مستقیم و استخراج هم‌زمان؛ سپس بررسی کامل‌بودن */
     @PluginMethod
     fun download(call: PluginCall) {
         val id = call.getString("id") ?: return call.reject("id")
         if (!Regex("[A-Za-z0-9_-]+").matches(id)) return call.reject("شناسهٔ صدا نامعتبر است")
         DOWNLOADABLE[id]?.let { downloadPair(call, id, it); return }
+        if (id == MANA_ID) { downloadMana(call, id); return }
         io.execute {
             val part = File(root(), "$id.dl")
             var netDone = false
