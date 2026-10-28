@@ -2311,7 +2311,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
           </div>
           <div class="two">
             <div class="field"><label for="mfHar"><span>اعراب‌گذاری</span></label>
-              <select id="mfHar"><option value="none">بدون تغییر</option><option value="common">واژه‌های رایج و چندتلفظی‌ها</option><option value="full">کامل‌تر (+ تنوین، تشدید، حروف ربط)</option><option value="smart">هوشمند (+ کسرهٔ اضافه)</option><option value="strip">حذف همهٔ اعراب</option></select></div>
+              <select id="mfHar"><option value="none">بدون تغییر</option><option value="common">واژه‌های رایج و چندتلفظی‌ها</option><option value="full">کامل‌تر (+ تنوین، تشدید، حروف ربط)</option><option value="strip">حذف همهٔ اعراب</option></select></div>
             <div class="field"><label for="mfScope"><span>دامنه</span></label>
               <select id="mfScope"><option value="page">همین صفحه (یا متن انتخاب‌شده)</option><option value="all">همهٔ صفحه‌های OCR‌شده</option></select></div>
           </div>
@@ -2331,7 +2331,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
               <button class="btn sm" id="mfRepAll" type="button">جایگزینی همه</button>
             </div>
           </div>
-          <p class="hint">اعراب‌گذاری آفلاین است؛ حالت «هوشمند» کسرهٔ اضافه را تقریبی می‌گذارد، پس برای متن فنی یا ادبی پس از اعمال مرور کنید. اگر متنی را انتخاب کنید، ویرایش فقط روی همان اعمال می‌شود.</p>
+          <p class="hint">اعراب‌گذاری آفلاین است و کسرهٔ اضافه را خودکار نمی‌گذارد (تشخیص آن بدون تحلیل دستوری خطادار است)؛ در صورت نیاز با دکمهٔ «کسرهٔ اضافه ±» ویرایشگر برای هر واژه بگذارید. اگر متنی را انتخاب کنید، ویرایش فقط روی همان اعمال می‌شود.</p>
         </div>
       </details>
       <details class="acc mfx" id="manSvBox">
@@ -2534,9 +2534,10 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
         { key: 'fa_IR-gyro-medium', name: 'gyro', quality: 'medium', language: { family: 'fa' } },
         { key: 'fa_IR-ganji-medium', name: 'ganji', quality: 'medium', language: { family: 'fa' } },
         { key: 'fa_IR-ganji_adabi-medium', name: 'ganji_adabi', quality: 'medium', language: { family: 'fa' } },
-        { key: 'fa_en-rezahedayatfar-ibrahimwalk-medium', name: 'reza_ibrahim (fa+en)', quality: 'medium', language: { family: 'fa' } }
+        { key: 'fa_en-rezahedayatfar-ibrahimwalk-medium', name: 'reza_ibrahim (fa+en)', quality: 'medium', language: { family: 'fa' } },
+        { key: 'fa_IR-mana-medium', name: 'mana', quality: 'medium', language: { family: 'fa' } }
       ];
-      return Promise.resolve(NP.bundled ? NP.bundled() : null).then(function(r){ var ids = (r && r.ids) || []; return ids.length ? all.filter(function(v){ return ids.indexOf(v.key) >= 0 || /-coqui$/.test(v.key); }) : all; }, function(){ return all; });   /* صداهای دانلودی (coqui) همیشه فهرست می‌شوند، حتی اگر چند صدا همراه APK باشد */
+      return Promise.resolve(NP.bundled ? NP.bundled() : null).then(function(r){ var ids = (r && r.ids) || []; return ids.length ? all.filter(function(v){ return ids.indexOf(v.key) >= 0 || /-coqui$/.test(v.key) || v.key === 'fa_IR-mana-medium'; }) : all; }, function(){ return all; });   /* صداهای دانلودی (coqui) همیشه فهرست می‌شوند، حتی اگر چند صدا همراه APK باشد */
     },
     stored: function(){ return NP.stored().then(function(r){ return (r && r.ids) || []; }); },
     download: function(id, cb){
@@ -2595,7 +2596,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
   function ensurePiper(){
     if (npOK) return Promise.resolve(true);
     if (NP) {
-      if (!npTry) npTry = NP.ping().then(function(r){ npOK = true; npBuild = (r && r.build) || ''; buildBadge(); try { npPlay = !!(r && r.player); if (npPlay) npListen(); } catch (e) { npPlay = false; } window.PiperTTS = NATIVE_PIPER; npCrashCheck(); try { ['mimic3-fa-haaniye_low', 'coqui-fa-negar', 'coqui-fa-shiva', 'coqui-fa-mahtab', 'fa_IR-mana-medium'].forEach(function(x){ NP.remove({ id: x }).catch(function(){}); }); } catch (e) {} return true; }, function(e){ npErr = String((e && (e.message || e.errorMessage || e.code)) || e || 'unknown'); NP = null; perf(); return false; });
+      if (!npTry) npTry = NP.ping().then(function(r){ npOK = true; npBuild = (r && r.build) || ''; buildBadge(); try { npPlay = !!(r && r.player); if (npPlay) npListen(); } catch (e) { npPlay = false; } window.PiperTTS = NATIVE_PIPER; npCrashCheck(); try { ['mimic3-fa-haaniye_low', 'coqui-fa-negar', 'coqui-fa-shiva', 'coqui-fa-mahtab'].forEach(function(x){ NP.remove({ id: x }).catch(function(){}); }); } catch (e) {} return true; }, function(e){ npErr = String((e && (e.message || e.errorMessage || e.code)) || e || 'unknown'); NP = null; perf(); return false; });
       return npTry.then(function(ok){ return ok ? true : ensurePiperWeb(); });
     }
     return ensurePiperWeb();
@@ -2609,7 +2610,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
         if (/amir/i.test(v.key || '') || FEM_ID.test(v.key || '')) return false;
         return (v.language && v.language.family === 'fa') || /^fa_/.test(v.key || '');
       }).map(function(v){
-        return { id: v.key, name: (v.name || v.key) + (v.quality ? ' (' + v.quality + ')' : ''), lang: 'fa-IR', gender: /gyro|ganji|amir|rezahedayatfar|ibrahim/i.test(v.key || '') ? 'm' : '?', mb: v.mb || 0, fa: true };
+        return { id: v.key, name: (v.name || v.key) + (v.quality ? ' (' + v.quality + ')' : ''), lang: 'fa-IR', gender: /gyro|ganji|amir|rezahedayatfar|ibrahim/i.test(v.key || '') ? 'm' : /mana/i.test(v.key || '') ? 'f' : '?', mb: v.mb || 0, fa: true };
       });
       if (fa.length) { piperVoices = fa; renderVoices(); }
     }).catch(function(){});
@@ -2716,7 +2717,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
     var box = $('#vfList'), a = allVoices(), ok = npOK && !!NP && vfSet && !vfBusy && !dlBusy, idle = !vfBusy && !dlBusy, f = document.createDocumentFragment(), i, v, have, inF, r, n, b1, b2, t;
     box.textContent = '';
     for (i = 0; i < a.length; i++) {
-      v = a[i]; if (v.gender === 'f' || FEM_ID.test(v.id)) continue;
+      v = a[i]; if ((v.gender === 'f' && !/mana/i.test(v.id)) || FEM_ID.test(v.id)) continue;
       have = HAVE.indexOf(v.id) >= 0; inF = (vfIds || []).indexOf(v.id) >= 0;
       r = document.createElement('div'); r.className = 'vfr' + (have ? ' ok' : ''); r.dataset.id = v.id;
       n = document.createElement('span'); n.className = 'vn';
@@ -6522,7 +6523,8 @@ var ocrSpell = (function(){
   }
   function manHar(t, mode){
     if (mode === 'strip') return t.replace(/[\u0640\u064B-\u0653\u0655-\u065F\u0670]/g, '');
-    if (mode !== 'common' && mode !== 'full' && mode !== 'smart') return t;
+    if (mode === 'smart') mode = 'full';   /* r122: حالت قدیمیِ «هوشمند» = کامل‌تر؛ کسرهٔ اضافهٔ خودکار حذف شد */
+    if (mode !== 'common' && mode !== 'full') return t;
     if (!MF) mfInit();
     return t.split('\n').map(function(l){
       if (!/[\u0621-\u064A\u066E-\u06D3]/.test(l)) return l;
@@ -6537,7 +6539,6 @@ var ocrSpell = (function(){
         l = l.replace(ADV_N, function(m, g, off, str){ return str.charAt(off + m.length) === '\u064B' ? m : m + '\u064B'; });
         l = l.replace(/(?<![\p{L}\u200c])الله(?![\p{L}\u200c\u0651])/gu, '\u0627\u0644\u0644\u0651\u0670\u0647');
       }
-      if (mode === 'smart') { try { l = manEz(l); } catch (e) {} }
       return l;
     }).join('\n');
   }
@@ -6574,19 +6575,6 @@ var ocrSpell = (function(){
     return /\u0650$/.test(w) ? w.slice(0, -1) : w;
   }
   function ezBad(k){ return !k || EZ_STOP[k] || EZ_STOP2[k] || EZ_V[k] || EZ_VBX[k] || PZ_VERB.test(k) || /^ن?می\u200c/.test(k); }
-  function manEz(l){                                                /* کسرهٔ اضافهٔ محافظه‌کار: فقط میان دو واژهٔ پیاپی بی‌نشانه که فعل/حرف/ضمیر/قید نیستند */
-    if (!MF_PERS.test(l)) return l;
-    var tk = l.split(' '), n = tk.length, P = new Array(n), i, a, b, m, c2;
-    for (i = 0; i < n; i++) { m = EZ_P.exec(tk[i]); P[i] = m ? { lead: m[1], w: m[2], trail: m[3], k: m[2].replace(/[\u064B-\u0652\u0654\u0670\u0640]/g, '') } : null; }
-    for (i = 0; i < n - 1; i++) {
-      a = P[i]; b = P[i + 1];
-      if (!a || !b || a.trail || b.lead.indexOf('(') >= 0 || a.k.length < 2 || EZ_FIN.test(a.w) || EZ_HAS.test(a.w) || ezBad(a.k) || ezBad(b.k)) continue;
-      c2 = P[i + 2];
-      if (c2 && ezVerb(c2.k) && (EZ_LV[b.k] || (EZ_COP.test(c2.k) && EZ_ADJ[b.k]))) continue;   /* «هوا خوب است» مسند؛ «اهمیت دارد»، «اعلام شد» فعل مرکب */
-      tk[i] = a.lead + ezMark(a.w);
-    }
-    return tk.join(' ');
-  }
   function mfVerb(k){                                               /* فعل: ماضی، مضارع التزامی/منفی، استمراری و فهرست‌های برنامه */
     if (!k) return false;
     k = k.replace(/[\u064B-\u0652\u0654\u0670]/g, '');
@@ -6701,7 +6689,7 @@ var ocrSpell = (function(){
     return s.replace(/[ \t]+$/gm, '').replace(/\n{3,}/g, '\n\n').trim();
   }
   function mfOpts(){ var g = function(i){ return $('#' + i).checked; }; return { norm: g('mfNorm'), sp: g('mfSp'), spell: g('mfSpell'), pun: g('mfPun'), com: g('mfCom'), dot: g('mfDot'), join: g('mfJoin'), ts: g('mfTs'), har: $('#mfHar').value }; }
-  function mfLoad(){ Object.keys(MF_DEF).forEach(function(id){ $('#' + id).checked = sget(id, String(MF_DEF[id])) === '1'; }); $('#mfHar').value = sget('mfHar', 'none'); $('#mfScope').value = 'page'; }
+  function mfLoad(){ Object.keys(MF_DEF).forEach(function(id){ $('#' + id).checked = sget(id, String(MF_DEF[id])) === '1'; }); $('#mfHar').value = sget('mfHar', 'none') === 'smart' ? 'full' : sget('mfHar', 'none'); $('#mfScope').value = 'page'; }
   function mfStat(){
     var v = $('#manTx').value, w = (v.match(/\S+/g) || []).length, h = (v.match(/[\u064B-\u0652\u0670]/g) || []).length;
     $('#mfStat').textContent = nf.format(w) + ' واژه · ' + nf.format(v.length) + ' نویسه' + (h ? ' · ' + nf.format(h) + ' علامت اعراب' : '');
@@ -7738,10 +7726,8 @@ var ocrSpell = (function(){
   }
   function endMark(t, cont){ return /[.!?;:,]$/.test(t) ? t : t + (cont ? ',' : '.'); }
   /* تلفظ پیشرفتهٔ فارسی: espeak (موتور آوانگار همهٔ صداها) برای «می، نمی، ها، ام، ات، اش، ای، اید، اند، تر…» وقتی با نیم‌فاصله جدا باشند واژهٔ بی‌تکیه و درست می‌شناسد، و «ۀ» را «-eje» می‌خواند */
-  /* ---------- کسرهٔ اضافهٔ خودکار ----------
-     موتور آوایی بدون نشانهٔ اضافه، «صدای کتاب» را بی‌کسره و رباتی می‌خواند. این‌جا بین دو کلمهٔ پشت‌سرهم (اسم/صفت) که
-     هیچ نشانه‌گذاری میانشان نیست، کسره می‌گذاریم. کلمه‌های ربطی، فعل، ضمیر، عدد و حرف اضافه را رد می‌کنیم؛ تحلیل دستوری نیست و تقریبی است. */
-  function ezOn(){ var m = sget('ezMod', ''), v; if (m === '1') return true; if (!m || m === '0') return false; v = currentVoice(); return !!v && (',' + m.replace(/\s+/g, '') + ',').indexOf(',' + v.id + ',') >= 0; }   /* r107: ezMod = '1' همهٔ صداها؛ فهرست شناسهٔ صدا با کاما (ezSet('id1,id2')) فقط همان صداها؛ '' یا '0' خاموش */   /* ماژول کسرهٔ اضافهٔ قاعده‌محور (ezApply)؛ پیش‌فرض خاموش تا F1 ≥ ۸۸٪ روی Golden Set تأیید شود؛ فعال‌سازی: ezSet(1) در کنسول */
+  /* ---------- فهرست واژه‌ها برای تشخیص فعل/حرف (کسرهٔ اضافهٔ خودکار در r122 حذف شد) ---------- */
+  /* r122: کسرهٔ اضافهٔ خودکار (ezOn/ezApply/ezSet و حالت «هوشمند») حذف شد؛ حدس قاعده‌محور F1 < ۸۸٪ داشت. افزودن/برداشتن دستی با دکمهٔ «کسرهٔ اضافه ±» ماند. */
   function humOn(){ var e = document.getElementById('humPace'); return !e || e.checked; }
   function hStr(s){ var h = 0, i; for (i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
   var EZ_STOP = {};
@@ -7813,42 +7799,6 @@ var ocrSpell = (function(){
   function ezVerb(k){ return EZ_COP.test(k) || PZ_VERB.test(k) || !!EZ_V[k] || !!EZ_VBX[k] || !!MF_P3[k]; }
   function ezIsV(w){ return !!(EZ_V[w] || EZ_VBX[w] || EZ_STOP[w] || /^ن?می\u200c/.test(w) || /\u200c(?:ام|ای|ایم|اید|اند)$/.test(w) || EZ_COPS[w]); }
   function ezBase(w){ return w.replace(/[\u064B-\u0652]/g, ''); }
-  function ezLeftOk(w, b){
-    if (!b || b.length < 2 || EZ_STOP2[b] || EZ_NOL[b] || EZ_NAME[b] || NUMW[b] || ezIsV(b)) return false;
-    if (/(?:ترین|مین)$/.test(b)) return false;
-    return true;
-  }
-  function ezRightOk(w, b){
-    if (!b || EZ_PRON[b] || EZ_DET[b]) return !!b;
-    if (b.length < 2 || EZ_STOP2[b] || EZ_NOR[b] || LEX_SUF[b] || NUMW[b] || ezIsV(b)) return false;
-    return true;
-  }
-  function ezSuffix(w){
-    var c = w.charCodeAt(w.length - 1), b;
-    if (c === 0x06C0 || (c >= 0x064B && c <= 0x0652)) return w;                                   /* از پیش اضافه/اعراب‌دار */
-    if (/\u0647\u200c\u06CC$/.test(w)) return w.slice(0, -2) + '\u06C0';                         /* خانه‌ی ← خانهٔ */
-    if (c === 0x0647) { b = ezBase(w); if (!EZ_HC[b] && !/[\u0627\u0648\u06CC]\u0647$/.test(b)) return w.slice(0, -1) + '\u06C0'; return w + '\u0650'; }
-    if (c === 0x0627 || c === 0x0648) return w + '\u06CC\u0650';                                  /* دانا ← دانایِ */
-    return w + '\u0650';                                                                          /* همخوان/ی ← کسره */
-  }
-  function ezApply(t){
-    var ws = t.split(' '), n = ws.length, i, a, b, wa, wb, pa, pb, ca, cb, c2;
-    for (i = 0; i + 1 < n; i++) {
-      a = ws[i]; b = ws[i + 1];
-      if (EZ_PUNC.test(a) || /[^\u0621-\u06D3\u200c\u064B-\u0652,.;:!?]/.test(a) || /[^\u0621-\u06D3\u200c\u064B-\u0652,.;:!?]/.test(b)) continue;
-      pb = EZ_PUNC.exec(b); wb = pb ? b.slice(0, pb.index) : b;
-      if (!EZ_FAL.test(a) || !EZ_FAL.test(wb)) continue;
-      ca = ezBase(a); cb = ezBase(wb);
-      if (!ezLeftOk(a, ca) || !ezRightOk(wb, cb)) continue;
-      if (!pb && i + 2 < n && EZ_COPS[ezBase(ws[i + 2]).replace(EZ_PUNC, '')] && (EZ_ADJ[cb] || EZ_PADJ[cb] || EZ_DET[cb] || EZ_PRON[cb])) continue;   /* «کتاب خوب است»: گزاره، نه ترکیب اضافی */
-      if (!pb && i + 2 < n) {
-        c2 = ezBase(ws[i + 2]).replace(EZ_PUNC, '');
-        if (EZ_LVB[c2] || (EZ_LV[cb] && ezVerb(c2))) continue;   /* «سخنرانی کرد»، «صف کشیدند»، «عالی اعلام شد»: واژهٔ راست جزء فعل مرکب است، نه مضاف‌الیه */
-      }   /* «عالی اعلام شد»: اسم فعل مرکب، نه مضاف‌الیه */
-      ws[i] = ezSuffix(a); bump('ez');
-    }
-    return ws.join(' ');
-  }
   function phLexOn(){ var e = document.getElementById('phLex'); return !e || e.checked; }
   var LEX_SRC = 'کeتاب کeشوaر مaدرeسه دانeشگاه دانeش مaردoم زaمان زaمین جaهان اeنسان اeجتeماع اeقتeصاد سیاسaت حoکومaت دaولaت قoدرaت عaدالaت حoقوق حaق مaسئaله مoشکeل رaوeش هaفته ساعaت دaقیقه قaرن نaتیجه دaلیل عeلaت هaدaف بaرنامه سیستeم اeطلاعات تaحقیق پoژوهeش مoطالeعه آموزeش دانeشجو مoعaلeم اoستاد دانeشمaند نویسaنده شاعeر کeتابخانه خانeواده پeدaر مادaر فaرزaند بaرادaر دoشمaن عeشق زeندگی مaرگ زaن کoدaک جaوان بoزoرگ کوچaک سaخت مoهeم لازeم مoمکeن دoرoست غaلaط اeشتeباه واقeعی حaقیقaت واقeعیaت مaفهوم کaلeمه جoمله صaفحه مaتن فaصل بaخش قeسمaت نaوع شaکل رaنگ صeدا صaوت گویaنده نeگاه چaشم دaست قaلب دeل جeسم بaدaن مaغز آتaش دaریا جaنگaل دaرaخت گoل غaذا قaهوه رeستوران فaلافeل تeهران اeصفaهان مaشهaد تaبریز خoراسان زaبان اaدaبیات شeعر رoمان هoنaر نaقاشی عeلم پeزeشک پeزeشکی بیمارeستان دaرمان سaلامaت بaهداشت وaرزeش موسابeقه شoغل شeرکaت مoدیر مoدیریaت تaولید فoروش خaرید قeیمaت هaزینه دaرآمaد تeجارaت صaنعaت کeشاوaرزی لeباس نaخ چaرخ مaسیر سaفaر موسافeر هoتل قeطار هaواپeیما بeسیار هaمه چaند چaندین بaعضی بaرخی دیگaر هaمین هaمان چaنین چaنان مeثل مانaند مeثال نaمونه هaمیشه هaنوز اaکنون هaرگز هaمواره بaعد قaبل بaین طaبaق عeلاوه کaمتaر بeهتaر بaدتaر تaمام کامeل چeطور چeگونه چaقدر کoجا کoدام هaر هیچکaس هaمگی وaقت دaفعه مaرتaبه کoل پoر پoل پoشت خoد خoدaم خoدeت خoدeش خoدeمان خoدeتان خoدeشان شoکر عoذر ذeکر فeکر ذeهن صaبر عoمر عaصر شoهرaت ثaروaت گaرم سaرد سaبز سoرخ زaرد سeفید قeرمeز نارaنجی بaنaفش بoلند کوشeش تaند سaریع نeشان نeشانه نaقش نoقطه نaظaر نeظام مeللaت مeللی مaذهaب خoدا خoداوaند پیامبaر قoرآن اoمید غaم خaشم تaرس مeهرaبان مeهر اaصل اaساس اeرتeباط اeجازه اeستeفاده اaهaمیaت اeمکان اeحتeمال اeطلاع اeعتeماد اeقدام اeنتeخاب اeنتeظار اaرزeش اaثaر اeدامه اeبتeدا اeنتeها اaکثaر اaکثaریaت اeجرا اeصلاح اeضافه اaفزایeش رoشد توسeعه تaوaجoه تaفاوoت تaغییر تaصمیم تaجرoبه تeعداد تaلاش تaرکیب تaرجoمه جeهaت جaدید قaدیمی موختaلeف موشابeه موستaقیم موناسeب مaجموعه مoحیط مaحصول مaنبaع مaوقeعیaت مaسئول مaسئولیaت موشارeکaت مaعمولی مaعرeفی مeعیار مaنطeق مaنطeقه نaسل نeسبaت نeظارaت وaضع وaضعیaت وoجود وaظیفه هaدaف هaمکاری هaمراه مoحaمaد عaلی حaسaن حoسeین رeضا مaهدی اaحمaد اaمیر مaحمود اeبراهیم اeسماعیل یوسoف جaعفaر کاظeم باقeر تaقی هادی صادeق سaعید حaمید مaجید فaرهاد بaهرام کامران پaرویز شaهرام فاطeمه زaهرا مaریaم زaینaب';
   var LEX = null, LEX_SUF = {};
@@ -8040,7 +7990,6 @@ var ocrSpell = (function(){
     }
     if (phLexOn()) t = lexApply(t);
     t = dictOut(t, fixOn());
-    if (ezOn()) t = ezApply(t);
     {
       t = t.replace(/\u0647\u200c\u06CC(?![\p{L}\u200c])/gu, '\u06C0')
         .replace(/\u200c+/g, '\u200c').replace(/(?<![\p{L}\p{M}])\u200c|\u200c(?![\p{L}\p{M}])/gu, '');
@@ -8422,7 +8371,7 @@ var ocrSpell = (function(){
       var tt = new Array(N), cc = new Array(N), z;
       for (z = 0; z < N; z++) { tt[z] = spk(sents[z]); cc[z] = !!sents[z].cont; }
       $('#fixStats').textContent = 'در حال بررسی جمله‌ها… ' + nf.format(0) + '٪';
-      W.call('analyze', { t: tt, c: cc, S: { fixOn: fixOn(), fixHi: $('#fixHi').checked, fixPro: $('#fixPro').checked, ezOn: ezOn(), humOn: humOn(), phLexOn: phLexOn(), citeOn: citeOn() }, dictP: dictP, dictG: dictG }, null, function(f){
+      W.call('analyze', { t: tt, c: cc, S: { fixOn: fixOn(), fixHi: $('#fixHi').checked, fixPro: $('#fixPro').checked, humOn: humOn(), phLexOn: phLexOn(), citeOn: citeOn() }, dictP: dictP, dictG: dictG }, null, function(f){
         if (my === fixRun) $('#fixStats').textContent = 'در حال بررسی جمله‌ها… ' + nf.format(Math.round(f * 100)) + '٪';
       }).then(function(r){
         if (my !== fixRun || !r) return;
@@ -8612,9 +8561,8 @@ var ocrSpell = (function(){
   }
   /* emo-s1: خط‌لولهٔ پارامتر هر جمله تا Piper. emoPar(k) برای جملهٔ k یا null یا {ls: ضریب length_scale (ضرب در سرعت)، ns: noise_scale، nw: noise_w، pad: مکث پس از جمله (ثانیه؛ بیشینه با مکث موجود)} برمی‌گرداند؛ پر شدن در مرحلهٔ ۳. null = رفتار قبلی بدون هیچ تغییری. EMO_V در کلید کش (فقط وقتی n/w هست) نسخهٔ سامانه را وارد می‌کند. */
 var EMO_V = 2;
-/* g2p-s2: ابزار کنسول. ezSet(1|0): کسرهٔ اضافهٔ قاعده‌محور (پیش‌فرض خاموش؛ F1 اندازه‌گیری‌شده < گیت ۸۸٪ روی داده‌های مستقل)؛ g2pStat(): وضعیت ماژول‌های تلفظ */
-window.ezSet = function(v){ try { localStorage.setItem('ezMod', typeof v === 'string' ? v.replace(/\s+/g, '') : (v ? '1' : '0')); } catch (e) {} if (typeof clearCache === 'function') try { clearCache(); } catch (e) {} return ezOn(); };
-window.g2pStat = function(){ if (!HOM) homInit(); if (!LEX) lexInit(); return { build: APP_BUILD, hom: Object.keys(HOM).length, lex: Object.keys(LEX).length, ez: ezOn() }; };
+/* g2p-s2: ابزار کنسول. g2pStat(): وضعیت ماژول‌های تلفظ */
+window.g2pStat = function(){ if (!HOM) homInit(); if (!LEX) lexInit(); return { build: APP_BUILD, hom: Object.keys(HOM).length, lex: Object.keys(LEX).length }; };
 var emoForce = null, emoVKs = '', emoVKo = {}, emoSeen = {};
 function emoLvl(){ if (emoForce !== null) return emoForce; var v = +sget('emoLvl', '0'); return v === 1 || v === 2 ? v : 0; }
 function emoVK(){ var v = currentVoice(), id = v && v.id, s0 = sget('emoVK', '{}'); if (s0 !== emoVKs) { emoVKs = s0; try { emoVKo = JSON.parse(s0) || {}; } catch (e) { emoVKo = {}; } } return id && +emoVKo[id] > 0 ? +emoVKo[id] : 1; }
@@ -8696,7 +8644,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r120 · 2026-10-28 · pause-glue', npBuild = '';
+  var APP_BUILD = 'html-r123 · 2026-10-28 · mana-voice', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -11333,7 +11281,8 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     return o;
   }
   function cerLayer(p){ try { var it = rawItems[p - 1], t; if (!it) return ''; t = joinItems(O.pos ? lineSort(it) : it); if (O.enc !== 'none') t = O.enc === 'auto' ? pickDir(pickEnc(t)) : reenc(t, O.enc); return t || ''; } catch (e) { return ''; } }
-  function cerNormZ(t){ return cerNorm(String(t == null ? '' : t).replace(/\u200C/g, ' ')); }   /* r75: نیم‌فاصله ← فاصله، تا اثر نیم‌فاصله روی WER جدا دیده شود (WERz) */
+  /* r121: WERz now also joins \u0646?\u0645\u06cc prefix and \u0647\u0627/\u0647\u0627\u06cc/\u0647\u0627\u06cc\u06cc suffix on BOTH sides, so space-vs-join is not counted as a word error */
+  function cerNormZ(t){ return cerNorm(String(t == null ? '' : t).replace(/\u200C/g, ' ')).replace(/(^| )(\u0646?\u0645\u06cc) (?=[\u0621-\u06D3])/g, '$1$2').replace(/ (\u0647\u0627|\u0647\u0627\u06cc|\u0647\u0627\u06cc\u06cc)(?= |$)/g, '$1'); }   /* r75: نیم‌فاصله ← فاصله، تا اثر نیم‌فاصله روی WER جدا دیده شود (WERz) */
   function cerOne(hyp, ref){
     var h = cerNorm(hyp), r = cerNorm(ref), hw = h ? h.split(' ') : [], rw = r.split(' '), hz = cerNormZ(hyp), rz = cerNormZ(ref), hzw = hz ? hz.split(' ') : [], rzw = rz.split(' '), hn = h.replace(/ /g, ''), rn = r.replace(/ /g, '');
     return { dc: cerDist(h, r), n: r.length, dw: cerDist(hw, rw), wn: rw.length, dn: cerDist(hn, rn), nn: rn.length, dz: cerDist(hzw, rzw), zn: rzw.length };   /* dn/nn: CER بدون فاصله (فقط حرف‌ها)؛ dz/zn: WER با نیم‌فاصله = فاصله */
@@ -11378,6 +11327,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     big.sort(function(x, y){ return (y[0].length + y[1].length) - (x[0].length + x[1].length); });
     return { reg: reg, spc: spc, conf: conf, big: big.slice(0, 4).map(function(x){ return [x[0].slice(0, 48), x[1].slice(0, 48)]; }) };
   }
+  function cerStages(pj){ var o = {}, ms = pj && pj.ms; if (!ms) return o; ['prep', 'detPre', 'detInfer', 'detPost', 'tile', 'recPre', 'recInfer', 'recDecode', 'beam', 'rec2', 'bin', 'orient', 'text'].forEach(function(x){ if (ms[x] && ms[x].avg != null) o[x] = Math.round(ms[x].avg); }); return o; }
   async function cerAutoRun(kind, btn){
     var out = $('#cerAutoOut'), say = function(t){ out.value = t; }, b0 = btn.textContent;
     if (cerBusy) { cerStopF = true; try { if (ocrBusy) runOcr(); } catch (e) {} return; }
@@ -11438,7 +11388,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
           if (dga) { d2 = cerDiag(ocrPages[q], refs[q]); if (d2) { dga.reg += d2.reg; dga.spc += d2.spc; for (kk in d2.conf) dga.conf[kk] = (dga.conf[kk] || 0) + d2.conf[kk]; dga.pg[q] = { reg: d2.reg, spc: d2.spc, big: d2.big }; } }
         });
         d1 = null; if (dga) d1 = { reg: dga.reg, spc: dga.spc, top: Object.keys(dga.conf).sort(function(x, y){ return dga.conf[y] - dga.conf[x]; }).slice(0, 16).map(function(x){ return x + '×' + dga.conf[x]; }), pg: dga.pg };
-        res.push({ m: mo[0], cer: ag.n ? +(100 * ag.d / ag.n).toFixed(2) : null, wer: ag.wn ? +(100 * ag.wd / ag.wn).toFixed(2) : null, cns: ag.nn ? +(100 * ag.dn / ag.nn).toFixed(2) : null, wz: ag.zn ? +(100 * ag.dz / ag.zn).toFixed(2) : null, ppm: pj ? (pj.ppmClean != null ? pj.ppmClean : pj.ppm) : null, sPg: pj && pj.ms && pj.ms.total ? +(pj.ms.total.avg / 1000).toFixed(2) : null, p2n: pj && pj.acc ? pj.acc.p2n : null, p2w: pj && pj.acc ? pj.acc.p2w : null, binN: pj && pj.acc ? pj.acc.binN : null, binW: pj && pj.acc ? pj.acc.binW : null, q: pj && pj.acc ? pj.acc.qAvg : null, unk: pj && pj.acc ? pj.acc.lexUnknownPct : null, orP: pj && pj.acc ? pj.acc.orP : null, th0: th0, th: pj ? pj.thermMax : null, hr: pj ? pj.hrMax : null, nchk: pj && pj.ms && pj.ms.natChk ? +(pj.ms.natChk.n * pj.ms.natChk.avg / 1000).toFixed(2) : 0, pin: pj && pj.pinit && pj.pinit.length ? pj.pinit[pj.pinit.length - 1] : null, iv: pj && pj.ms && pj.ms.iv ? Math.round(pj.ms.iv.avg) : null, pg: pc, fail: fl, i8e: kind === 'i8' ? i8Eff(pj) : '', i8w: kind === 'i8' && !i8Eff(pj) ? i8Why(pj) : '', rt: f0, why: lf, dg: d1 }); rawAll.push(rawPg);
+        res.push({ m: mo[0], cer: ag.n ? +(100 * ag.d / ag.n).toFixed(2) : null, wer: ag.wn ? +(100 * ag.wd / ag.wn).toFixed(2) : null, cns: ag.nn ? +(100 * ag.dn / ag.nn).toFixed(2) : null, wz: ag.zn ? +(100 * ag.dz / ag.zn).toFixed(2) : null, ppm: pj ? (pj.ppmClean != null ? pj.ppmClean : pj.ppm) : null, sPg: pj && pj.ms && pj.ms.total ? +(pj.ms.total.avg / 1000).toFixed(2) : null, p2n: pj && pj.acc ? pj.acc.p2n : null, p2w: pj && pj.acc ? pj.acc.p2w : null, binN: pj && pj.acc ? pj.acc.binN : null, binW: pj && pj.acc ? pj.acc.binW : null, q: pj && pj.acc ? pj.acc.qAvg : null, unk: pj && pj.acc ? pj.acc.lexUnknownPct : null, orP: pj && pj.acc ? pj.acc.orP : null, th0: th0, th: pj ? pj.thermMax : null, hr: pj ? pj.hrMax : null, nchk: pj && pj.ms && pj.ms.natChk ? +(pj.ms.natChk.n * pj.ms.natChk.avg / 1000).toFixed(2) : 0, pin: pj && pj.pinit && pj.pinit.length ? pj.pinit[pj.pinit.length - 1] : null, iv: pj && pj.ms && pj.ms.iv ? Math.round(pj.ms.iv.avg) : null, pg: pc, fail: fl, i8e: kind === 'i8' ? i8Eff(pj) : '', i8w: kind === 'i8' && !i8Eff(pj) ? i8Why(pj) : '', rt: f0, why: lf, dg: d1, st: cerStages(pj) }); rawAll.push(rawPg);
       }
     } catch (e) { say('خطا در سنجش: ' + ((e && e.message) || e)); }
     cerSet = null; dropKeep(); cerBusy = false; btn.textContent = b0;
@@ -11455,6 +11405,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     tx = 'CER-AUTO ' + APP_BUILD + (cerStopF ? ' (ناتمام)' : '') + '\nمرجع: ' + src + ' | صفحه‌ها: ' + pns.join(',') + (cm.length < pns.length ? ' | مشترک: ' + (cm.join(',') || '—') : '') + ' | ' + Math.round((Date.now() - t0) / 1000) + 's\nحالت | CER% | WER% | CERc% | WERc% | Δc | CERns% | WERz% | s/صفحه | ppm | دما شروع/بیشینه·hr | natChk s | pinit ms | iv ms | p2w/p2n | bin w/n | q | unk% | orP\n';
     res.forEach(function(r){ tx += r.m + ' | ' + r.cer + ' | ' + r.wer + ' | ' + r.ccer + ' | ' + r.cwer + ' | ' + (r.dc == null ? '-' : r.dc) + ' | ' + r.cns + ' | ' + r.wz + ' | ' + r.sPg + ' | ' + r.ppm + ' | ' + r.th0 + '/' + r.th + '·' + r.hr + ' | ' + r.nchk + ' | ' + r.pin + ' | ' + r.iv + ' | ' + r.p2w + '/' + r.p2n + ' | ' + r.binW + '/' + r.binN + ' | ' + r.q + ' | ' + r.unk + ' | ' + r.orP + (r.rt.length ? ' | تلاش دوباره: ' + r.rt.join(',') : '') + (r.fail.length ? ' | ناموفق: ' + r.fail.join(',') : '') + (r.rt.length && Object.keys(r.why).length ? ' | علت: ' + JSON.stringify(r.why) : '') + '\n'; });
     tx += 'CER% هر صفحه: ' + pns.map(function(q){ return 'p' + q + '=' + res.map(function(r){ return r.pg[q] == null ? '-' : r.pg[q]; }).join('/'); }).join(' ');
+    tx += '\nمراحل (ms): ' + res.map(function(r){ var s = r.st || {}, ks = Object.keys(s); return r.m + ' → ' + (ks.length ? ks.map(function(k){ return k + '=' + s[k]; }).join(' ') : '-'); }).join(' ; ');
     if (res[0] && res[0].dg) {
       d1 = res[0].dg; tx += '\nتفکیک خطا (حالت اول): ناحیهٔ ناهمخوان ' + d1.reg + '، فقط فاصله/نیم‌فاصله ' + d1.spc + ' | ' + d1.top.join(' ');
       pns.forEach(function(q){ var g = d1.pg[q]; if (g && g.big.length) tx += '\n  p' + q + ' [مرجع | OCR]: ' + g.big.slice(0, 3).map(function(x){ return x[0] + ' | ' + x[1]; }).join(' ؛ '); });
@@ -12604,8 +12555,8 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     var CH = ['،', '؛', '؟', '!', '.', ':', '«', '»', '(', ')', '…', '–'];
     var DG = ['\u064E', '\u0650', '\u064F', '\u0651', '\u0652', '\u064B', '\u064C', '\u064D'];
     var DGN = ['فتحه', 'کسره', 'ضمه', 'تشدید', 'سکون', 'تنوین نصب', 'تنوین رفع', 'تنوین جر'];
-    var ACT = [['pun', 'نگارشی', 'اصلاح علائم نگارشی و فاصله‌ها'], ['com', 'ویرگول', 'ویرگول هوشمند'], ['dot', 'نقطه و ؟', 'نقطهٔ پایان بند و علامت پرسش'], ['har', 'اعراب', 'اعراب‌گذاری هوشمند (با کسرهٔ اضافه)'], ['unh', 'بی‌اعراب', 'حذف همهٔ اعراب'], ['ez', 'کسرهٔ اضافه ±', 'افزودن یا حذف کسرهٔ اضافه برای واژهٔ زیر مکان‌نما'], ['ts', 'تدوین', 'پیوند سطرهای شکسته و پاک‌کردن شمارهٔ صفحه'], ['all', 'همه', 'نگارشی + ویرگول + نقطه + فاصله‌ها']];
-    var OPT = { pun: { pun: 1 }, com: { com: 1 }, dot: { dot: 1 }, har: { har: 'smart' }, unh: { har: 'strip' }, ts: { join: 1, ts: 1 }, all: { norm: 1, sp: 1, pun: 1, com: 1, dot: 1 } };
+    var ACT = [['pun', 'نگارشی', 'اصلاح علائم نگارشی و فاصله‌ها'], ['com', 'ویرگول', 'ویرگول هوشمند'], ['dot', 'نقطه و ؟', 'نقطهٔ پایان بند و علامت پرسش'], ['har', 'اعراب', 'اعراب‌گذاری کامل‌تر (بدون کسرهٔ اضافهٔ خودکار)'], ['unh', 'بی‌اعراب', 'حذف همهٔ اعراب'], ['ez', 'کسرهٔ اضافه ±', 'افزودن یا حذف کسرهٔ اضافه برای واژهٔ زیر مکان‌نما'], ['ts', 'تدوین', 'پیوند سطرهای شکسته و پاک‌کردن شمارهٔ صفحه'], ['all', 'همه', 'نگارشی + ویرگول + نقطه + فاصله‌ها']];
+    var OPT = { pun: { pun: 1 }, com: { com: 1 }, dot: { dot: 1 }, har: { har: 'full' }, unh: { har: 'strip' }, ts: { join: 1, ts: 1 }, all: { norm: 1, sp: 1, pun: 1, com: 1, dot: 1 } };
     function mk(row, label, cls, title, fn){ var b = document.createElement('button'); b.type = 'button'; b.className = cls; b.textContent = label; if (title) { b.title = title; b.setAttribute('aria-label', title); } b.addEventListener('click', fn); row.appendChild(b); }
     function row(){ var r = document.createElement('div'); r.className = 'mfqr'; bar.appendChild(r); return r; }
     function put(v, s, e){                                             /* اعمال متن تازه با ثبت در واگرد */
