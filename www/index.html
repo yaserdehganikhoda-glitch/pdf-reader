@@ -8545,6 +8545,8 @@ var ocrSpell = (function(){
     PART_GAP = [0.12, 0.16, 0.2, 0.3][calmLvl()];   /* مقدار پیش‌فرض؛ مکث هر جمله در chunkAt با pauseMs جداگانه تعیین می‌شود */
     var st = STYLES[$('#vstyle').value] || STYLES.natural, v;
     if (id === undefined) { v = currentVoice(); id = v && v.id; }
+    /* مانا: نمونه‌برداری نویز VITS پایدارتر (تغییر رنگ صدا میان جمله‌ها، دوصدایی و خش از واریانس زیاد z و طول واج‌ها) — با هر سبک، متناسب کمتر */
+    if (/mana/i.test(id || '')) return [Math.round(Math.max(0.24, Math.min(0.36, st[0] * 0.6)) * 100) / 100, Math.round(Math.min(0.42, st[1] * 0.8) * 100) / 100];
     return st;
   }
   function lvl03(id){ var v = +$(id).value; return v >= 0 && v <= 3 ? v : 2; }
@@ -8728,7 +8730,7 @@ var ocrSpell = (function(){
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ezmInit); else ezmInit();
   function piperPredict(text, id, l, parts){
     if (npOK) {
-      var nat = function(tx, pts){ return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: tx, voiceId: id, st: styleParams(), sp: paceSpeed(tx), parts: pts })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.'); };
+      var nat = function(tx, pts){ return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: tx, voiceId: id, st: styleParams(id), sp: paceSpeed(tx), parts: pts })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.'); };
       /* خطای گذرا یا نویسهٔ عجیب در یک جمله کل خواندن را متوقف نکند: یک بار دیگر با متن ساده‌شده (فقط حرف، عدد و نشانه‌های رایج) */
       var plain = function(e){
         var m = String((e && e.message) || e);
@@ -8827,7 +8829,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r125 · 2026-10-28 · mana-ezafe-ui', npBuild = '';
+  var APP_BUILD = 'html-r127 · 2026-10-29 · mana-stable2', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
