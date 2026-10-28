@@ -405,7 +405,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r8-focus").put("media", true))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r10-mana").put("media", true))
     }
 
     @PluginMethod
@@ -1121,13 +1121,24 @@ class PiperNativePlugin : Plugin() {
             if (ep != epoch.get()) 0 else 1      // ۰ = توقف
         })
         if (ep != epoch.get()) throw IllegalStateException("NATIVE_CANCELLED")
-        if (a.samples.isNotEmpty()) return a.samples
+        if (a.samples.isNotEmpty()) return peakGuard(a.samples)
         var n = 0
         for (x in acc) n += x.size
         val out = FloatArray(n)
         var p = 0
         for (x in acc) { System.arraycopy(x, 0, out, p, x.size); p += x.size }
-        return out
+        return peakGuard(out)
+    }
+
+    /** خروجی خام VITS گاهی از ±۱ بیرون می‌زند؛ کش ۱۶بیتی آن را سخت می‌بُرد (اعوجاج)، و نوبت اول (float) با دفعات بعد (بریده) فرق می‌کرد.
+     *  قبل از هر استفاده/کش، فقط در صورت لزوم کل جمله با یک ضریب کم می‌شود (نه بریدن)؛ بلندی نهایی را بعداً صیقل یکسان می‌کند. */
+    private fun peakGuard(f: FloatArray): FloatArray {
+        var pk = 0f
+        for (x in f) { val a = kotlin.math.abs(x); if (a > pk) pk = a }
+        if (pk <= 0.99f) return f
+        val g = 0.99f / pk
+        for (i in f.indices) f[i] *= g
+        return f
     }
 
     @PluginMethod
@@ -1183,7 +1194,7 @@ class PiperNativePlugin : Plugin() {
         val fxPk = (call.getFloat("fxPk") ?: 2f).coerceIn(-6f, 8f)
         val fxHs = (call.getFloat("fxHs") ?: 0.8f).coerceIn(-6f, 8f)
         val fxLp = (call.getFloat("fxLp") ?: 10500f).coerceIn(4000f, 20000f)
-        val strong = false   // پاک‌سازی عادی برای همهٔ صداها (حالت قوی مخصوص مانا بود که حذف شد)
+        val strong = id.contains("mana", ignoreCase = true)   // مانا: خروجی خام SNR پایین دارد؛ بدون این حالت شرط ۲۵dB باعث می‌شد حذف نویز اصلاً اجرا نشود (اعتماد تدریجی ۱۲–۲۵dB + کاهش خش بالای ۴kHz در واکه‌ها). کلید کش شامل strong است
         val ep = epoch.get()   // لحظهٔ رسیدن درخواست؛ اگر بعدش cancel بیاید این کار رها می‌شود
         cpu.execute {
             try {
@@ -1887,8 +1898,8 @@ private object SpeechClean {
         if (speech < 1e-9) return x     // بی‌صدا
         // مرجع نویز قابل‌اعتماد نیست (سکوتی در جمله نیست): حذف نویز و دروازه اعمال نمی‌شود (جز مانا: اعتماد تدریجی)
         val snrDb = 10.0 * Math.log10(speech / maxOf(en, 1e-20))
-        // مانا: خروجی خام خش بیشتری دارد و شرط سخت‌گیرانهٔ ۲۵dB باعث می‌شد حذف نویز اصلاً اجرا نشود؛ برای آن اعتماد تدریجی (۱۲ تا ۲۵dB) و شدت متناسب
-        val relW = if (strong) ((snrDb - 12.0) / 13.0).coerceIn(0.0, 1.0) else if (snrDb >= 25.0) 1.0 else 0.0
+        // مانا: خروجی خام خش بیشتری دارد و شرط سخت‌گیرانهٔ ۲۵dB باعث می‌شد حذف نویز اصلاً اجرا نشود؛ برای آن اعتماد تدریجی (۸ تا ۲۰dB) و شدت متناسب (آزمون عددی روی گفتار مصنوعی: ۴ تا ۶dB کاهش بیشتر نویز در ۱۰ تا ۱۴dB SNR، بدون افت SDR)
+        val relW = if (strong) ((snrDb - 8.0) / 12.0).coerceIn(0.0, 1.0) else if (snrDb >= 25.0) 1.0 else 0.0
         val reliable = relW > 0.0
         if (reliable && relW < 1.0) { cleanDb *= relW; silDb *= relW }
         if (!reliable && cl <= 0.0 && !(strong && cleanDb > 0.0)) return x
