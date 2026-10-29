@@ -8873,7 +8873,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r135 · 2026-10-29 · audio-health', npBuild = '';
+  var APP_BUILD = 'html-r136 · 2026-10-29 · ns-rows', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10509,7 +10509,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     st.hidden = rw.hidden = !on;
     if (!on) return;
     v = currentVoice(); o = v ? nsGet(nsKey(v.id)) : null;
-    st.textContent = nsBusy ? 'ناظر نویز: در حال اندازه‌گیری صدای این گوینده…' : o ? 'ناظر نویز: برای این گوینده سطح ' + nf.format(o.lv) + ' انتخاب شد (کف نویز حدود ' + nf.format(o.fl) + ' dB).' : 'ناظر نویز: هنوز اندازه‌گیری نشده؛ تا آن زمان سطح متعادل است. هنگام بی‌کاری خودکار انجام می‌شود.';
+    st.textContent = nsBusy ? 'ناظر نویز: در حال اندازه‌گیری صدای این گوینده…' : o ? 'ناظر نویز: برای این گوینده سطح ' + nf.format(o.lv) + ' انتخاب شد (کف نویز حدود ' + nf.format(o.fl) + ' dB).' + (o.rows && o.rows.length === 4 ? ' کف نویز هر سطح (dB): ' + o.rows.map(function(q, i){ return nf.format(i) + '=' + nf.format(q.fl); }).join('، ') + ' ؛ جریمهٔ کل: ' + o.rows.map(function(q, i){ return nf.format(i) + '=' + nf.format(q.c); }).join('، ') + '.' : '') : 'ناظر نویز: هنوز اندازه‌گیری نشده؛ تا آن زمان سطح متعادل است. هنگام بی‌کاری خودکار انجام می‌شود.';
   }
   function nsLater(){ if (nsTry++ < 8) { clearTimeout(nsTm); nsTm = setTimeout(function(){ nsRun(false); }, 15000); } }
   function nsKick(){ clearTimeout(nsTm); nsTry = 0; nsTm = setTimeout(function(){ nsRun(false); }, 2500); }
