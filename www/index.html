@@ -1719,6 +1719,8 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <div class="slist"><label class="chk"><input type="checkbox" id="qAuto" checked><span class="st"><b>ناظر کیفیت صدا (خودکار)</b><small>نویز را برای هر گوینده اندازه می‌گیرد و وضوح و بهبود کیفیت را روی مقدار پیشنهادی نگه می‌دارد. برای تنظیم جزئی، خاموشش کنید.</small></span></label></div>
 <p class="hint" id="nsSt" aria-live="polite" hidden></p>
 <div class="btnrow" id="nsRow" hidden><button class="btn sm" id="nsRe" type="button">اندازه‌گیری دوبارهٔ ناظر نویز</button></div>
+<div class="slist"><label class="chk"><input type="checkbox" id="hsOn" checked><span class="st"><b>ناظر سلامت صدا (خودکار)</b><small>طول و سلامت هر تکهٔ ساخته‌شده را می‌سنجد و تکهٔ مشکوک (بریده، کشیده، خالی) را یک بار با نویز کمتر دوباره می‌سازد؛ خطای پخش را هم خودکار بازیابی می‌کند.</small></span></label></div>
+<p class="hint" id="hsSt" aria-live="polite" hidden></p>
 <details class="sub man" id="qManual"><summary>تنظیم دستی کیفیت صدا</summary>
 <div class="in">
         <div class="field">
@@ -2559,7 +2561,7 @@ pause(); mnAF = k === 'loss_t' ? 1 : 0;
 status(mnAF ? 'پخش موقتاً به‌دلیل صدای برنامهٔ دیگر متوقف شد؛ پس از پایان آن ادامه می‌یابد.' : 'پخش به‌دلیل پخش صدای برنامهٔ دیگر متوقف شد.');
 });
 on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0; start(); } });   /* r109: بازگشت فوکوس پس از توقف گذرا؛ بومی فقط پس از LOSS_TRANSIENT می‌فرستد */
-    on('playerError', function(e){ if (e.h === npCur) fail(npMy, 'پخش صدا ناموفق بود: ' + (e.msg || '')); });
+    on('playerError', function(e){ if (e.h === npCur) hsFail(npMy, 'پخش صدا ناموفق بود: ' + (e.msg || ''), 'خطای پخش بومی'); });
     /* تماس تلفنی یا جداشدن هدفون: بومی پخش را قطع کرده؛ وضعیت برنامه هم متوقف می‌شود */
     on('playerInterrupted', function(e){
       if (!playing) return;
@@ -2604,7 +2606,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       /* ضریب پایه برای همهٔ گوینده‌ها یکسان است (۱ = سرعت اصلی مدل) */
       var tempo = VOICE_TEMPOS[o.voiceId] || VOICE_TEMPO, fxp = $('#enh').checked ? fxProf(o.voiceId) : null;
       var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo), g: p.g, n: p.n, w: p.w }; }) : undefined;
-      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cleanLevel(o.voiceId), clarity: clarityLevel(), pause: pauseLevel(), keep: npPlay, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; return b; });
+      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cleanLevel(o.voiceId), clarity: clarityLevel(), pause: pauseLevel(), keep: npPlay, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null, hp: r.hs || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; b.hp = r.hs || null; return b; });
     }
   };
 
@@ -8770,9 +8772,9 @@ var ocrSpell = (function(){
     refresh();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ezmInit); else ezmInit();
-  function piperPredict(text, id, l, parts){
+  function piperPredict(text, id, l, parts, jit){
     if (npOK) {
-      var nat = function(tx, pts){ return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: tx, voiceId: id, st: styleParams(id), sp: paceSpeed(tx), parts: pts })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.'); };
+      var nat = function(tx, pts){ return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: tx, voiceId: id, st: jit ? hsSt(styleParams(id)) : styleParams(id), sp: paceSpeed(tx), parts: pts })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.'); };
       /* خطای گذرا یا نویسهٔ عجیب در یک جمله کل خواندن را متوقف نکند: یک بار دیگر با متن ساده‌شده (فقط حرف، عدد و نشانه‌های رایج) */
       var plain = function(e){
         var m = String((e && e.message) || e);
@@ -8871,7 +8873,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r133 · 2026-10-29 · noise-supervisor', npBuild = '';
+  var APP_BUILD = 'html-r135 · 2026-10-29 · audio-health', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -9290,7 +9292,8 @@ function chunkAt(i, lim){
   }
   function gvFactor(c, b, vid){
     try {
-      if (sget('gvOn', '1') !== '1') return 1;
+      hsDev = null; var gvOff = sget('gvOn', '1') !== '1';
+      if (gvOff && !hsOn()) return 1;   /* r135: ناظر سلامت به مدل مدت نیاز دارد؛ یادگیری ادامه دارد ولی ضریب جبران فقط با «ناظر سرعت» اعمال می‌شود */
       var P = c.parts, dur = (b.size - 44) / ((b.sr || 22050) * 2), tm = VOICE_TEMPOS[vid] || VOICE_TEMPO, key = vid, st, M, th, mk = b.marks, xs = [], ys = [], pr = [], i, j, k, n, ok, F, t, x, chars = 0, lat = 0, sw = 0, sy = 0, sp = 0, m = 0, lr = [], lw = [], lm, vw, se2, dev, w, f, d, upd = 0, rk;
       if (!P || !P.length || !(dur > 0.4)) return 1;
       try { st = styleParams(vid); key = vid + '~' + st[1]; } catch (e) {}
@@ -9325,7 +9328,7 @@ function chunkAt(i, lim){
       if (upd && (M.k += upd, M.k >= 4)) { M.k = 0; sset('gvN:' + key, JSON.stringify({ A: M.A.map(function(v){ return Math.round(v * 1e4) / 1e4; }), b: M.b.map(function(v){ return Math.round(v * 1e4) / 1e4; }), n: Math.round(M.n * 100) / 100, s2: Math.round(M.s2 * 1e5) / 1e5 })); }
       if (!th || M.s2 > 0.0484) return 1;   /* مدل هنوز آماده نیست یا ناپایدار است ⇒ بدون اصلاح */
       for (i = 0; i < n; i++) { sy += ys[i]; sp += pr[i]; }
-      dev = sy / sp - 1;
+      dev = sy / sp - 1; hsDev = dev;
       if (Math.abs(dev) > 0.6) return 1;
       for (i = 0; i < n; i++) if (xs[i].ch >= 8) { lr.push(Math.log(ys[i] / pr[i])); lw.push(xs[i].ch); m++; }
       lm = Math.log(1 + dev); vw = 0;
@@ -9336,12 +9339,81 @@ function chunkAt(i, lim){
       f = Math.max(0.86, Math.min(1.16, f));
       if (Math.abs(f - 1) < 0.02) f = 1;
       M.f = Math.round((M.f + Math.max(-0.1, Math.min(0.1, f - M.f))) * 100) / 100;
-      return Math.abs(M.f - 1) < 0.015 ? 1 : M.f;
+      return (gvOff || Math.abs(M.f - 1) < 0.015) ? 1 : M.f;
     } catch (e) {}
     return 1;
   }
   window.gvInfo = function(){ var o = {}; Object.keys(GVS).forEach(function(k){ var M = GVS[k], th = M.n >= 12 ? gvSolve(M) : null; o[k] = { n: Math.round(M.n * 10) / 10, sigma: Math.round(Math.sqrt(M.s2) * 1000) / 1000, f: M.f, th: th ? th.map(function(v){ return Math.round(v * 1000) / 1000; }) : null }; }); return o; };
-  var rawBlob = {}, sTab = {}, markMap = {};   /* markMap: مرز واقعی شروع جمله‌ها (کسری از کل صدا) به ازای هر بافر/handle، از پلاگین بومی (T-14) */
+  /* ---- r135: ناظر سلامت صدا — یک کلید «خودکار» (hsOn). ۱) خروجی ساخته‌شده: طول غیرعادی نسبت به مدل مدت ناظر سرعت (یا حدود مطلق)، خالی‌بودن، و برای PCM در دسترس بریدگی/بی‌صدایی/DC؛ مشکوک ⇒ یک بار ساخت مجدد با نویز کمتر. ۲) پخش: خطای عنصر صدا/پلاگین ⇒ بازیابی خودکار با سقف ۲ بار در دقیقه ---- */
+var HS = { bad: 0, fixed: 0, kept: 0, rec: 0, errs: [], vp: {} }, hsDev = null;
+function hsOn(){ return sget('hsOn', '1') !== '0'; }
+function hsSt(s){   /* کلید کش بومی شامل noiseScale/noiseScaleW است (کف بومی ۰٫۲)؛ اگر کاهش اثری نداشت، برای نمونهٔ تازه کمی بالا می‌رود */
+  var a = Math.max(0.2, Math.round((s[0] - 0.05) * 100) / 100), b = Math.max(0.2, Math.round((s[1] - 0.05) * 100) / 100);
+  return (a === s[0] && b === s[1]) ? [Math.round((a + 0.05) * 100) / 100, Math.round((b + 0.05) * 100) / 100] : [a, b];
+}
+function hsLog(m){ try { if (window.__elog) window.__elog.add('audio-health', m); } catch (e) {} }
+function hsShow(){
+  var e = $('#hsSt'), v, t;
+  if (!e) return;
+  if (!hsOn()) { e.hidden = true; return; }
+  t = (HS.bad || HS.rec) ? 'این نشست: ' + (HS.bad ? nf.format(HS.bad) + ' تکهٔ مشکوک (' + nf.format(HS.fixed) + ' اصلاح‌شده، ' + nf.format(HS.kept) + ' بدون تغییر)' : '') + (HS.bad && HS.rec ? '، ' : '') + (HS.rec ? nf.format(HS.rec) + ' بازیابی پخش' : '') + '.' : 'تاکنون مشکلی دیده نشد.';
+  try { v = currentVoice(); if (v && HS.vp[v.id]) t += ' ' + HS.vp[v.id]; } catch (x) {}
+  e.textContent = 'ناظر سلامت صدا: ' + t; e.hidden = false;
+}
+function hsPcm(x, k){   /* x: Float32 (k=1) یا Int16 (k=1/32768) ⇒ {pk: قله، cl: کسر نمونه‌های بالای ۰٫۹۸۵، dc: میانگین} */
+  var n = x.length, i, a, pk = 0, cl = 0, s = 0;
+  for (i = 0; i < n; i++) { a = x[i] * k; s += a; if (a < 0) a = -a; if (a > pk) pk = a; if (a > 0.985) cl++; }
+  return { pk: pk, cl: n ? cl / n : 0, dc: n ? s / n : 0 };
+}
+function hsPcmWhy(q){
+  if (q.pk < 0.02) return 'تقریباً بی‌صدا';
+  if (q.cl > 0.003) return 'بریدگی (clipping) ' + nf.format(Math.round(q.cl * 1000) / 10) + '٪';
+  if (Math.abs(q.dc) > 0.03) return 'انحراف DC';
+  return '';
+}
+function hsHpWhy(h){ return h ? (h.nan > 0 ? 'مقدار نامعتبر (NaN/Inf) در صدا' : hsPcmWhy(h)) : ''; }   /* h: آمار PCM بومی (hs) */
+function hsWhy(c, b){   /* دلیل مشکوک‌بودن طول؛ '' = سالم */
+  var Ln = (c.text.match(/[\p{L}\p{N}]/gu) || []).length, dur = (b.size - 44) / ((b.sr || 22050) * 2), cps;
+  if (Ln < 3) return '';
+  if (!(dur >= 0.15)) return 'خروجی خالی یا بسیار کوتاه';
+  if (hsDev !== null && isFinite(hsDev)) return hsDev > 0.6 ? 'طول بیش از ۶۰٪ بلندتر از پیش‌بینی (کشیده/گیرکرده)' : hsDev < -0.6 ? 'طول بیش از ۶۰٪ کوتاه‌تر از پیش‌بینی (بریده/جاافتاده)' : '';
+  if (Ln < 12) return '';
+  cps = Ln / dur;
+  return cps > 45 ? 'سرعت غیرعادی بالا (بریده)' : (cps < 3.5 && dur > 3) ? 'سرعت غیرعادی پایین (کشیده)' : '';
+}
+function hsRelease(b){ try { if (b && b.nh) NP.release({ handle: b.nh }).catch(function(){}); } catch (e) {} }
+function hsGuard(c, v, b){
+  var why;
+  if (!b || c.start < 0 || !hsOn()) return b;
+  if (!b.nh) {   /* PCM در JS هست (بدون پخش بومی): طول + بریدگی/بی‌صدایی */
+    hsDev = null; why = hsWhy(c, b);
+    return (why ? Promise.resolve(why) : b.arrayBuffer().then(function(ab){ return hsPcmWhy(hsPcm(new Int16Array(ab, 44, (ab.byteLength - 44) >> 1), 1 / 32768)); })).then(function(w){
+      if (!w) return b;
+      HS.bad++; hsLog('تکهٔ ' + c.start + ': ' + w + ' ← ساخت مجدد'); hsShow();
+      return piperPredict(c.text, v.id, 0, c.parts, 1).then(function(b2){ hsDev = null; if (b2 && !b2.nh && !hsWhy(c, b2)) { HS.fixed++; hsShow(); return b2; } HS.kept++; hsShow(); return b; });
+    }).catch(function(){ return b; });
+  }
+  b._gv = gvFactor(c, b, v.id); b._dev = hsDev; why = hsWhy(c, b) || hsHpWhy(b.hp);
+  if (!why) return b;
+  HS.bad++; hsLog('تکهٔ ' + c.start + ': ' + why + ' ← ساخت مجدد'); hsShow();
+  return piperPredict(c.text, v.id, 0, c.parts, 1).then(function(b2){
+    var w2, keep2;
+    if (!b2 || !b2.nh) return b;
+    b2._gv = gvFactor(c, b2, v.id); b2._dev = hsDev; w2 = hsWhy(c, b2) || hsHpWhy(b2.hp);
+    keep2 = !w2 || (b._dev != null && b2._dev != null && Math.abs(b2._dev) < Math.abs(b._dev));
+    if (w2) { HS.kept++; hsLog('تکهٔ ' + c.start + ': پس از ساخت مجدد هم مشکوک (' + w2 + ')'); } else HS.fixed++;
+    hsShow();
+    if (keep2) { if (b2.nh !== b.nh) hsRelease(b); return b2; }
+    if (b2.nh !== b.nh) hsRelease(b2);
+    return b;
+  }).catch(function(){ return b; });
+}
+function hsAllow(){ var now = Date.now(); HS.errs = HS.errs.filter(function(t){ return now - t < 60000; }); if (HS.errs.length >= 2) return false; HS.errs.push(now); return true; }
+function hsFail(my, msg, why){   /* خطای پخش: یک بازیابی خودکار از همین جمله (سقف ۲ بار در دقیقه و سقف نگهبان)، وگرنه رفتار قبلی */
+  if (my === token && playing && hsOn() && hsAllow()) { wdRecover(why); hsShow(); return; }
+  fail(my, msg);
+}
+var rawBlob = {}, sTab = {}, markMap = {};   /* markMap: مرز واقعی شروع جمله‌ها (کسری از کل صدا) به ازای هر بافر/handle، از پلاگین بومی (T-14) */
   function dropRaw(u){
     if (!u || u === SILENT) return;
     delete markMap[u]; delete gvMap[u];
@@ -9409,8 +9481,8 @@ function chunkAt(i, lim){
         perf();
         return b;
       });
-    }).then(function(b){ return typeof b.gen === 'number' ? b : polish(b, c.mid).catch(function(){ return b; }); }).then(function(b){ if (ak && !b.nh) achPut(ak, b, { v: v.id, sr: b.sr, np: b.np }); return b; });
-    }).then(function(b){ if (b.nh) { if (b.marks) markMap['np:' + b.nh] = b.marks; gvMap['np:' + b.nh] = c.start >= 0 ? gvFactor(c, b, v.id) : 1; return 'np:' + b.nh; } var u = URL.createObjectURL(b); rawBlob[u] = b; if (b.marks) markMap[u] = b.marks; return u; });
+    }).then(function(b){ return typeof b.gen === 'number' ? b : polish(b, c.mid).catch(function(){ return b; }); }).then(function(b){ if (ak && !b.nh) achPut(ak, b, { v: v.id, sr: b.sr, np: b.np }); return b; }).then(function(b){ return hsGuard(c, v, b); });
+    }).then(function(b){ if (b.nh) { if (b.marks) markMap['np:' + b.nh] = b.marks; gvMap['np:' + b.nh] = c.start >= 0 ? (b._gv !== undefined ? b._gv : gvFactor(c, b, v.id)) : 1; return 'np:' + b.nh; } var u = URL.createObjectURL(b); rawBlob[u] = b; if (b.marks) markMap[u] = b.marks; return u; });
     L.q = pr.catch(function(){});
     pr.then(function(){ L.b--; }, function(){ L.b--; });
     pr.catch(function(){ delete cache[ck]; });
@@ -9477,7 +9549,7 @@ function chunkAt(i, lim){
   function wdLog(why){ try { if (window.__elog) window.__elog.add('watchdog', why + ' | جمله ' + idx + ' | فاز ' + wdPhase); } catch (e) {} }
   function wdRecover(why){
     var now = Date.now(), ph = wdPhase;
-    wdLog(why);
+    wdLog(why); HS.rec++;
     wdFails = wdFails.filter(function(t){ return now - t < 120000; }); wdFails.push(now);
     if (wdFails.length > 4) { var m = token; playing = false; wdSet('idle'); cancelAll(); ui(); status('پخش چند بار پشت‌سرهم قطع شد. دکمهٔ پخش را دوباره بزنید؛ اگر تکرار شد «پیشرفته ‹ گزارش خطا» را ببینید.'); return; }
     /* ساخت بومی خودش مهلت (۱۲۰ث) و پاک‌سازی دارد: کش و صف ساخت در حال کار پاک نمی‌شود تا کار تکراری و کندی نیاید */
@@ -9647,7 +9719,7 @@ function chunkAt(i, lim){
         }).catch(function(e2){ fail(my, 'پخش صدا ناموفق بود: ' + ((e2 && e2.message) || e2)); });
         return;
       }
-      fail(my, 'پخش صدا ناموفق بود: ' + ((e && e.message) || e));
+      hsFail(my, 'پخش صدا ناموفق بود: ' + ((e && e.message) || e), 'رد پخش بومی');
     });
     setTimeout(musicSync, 400);
     trimCache(c.start);
@@ -9698,7 +9770,7 @@ function chunkAt(i, lim){
       if (hand(pauseMs(c.end) - LAT)) return;
       gap(my);
     };
-    el.onerror = function(){ fail(my, 'پخش صدا ناموفق بود.'); };
+    el.onerror = function(){ hsFail(my, 'پخش صدا ناموفق بود.', 'خطای عنصر صدا'); };
     /* تحویل بدون‌وقفه: زمان‌بندی شروع تکهٔ بعد از روی زمان باقی‌ماندهٔ تکهٔ فعلی (نه تأخیر رویداد ended)، با جبران تأخیر شروع پخش */
     el.ontimeupdate = function(){
       wdProg = Date.now(); followChunk(c);
@@ -9711,7 +9783,7 @@ function chunkAt(i, lim){
     };
     if (el.src !== url) el.src = url;
     applyRate(el);
-    el.play().catch(function(e){ fail(my, 'پخش صدا ناموفق بود: ' + e.message); });
+    el.play().catch(function(e){ hsFail(my, 'پخش صدا ناموفق بود: ' + e.message, 'رد پخش عنصر صدا'); });
     setTimeout(musicSync, 400);
     trimCache(c.start);
     primeNext(c, my);
@@ -10442,7 +10514,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   function nsLater(){ if (nsTry++ < 8) { clearTimeout(nsTm); nsTm = setTimeout(function(){ nsRun(false); }, 15000); } }
   function nsKick(){ clearTimeout(nsTm); nsTry = 0; nsTm = setTimeout(function(){ nsRun(false); }, 2500); }
   async function nsRun(force){
-    var v, key, prev, st, fxp, tm, S, R = [[], [], [], []], L, i, r, m, pk, o, stored;
+    var v, key, prev, st, fxp, tm, S, R = [[], [], [], []], L, i, r, m, pk, o, stored, x;
     if (nsBusy || !NP || !npOK || $('#vclean').value !== 'a' || engine() !== 'piper') { nsStatus(); return; }
     v = currentVoice(); if (!v) return;
     if (playing) { nsLater(); return; }
@@ -10456,14 +10528,16 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
       for (i = 0; i < S.length; i++) for (L = 0; L < 4; L++) {
         if (playing || $('#vclean').value !== 'a' || nsKey(v.id) !== key) throw 'abort';
         r = await NP.synthesize({ id: v.id, text: S[i], noiseScale: st[0], noiseScaleW: st[1], clean: L, clarity: clarityLevel(), pause: pauseLevel(), keep: false, master: !!fxp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, speed: Math.min(1.5, tm), gap: PART_GAP });
-        m = nsMetrics(cbPcm(r.wav), r.sampleRate || 22050);
+        x = cbPcm(r.wav); m = nsMetrics(x, r.sampleRate || 22050);
         if (!m) throw 'bad';
+        m.hp = hsPcm(x, 1);
         R[L].push(m);
         await new Promise(function(z){ setTimeout(z, 30); });
       }
       pk = nsPick(R);
       o = { lv: pk.lv, fl: pk.rows[pk.lv].fl, rows: pk.rows, t: Date.now() };
       NS[key] = o; sset('nsv:' + key, JSON.stringify(o));
+      try { var hq = R[pk.lv].map(function(q){ return q.hp; }).filter(Boolean), hw = '', hk; hq.forEach(function(q){ hk = hsPcmWhy(q); if (hk && !hw) hw = hk; }); HS.vp[v.id] = hw ? 'سنجش صدای این گوینده: ' + hw + ' در سطح انتخابی.' : 'سنجش صدای این گوینده: بدون بریدگی و بی‌صدایی.'; hsShow(); } catch (e) {}
       if (o.lv !== prev && !playing && $('#vclean').value === 'a') changed();
     } catch (e) {
       if (e === 'abort') nsLater();
@@ -11195,6 +11269,12 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
     var el = $('#' + id), dv = id === 'vclean' ? 'a' : '2'; el.value = sget(id, dv); if (['0', '1', '2', '3'].concat(id === 'vclean' ? ['a'] : []).indexOf(el.value) < 0) el.value = dv;
     el.onchange = function(){ sset(id, this.value); changed(); warmPiper(); try { nsStatus(); nsKick(); } catch (e) {} };   /* کش خام بومی می‌ماند؛ پس تغییر سطح سریع اعمال می‌شود */
   });
+  (function(){   /* ناظر سلامت صدا: روشن/خاموش */
+    var h = $('#hsOn'); if (!h) return;
+    h.checked = hsOn();
+    h.onchange = function(){ sset('hsOn', this.checked ? '1' : '0'); hsShow(); };
+    hsShow();
+  })();
   (function(){   /* ناظر سرعت: روشن/خاموش */
     var g = $('#gvOn'); if (!g) return;
     g.checked = sget('gvOn', '1') !== '0';
@@ -12184,7 +12264,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
     chgSoon();
   })();
 
-  var CFG_KEY = /^(qAuto$|cAuto$|hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|gvOn$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|emoLvl$|nz|harakat)/;
+  var CFG_KEY = /^(qAuto$|cAuto$|hsOn$|hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|gvOn$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|emoLvl$|nz|harakat)/;
 
   /* وقتی برنامه در پس‌زمینه است (مثلاً پخش با صفحهٔ خاموش) انیمیشن‌ها متوقف شوند */
   document.addEventListener('visibilitychange', function(){ document.documentElement.classList.toggle('bg-paused', document.hidden); });
