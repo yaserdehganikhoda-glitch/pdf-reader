@@ -405,7 +405,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r12-nz").put("media", true))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r13-hs").put("media", true))
     }
 
     @PluginMethod
@@ -1259,6 +1259,7 @@ class PiperNativePlugin : Plugin() {
                     System.arraycopy(x, 0, all, pos, x.size); pos += x.size
                     if (k < pieces.size - 1) pos += pieceGaps[k]   // سکوت (صفر)
                 }
+                val rawHs = rawHealth(all)   // r13: بریدگی و مقدار نامعتبر پیش از صیقل/لیمیتر (ناظر سلامت صدا)
                 val trim = IntArray(1)   // نمونه‌هایی که صیقل از ابتدای بافر بریده (مرزها باید همین‌قدر جابه‌جا شوند)
                 val pol = polish(all, sr, trim)
                 val fin = if (fxOn) MasterFx.process(pol, sr, fxPk, fxHs, fxLp, strong, lvlPause) else pol
@@ -1272,14 +1273,15 @@ class PiperNativePlugin : Plugin() {
                     for (ix in items.size - 1 downTo 0) { if (m[ix] < 0.0) m[ix] = nx else nx = m[ix] }   // جملهٔ بدون تکه: مرزش شروع جملهٔ بعدی
                     JSArray().also { a -> for (v in m) a.put(v) }
                 } else null
+                val hs = finHealth(fin, rawHs)
                 if (keep) {
                     val h = pcmPut(fin, sr)
-                    val res = JSObject().put("handle", h).put("sampleRate", sr).put("durationMs", fin.size * 1000L / sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
+                    val res = JSObject().put("hs", hs).put("handle", h).put("sampleRate", sr).put("durationMs", fin.size * 1000L / sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
                     if (marks != null) res.put("marks", marks)
                     call.resolve(res)
                 } else {
                     val wav = toWav(fin, sr)
-                    val res = JSObject().put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
+                    val res = JSObject().put("hs", hs).put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
                     if (marks != null) res.put("marks", marks)
                     call.resolve(res)
                 }
@@ -1287,6 +1289,20 @@ class PiperNativePlugin : Plugin() {
                 call.reject(if (e.message == "NATIVE_CANCELLED") "NATIVE_CANCELLED" else "خطای موتور بومی: ${e.message}")
             }
         }
+    }
+
+    /** r13 (ناظر سلامت صدا): [کسر نمونه‌های با |x| ≥ ۰٫۹۸۵، تعداد NaN/Inf] روی خروجی خام پیش از صیقل */
+    private fun rawHealth(a: FloatArray): DoubleArray {
+        var cl = 0; var bad = 0
+        for (x in a) { if (x.isNaN() || x.isInfinite()) bad++ else if (kotlin.math.abs(x) >= 0.985f) cl++ }
+        return doubleArrayOf(cl.toDouble() / a.size.coerceAtLeast(1), bad.toDouble())
+    }
+    /** r13: آمار نهایی {pk قله، rms، dc میانگین، cl بریدگی خام، nan نامعتبر} برای JS؛ مقدارهای غیرمحدود هرگز در JSON نمی‌روند */
+    private fun finHealth(f: FloatArray, raw: DoubleArray): JSObject {
+        var pk = 0f; var sum = 0.0; var sq = 0.0; var bad = raw[1].toInt()
+        for (x in f) { if (x.isNaN() || x.isInfinite()) { bad++; continue }; val a = kotlin.math.abs(x); if (a > pk) pk = a; sum += x; sq += x.toDouble() * x }
+        val n = f.size.coerceAtLeast(1)
+        return JSObject().put("pk", pk.toDouble()).put("rms", kotlin.math.sqrt(sq / n)).put("dc", sum / n).put("cl", raw[0]).put("nan", bad)
     }
 
     /** صیقل خروجی هر تکه: حذف سکوت اضافهٔ ابتدا/انتها، محوشدن کوتاه (جلوگیری از «تق» بین جمله‌ها)، یکنواخت‌کردن بلندی صدا با محدودکنندهٔ نرم */
