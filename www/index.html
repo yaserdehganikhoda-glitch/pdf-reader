@@ -291,6 +291,8 @@ details.hintbox{border-top:0}
 details.hintbox>summary{min-height:30px;font-size:.76rem;font-weight:600;color:var(--accent);justify-content:flex-start;gap:8px}
 details.sub>summary::-webkit-details-marker{display:none}
 details.sub>.in{display:grid;gap:9px;padding:2px 0 10px}
+details.sub.man>summary::after{content:"";flex:none;width:7px;height:7px;margin-inline-start:10px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;opacity:.55;transform:rotate(45deg);transition:transform .15s}
+details.sub.man[open]>summary::after{transform:rotate(225deg)}
 
 /* ===== عناصر ساخته‌شده با اسکریپت ===== */
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -1714,6 +1716,11 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 </section>
 <section class="grp" id="qualBox">
         <h3>کیفیت صدا</h3>
+<div class="slist"><label class="chk"><input type="checkbox" id="qAuto" checked><span class="st"><b>ناظر کیفیت صدا (خودکار)</b><small>نویز را برای هر گوینده اندازه می‌گیرد و وضوح و بهبود کیفیت را روی مقدار پیشنهادی نگه می‌دارد. برای تنظیم جزئی، خاموشش کنید.</small></span></label></div>
+<p class="hint" id="nsSt" aria-live="polite" hidden></p>
+<div class="btnrow" id="nsRow" hidden><button class="btn sm" id="nsRe" type="button">اندازه‌گیری دوبارهٔ ناظر نویز</button></div>
+<details class="sub man" id="qManual"><summary>تنظیم دستی کیفیت صدا</summary>
+<div class="in">
         <div class="field">
           <span class="flab">حذف نویز و صداهای اضافه</span>
           <select id="vclean" data-seg aria-label="حذف نویز و صداهای اضافه">
@@ -1723,8 +1730,6 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
             <option value="3" data-short="قوی" data-desc="پاک‌سازی بیشتر نویز؛ اگر گفتار کمی «خفه» شد به حالت متعادل برگردید.">قوی</option>
             <option value="a" data-short="هوشمند" data-desc="ناظر نویز: برای هر گوینده، خروجی واقعی را اندازه می‌گیرد و کمترین سطحی را که خش و نویز را می‌گیرد و گفتار را خفه نمی‌کند برمی‌گزیند (پیشنهادی).">هوشمند (ناظر نویز)</option>
           </select>
-          <p class="hint" id="nsSt" aria-live="polite" hidden></p>
-          <div class="btnrow" id="nsRow" hidden><button class="btn sm" id="nsRe" type="button">اندازه‌گیری دوبارهٔ ناظر نویز</button></div>
         </div>
         <div class="field">
           <span class="flab">شفافیت و رسایی صدا</span>
@@ -1739,14 +1744,6 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
           <label class="chk"><input type="checkbox" id="enh" checked><span class="st"><b>بهبود کیفیت صدا</b><small>گرمی و وضوح بیشتر، نرم‌کردن «س» و «ش» تند و یکنواختی بلندی؛ تنظیم خودکار برای هر گوینده.</small></span></label>
         </div>
         <p class="hint">اگر صدا روبوتی یا «غ‌غ‌غ» شد: «حذف نویز» را روی «خاموش» یا «ملایم» بگذارید و اگر مشکل ماند «بهبود کیفیت صدا» را خاموش کنید. با هر تغییر، جمله‌ها دوباره ساخته می‌شوند.</p>
-</section>
-<div class="cfgv">
-        <div class="slist" id="paceBox">
-          <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است؛ مثل نفس‌گیری گوینده. سرعت خود صدا تغییر نمی‌کند.</small></span></label>
-          <label class="chk" style="display:none"><input type="checkbox" id="smartPace"><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
-          <label class="chk"><input type="checkbox" id="phLex" checked><span class="st"><b>واژه‌نامهٔ آوایی داخلی</b><small>برای صدها واژهٔ پرکاربرد، کوتاه‌مصوت‌ها (َ ِ ُ) را مشخص می‌کند تا تلفظ دقیق‌تر شود. اگر جایی عجیب خوانده شد خاموشش کنید.</small></span></label>
-        </div>
-</div>
 <section class="grp" id="nzBox">
   <h3>تنظیم دقیق نویز</h3>
   <div class="field">
@@ -1766,6 +1763,15 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
   </div>
   <p class="hint">مقدار کمتر = صدای یکدست‌تر و بی‌خش‌تر، ولی خیلی کم باشد صدا تخت و فلزی می‌شود. تغییر لغزنده‌ها برای جمله‌های بعدی اعمال می‌شود (ساخت دوبارهٔ صدا).</p>
 </section>
+</div>
+</details>
+</section>
+<div class="cfgv">
+        <div class="slist" id="paceBox">
+          <label class="chk"><input type="checkbox" id="humPace" checked><span class="st"><b>ریتم و مکث انسانی</b><small>مکث میان جمله‌ها و بندها متناسب با طول و نوع جمله است؛ مثل نفس‌گیری گوینده. سرعت خود صدا تغییر نمی‌کند.</small></span></label>
+          <label class="chk" style="display:none"><input type="checkbox" id="smartPace"><span class="st"><b>سرعت هوشمند</b><small>روی جمله‌های سنگین، کلمه‌های بلند و لاتین کمی آهسته‌تر می‌خواند.</small></span></label>
+        </div>
+</div>
 
 <div class="cfgv">
       <section class="grp" id="rateBox">
@@ -1911,6 +1917,10 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19l7-7M14 4l1.5 3.5L19 9l-3.5 1.5L14 14l-1.5-3.5L9 9l3.5-1.5z"/></svg></i><span class="stt"><b>پاک‌سازی و اصلاح متن</b><small>سرصفحه، نقطه‌چین، حروف عربی و فاصله‌گذاری</small></span></summary>
         <div class="in">
           <div class="slist">
+<div class="slist"><label class="chk"><input type="checkbox" id="cAuto" checked><span class="st"><b>ناظر پاک‌سازی متن (خودکار)</b><small>پاک‌سازی‌های پیشنهادی (سرصفحه، نقطه‌چین، یکدست‌سازی، فاصله‌گذاری، املای OCR و …) را روی مقدار پیشنهادی نگه می‌دارد. برای انتخاب جداگانه، خاموشش کنید.</small></span></label></div>
+<details class="sub man" id="cManual"><summary>تنظیم دستی پاک‌سازی</summary>
+<div class="in">
+<div class="slist">
             <label class="chk"><input type="checkbox" id="oDots" checked><span class="st"><b>حذف نقطه‌چین، خط‌چین و خطوط جداکننده</b><small>نقطه‌چین فهرست‌ها، خط‌های افقی (-----، ═════) و نمادهای تزئینی تکراری (★ ★ ★).</small></span></label>
             <label class="chk"><input type="checkbox" id="oHdr" checked><span class="st"><b>حذف سرصفحه، پاصفحه و شمارهٔ صفحه</b></span></label>
             <label class="chk"><input type="checkbox" id="oNorm" checked><span class="st"><b>یکدست‌سازی حروف</b><small>«ي ك ى» عربی به فارسی، و حذف اعراب و کشیده.</small></span></label>
@@ -1922,6 +1932,9 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
             <label class="chk"><input type="checkbox" id="oPause" checked><span class="st"><b>مکث طبیعی در جمله‌های بلند</b><small>ویرگول پیش از «که»، «اما»، «زیرا» و پایان بند شرطی؛ سپس تکه‌کردن تا بیشینهٔ طول.</small></span></label>
             <label class="chk"><input type="checkbox" id="oSpell" checked><span class="st"><b>اصلاح املای خروجی OCR</b><small>حروف مشابه (ب/پ/ت، ج/ح)، نویسه‌های اشتباه و کشیده؛ فقط روی صفحه‌های OCR.</small></span></label>
             <label class="chk"><input type="checkbox" id="oSpellTL"><span class="st"><b>اصلاح املا روی لایهٔ متنی PDF</b><small>همان دیکشنری و lexicon را روی صفحه‌های غیر‌OCR هم اجرا می‌کند؛ واژه‌های پرتکرار سند (نام‌ها) محافظت می‌شوند. برای PDFهای سالم لازم نیست؛ فقط وقتی لایهٔ متنی خراب است روشن کنید.</small></span></label>
+</div>
+</div>
+</details>
           </div>
         </div>
       </details>
@@ -2002,10 +2015,17 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></i><span class="stt"><b>تصحیح‌گر هوشمند گفتار</b><small>عدد، تاریخ، اختصار، لاتین و مکث‌گذاری</small></span></summary>
         <div class="in">
           <div class="slist">
-            <label class="chk"><input type="checkbox" id="fixOn" checked><span class="st"><b>تصحیح گفتار فعال باشد</b></span></label>
+<label class="chk"><input type="checkbox" id="fixOn" checked><span class="st"><b>ناظر تصحیح گفتار (خودکار)</b><small>عدد، تاریخ، اختصار، لاتین، تنوین و مکث‌گذاری را پیش از خواندن اصلاح می‌کند؛ جزئیات زیر «تنظیم دستی» است.</small></span></label>
+<details class="sub man" id="fxManual"><summary>تنظیم دستی تصحیح</summary>
+<div class="in">
+<div class="slist">
             <label class="chk"><input type="checkbox" id="fixHi" checked><span class="st"><b>حساسیت بالا</b><small>حروف جداافتاده، تکرار و کشیدگی بی‌دلیل.</small></span></label>
             <label class="chk"><input type="checkbox" id="fixPro" checked><span class="st"><b>مکث‌گذاری هوشمند</b><small>پیش از پیوندها و شکستن جملهٔ بلند.</small></span></label>
             <label class="chk"><input type="checkbox" id="fixCite" checked><span class="st"><b>نخواندن ارجاع درون‌متنی</b><small>مثل «(احمدی، ۱۳۹۸: ۲۴)»، «(همان، ص ۲)» و «(Smith, 2020)»؛ در متن نمایش‌داده‌شده می‌ماند.</small></span></label>
+<label class="chk"><input type="checkbox" id="phLex" checked><span class="st"><b>واژه‌نامهٔ آوایی داخلی</b><small>فقط برای صداهایی که اعراب را می‌خوانند (HAR): کوتاه‌مصوت‌ها (َ ِ ُ) را برای صدها واژهٔ پرکاربرد مشخص می‌کند. برای بقیهٔ صداها اثری ندارد.</small></span></label>
+</div>
+</div>
+</details>
           </div>
           <details class="sub hintbox"><summary>این بخش چه می‌کند؟</summary><div class="in"><p class="hint">پیش از خواندن هر جمله، متن را بررسی می‌کند و در خروجی صدا اصلاح می‌کند: عدد، تاریخ، ساعت، عدد ترتیبی و رومی، اختصارها، حروف جداافتادهٔ PDF، تکرار و کشیدگی بی‌دلیل، پیوند و ارجاع (از جمله ارجاع درون‌متنی)، تنوین قیدها (مثلاً، حتماً)، کلمه‌های لاتین و سرواژه‌ها و مکث‌گذاری هوشمند. متن نمایش‌داده‌شده دست‌نخورده می‌ماند.</p></div></details>
           <p class="hint" id="fixStats" aria-live="polite"></p>
@@ -11153,7 +11173,8 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   });
 
   function restartIfPlaying(){ if (playing) start(); }
-  function changed(){ clearCache(); restartIfPlaying(); }
+  var CHH = { n: 0, p: 0 };   /* r134: نگه‌داشتن چندتغییرِ هم‌زمان (ناظرهای ادغام‌کننده) */
+function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPlaying(); }
   $('#rate').oninput = function(){ setRate(this.value); };
   $('#voice').onchange = function(){ sset('voice', this.value); if (engine() === 'piper') updatePiperStatus(); changed(); warmPiper(); };
   $('#allLangs').onchange = renderVoices;
@@ -11498,12 +11519,12 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   } catch (e) {} }
 
   if (sget('maxLV', '') !== '2') { sset('o_maxL', '200'); sset('maxLV', '2'); }   /* سقف جمله ۲۰۰ (یک‌بار): جمله کمتر تکه می‌شود */
-  var TXT_IDS = ['lnMode','oDots','oHdr','oNorm','oFix','oScript','oLatin','oPos','oCols','maxL','pgFrom','pgTo','ocrMode','ocrQ','encMode','oGlue','oSpell','oSpellTL','oPause','oToc','oVg','oVgMode'], TXT_DEF = {};
+  var TXH = { n: 0, p: 0 }, TXT_IDS = ['lnMode','oDots','oHdr','oNorm','oFix','oScript','oLatin','oPos','oCols','maxL','pgFrom','pgTo','ocrMode','ocrQ','encMode','oGlue','oSpell','oSpellTL','oPause','oToc','oVg','oVgMode'], TXT_DEF = {};
   TXT_IDS.forEach(function(id){
     var e = $('#' + id), c = e.type === 'checkbox'; TXT_DEF[id] = c ? e.checked : e.value;
     var v = sget('o_' + id, null);
     if (v !== null) { if (c) e.checked = v === '1'; else e.value = v; }
-    e.onchange = function(){ sset('o_' + id, c ? (e.checked ? '1' : '0') : e.value); if (pdfDoc) process(true); };
+    e.onchange = function(){ sset('o_' + id, c ? (e.checked ? '1' : '0') : e.value); if (pdfDoc) { if (TXH.n) TXH.p = 1; else process(true); } };
   });
   $('#txtReset').onclick = function(){
     TXT_IDS.forEach(function(id){ var e = $('#' + id); if (e.type === 'checkbox') e.checked = TXT_DEF[id]; else e.value = TXT_DEF[id]; try { localStorage.removeItem('o_' + id); } catch (x) {} });
@@ -12079,7 +12100,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   Array.prototype.forEach.call(toolsEl.querySelectorAll('.tile,.tbanner'), function(b){ b.addEventListener('click', function(){ toolRun(b); }); });
 
   /* ---- نشانگر «تغییریافته» و بازنشانی هر بخش ---- */
-  var CFG_DEF = {"vstyle":"natural","emoLvl":"0","vclean":"a","vclarity":"2","gvOn":true,"nzMode":"auto","nzNs":"0.4","nzNw":"0.4","nzPause":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"oSpellTL":false,"oVg":true,"oVgMode":"safe","ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
+  var CFG_DEF = {"qAuto":true,"cAuto":true,"vstyle":"natural","emoLvl":"0","vclean":"a","vclarity":"2","gvOn":true,"nzMode":"auto","nzNs":"0.4","nzNw":"0.4","nzPause":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"oSpellTL":false,"oVg":true,"oVgMode":"safe","ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
   Array.prototype.forEach.call(document.querySelectorAll(CFG_SEC), function(s){
     var h = s.tagName === 'DETAILS' ? s.querySelector('summary .stt b') : s.querySelector('h3'), pn = s.closest('.panel');
     if (!s.id) s.id = 'cs-' + (++cfgN);
@@ -12122,8 +12143,48 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   $('#mbody').addEventListener('input', chgSoon, true);
   $('#mbody').addEventListener('change', chgSoon, true);
   chgScan();
+  /* ---- r134: ناظرهای ادغام‌کننده — یک کلید «خودکار» برای هر دسته؛ تنظیم‌های جزئی زیر «تنظیم دستی» می‌مانند ---- */
+  (function(){
+    function val(e){ return e.type === 'checkbox' ? e.checked : e.value; }
+    function hold(fn, after){
+      CHH.n++; TXH.n++;
+      try { fn(); } finally { CHH.n--; TXH.n--; }
+      if (!CHH.n && CHH.p) { CHH.p = 0; changed(); }
+      if (!TXH.n && TXH.p) { TXH.p = 0; if (pdfDoc) process(true); }
+      if (after) after();
+    }
+    function sup(o){
+      var m = $('#' + o.id), box = $('#' + o.box), ids = Object.keys(o.def), BAK = o.id + 'Bak', st, on;
+      if (!m || !box) return;
+      function el(k){ return $('#' + k); }
+      function isAuto(){ return ids.every(function(k){ var e = el(k); return e && String(val(e)) === String(o.def[k]); }); }
+      function put(k, v){
+        var e = el(k); if (!e || String(val(e)) === String(v)) return;
+        if (e.type === 'checkbox') e.checked = !!v; else e.value = v;
+        if (e.type === 'range') e.dispatchEvent(new Event('input', { bubbles: true }));
+        e.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      function snap(){ var r = {}; (o.all || ids).forEach(function(k){ var e = el(k); if (e) r[k] = val(e); }); return r; }
+      function mode(v){ m.checked = v; sset(o.id, v ? '1' : '0'); box.open = !v; }
+      st = sget(o.id, null); on = st === null ? isAuto() : (st === '1' && isAuto());   /* حالت ذخیره‌شده فقط وقتی معتبر است که مقدارها با آن بخواند */
+      mode(on);
+      m.onchange = function(){
+        var want = m.checked;
+        hold(function(){
+          if (want) { if (!isAuto()) sset(BAK, JSON.stringify(snap())); ids.forEach(function(k){ put(k, o.def[k]); }); }
+          else { var b = null; try { b = JSON.parse(sget(BAK, 'null')); } catch (x) {} if (b) Object.keys(b).forEach(function(k){ put(k, b[k]); }); }
+        }, function(){ mode(want); segRefresh(); chgSoon(); if (o.after) o.after(); });
+      };
+      ['change', 'input'].forEach(function(t){ box.addEventListener(t, function(e){ if (e.isTrusted && m.checked) { m.checked = false; sset(o.id, '0'); } }, true); });   /* تغییر دستیِ کاربر ← حالت دستی */
+      (o.resync || []).forEach(function(q){ var b = $(q); if (b) b.addEventListener('click', function(){ setTimeout(function(){ if (isAuto() && !m.checked) mode(true); chgSoon(); }, 0); }); });
+    }
+    sup({ id: 'qAuto', box: 'qManual', def: { vclean: 'a', vclarity: '2', enh: true, nzMode: 'auto' }, all: ['vclean', 'vclarity', 'enh', 'nzMode', 'nzNs', 'nzNw'], after: function(){ try { nsStatus(); nsKick(); } catch (x) {} } });
+    var d = {}; ['oDots', 'oHdr', 'oNorm', 'oFix', 'oScript', 'oLatin', 'oGlue', 'oToc', 'oPause', 'oSpell', 'oSpellTL'].forEach(function(k){ d[k] = TXT_DEF[k]; });
+    sup({ id: 'cAuto', box: 'cManual', def: d, resync: ['#txtReset'] });
+    chgSoon();
+  })();
 
-  var CFG_KEY = /^(hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|gvOn$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|emoLvl$|nz|harakat)/;
+  var CFG_KEY = /^(qAuto$|cAuto$|hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|gvOn$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|emoLvl$|nz|harakat)/;
 
   /* وقتی برنامه در پس‌زمینه است (مثلاً پخش با صفحهٔ خاموش) انیمیشن‌ها متوقف شوند */
   document.addEventListener('visibilitychange', function(){ document.documentElement.classList.toggle('bg-paused', document.hidden); });
@@ -13253,4 +13314,23 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
       scrim.classList.remove('on'); sheet.classList.remove('on');
       btn.setAttribute('aria-expanded', 'false');
       tmr = setTimeout(function(){ sheet.hidden = true; scrim.hidden = true; vbox.textContent = ''; }, 280);
-      try { btn.focus({ preventScroll: true }); } catc                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+      try { btn.focus({ preventScroll: true }); } catch(e){}
+    }
+    btn.onclick = function(){ isOn ? close() : open(); };
+    scrim.onclick = close; $('#vsX').onclick = close;
+    document.addEventListener('keydown', function(e){ if (isOn && e.key === 'Escape') close(); });
+    sheet.addEventListener('touchstart', function(e){ ty = (inn.scrollTop <= 0 && e.touches.length === 1) ? e.touches[0].clientY : -1; }, { passive: true });
+    sheet.addEventListener('touchend', function(e){ if (ty >= 0 && e.changedTouches[0].clientY - ty > 90) close(); ty = 0; }, { passive: true });
+    $('#voice').addEventListener('change', sync);
+    window.addEventListener('resize', rzf(function(){ if (isOn) place(); }));
+    return { sync: sync, open: open, close: close };
+  })();
+  VS.sync(); setTimeout(VS.sync, 900); setTimeout(VS.sync, 3000);
+  hRender(); hScanRun();
+
+  window.addEventListener('pagehide', function(){ posFlush(); cancelAll(); });
+  document.addEventListener('visibilitychange', function(){ if (document.hidden) posFlush(); });
+})();
+</script>
+</body>
+</html>
