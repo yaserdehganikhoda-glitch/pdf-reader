@@ -1126,6 +1126,8 @@ body:not(.view-page) #rdRot{display:none}
 
 /* ===== r43: صفحهٔ گوینده و گفتار — فشرده و امروزی ===== */
 [data-panel="voice"]{gap:8px;padding:8px 10px 18px}
+.svh{margin:10px 2px 0;font-size:.74rem;font-weight:700;color:var(--muted)}
+#svLive{white-space:pre-line}
 [data-panel="voice"] .grp{gap:6px}
 [data-panel="voice"]>.grp,[data-panel="voice"] .cfgv>.grp{padding:8px 10px 10px;border-radius:14px}
 [data-panel="voice"] .grp>h3{font-size:.84rem}
@@ -1501,6 +1503,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
           <div class="tbody">
             <div class="tpanel on" id="tpanel-voice" role="tabpanel" aria-labelledby="ttab-voice" data-tp="voice">
 <p class="tlbl">تنظیمات صدا</p>
+<button type="button" class="tile t-g" data-go="voice" data-only="#svBox" data-title="ناظر هوشمند" data-sub="همهٔ ناظرهای خودکار" data-click="#svRef"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6zM9 12l2 2 4-4"/></svg></span><span class="tx"><b>ناظر هوشمند</b><small>همهٔ ناظرهای خودکار در یک صفحه</small></span></button>
 <div class="cfgrow c2"><button type="button" class="tile t-a" data-go="voice" data-only="#spkBox,#styleBox,#rateBox,#paceBox,#ezmBox,#nzBox" data-title="گوینده و گفتار" data-sub="سبک، سرعت و مکث"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg></span><span class="tx"><b>گوینده و گفتار</b><small>سبک، سرعت و مکث</small></span></button><button type="button" class="tile t-b" data-go="voice" data-only="#qualBox,#bgmBox" data-title="کیفیت و موسیقی" data-sub="نویز، شفافیت و موسیقی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8v8M8 5v14M12 9v6M16 6v12M20 10v4"/></svg></span><span class="tx"><b>کیفیت و موسیقی</b><small>نویز، شفافیت و موسیقی</small></span></button><button type="button" class="tile t-g" data-go="voice" data-only="#sleepBox,#advBox" data-title="تایمر و پیشرفته" data-sub="خواب و اطلاعات فنی"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/></svg></span><span class="tx"><b>تایمر و پیشرفته</b><small>خواب و اطلاعات فنی</small></span></button></div>
             </div>
             <div class="tpanel" id="tpanel-text" role="tabpanel" aria-labelledby="ttab-text" data-tp="text">
@@ -1512,6 +1515,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <div class="cfgrow c2"><button type="button" class="tile t-g" data-go="view" data-only="#presetBox,#themeBox,#fxBox" data-title="ظاهر و جلوه‌ها" data-sub="آماده، پوسته و جلوه‌ها"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg></span><span class="tx"><b>ظاهر و جلوه‌ها</b><small>آماده، پوسته و جلوه‌ها</small></span></button><button type="button" class="tile t-a" data-go="view" data-only="#fontBox,#scrollBox,#hlBox" data-title="قلم و پیمایش" data-sub="اندازه، قلم، دنبال‌کردن متن و هایلایت"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20l7-16 7 16M8 14h8"/></svg></span><span class="tx"><b>قلم و پیمایش</b><small>اندازه، قلم، دنبال‌کردن متن و هایلایت</small></span></button><button type="button" class="tile t-b" data-go="view" data-only="#pvBox" data-title="نمای صفحهٔ PDF" data-sub="تناسب، چرخش، تم و انتخاب متن"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM15 3v4h4M9 13h7M9 17h5"/></svg></span><span class="tx"><b>نمای صفحهٔ PDF</b><small>تناسب، چرخش، تم و انتخاب متن</small></span></button></div>
             </div>
             <div class="tpanel" id="tpanel-device" role="tabpanel" aria-labelledby="ttab-device" data-tp="device">
+<button type="button" class="tile t-g" data-go="voice" data-only="#svBox" data-title="ناظر هوشمند" data-sub="همهٔ ناظرهای خودکار" data-click="#svRef"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6zM9 12l2 2 4-4"/></svg></span><span class="tx"><b>ناظر هوشمند</b><small>همهٔ ناظرهای خودکار در یک صفحه</small></span></button>
 <button type="button" class="tile t-g" data-go="voice" data-only="#advBox" data-click="#logShow"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6"/></svg></span><span class="tx"><b>گزارش خطا</b><small>برای عیب‌یابی</small></span></button>
 <button type="button" class="tile t-g" data-go="lib" data-only="#stBox" data-title="ذخیره‌سازی و پشتیبان" data-sub="حافظه، مسیر ذخیره و تنظیمات"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span><span class="tx"><b>ذخیره‌سازی و پشتیبان</b><small>مسیر ذخیره، تنظیمات، ZIP</small></span></button>
 <button type="button" class="tile t-b exitB" ><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></span><span class="tx"><b>خروج</b><small>بستن برنامه</small></span></button>
@@ -1714,13 +1718,34 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
           </select>
         </div>
 </section>
-<section class="grp" id="qualBox">
-        <h3>کیفیت صدا</h3>
+<section class="grp" id="svBox">
+<h3>ناظر هوشمند</h3>
+<p class="hint">همهٔ ناظرهای برنامه یک‌جا هستند. هر ناظر در پس‌زمینه کار می‌کند و فقط هنگام لزوم دخالت می‌کند؛ ناظرهای تازه فقط اندازه می‌گیرند و در «گزارش خطا» ثبت می‌کنند.</p>
+<h4 class="svh">کیفیت و سلامت صدا</h4>
 <div class="slist"><label class="chk"><input type="checkbox" id="qAuto" checked><span class="st"><b>ناظر کیفیت صدا (خودکار)</b><small>نویز را برای هر گوینده اندازه می‌گیرد و وضوح و بهبود کیفیت را روی مقدار پیشنهادی نگه می‌دارد. برای تنظیم جزئی، خاموشش کنید.</small></span></label></div>
 <p class="hint" id="nsSt" aria-live="polite" hidden></p>
 <div class="btnrow" id="nsRow" hidden><button class="btn sm" id="nsRe" type="button">اندازه‌گیری دوبارهٔ ناظر نویز</button></div>
 <div class="slist"><label class="chk"><input type="checkbox" id="hsOn" checked><span class="st"><b>ناظر سلامت صدا (خودکار)</b><small>طول و سلامت هر تکهٔ ساخته‌شده را می‌سنجد و تکهٔ مشکوک (بریده، کشیده، خالی) را یک بار با نویز کمتر دوباره می‌سازد؛ خطای پخش را هم خودکار بازیابی می‌کند.</small></span></label></div>
 <p class="hint" id="hsSt" aria-live="polite" hidden></p>
+          <div class="slist"><label class="chk"><input type="checkbox" id="gvOn" checked><span class="st"><b>ناظر سرعت هوشمند</b><small>سرعت واقعی هر تکه را اندازه می‌گیرد و اگر تصادفاً تندتر یا کندتر از سرعت انتخابی شما ساخته شده باشد، هنگام پخش جبرانش می‌کند.</small></span></label></div>
+          <p class="hint" id="gvSt" aria-live="polite" hidden></p>
+<div class="btnrow"><button class="btn sm" id="svGoQ" type="button">تنظیم دستی کیفیت صدا</button></div>
+<h4 class="svh">متن و گفتار</h4>
+<div class="slist"><label class="chk"><input type="checkbox" id="cAuto" checked><span class="st"><b>ناظر پاک‌سازی متن (خودکار)</b><small>پاک‌سازی‌های پیشنهادی (سرصفحه، نقطه‌چین، یکدست‌سازی، فاصله‌گذاری، املای OCR و …) را روی مقدار پیشنهادی نگه می‌دارد. برای انتخاب جداگانه، خاموشش کنید.</small></span></label></div>
+<div class="slist"><label class="chk"><input type="checkbox" id="fixOn" checked><span class="st"><b>ناظر تصحیح گفتار (خودکار)</b><small>عدد، تاریخ، اختصار، لاتین، تنوین و مکث‌گذاری را پیش از خواندن اصلاح می‌کند؛ جزئیات زیر «تنظیم دستی» است.</small></span></label></div>
+<div class="slist"><label class="chk"><input type="checkbox" id="svTx" checked><span class="st"><b>نگهبان خروجی متن</b><small>پیش از ساخت صدا، مانده‌های لاتین، رقم و نماد در متن گفتار را می‌یابد و فقط ثبت می‌کند.</small></span></label></div>
+<div class="btnrow"><button class="btn sm" id="svGoC" type="button">تنظیم دستی پاک‌سازی</button><button class="btn sm" id="svGoF" type="button">تنظیم دستی تصحیح گفتار</button></div>
+<h4 class="svh">پایداری و منابع</h4>
+<div class="slist"><label class="chk"><input type="checkbox" id="svMem" checked><span class="st"><b>ناظر حافظهٔ فعال</b><small>اگر حافظهٔ JS از ۷۰٪ سقف گذشت، حافظه‌های موقت و صفحه‌های دورِ رندرشده را آزاد می‌کند؛ به اعلان فشار حافظهٔ اندروید هم پاسخ می‌دهد.</small></span></label></div>
+<div class="slist"><label class="chk"><input type="checkbox" id="svMdl" checked><span class="st"><b>ناظر یکپارچگی مدل صدا</b><small>هش SHA-256 مدل صدای فعال را (حداکثر هر ۳ روز، هنگام بیکاری) با مرجع اولین بررسی می‌سنجد و در صورت خرابی فقط هشدار می‌دهد.</small></span></label></div>
+<div class="slist"><label class="chk"><input type="checkbox" id="svExit" checked><span class="st"><b>ناظر خروج غیرمنتظره</b><small>اگر برنامه هنگام پخش یا OCR بدون خروج عادی بسته شود، بار بعد مرحله و حافظه را ثبت می‌کند.</small></span></label></div>
+<div class="slist"><label class="chk"><input type="checkbox" id="svThm" checked><span class="st"><b>ناظر دمای پخش</b><small>وقتی گوشی داغ است (وضعیت ۲ یا بیشتر)، اندازه‌گیری‌های پس‌زمینه مثل ناظر نویز به تعویق می‌افتند.</small></span></label></div>
+<h4 class="svh">گزارش زنده</h4>
+<p class="hint" id="svLive" aria-live="polite"></p>
+<div class="btnrow"><button class="btn sm" id="svRef" type="button">به‌روزرسانی گزارش</button></div>
+</section>
+<section class="grp" id="qualBox">
+        <h3>کیفیت صدا</h3>
 <details class="sub man" id="qManual"><summary>تنظیم دستی کیفیت صدا</summary>
 <div class="in">
         <div class="field">
@@ -1787,8 +1812,6 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
           </div>
           <div class="chips rchips" id="rateChips"></div>
           <p class="hint">سرعت کمتر از ۱× بدون تغییر زیر و بمی ساخته می‌شود.</p>
-          <div class="slist"><label class="chk"><input type="checkbox" id="gvOn" checked><span class="st"><b>ناظر سرعت هوشمند</b><small>سرعت واقعی هر تکه را اندازه می‌گیرد و اگر تصادفاً تندتر یا کندتر از سرعت انتخابی شما ساخته شده باشد، هنگام پخش جبرانش می‌کند.</small></span></label></div>
-          <p class="hint" id="gvSt" aria-live="polite" hidden></p>
         </div>
       </section>
 </div>
@@ -1920,7 +1943,6 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19l7-7M14 4l1.5 3.5L19 9l-3.5 1.5L14 14l-1.5-3.5L9 9l3.5-1.5z"/></svg></i><span class="stt"><b>پاک‌سازی و اصلاح متن</b><small>سرصفحه، نقطه‌چین، حروف عربی و فاصله‌گذاری</small></span></summary>
         <div class="in">
           <div class="slist">
-<div class="slist"><label class="chk"><input type="checkbox" id="cAuto" checked><span class="st"><b>ناظر پاک‌سازی متن (خودکار)</b><small>پاک‌سازی‌های پیشنهادی (سرصفحه، نقطه‌چین، یکدست‌سازی، فاصله‌گذاری، املای OCR و …) را روی مقدار پیشنهادی نگه می‌دارد. برای انتخاب جداگانه، خاموشش کنید.</small></span></label></div>
 <details class="sub man" id="cManual"><summary>تنظیم دستی پاک‌سازی</summary>
 <div class="in">
 <div class="slist">
@@ -2018,7 +2040,6 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
         <summary><i class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4.5 4.5L19 7"/></svg></i><span class="stt"><b>تصحیح‌گر هوشمند گفتار</b><small>عدد، تاریخ، اختصار، لاتین و مکث‌گذاری</small></span></summary>
         <div class="in">
           <div class="slist">
-<label class="chk"><input type="checkbox" id="fixOn" checked><span class="st"><b>ناظر تصحیح گفتار (خودکار)</b><small>عدد، تاریخ، اختصار، لاتین، تنوین و مکث‌گذاری را پیش از خواندن اصلاح می‌کند؛ جزئیات زیر «تنظیم دستی» است.</small></span></label>
 <details class="sub man" id="fxManual"><summary>تنظیم دستی تصحیح</summary>
 <div class="in">
 <div class="slist">
@@ -4367,7 +4388,7 @@ var ocrSpell = (function(){
   
   /* ===== ذخیره و بارگذاری کل تنظیمات (فایل JSON) =====
      همهٔ کلیدهای localStorage به‌جز جای خواندن هر فایل، فهرست‌ها، و حافظه‌های وابسته به دستگاه (OCR/GPU)؛ بارگذاری: تنظیمات جایگزین می‌شوند و برنامه دوباره راه‌اندازی می‌شود. */
-  var SET_SKIP = /^(pos:|pw:|dict:|favs$|recents$|hFolders$|errlog|engSig|ocrLane|ocrGpu|ocrNatBad|ocrNatCfg|ocrNatTuned|rateBase|vstyleV|smartV|gvM:|gvB:|gvN:|nsv:|th:)/;
+  var SET_SKIP = /^(pos:|pw:|dict:|favs$|recents$|hFolders$|errlog|engSig|ocrLane|ocrGpu|ocrNatBad|ocrNatCfg|ocrNatTuned|rateBase|vstyleV|smartV|gvM:|gvB:|gvN:|nsv:|th:|svSes$|svLast$)/;
   
   
   
@@ -8460,6 +8481,7 @@ var ocrSpell = (function(){
     })();
   }
   function analyzeDone(tot, uns, risky, N){
+      try { svOcq(risky, N); } catch (e) {}
       var ws = Object.keys(uns).sort(function(a, b){ return uns[b].n - uns[a].n; });
       tot.uns = ws.length;
       var all = 0, parts = [];
@@ -8874,7 +8896,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r136 · 2026-10-29 · ns-rows', npBuild = '';
+  var APP_BUILD = 'html-r139 · 2026-10-30 · sv-buf-cache-mdl', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -9416,8 +9438,119 @@ function hsWhy(c, b){   /* دلیل مشکوک‌بودن طول؛ '' = سالم
   return cps > 45 ? 'سرعت غیرعادی بالا (بریده)' : (cps < 3.5 && dur > 3) ? 'سرعت غیرعادی پایین (کشیده)' : '';
 }
 function hsRelease(b){ try { if (b && b.nh) NP.release({ handle: b.nh }).catch(function(){}); } catch (e) {} }
+/* ---- r137: ناظر هوشمند — ناظرهای تازه فقط اندازه‌گیری و ثبت می‌کنند؛ تنها دخالت: سبک‌سازی حافظه در حالت بحرانی و به‌تعویق‌انداختن کارهای پس‌زمینه در داغی ---- */
+var SV = { txN: 0, txB: 0, txS: '', mem: 0, memAt: 0, memH: 0, memL: 0, memN: 0, ses: false, lw: 0, lh: 0, lp: '', lv: -1, hlR: 0, hlE: 0, ocq: null, prev: '', rt: 0, trN: 0, trL: 0, trAt: 0, mdlB: 0, mdlD: {} };
+function svOn(k){ return sget(k, '1') !== '0'; }
+function svLog(k, m){ try { if (window.__elog) window.__elog.add(k, String(m).slice(0, 200)); } catch (e) {} }
+function svHot(){ return svOn('svThm') && thermal() >= 2; }
+function svTx(c){   /* نگهبان خروجی متن: بازماندهٔ لاتین/رقم/نماد در متن نهایی گفتار (فقط ثبت) */
+  var t, m, i;
+  if (!c || !svOn('svTx')) return;
+  t = c.text; if (typeof t !== 'string') return;
+  SV.txN++;
+  m = /[A-Za-z]/.exec(t) || /[0-9\u06F0-\u06F9\u0660-\u0669]/.exec(t) || /[@#$%^&=+<>{}|\\~_]/.exec(t);
+  if (!m) return;
+  i = m.index; SV.txB++; SV.txS = t.slice(Math.max(0, i - 12), i + 18);
+  try { elogR('text-guard', 'بازماندهٔ «' + m[0] + '» در متن گفتار (جملهٔ ' + c.start + '): …' + SV.txS + '…'); } catch (e) {}
+}
+function svHl(c, real){   /* ناظر هم‌گامی هایلایت (فقط شمارش): هر تکه یک‌بار؛ مرز واقعی بومی یا تخمین وزنی */
+  if (c._svh != null) return;
+  c._svh = real ? 1 : 0; if (real) SV.hlR++; else { SV.hlE++; elogR('hl-sync', 'تکهٔ ' + c.start + '–' + c.end + ' بدون مرز واقعی پلاگین؛ هایلایت تخمینی است'); }
+}
+function svOcq(risky, N){   /* ناظر کیفیت متن: سهم جمله‌های مشکوک پس از هر تحلیل */
+  if (!N) return;
+  SV.ocq = { r: risky | 0, n: N };
+  if (N >= 20 && risky / N >= 0.25) elogR('ocr-quality', nf.format(Math.round(risky * 100 / N)) + '٪ جمله‌ها مشکوک‌اند (' + risky + ' از ' + N + ')؛ اسکن دوباره یا اصلاح دستی پیشنهاد می‌شود');
+}
+function svLighten(){   /* سبک‌سازی مشترک: memo اصلاح‌گر، کش جمله‌های قدیمی، صفحه‌های دور از دید؛ شمار صفحه‌های آزادشده */
+  var n = 0, vh;
+  try { EZM.memo = {}; EZM.nm = 0; } catch (e) {}
+  try { if (playing) trimCache(idx); } catch (e) {}
+  try {
+    vh = window.innerHeight || 800;
+    Object.keys(pgEls).forEach(function(k){ var d = pgEls[k], rc; if (d && d.firstChild) { rc = d.getBoundingClientRect(); if (rc.bottom < -2 * vh || rc.top > 3 * vh) { unrenderPage(+k); n++; } } });
+  } catch (e) {}
+  SV.memN += n;
+  return n;
+}
+function svTrim(lv, fr){   /* onTrimMemory بومی (رویداد OcrNative.trim): فشار حافظهٔ سیستم‌عامل؛ حداکثر هر ۵ ثانیه یک‌بار */
+  var now = Date.now(), n;
+  SV.trN++; SV.trL = lv;
+  if (!svOn('svMem') || now - SV.trAt < 5000) return;
+  SV.trAt = now; SV.mem++; n = svLighten();
+  svLog('mem', 'سیستم‌عامل فشار حافظه اعلام کرد (سطح ' + lv + ')؛ سبک‌سازی انجام شد (' + n + ' صفحهٔ دور آزاد شد' + (fr ? '، نشست‌های OCR بیکار بسته شد' : '') + ')');
+}
+function svMdlRun(){   /* ناظر یکپارچگی مدل: SHA-256 مدل صدای فعال در پلاگین بومی؛ مرجع = اولین بررسی؛ فقط ثبت و هشدار، بدون حذف/بازسازی */
+  var id, k, a, lim;
+  if (!svOn('svMdl') || SV.mdlB || playing || ocrBusy || svHot() || performance.now() < 20000) return;
+  if (!npOK || !NP || !NP.verify) return;
+  id = ($('#voice') || {}).value; if (!id || SV.mdlD[id]) return;
+  k = 'svMdl:' + id; a = sget(k, '').split('|'); lim = a[0] === 'bad' ? 3600000 : 3 * 86400000;
+  if (a[0] && Date.now() - (+a[1] || 0) < lim) { SV.mdlD[id] = 1; return; }
+  SV.mdlB = 1;
+  Promise.resolve(NP.verify({ id: id })).then(function(r){
+    var st = (r && r.state) || '?';
+    SV.mdlD[id] = 1; sset(k, st + '|' + Date.now() + '|' + (((r && +r.ms) || 0) | 0));
+    if (st === 'bad' || st === 'broken') {
+      svLog('model', 'مدل «' + id + '»: ' + ((r && r.why) || st) + '؛ اگر پخش خطا داد، صدا را حذف و دوباره نصب کنید');
+      status('یکپارچگی مدل صدا مشکوک است؛ جزئیات در «ناظر هوشمند» و گزارش خطا.');
+    }
+  }).catch(function(){ SV.mdlD[id] = 1; }).then(function(){ SV.mdlB = 0; });
+}
+function svMemTick(){   /* ناظر حافظهٔ فعال */
+  var pm, u, lim, now = Date.now(), n = 0, vh;
+  try { pm = performance.memory; } catch (e) { return; }
+  if (!pm || !pm.usedJSHeapSize || !pm.jsHeapSizeLimit) return;
+  u = pm.usedJSHeapSize / 1048576; lim = pm.jsHeapSizeLimit / 1048576; SV.memH = Math.round(u); SV.memL = Math.round(lim);
+  if (!svOn('svMem') || u / lim < 0.7 || now - SV.memAt < 30000) return;
+  SV.memAt = now; SV.mem++;
+  n = svLighten();
+  svLog('mem', 'حافظهٔ JS ' + SV.memH + ' از ' + SV.memL + ' مگابایت؛ سبک‌سازی انجام شد (' + n + ' صفحهٔ دور آزاد شد)');
+}
+function svSes(){   /* ناظر خروج غیرمنتظره: ثبت مرحله/دید/حافظه؛ نوشتن فقط هنگام تغییر یا هر ۳۰ ثانیه */
+  var ph = playing ? 'play' : (ocrBusy ? 'ocr' : 'idle'), vis = document.hidden ? 0 : 1, now = Date.now(), h = SV.memH || 0;
+  if (!svOn('svExit') || exiting) return;
+  if (!SV.ses) { sset('svSes', '1'); SV.ses = true; }
+  if (ph !== SV.lp || vis !== SV.lv || Math.abs(h - SV.lh) >= 10 || now - SV.lw > 30000) { SV.lp = ph; SV.lv = vis; SV.lh = h; SV.lw = now; sset('svLast', ph + '|' + vis + '|' + h + '|' + now + '|' + idx); }
+}
+function svBoot(){
+  var f = sget('svSes', ''), a = sget('svLast', '').split('|'), ph = a[0], w;
+  if (!svOn('svExit') || f !== '1' || a.length < 4) return;
+  w = ph === 'play' ? 'پخش' : ph === 'ocr' ? 'OCR' : 'بیکار';
+  SV.prev = 'جلسهٔ قبل بدون خروج عادی بسته شد (مرحله: ' + w + (a[1] === '0' ? '، در پس‌زمینه' : '') + '، حافظهٔ JS ≈ ' + nf.format(+a[2] || 0) + ' مگابایت، جملهٔ ' + nf.format(+a[4] || 0) + ')';
+  svLog('exit', SV.prev);
+  if (ph === 'play' || ph === 'ocr') status('برنامه بار قبل هنگام ' + w + ' بدون خروج عادی بسته شد؛ جزئیات در «ناظر هوشمند» و گزارش خطا است.');
+}
+function svLive(){
+  var o = [], n = 0, off = 0, th = thermal(), hr = headroom(), pf = (typeof ocrPerf !== 'undefined' && ocrPerf) ? ocrPerf : null, q = SV.ocq, p, vid, mr, d;
+  o.push('• نگهبان پخش: ' + nf.format(HS.rec) + ' بازیابی در این نشست' + (wdFails.length ? '؛ ' + nf.format(wdFails.length) + ' قطع در ۲ دقیقهٔ اخیر' : '') + '.');
+  o.push('• ناظر دما و ظرفیت: وضعیت حرارتی ' + (th < 0 ? 'نامشخص' : nf.format(th)) + (hr >= 0 ? '، ظرفیت مصرف‌شده ' + nf.format(Math.round(hr * 100)) + '٪' : '') + (pf && pf.cool ? '، ' + nf.format(pf.cool) + ' مکث خنک‌سازی در OCR' : '') + '.');
+  o.push('• ناظر روانی ترد اصلی (OCR): ' + nf.format(pf && pf.stalls ? pf.stalls.length : 0) + ' وقفهٔ بلند در آخرین اجرا.');
+  o.push('• ناظر حافظه: ' + (SV.memH ? 'حافظهٔ JS ≈ ' + nf.format(SV.memH) + ' از ' + nf.format(SV.memL) + ' مگابایت' : 'اندازه‌گیری در این دستگاه ممکن نیست') + (SV.mem ? '؛ ' + nf.format(SV.mem) + ' بار سبک‌سازی (' + nf.format(SV.memN) + ' صفحه)' : '') + (SV.trN ? '؛ ' + nf.format(SV.trN) + ' اعلان فشار حافظهٔ سیستم (آخرین سطح ' + nf.format(SV.trL) + ')' : '') + '.');
+  try {
+    vid = ($('#voice') || {}).value; mr = vid ? sget('svMdl:' + vid, '').split('|') : [''];
+    d = mr[0] ? Math.floor((Date.now() - (+mr[1] || 0)) / 86400000) : 0;
+    o.push('• ناظر یکپارچگی مدل: ' + (!svOn('svMdl') ? 'خاموش' : !mr[0] ? 'هنوز بررسی نشده' : mr[0] === 'ok' ? 'سالم' : mr[0] === 'baseline' ? 'مرجع ثبت شد؛ بررسی بعدی مقایسه می‌کند' : mr[0] === 'bad' ? 'با مرجع نمی‌خواند ← حذف و نصب دوبارهٔ صدا پیشنهاد می‌شود' : mr[0] === 'broken' ? 'فایل‌های مدل ناقص‌اند ← نصب دوباره' : 'صدا نصب نیست') + (mr[0] ? (d ? '، ' + nf.format(d) + ' روز پیش' : '، امروز') : '') + '.');
+  } catch (e) {}
+  if (SV.prev) o.push('• خروج غیرمنتظره: ' + SV.prev + '.');
+  o.push('• نگهبان متن: ' + nf.format(SV.txN) + ' تکه بررسی شد؛ ' + nf.format(SV.txB) + ' مورد مشکوک' + (SV.txS ? ' (نمونه: …' + SV.txS + '…)' : '') + '.');
+  o.push('• ناظر هم‌گامی هایلایت: ' + nf.format(SV.hlR) + ' تکه با مرز واقعی پلاگین، ' + nf.format(SV.hlE) + ' تکه تخمینی' + (SV.hlE ? ' (احتمال جلو/عقب‌ماندن هایلایت)' : '') + '.');
+  if (q) { p = Math.round(q.r * 100 / q.n); o.push('• ناظر کیفیت متن: ' + nf.format(p) + '٪ جمله‌ها مشکوک‌اند (' + nf.format(q.r) + ' از ' + nf.format(q.n) + ')' + (p >= 25 ? ' ← اسکن دوباره یا اصلاح دستی پیشنهاد می‌شود' : '') + '.'); }
+  try { Object.keys(GVS).forEach(function(k){ n++; if (GVS[k].off) off++; }); } catch (e) {}
+  o.push('• پایداری مدل سرعت: ' + nf.format(n) + ' مدل در این نشست' + (n ? '، ' + nf.format(off) + ' ناپایدار (جبران موقتاً خاموش)' : '') + '.');
+  return o;
+}
+function svRender(){
+  var e = $('#svLive'), base, ex = [], put;
+  if (!e) return;
+  base = svLive(); put = function(){ e.textContent = base.concat(ex).join('\n'); }; put();
+  if (!npOK || !NP) return;
+  try { if (NP.diag) NP.diag().then(function(r){ if (r && isFinite(r.underruns)) { ex.push('• لکنت پخش (underrun) بومی: ' + nf.format(r.underruns) + ' بار' + (isFinite(r.bufMs) ? '؛ بافر پخش ' + nf.format(r.bufMs) + ' میلی‌ثانیه' + (r.bufGrow ? ' (' + nf.format(r.bufGrow) + ' بار افزایش خودکار)' : '') : '') + '.'); put(); } }).catch(function(){}); } catch (x) {}
+  try { if (NP.cacheInfo) NP.cacheInfo().then(function(r){ var b = r.bytes || 0, m = r.max || 0; var ht = +r.hits || 0, tt = ht + (+r.misses || 0); ex.push('• ناظر کش صوت: ' + pcFmt(b) + ' از ' + pcFmt(m) + ' (' + nf.format(r.files || 0) + ' جمله)' + (tt ? '؛ نرخ برخورد ' + nf.format(Math.round(ht * 100 / tt)) + '٪ (' + nf.format(ht) + ' از ' + nf.format(tt) + ' جمله از شروع برنامه)' : '') + (r.evicted ? '؛ ' + nf.format(r.evicted) + ' جمله به‌دلیل سقف حذف شد' : '') + (m && b >= m * 0.9 ? ' ← نزدیک سقف؛ در «پیشرفته» سقف را بالا ببرید یا پاک‌سازی کنید' : '') + '.'); put(); }).catch(function(){}); } catch (x) {}
+}
 function hsGuard(c, v, b){
   var why;
+  svTx(c);
   if (!b || c.start < 0 || !hsOn()) return b;
   if (!b.nh) {   /* PCM در JS هست (بدون پخش بومی): طول + بریدگی/بی‌صدایی */
     hsDev = null; why = hsWhy(c, b);
@@ -9555,9 +9688,10 @@ var rawBlob = {}, sTab = {}, markMap = {};   /* markMap: مرز واقعی شر�
       while (lo < hi) { mid = (lo + hi + 1) >> 1; if (mk[mid] <= f) lo = mid; else hi = mid - 1; }
       posF = Math.max(0, Math.min(1, (f - mk[lo]) / (((lo + 1 < mk.length ? mk[lo + 1] : 1) - mk[lo]) || 1)));
       if (c.start + lo !== idx) { idx = c.start + lo; mark(true); }
-      posFi = idx;
+      posFi = idx; svHl(c, 1);
       return;
     }
+    svHl(c, 0);
     var cps = pCps || 14, w = [], total = 0, k, j, x;
     for (k = c.start; k <= c.end; k++) {   /* وزن هر جمله: طول متن گفتار (عدد/اختصار باز شده) + مکث پس از آن */
       j = k - c.start; x = emoPartW(c, j, cps, k < c.end);
@@ -10557,7 +10691,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     var v, key, prev, st, fxp, tm, S, R, cp, L, i, r, m, x, row, pk, pp = null, o, stored, t0;
     if (nsBusy || !NP || !npOK || $('#vclean').value !== 'a' || engine() !== 'piper') { nsStatus(); return; }
     v = currentVoice(); if (!v) return;
-    if (playing) { nsLater(); return; }
+    if (playing || svHot()) { nsLater(); return; }
     key = nsKey(v.id);
     if (!force && nsGet(key)) { nsStatus(); return; }
     if (force) delete NSR[key];
@@ -12233,7 +12367,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
   Array.prototype.forEach.call(toolsEl.querySelectorAll('.tile,.tbanner'), function(b){ b.addEventListener('click', function(){ toolRun(b); }); });
 
   /* ---- نشانگر «تغییریافته» و بازنشانی هر بخش ---- */
-  var CFG_DEF = {"qAuto":true,"cAuto":true,"vstyle":"natural","emoLvl":"0","vclean":"a","vclarity":"2","gvOn":true,"nzMode":"auto","nzNs":"0.4","nzNw":"0.4","nzPause":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"oSpellTL":false,"oVg":true,"oVgMode":"safe","ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
+  var CFG_DEF = {"qAuto":true,"hsOn":true,"svMem":true,"svMdl":true,"svExit":true,"svTx":true,"svThm":true,"cAuto":true,"vstyle":"natural","emoLvl":"0","vclean":"a","vclarity":"2","gvOn":true,"nzMode":"auto","nzNs":"0.4","nzNw":"0.4","nzPause":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"oSpellTL":false,"oVg":true,"oVgMode":"safe","ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
   Array.prototype.forEach.call(document.querySelectorAll(CFG_SEC), function(s){
     var h = s.tagName === 'DETAILS' ? s.querySelector('summary .stt b') : s.querySelector('h3'), pn = s.closest('.panel');
     if (!s.id) s.id = 'cs-' + (++cfgN);
@@ -12317,7 +12451,36 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
     chgSoon();
   })();
 
-  var CFG_KEY = /^(qAuto$|cAuto$|hsOn$|hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|gvOn$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|emoLvl$|nz|harakat)/;
+  (function(){   /* r137: صفحهٔ «ناظر هوشمند» */
+    var tk = 0;
+    ['svMem', 'svExit', 'svTx', 'svThm', 'svMdl'].forEach(function(id){
+      var e = $('#' + id); if (!e) return;
+      e.checked = svOn(id);
+      e.onchange = function(){
+        sset(id, this.checked ? '1' : '0');
+        if (id === 'svExit') { if (this.checked) svSes(); else { sset('svSes', '0'); SV.ses = false; } }
+        svRender();
+      };
+    });
+    [['svGoQ', 'voice', '#qualBox', 'کیفیت صدا'], ['svGoC', 'text', '#cleanBox', 'پاک‌سازی متن'], ['svGoF', 'text', '#fixbox', 'تصحیح گفتار']].forEach(function(a){
+      var b = $('#' + a[0]); if (b) b.onclick = function(){ setAppTab(a[1], { only: a[2], title: a[3], sub: 'تنظیم دستی' }); };
+    });
+    var r = $('#svRef'); if (r) r.onclick = svRender;
+    document.addEventListener('visibilitychange', svSes);
+    try {   /* onTrimMemory بومی: OcrNative.trim {level, freed} */
+      var OP = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.OcrNative;
+      if (OP && OP.addListener) Promise.resolve(OP.addListener('trim', function(e){ svTrim(e && isFinite(e.level) ? +e.level : 0, !!(e && e.freed)); })).catch(function(){});
+    } catch (e) {}
+    svBoot(); svSes();
+    setInterval(function(){
+      if (document.hidden && !playing && !ocrBusy) return;
+      svMemTick(); svSes(); svMdlRun();
+      var b = $('#svBox');
+      if (++tk % 2 === 0 && curTab === 'voice' && b && !b.classList.contains('solo-off')) svRender();
+    }, 5000);
+  })();
+
+  var CFG_KEY = /^(qAuto$|cAuto$|hsOn$|sv(?:Mem|Mdl|Exit|Tx|Thm)$|hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|gvOn$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|smartPace|stAuto|stCap|theme|vfAuto|voice$|vstyle$|emoLvl$|nz|harakat)/;
 
   /* وقتی برنامه در پس‌زمینه است (مثلاً پخش با صفحهٔ خاموش) انیمیشن‌ها متوقف شوند */
   document.addEventListener('visibilitychange', function(){ document.documentElement.classList.toggle('bg-paused', document.hidden); });
@@ -12404,6 +12567,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
   };
   function exDo(){
     if (exiting) return; exiting = true;
+    try { sset('svSes', '0'); SV.ses = false; } catch (e) {}
     var ok = $('#exOk'), sy = $('#exStay'), t0 = ok.textContent;
     ok.disabled = sy.disabled = true; ok.textContent = 'در حال ذخیرهٔ تنظیمات…';
     var rst = function(){ exiting = false; ok.disabled = sy.disabled = false; ok.textContent = t0; };
