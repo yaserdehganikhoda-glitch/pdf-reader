@@ -54,6 +54,7 @@ import java.util.concurrent.Executors
  * رویداد: "progress" {loaded, total}
  * کیفیت صدا: synthesize({..., clean?: 0..3, clarity?: 0..3}) → حذف نویز و ارتقای شفافیت/رسایی؛ ۰ خاموش، ۲ متعادل (پیش‌فرض)؛ جزئیات در SpeechClean (انتهای فایل)
  * مسترینگ: synthesize({..., master?: Boolean, fxPk?: dB, fxHs?: dB, fxLp?: Hz}) → EQ + کمپرسور + لیمیتر روی خروجی نهایی؛ جزئیات در MasterFx
+ * اکولایزر کاربر (r14): synthesize({..., eq?: {pre: dB, lc: Hz, hc: Hz, q, limiter: 0|1, bands: [[Hz, dB] × ۱۰]}}) → تمام ۱۰ باند + تقویت کلی + قطع بم/زیر + محافظ برش؛ مستقل از master، پس از مسترینگ؛ MasterFx.eq
  * ساخت صدا: synthesize({id, text, parts?:[{t, s}], gap?, noiseScale?, noiseScaleW?, speed?}) هر جمله (part) جدا ساخته و روی دیسک کش می‌شود؛
  *   کش دولایهٔ جمله‌ای روی دیسک (v1 خام، v2 پس از SpeechClean)؛ کلید فقط به متن همان جمله، صدا، نویز، سرعت و سطح پاک‌سازی بستگی دارد، نه به مرز تکه.
  *   سرعت s/speed بین ۰٫۴ و ۲٫۵ (سرعت کاربر داخل مدل).
@@ -416,7 +417,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r13-hs").put("media", true))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r14-eq").put("media", true))
     }
 
     @PluginMethod
@@ -1264,6 +1265,7 @@ class PiperNativePlugin : Plugin() {
         val fxPk = (call.getFloat("fxPk") ?: 2f).coerceIn(-6f, 8f)
         val fxHs = (call.getFloat("fxHs") ?: 0.8f).coerceIn(-6f, 8f)
         val fxLp = (call.getFloat("fxLp") ?: 10500f).coerceIn(4000f, 20000f)
+        val eqCfg = MasterFx.EqCfg.from(call.getObject("eq"))   // r14: اکولایزر کامل ۱۰ باندی (null = خاموش یا تخت)
         val pzOn = call.getBoolean("pz") ?: false   // r145 (ناظر مکث): نرمال‌سازی سکوت مرز جمله‌ها و کوتاه‌کردن سکوت‌های داخلیِ طولانی
         val lvT: Double? = call.getDouble("lvT")   // r141: هدف بلندی (dBFS، میانهٔ اخیر همان گوینده)؛ بدون آن تراز نمی‌شود
         val strong = id.contains("mana", ignoreCase = true)   // مانا: خروجی خام SNR پایین دارد؛ بدون این حالت شرط ۲۵dB باعث می‌شد حذف نویز اصلاً اجرا نشود (اعتماد تدریجی ۱۲–۲۵dB + کاهش خش بالای ۴kHz در واکه‌ها). کلید کش شامل strong است
@@ -1381,7 +1383,8 @@ class PiperNativePlugin : Plugin() {
                 val rawHs = rawHealth(all)   // r13: بریدگی و مقدار نامعتبر پیش از صیقل/لیمیتر (ناظر سلامت صدا)
                 val trim = IntArray(1)   // نمونه‌هایی که صیقل از ابتدای بافر بریده (مرزها باید همین‌قدر جابه‌جا شوند)
                 val pol = polish(all, sr, trim)
-                val fin = if (fxOn) MasterFx.process(pol, sr, fxPk, fxHs, fxLp, strong, lvlPause) else pol
+                val fin0 = if (fxOn) MasterFx.process(pol, sr, fxPk, fxHs, fxLp, strong, lvlPause) else pol
+                val fin = if (eqCfg != null) MasterFx.eq(fin0, sr, eqCfg) else fin0   // r14: اکولایزر کاربر بعد از مسترینگ
                 for (i in fin.indices) fin[i] *= OUT_TRIM   // r120: ۳dB headroom (پیک ≈ −۳ dBFS)؛ بعد از کش و مسترینگ، پس کش بی‌اثر می‌ماند
                 // مرز واقعی شروع هر جمله (کسری از ۰ تا ۱ از کل خروجی)؛ برای هم‌گام‌سازی هایلایت به‌جای تخمین از نسبت نویسه‌ها (T-14)
                 // playerPos بومی هم کسری از همین بافر است (مستقل از سرعت پخش)؛ در وب نسبت زمان به مدت صداست
@@ -2310,7 +2313,7 @@ private object MasterFx {
     }
 
     /** کمپرسور/لیمیتر با زانوی نرم، آشکارساز قله، پیش‌نگر و جبران بلندی (مثل DynamicsCompressor مرورگر) */
-    private fun comp(x: DoubleArray, sr: Int, thr: Double, knee: Double, ratio: Double, att: Double, rel: Double, look: Double) {
+    private fun comp(x: DoubleArray, sr: Int, thr: Double, knee: Double, ratio: Double, att: Double, rel: Double, look: Double, makeup: Boolean = true) {
         val n = x.size
         val la = (look * sr).toInt()
         val ac = Math.exp(-1.0 / (att * sr)); val rc = Math.exp(-1.0 / (rel * sr))
@@ -2323,7 +2326,7 @@ private object MasterFx {
             }
             return out - inDb
         }
-        val mk = Math.pow(Math.pow(10.0, -gainDb(0.0) / 20.0), 0.6)
+        val mk = if (makeup) Math.pow(Math.pow(10.0, -gainDb(0.0) / 20.0), 0.6) else 1.0
         val g = DoubleArray(n)
         var cur = 0.0
         for (i in 0 until n) {
@@ -2433,6 +2436,51 @@ private object MasterFx {
         if (a <= 0.98) return v.toFloat()
         val y = 0.98 + 0.02 * Math.tanh((a - 0.98) / 0.02)
         return (if (v < 0) -y else y).toFloat()
+    }
+
+    /** تنظیمات اکولایزر کاربر (کلید eq از index.html؛ همان ساختار EQM.payload). null ⇒ خاموش یا کاملاً تخت */
+    class EqCfg(val pre: Double, val lc: Double, val hc: Double, val q: Double, val lim: Boolean, val fc: DoubleArray, val g: DoubleArray) {
+        companion object {
+            fun from(o: org.json.JSONObject?): EqCfg? {
+                if (o == null) return null
+                val arr = o.optJSONArray("bands") ?: return null
+                val n = Math.min(arr.length(), 10)
+                val fc = DoubleArray(n); val g = DoubleArray(n)
+                for (i in 0 until n) {
+                    val b = arr.optJSONArray(i) ?: return null
+                    fc[i] = b.optDouble(0, 0.0); g[i] = b.optDouble(1, 0.0).coerceIn(-12.0, 12.0)
+                    if (fc[i].isNaN() || g[i].isNaN()) return null
+                }
+                val lv = o.opt("limiter")
+                val lim = when (lv) { is Boolean -> lv; is Number -> lv.toDouble() != 0.0; else -> true }
+                val c = EqCfg(o.optDouble("pre", 0.0).coerceIn(-12.0, 12.0), o.optDouble("lc", 0.0).coerceIn(0.0, 500.0),
+                    o.optDouble("hc", 0.0).coerceIn(0.0, 20000.0), o.optDouble("q", 1.1).coerceIn(0.3, 4.0), lim, fc, g)
+                val flat = Math.abs(c.pre) < 0.01 && c.lc <= 0.0 && c.hc <= 0.0 && c.g.all { Math.abs(it) < 0.01 }
+                return if (flat) null else c
+            }
+        }
+    }
+
+    /**
+     * اکولایزر کاربر؛ همان گرافِ مرورگر (EQM.build): بهرهٔ کلی → بالاگذر → ۱۰ باند (شلف پایین، ۸ پیک با Q، شلف بالا) → پایین‌گذر → محافظ برش (−۲dB، ۲۰:۱).
+     * Q بالاگذر/پایین‌گذر در WebAudio بر حسب dB است (۰٫۷dB ≈ ۱٫۰۸۵ خطی، مثل lowpass مسترینگ). محافظ برش بدون جبران بلندی (تغییر ناخواستهٔ سطح هنگام روشن/خاموش‌کردن نباشد).
+     * باند/قطعی که از ۰٫۴۵×نرخ نمونه بالاتر باشد (مثل شلف ۱۲kHz در صدای ۲۲٫۰۵kHz) روی همان سقف طراحی می‌شود؛ پایین‌گذر بالای سقف رد می‌شود.
+     */
+    fun eq(src: FloatArray, sr: Int, c: EqCfg): FloatArray {
+        if (src.isEmpty()) return src
+        val x = DoubleArray(src.size) { src[it].toDouble() }
+        if (c.pre != 0.0) { val gp = Math.pow(10.0, c.pre / 20.0); for (i in x.indices) x[i] *= gp }
+        if (c.lc > 0.0) highpass(c.lc, 1.085, sr).run(x)
+        val last = c.fc.size - 1
+        for (i in c.fc.indices) {
+            val f = c.fc[i]; val gd = c.g[i]
+            if (f <= 0.0 || Math.abs(gd) < 0.01) continue
+            val f0 = Math.min(f, sr * 0.45)
+            (if (i == 0) lowShelf(f0, gd, sr) else if (i == last) highShelf(f0, gd, sr) else peaking(f0, c.q, gd, sr)).run(x)
+        }
+        if (c.hc > 0.0 && c.hc < sr * 0.45) lowpass(c.hc, 1.085, sr).run(x)
+        if (c.lim) comp(x, sr, -2.0, 0.0, 20.0, 0.003, 0.12, 0.003, false)
+        return FloatArray(x.size) { softClip(x[it]) }
     }
 
     fun process(src: FloatArray, sr: Int, pk: Float, hs: Float, lp: Float, strong: Boolean = false, pauseLvl: Int = 2): FloatArray {
