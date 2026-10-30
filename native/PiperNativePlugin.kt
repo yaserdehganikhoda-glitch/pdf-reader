@@ -656,14 +656,16 @@ class PiperNativePlugin : Plugin() {
                 val sf = sumFile(id)
                 val p = if (sf.isFile) sf.readText().trim().split("|") else emptyList()
                 if (p.size != 2) {   // مرجع نیست یا ناخوانا ⇒ مرجع تازه
-                    sf.writeText("$size|" + sha256(o))
-                    call.resolve(JSObject().put("state", "baseline").put("size", size).put("ms", ms())); return@execute
+                    val h0 = sha256(o)
+                    sf.writeText("$size|$h0")
+                    call.resolve(JSObject().put("state", "baseline").put("size", size).put("sum", h0.take(12)).put("ms", ms())); return@execute
                 }
                 if (p[0].toLongOrNull() != size) {
                     call.resolve(JSObject().put("state", "bad").put("why", "اندازهٔ فایل با مرجع نمی‌خواند").put("size", size).put("ms", ms())); return@execute
                 }
-                val ok = sha256(o) == p[1]
-                call.resolve(JSObject().put("state", if (ok) "ok" else "bad").put("why", if (ok) "" else "هش فایل با مرجع نمی‌خواند").put("size", size).put("ms", ms()))
+                val h1 = sha256(o)
+                val ok = h1 == p[1]
+                call.resolve(JSObject().put("state", if (ok) "ok" else "bad").put("why", if (ok) "" else "هش فایل با مرجع نمی‌خواند").put("size", size).put("sum", h1.take(12)).put("ms", ms()))
             } catch (e: Throwable) { call.reject("بررسی ناموفق: ${e.message}") }
         }
     }
@@ -1248,6 +1250,7 @@ class PiperNativePlugin : Plugin() {
         val fxPk = (call.getFloat("fxPk") ?: 2f).coerceIn(-6f, 8f)
         val fxHs = (call.getFloat("fxHs") ?: 0.8f).coerceIn(-6f, 8f)
         val fxLp = (call.getFloat("fxLp") ?: 10500f).coerceIn(4000f, 20000f)
+        val lvT: Double? = call.getDouble("lvT")   // r141: هدف بلندی (dBFS، میانهٔ اخیر همان گوینده)؛ بدون آن تراز نمی‌شود
         val strong = id.contains("mana", ignoreCase = true)   // مانا: خروجی خام SNR پایین دارد؛ بدون این حالت شرط ۲۵dB باعث می‌شد حذف نویز اصلاً اجرا نشود (اعتماد تدریجی ۱۲–۲۵dB + کاهش خش بالای ۴kHz در واکه‌ها). کلید کش شامل strong است
         val ep = epoch.get()   // لحظهٔ رسیدن درخواست؛ اگر بعدش cancel بیاید این کار رها می‌شود
         cpu.execute {
@@ -1327,7 +1330,15 @@ class PiperNativePlugin : Plugin() {
                     for (ix in items.size - 1 downTo 0) { if (m[ix] < 0.0) m[ix] = nx else nx = m[ix] }   // جملهٔ بدون تکه: مرزش شروع جملهٔ بعدی
                     JSArray().also { a -> for (v in m) a.put(v) }
                 } else null
-                val hs = finHealth(fin, rawHs)
+                // r141 (تراز بلندی): تکه‌ای که ≥ ۲dB از هدف دور است تا ±۴dB به هدف می‌رود؛ افزایش با سقف پیک OUT_TRIM (بریدگی ندارد). پس از کش و بعد از OUT_TRIM ⇒ کش دست‌نخورده
+                val lvA0 = activeDb(fin)
+                var lvG = 1.0
+                if (lvT != null && lvA0 > -90.0 && Math.abs(lvT - lvA0) >= 2.0) {
+                    var g = Math.pow(10.0, (lvT - lvA0).coerceIn(-4.0, 4.0) / 20.0)
+                    if (g > 1.0) { var pk = 0f; for (x in fin) { val a = kotlin.math.abs(x); if (a > pk) pk = a }; if (pk > 0f) g = Math.min(g, OUT_TRIM.toDouble() / pk) }
+                    if (Math.abs(g - 1.0) > 0.03) { val gf = g.toFloat(); for (i in fin.indices) fin[i] *= gf; lvG = g }
+                }
+                val hs = finHealth(fin, rawHs, lvA0, lvG, sr)
                 if (keep) {
                     val h = pcmPut(fin, sr)
                     val res = JSObject().put("hs", hs).put("handle", h).put("sampleRate", sr).put("durationMs", fin.size * 1000L / sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
@@ -1352,11 +1363,39 @@ class PiperNativePlugin : Plugin() {
         return doubleArrayOf(cl.toDouble() / a.size.coerceAtLeast(1), bad.toDouble())
     }
     /** r13: آمار نهایی {pk قله، rms، dc میانگین، cl بریدگی خام، nan نامعتبر} برای JS؛ مقدارهای غیرمحدود هرگز در JSON نمی‌روند */
-    private fun finHealth(f: FloatArray, raw: DoubleArray): JSObject {
-        var pk = 0f; var sum = 0.0; var sq = 0.0; var bad = raw[1].toInt()
-        for (x in f) { if (x.isNaN() || x.isInfinite()) { bad++; continue }; val a = kotlin.math.abs(x); if (a > pk) pk = a; sum += x; sq += x.toDouble() * x }
+    /** r143: کف نویز زنده — همان تعریف nsMetrics در JS (فریم ۲۰ms، نمونه‌ها به int16 گرد می‌شوند؛ فریم مرده r ≤ 1e-9؛ ۱۵٪ کم‌انرژی‌ترین فریم‌ها نسبت به ۴۰٪ پرانرژی‌ترین‌ها)؛ NaN = داده کافی نیست */
+    private fun liveFloor(f: FloatArray, sr: Int): Double {
+        val n = Math.round(sr * 0.02f)
+        if (n < 8) return Double.NaN
+        val cnt = f.size / n
+        val r = DoubleArray(cnt)
+        val idx = ArrayList<Int>()
+        for (i in 0 until cnt) {
+            var e = 0.0
+            for (j in i * n until i * n + n) { val q = Math.round(f[j].coerceIn(-1f, 1f) * 32767f) / 32768.0; e += q * q }
+            r[i] = e / n
+            if (r[i] > 1e-9) idx.add(i)
+        }
+        if (idx.size < 20) return Double.NaN
+        idx.sortBy { r[it] }
+        val qn = Math.max(3, (idx.size * 0.15).toInt()); val qs = Math.max(5, (idx.size * 0.4).toInt())
+        var eN = 0.0; for (i in 0 until qn) eN += r[idx[i]]
+        var eS = 0.0; for (i in idx.size - qs until idx.size) eS += r[idx[i]]
+        eN /= qn; eS /= qs
+        return 10.0 * kotlin.math.log10(eN / eS + 1e-10)
+    }
+    private fun activeDb(f: FloatArray): Double {
+        var q = 0.0; var n = 0
+        for (x in f) { if (kotlin.math.abs(x) > 0.01f) { q += x.toDouble() * x; n++ } }
+        return if (n > 0) 10.0 * kotlin.math.log10(q / n + 1e-12) else -99.0
+    }
+    private fun finHealth(f: FloatArray, raw: DoubleArray, a0: Double = -99.0, g: Double = 1.0, sr: Int = 22050): JSObject {
+        var pk = 0f; var sum = 0.0; var sq = 0.0; var bad = raw[1].toInt(); var aq = 0.0; var an = 0
+        for (x in f) { if (x.isNaN() || x.isInfinite()) { bad++; continue }; val a = kotlin.math.abs(x); if (a > pk) pk = a; sum += x; sq += x.toDouble() * x; if (a > 0.01f) { aq += x.toDouble() * x; an++ } }
         val n = f.size.coerceAtLeast(1)
+        // ar: RMS (dBFS) فقط روی نمونه‌های فعال (|x| > ۰٫۰۱ ≈ −۴۰ dBFS) ⇒ مستقل از سهم مکث؛ −۹۹ = بدون نمونهٔ فعال (ناظر یکنواختی بلندی)
         return JSObject().put("pk", pk.toDouble()).put("rms", kotlin.math.sqrt(sq / n)).put("dc", sum / n).put("cl", raw[0]).put("nan", bad)
+            .put("ar", if (an > 0) 10.0 * kotlin.math.log10(aq / an + 1e-12) else -99.0).put("a0", a0).put("g", g).also { o -> val fl = liveFloor(f, sr); if (!fl.isNaN() && !fl.isInfinite()) o.put("fl", fl) }
     }
 
     /** صیقل خروجی هر تکه: حذف سکوت اضافهٔ ابتدا/انتها، محوشدن کوتاه (جلوگیری از «تق» بین جمله‌ها)، یکنواخت‌کردن بلندی صدا با محدودکنندهٔ نرم */
