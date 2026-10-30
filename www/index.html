@@ -1756,7 +1756,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <h4 class="svh">متن و گفتار</h4>
 <p class="hint"><b>ناظر پاک‌سازی متن</b> همیشه فعال است و سرصفحه، نقطه‌چین، یکدست‌سازی، فاصله‌گذاری، کلمه‌های چسبیده، فهرست، مکث، املای OCR و ویرگول‌گذاری را خودش نگه می‌دارد.</p>
 <p class="hint"><b>ناظر تصحیح گفتار</b> همیشه فعال است و عدد، تاریخ، اختصار، لاتین، تنوین، ارجاع درون‌متنی، مکث‌گذاری و واژه‌نامهٔ آوایی را پیش از خواندن اصلاح می‌کند.</p>
-<p class="hint"><b>ناظر ساختار متن</b> سطربندی، تشخیص کدگذاری، طول تکه‌جمله و ترتیب سطرها را خودکار نگه می‌دارد. <span id="svStrSt"></span></p>
+<p class="hint"><b>ناظر ساختار متن</b> سطربندی، تشخیص کدگذاری، طول تکه‌جمله و ترتیب سطرها را خودکار نگه می‌دارد؛ ستون واژه‌به‌واژه، سطر پایان‌یافته با حرف‌ربط، پسوند جداافتاده (مثل «ها» و «تر») و پرانتز/گیومهٔ نیمه‌باز را به‌هم می‌چسباند و شعر، فهرست و جدول را دست‌نخورده می‌گذارد. <span id="svStrSt"></span></p>
 <div class="slist"><label class="chk"><input type="checkbox" id="svTx" checked><span class="st"><b>نگهبان خروجی متن</b><small>پیش از ساخت صدا، مانده‌های لاتین، رقم و نماد در متن گفتار را می‌یابد و فقط ثبت می‌کند.</small></span></label></div>
 <h4 class="svh">پایداری و منابع</h4>
 <div class="slist"><label class="chk"><input type="checkbox" id="svMem" checked><span class="st"><b>ناظر حافظهٔ فعال</b><small>اگر حافظهٔ JS از ۷۰٪ سقف گذشت، حافظه‌های موقت و صفحه‌های دورِ رندرشده را آزاد می‌کند؛ به اعلان فشار حافظهٔ اندروید هم پاسخ می‌دهد.</small></span></label></div>
@@ -4898,9 +4898,28 @@ var ocrSpell = (function(){
     }
     return { b: pb, m: pm };
   }
+  /* r153 (ناظر ساختار): نشانه‌های قطعیِ «سطر ادامه دارد» حتی وقتی سطر کوتاه است: پایان با حرف‌ربط/اضافهٔ ناتمام، آغاز با پسوند جداافتاده یا علامت بستن/ویرگول، و پرانتز/گیومهٔ باز که سطر بعد می‌بندد */
+  var JB_CONN_END = /(?:^|\s)(?:و|یا|که|از|به|در|با|تا|را|برای|بر|چون|اگر)$/;
+  var JB_SFX = /^(?:ها|های|هایی|تر|ترین|کننده|کنندگان|دهنده|دهندگان|گیری|سازی|بندی|گذاری)(?=$|[\s،.؛:!?؟)»])/;
+  var JB_CONT = /^[،؛,;)»\]”]/;
+  function jbOpen(l, nx){
+    var o = (l.match(/[«(\[“]/g) || []).length, c = (l.match(/[»)\]”]/g) || []).length, no = (nx.match(/[«(\[“]/g) || []).length, nc = (nx.match(/[»)\]”]/g) || []).length;
+    return o > c && nc > no;
+  }
   function joinBrokenLines(t, mode){
     var ls = t.split('\n'), pf = mode === 'join' ? { b: [], m: [] } : poemFlags(ls), ln = ls.map(function(l){ return l.length; }).filter(Boolean).sort(function(a, b){ return a - b; });
-    var ref = ln.length ? ln[Math.floor(ln.length * 0.9)] : 0, out = '';
+    var ref = ln.length ? ln[Math.floor(ln.length * 0.9)] : 0, out = '', fr = [];
+    /* r152 (ناظر ساختار): ستون واژه‌به‌واژه — PDFهایی که هر واژه را سطر جدا می‌دهند، در حالت خودکار «عنوان کوتاه» حساب می‌شدند و هر واژه یک بند/جمله می‌شد (پخش تکه‌تکه). ≥۴ سطر پیاپی ≤۲ واژه و ≤۱۶ نویسه (بدون نقطهٔ پایان، آیتم، جدول) که دست‌کم یکی‌شان حرف‌ربط/اضافهٔ مستقل (NB_AFTER) یا ویرگول‌دار باشد = نثر پیوسته؛ سطرهای آن به هم می‌چسبند. شعر (poemFlags) و حالت «هر سطر جدا» پیش‌تر/جداگانه محافظت می‌شوند */
+    if (mode !== 'line' && mode !== 'join') {
+      var isF = function(l){ return !!l && l.length <= 16 && /\p{L}/u.test(l) && l.trim().split(/\s+/).length <= 2 && !JB_END.test(l) && !JB_ITEM.test(l) && !TBL.test(l); };
+      for (var q0 = 0, q1, q2, fw; q0 < ls.length; ) {
+        if (!isF(ls[q0])) { q0++; continue; }
+        q1 = q0; fw = false;
+        while (q1 < ls.length && isF(ls[q1])) { if (NB_AFTER.has(ls[q1].trim()) || /[،,]$/.test(ls[q1])) fw = true; q1++; }
+        if (q1 - q0 >= 4 && fw) for (q2 = q0; q2 < q1; q2++) fr[q2] = true;
+        q0 = q1;
+      }
+    }
     ls.forEach(function(l, i){
       var nx = ls[i + 1], brk;
       if (nx === undefined) { out += l; return; }
@@ -4913,8 +4932,9 @@ var ocrSpell = (function(){
       if (/\u200c$/.test(l) && /^\p{L}/u.test(nx)) { out += l; return; }
       if (TBL.test(l) || TBL.test(nx)) { out += l + '\n'; return; }   /* جدول/خط‌چین: چسباندن نشود */
       if (pf.b[i]) { out += l + (pf.m[i] ? '\u001e' : '') + '\n'; return; }   /* مصرع شعر */
+      if (mode !== 'line' && mode !== 'join' && (jbOpen(l, nx) || (!JB_END.test(l) && (JB_CONN_END.test(l) || JB_SFX.test(nx) || JB_CONT.test(nx))))) { out += l + ' '; return; }   /* r153: ادامهٔ قطعی */
       if (mode !== 'join' && i > 0 && JB_ITEM.test(l) && JB_ITEM.test(ls[i - 1]) && !JB_ITEM.test(nx) && !(ref >= 40 && l.length >= ref * 0.85)) { out += l + '\n'; return; }   /* آیتم آخر فهرست به سطر بعدی نچسبد (T-19) */
-      brk = mode === 'line' || (mode !== 'join' && !joinable(l, nx, ref >= 40 && l.length < ref * 0.45));
+      brk = mode === 'line' || (mode !== 'join' && !joinable(l, nx, ref >= 40 && l.length < ref * 0.45 && !fr[i]));
       out += l + (brk ? '\n' : ' ');
     });
     return out.trim().replace(/\u001f/g, '، ');
@@ -9110,7 +9130,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r151 · 2026-10-30 · sv-own', npBuild = '';
+  var APP_BUILD = 'html-r153 · 2026-10-30 · sv-own', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
