@@ -70,6 +70,17 @@ class PiperNativePlugin : Plugin() {
 
     private val io = Executors.newSingleThreadExecutor()     // دانلود/استخراج
     @Volatile private var underruns = 0                      // مجموع underrun های AudioTrack از شروع برنامه (نشانهٔ لکنت پخش)
+    // r138 (ناظر لکنت): بافر AudioTrack با هر underrun ۱۰۰ms بزرگ‌تر می‌شود (سقف ۶۰۰ms)؛ ۳ دقیقه بدون لکنت ⇒ بازگشت به ۲۵۰ms.
+    // هزینه: رویداد playerPos و هایلایت تا اندازهٔ بافر جلوتر از صدای شنیده‌شده‌اند (≤ ۳۵۰ms بیشتر از حالت عادی).
+    private val BUF_MIN_MS = 250
+    private val BUF_MAX_MS = 600
+    @Volatile private var bufMs = 250
+    @Volatile private var bufGrow = 0
+    @Volatile private var bufAt = 0L
+    // r138 (ناظر کش): شمارندهٔ برخورد/خطا/حذف از شروع برنامه
+    private val cHit = java.util.concurrent.atomic.AtomicLong(0)
+    private val cMiss = java.util.concurrent.atomic.AtomicLong(0)
+    private val cEvict = java.util.concurrent.atomic.AtomicLong(0)
 
     private fun crashFile() = File(context.filesDir, "crash.log")
 
@@ -238,7 +249,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun diag(call: PluginCall) {
-        call.resolve(JSObject().put("underruns", underruns).put("sampleRate", sampleRate).put("sdk", android.os.Build.VERSION.SDK_INT)
+        call.resolve(JSObject().put("underruns", underruns).put("sampleRate", sampleRate).put("sdk", android.os.Build.VERSION.SDK_INT).put("bufMs", bufMs).put("bufGrow", bufGrow)
             .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL))
     }
     private val cpu = Executors.newSingleThreadExecutor()    // ساخت صدا (پشت‌سرهم)
@@ -612,6 +623,48 @@ class PiperNativePlugin : Plugin() {
             } catch (e: Throwable) {
                 call.reject("بارگذاری از پوشه ناموفق: ${e.message}")
             }
+        }
+    }
+
+    private fun sumFile(id: String) = File(voiceDir(id), ".sum")
+    private fun sha256(f: File): String {
+        val md = MessageDigest.getInstance("SHA-256")
+        java.io.FileInputStream(f).use { ins ->
+            val b = ByteArray(1 shl 16)
+            while (true) { val n = ins.read(b); if (n < 0) break; md.update(b, 0, n) }
+        }
+        return md.digest().joinToString("") { "%02x".format(it) }
+    }
+
+    /** r138 (ناظر یکپارچگی مدل): verify({id}) ⇒ {state: ok|baseline|bad|broken|missing, why?, size, ms}.
+     *  مرجع = SHA-256 فایل onnx در اولین بررسی (<voice>/.sum = «اندازه|هش»، همراه خروجی exportVoices می‌رود)؛ هیچ هش از پیش‌تعریف‌شده‌ای وجود ندارد.
+     *  فقط گزارش می‌دهد؛ هیچ فایلی حذف یا بازسازی نمی‌شود. روی رشتهٔ io اجرا می‌شود. */
+    @PluginMethod
+    fun verify(call: PluginCall) {
+        val id = call.getString("id") ?: return call.reject("id")
+        io.execute {
+            try {
+                val t0 = System.nanoTime()
+                fun ms() = (System.nanoTime() - t0) / 1_000_000L
+                if (!okMark(id).exists()) { call.resolve(JSObject().put("state", "missing")); return@execute }
+                val d = voiceDir(id)
+                val o = findOnnx(d)
+                if (o == null || !File(findRoot(d), "tokens.txt").isFile) {
+                    call.resolve(JSObject().put("state", "broken").put("why", if (o == null) "فایل onnx نیست" else "tokens.txt نیست")); return@execute
+                }
+                val size = o.length()
+                val sf = sumFile(id)
+                val p = if (sf.isFile) sf.readText().trim().split("|") else emptyList()
+                if (p.size != 2) {   // مرجع نیست یا ناخوانا ⇒ مرجع تازه
+                    sf.writeText("$size|" + sha256(o))
+                    call.resolve(JSObject().put("state", "baseline").put("size", size).put("ms", ms())); return@execute
+                }
+                if (p[0].toLongOrNull() != size) {
+                    call.resolve(JSObject().put("state", "bad").put("why", "اندازهٔ فایل با مرجع نمی‌خواند").put("size", size).put("ms", ms())); return@execute
+                }
+                val ok = sha256(o) == p[1]
+                call.resolve(JSObject().put("state", if (ok) "ok" else "bad").put("why", if (ok) "" else "هش فایل با مرجع نمی‌خواند").put("size", size).put("ms", ms()))
+            } catch (e: Throwable) { call.reject("بررسی ناموفق: ${e.message}") }
         }
     }
 
@@ -1108,7 +1161,7 @@ class PiperNativePlugin : Plugin() {
         for (f in cacheFiles().sortedBy { it.lastModified() }) {
             if (total <= goal) break
             val l = f.length()
-            if (f.delete()) total -= l
+            if (f.delete()) { total -= l; cEvict.incrementAndGet() }
         }
         cacheBytes = total
     }
@@ -1154,7 +1207,7 @@ class PiperNativePlugin : Plugin() {
                 val fs = cacheFiles()
                 val total = fs.sumOf { it.length() }
                 synchronized(cacheLock) { cacheBytes = total }
-                call.resolve(JSObject().put("bytes", total).put("files", fs.size).put("max", cacheMax()))
+                call.resolve(JSObject().put("bytes", total).put("files", fs.size).put("max", cacheMax()).put("hits", cHit.get()).put("misses", cMiss.get()).put("evicted", cEvict.get()))
             } catch (e: Throwable) { call.reject("خطا: ${e.message}") }
         }
     }
@@ -1248,6 +1301,7 @@ class PiperNativePlugin : Plugin() {
                     pieceItem.add(ix)
                 }
                 if (pieces.isEmpty()) throw IllegalStateException("متن قابل‌خواندن ندارد")
+                cHit.addAndGet(hit.toLong()); cMiss.addAndGet((pieces.size - hit).toLong())
                 var total = 0
                 for (x in pieces) total += x.size
                 for (j in 0 until pieces.size - 1) total += pieceGaps[j]   // مکث پس از جملهٔ j (نه ثابت؛ از نوع و طول همان جمله)
@@ -1418,9 +1472,10 @@ class PiperNativePlugin : Plugin() {
     @Suppress("DEPRECATION")
     private fun makeTrack(sr: Int): AudioTrack {
         val min = AudioTrack.getMinBufferSize(sr, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT)
-        val size = Math.max(if (min > 0) min else 0, sr / 4 * 2)   // ≈ ۲۵۰ms: هم روان، هم رویدادها نزدیک به صدای واقعی
+        val base = Math.max(if (min > 0) min else 0, sr / 4 * 2)   // ≈ ۲۵۰ms: هم روان، هم رویدادها نزدیک به صدای واقعی
+        if (bufMs > BUF_MIN_MS && android.os.SystemClock.elapsedRealtime() - bufAt > 180_000L) bufMs = BUF_MIN_MS
         return if (android.os.Build.VERSION.SDK_INT >= 23) {
-            AudioTrack.Builder()
+            val t = AudioTrack.Builder()
                 .setAudioAttributes(
                     android.media.AudioAttributes.Builder()
                         .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
@@ -1430,10 +1485,20 @@ class PiperNativePlugin : Plugin() {
                     AudioFormat.Builder().setSampleRate(sr).setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                         .setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build()
                 )
-                .setBufferSizeInBytes(size).setTransferMode(AudioTrack.MODE_STREAM).build()
+                .setBufferSizeInBytes(Math.max(base, sr * BUF_MAX_MS / 1000 * 2)).setTransferMode(AudioTrack.MODE_STREAM).build()   // ظرفیت = سقف رشد؛ اندازهٔ فعال پایین‌تر
+            try { t.setBufferSizeInFrames(Math.max(base / 2, sr * bufMs / 1000)) } catch (e: Throwable) {}
+            t
         } else {
-            AudioTrack(AudioManager.STREAM_MUSIC, sr, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, size, AudioTrack.MODE_STREAM)
+            AudioTrack(AudioManager.STREAM_MUSIC, sr, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, base, AudioTrack.MODE_STREAM)
         }
+    }
+
+    /** r138: پس از هر underrun بافر فعال ۱۰۰ms بزرگ‌تر می‌شود (تا سقف ظرفیت ترک)؛ فقط API 24+ (underrunCount) */
+    private fun growBuf(t: AudioTrack, sr: Int) {
+        bufAt = android.os.SystemClock.elapsedRealtime()
+        if (bufMs >= BUF_MAX_MS) return
+        bufMs = Math.min(BUF_MAX_MS, bufMs + 100); bufGrow++
+        try { t.setBufferSizeInFrames(Math.min(t.bufferCapacityInFrames, sr * bufMs / 1000)) } catch (e: Throwable) {}
     }
 
     private fun emitPl(ev: String, h: Int, p: Double = -1.0, msg: String? = null) {
@@ -1631,6 +1696,7 @@ class PiperNativePlugin : Plugin() {
                     if (now - lastEv >= 100) {
                         lastEv = now
                         emitPl("playerPos", item.h, Math.min(1.0, (srcBase + pos * rate.toDouble()) / Math.max(1, src.size)))
+                        if (android.os.Build.VERSION.SDK_INT >= 24) { val u = t.underrunCount; if (u > lastU) { underruns += u - lastU; lastU = u; growBuf(t, sr) } }
                     }
                 }
                 pend?.cancel(true)

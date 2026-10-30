@@ -12,6 +12,8 @@ import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtSession;
 import ai.onnxruntime.TensorInfo;
+import android.content.ComponentCallbacks2;
+import android.content.res.Configuration;
 import android.util.Base64;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -67,6 +69,37 @@ public class OcrNativePlugin extends Plugin {
         OrtSession s; String key, in, ep = "cpu", rm = "fp32", why = ""; int chans = 3, busy = 0; long loadMs; boolean retired = false;
     }
     private Sess recS, detS;
+
+    /* r138: onTrimMemory — رویداد JS «trim» {level, freed}. فقط RUNNING_LOW(10)، RUNNING_CRITICAL(15) و ≥ MODERATE(60) اعلام می‌شود
+       (UI_HIDDEN=20 و BACKGROUND=40 با هر رفتن به پس‌زمینه می‌آیند و نادیده‌اند). در 15 و ≥60 نشست‌های بیکار ORT بسته می‌شود؛ نشست مشغول دست‌نخورده و نشست بعدی در acquire ساخته می‌شود. */
+    private ComponentCallbacks2 trimCb;
+
+    private synchronized boolean trimSessions() {
+        boolean f = false;
+        if (recS != null && recS.busy == 0) { closeQuiet(recS); recS = null; f = true; }
+        if (detS != null && detS.busy == 0) { closeQuiet(detS); detS = null; f = true; }
+        return f;
+    }
+
+    @Override public void load() {
+        trimCb = new ComponentCallbacks2() {
+            @Override public void onTrimMemory(int level) {
+                if (level != 10 && level != 15 && level < 60) return;
+                boolean freed = level != 10 && trimSessions();
+                JSObject o = new JSObject();
+                o.put("level", level);
+                o.put("freed", freed);
+                notifyListeners("trim", o);
+            }
+            @Override public void onConfigurationChanged(Configuration c) { }
+            @Override public void onLowMemory() { onTrimMemory(80); }
+        };
+        try { getContext().getApplicationContext().registerComponentCallbacks(trimCb); } catch (Throwable e) { trimCb = null; }
+    }
+
+    @Override protected void handleOnDestroy() {
+        if (trimCb != null) { try { getContext().getApplicationContext().unregisterComponentCallbacks(trimCb); } catch (Throwable e) { } trimCb = null; }
+    }
 
     private Sess build(String model, Cfg c, String key) throws Exception {
         long t0 = System.nanoTime();
