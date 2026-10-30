@@ -670,6 +670,20 @@ class PiperNativePlugin : Plugin() {
         }
     }
 
+    /** r144 (بازسازی ایمن): repair({id, on:true}) ⇒ موتور آزاد و نشانهٔ .ok برداشته می‌شود تا download دوباره اجرا شود (داده و .sum دست‌نخورده)؛
+     *  repair({id, on:false}) ⇒ اگر دانلود شکست خورد و مدل قبلی هست، .ok برمی‌گردد؛ اگر دانلود موفق بوده .ok خودش هست و کاری نمی‌کند. */
+    @PluginMethod
+    fun repair(call: PluginCall) {
+        val id = call.getString("id") ?: return call.reject("id")
+        io.execute {
+            try {
+                if (call.getBoolean("on") == true) { if (ttsId == id) releaseEngine(id); okMark(id).delete() }
+                else if (!okMark(id).exists() && findOnnx(voiceDir(id)) != null) okMark(id).writeText("1")
+                call.resolve()
+            } catch (e: Throwable) { call.reject("repair: ${e.message}") }
+        }
+    }
+
     @PluginMethod
     fun remove(call: PluginCall) {
         val id = call.getString("id") ?: return call.reject("id")
@@ -1250,6 +1264,7 @@ class PiperNativePlugin : Plugin() {
         val fxPk = (call.getFloat("fxPk") ?: 2f).coerceIn(-6f, 8f)
         val fxHs = (call.getFloat("fxHs") ?: 0.8f).coerceIn(-6f, 8f)
         val fxLp = (call.getFloat("fxLp") ?: 10500f).coerceIn(4000f, 20000f)
+        val pzOn = call.getBoolean("pz") ?: false   // r145 (ناظر مکث): نرمال‌سازی سکوت مرز جمله‌ها و کوتاه‌کردن سکوت‌های داخلیِ طولانی
         val lvT: Double? = call.getDouble("lvT")   // r141: هدف بلندی (dBFS، میانهٔ اخیر همان گوینده)؛ بدون آن تراز نمی‌شود
         val strong = id.contains("mana", ignoreCase = true)   // مانا: خروجی خام SNR پایین دارد؛ بدون این حالت شرط ۲۵dB باعث می‌شد حذف نویز اصلاً اجرا نشود (اعتماد تدریجی ۱۲–۲۵dB + کاهش خش بالای ۴kHz در واکه‌ها). کلید کش شامل strong است
         val ep = epoch.get()   // لحظهٔ رسیدن درخواست؛ اگر بعدش cancel بیاید این کار رها می‌شود
@@ -1304,6 +1319,53 @@ class PiperNativePlugin : Plugin() {
                     pieceItem.add(ix)
                 }
                 if (pieces.isEmpty()) throw IllegalStateException("متن قابل‌خواندن ندارد")
+                // r145 (ناظر مکث): مکث بین دو جمله = سکوت ذاتیِ مدل (نامعلوم) + gap برنامه‌ریزی‌شده. اینجا سکوت ذاتی هر مرز به همان پشتوانهٔ لبه‌ای صیقل (۴۵ms ابتدا / ۷۰ms انتها) بریده می‌شود
+                // و gap طوری تنظیم می‌شود که مکث کل = gap برنامه‌ریزی‌شده + ۱۱۵ms (دقیقاً مثل مرز تکه‌ها که polish لبه‌ها را می‌برد و gapMs می‌آید). سکوت‌های داخلی > ۹۰۰ms به ۹۰۰ms کوتاه می‌شوند. کش دست‌نخورده می‌ماند.
+                var pzN = 0; var pzHid = 0L; var pzCut = 0L; var pzInt = 0; var pzIntCut = 0L
+                if (pzOn && pieces.size > 1) {
+                    val cL = (sr * 0.045).toInt(); val cT = (sr * 0.07).toInt(); val cap = (sr * 0.9).toInt()
+                    val kept = IntArray(pieces.size * 2)   // [سکوتِ نگه‌داشتهٔ ابتدا، انتها] هر تکه
+                    for (k in pieces.indices) {
+                        val x = pieces[k]
+                        if (x.size < sr / 4) continue
+                        var pk = 0f
+                        for (v in x) { val a = kotlin.math.abs(v); if (a > pk) pk = a }
+                        if (pk < 1e-3f) continue
+                        val thr = kotlin.math.max(pk * 0.012f, 0.0015f)
+                        var s0 = 0; while (s0 < x.size && kotlin.math.abs(x[s0]) < thr) s0++
+                        var e0 = x.size - 1; while (e0 > s0 && kotlin.math.abs(x[e0]) < thr) e0--
+                        if (e0 - s0 < sr / 10) continue
+                        val doLead = k > 0; val doTail = k < pieces.size - 1
+                        val a0 = if (doLead) kotlin.math.max(0, s0 - cL) else 0
+                        val b0 = if (doTail) kotlin.math.min(x.size - 1, e0 + cT) else x.size - 1
+                        if (doLead) { kept[2 * k] = s0 - a0; pzHid += s0; pzCut += a0 }
+                        if (doTail) { kept[2 * k + 1] = b0 - e0; pzHid += (x.size - 1 - e0); pzCut += (x.size - 1 - b0) }
+                        // سکوت‌های داخلی طولانی: وسط آن‌ها حذف می‌شود (نمونه‌های حذف‌شده زیر آستانه‌اند)
+                        val keepR = ArrayList<IntArray>()
+                        var segStart = a0; var i = a0
+                        while (i <= b0) {
+                            if (kotlin.math.abs(x[i]) < thr) {
+                                var j = i; while (j <= b0 && kotlin.math.abs(x[j]) < thr) j++
+                                val len = j - i
+                                if (len > cap) { keepR.add(intArrayOf(segStart, i + cap / 2)); segStart = j - cap / 2; pzInt++; pzIntCut += (len - cap).toLong() }
+                                i = j
+                            } else i++
+                        }
+                        keepR.add(intArrayOf(segStart, b0 + 1))
+                        var n2 = 0; for (r in keepR) n2 += r[1] - r[0]
+                        val y = FloatArray(n2); var o = 0
+                        for (r in keepR) { System.arraycopy(x, r[0], y, o, r[1] - r[0]); o += r[1] - r[0] }
+                        // r146: محو کوتاه روی لبه‌های بریده‌شده (فقط درون سکوتِ نگه‌داشته؛ هرگز روی آغاز/پایان گفتار) ⇒ بدون تق
+                        val fl = kotlin.math.min(kept[2 * k], (sr * 0.008).toInt()); val ft = kotlin.math.min(kept[2 * k + 1], (sr * 0.015).toInt())
+                        for (q in 0 until fl) y[q] *= q / fl.toFloat()
+                        for (q in 0 until ft) y[y.size - 1 - q] *= q / ft.toFloat()
+                        pieces[k] = y
+                    }
+                    for (k in 0 until pieces.size - 1) {
+                        pieceGaps[k] = kotlin.math.max(0, pieceGaps[k] + cL + cT - (kept[2 * k + 1] + kept[2 * (k + 1)]))
+                        pzN++
+                    }
+                }
                 cHit.addAndGet(hit.toLong()); cMiss.addAndGet((pieces.size - hit).toLong())
                 var total = 0
                 for (x in pieces) total += x.size
@@ -1343,11 +1405,13 @@ class PiperNativePlugin : Plugin() {
                     val h = pcmPut(fin, sr)
                     val res = JSObject().put("hs", hs).put("handle", h).put("sampleRate", sr).put("durationMs", fin.size * 1000L / sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
                     if (marks != null) res.put("marks", marks)
+                    if (pzOn) res.put("pz", JSObject().put("n", pzN).put("hid", pzHid * 1000L / sr).put("cut", pzCut * 1000L / sr).put("ni", pzInt).put("nic", pzIntCut * 1000L / sr))
                     call.resolve(res)
                 } else {
                     val wav = toWav(fin, sr)
                     val res = JSObject().put("hs", hs).put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
                     if (marks != null) res.put("marks", marks)
+                    if (pzOn) res.put("pz", JSObject().put("n", pzN).put("hid", pzHid * 1000L / sr).put("cut", pzCut * 1000L / sr).put("ni", pzInt).put("nic", pzIntCut * 1000L / sr))
                     call.resolve(res)
                 }
             } catch (e: Throwable) {
