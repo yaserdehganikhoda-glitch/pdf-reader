@@ -443,7 +443,7 @@ details.sub.man[open]>summary::after{transform:rotate(225deg)}
 
 /* ===== روان‌سازی اسکرول و جابه‌جایی تب‌ها ===== */
 :root:root{--glass:color-mix(in srgb,var(--card) 96%,transparent);--dock-bg:var(--glass)}
-.ibtn.round,.note,.dock,#seekTip,#fixTip,#spdPop,#slPop,.scrim,.selbar{-webkit-backdrop-filter:none;backdrop-filter:none}
+.ibtn.round,.note,.dock,#seekTip,#fixTip,#spdPop,.scrim,.selbar{-webkit-backdrop-filter:none;backdrop-filter:none}
 
 /* ===== نوار پخش فشرده: حدود نصف ارتفاع قبلی (≈۲۲۰ ← ≈۱۱۵px)؛ همهٔ دکمه‌ها سر جایشان ماندند ===== */
 :root:root{--dock-h:122px}
@@ -1058,17 +1058,9 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 .eqcv{width:100%;height:120px;display:block;margin:6px 0;border:1px solid var(--line);border-radius:12px;background:var(--card)}
 .eqrow{display:grid;grid-template-columns:62px 1fr 40px;align-items:center;gap:8px;font-size:.76rem}
 .eqrow output{direction:ltr;text-align:end;font-variant-numeric:tabular-nums;color:var(--accent)}
-/* r120: تایمر خواب در کادر پخش (دکمهٔ ساعت + پنجرهٔ بازشو) */
-.drA .dsl{inset-inline-start:42px}
-body.has-doc:not(.home-on) .drA .dsl{inset-inline-start:52px}
-.dsl .slb{position:absolute;top:-4px;inset-inline-end:-4px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--accent);color:var(--accent-ink,#fff);font:800 .6rem/16px inherit;font-style:normal;text-align:center;font-variant-numeric:tabular-nums}
-.dsl.on{color:var(--accent);border-color:var(--accent)}
-#slPop{position:fixed;inset-inline:12px;margin:0 auto;max-width:560px;z-index:32;bottom:calc(var(--dock-h) + 14px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-radius:16px;padding:10px 12px}
-#slPop[hidden]{display:none}
-#slPop .slh{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;font-weight:700}
-#slPop .slh b{color:var(--accent);font-variant-numeric:tabular-nums}
-#slPop .chips{gap:6px}
-#slPop .chip{min-height:34px;padding:2px 12px;font-size:.8rem}
+/* r156: تایمر خواب در تب صدا */
+#sleepBox .slh{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;font-weight:700}
+#sleepBox .slh b{color:var(--accent);font-variant-numeric:tabular-nums}
 
 /* ===== r41: نوار پخش — ردیف پیشرفت، گروه‌بندی کنترل‌ها ===== */
 .dock{gap:4px;padding:6px 12px calc(8px + env(safe-area-inset-bottom,0px))}
@@ -1602,7 +1594,6 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
       <div id="status" aria-live="polite"></div>
       <div class="drA">
         <button class="dtl" id="dTools" type="button" aria-label="ابزارها" title="ابزارها"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.3-.6-.6-2.3z"/></svg></button>
-        <button class="dtl dsl" id="slBtn" type="button" aria-label="تایمر خواب" title="تایمر خواب" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/></svg><i class="slb" id="slBadge" hidden></i></button>
         <button class="ibtn dpg" id="pgNext" type="button" disabled aria-label="صفحهٔ بعد" title="صفحهٔ بعد"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 6l6 6-6 6M5 6l6 6-6 6"/></svg></button>
         <span id="pageInfo"></span>
         <button class="ibtn dpg" id="pgPrev" type="button" disabled aria-label="صفحهٔ قبل" title="صفحهٔ قبل"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 6l-6 6 6 6M19 6l-6 6 6 6"/></svg></button>
@@ -1632,7 +1623,6 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
       </div>
       <div class="pills" hidden><button class="pill" id="stop" type="button" disabled>توقف</button></div>
     </section>
-    <div id="slPop" hidden role="group" aria-label="تایمر خواب"><div class="slh"><span>توقف خودکار پخش</span><b id="slV">خاموش</b></div><div class="chips" id="slChips"></div></div>
     <div id="spdPop" hidden role="group" aria-label="سرعت خواندن"><button type="button" class="btn sm rstep" id="spdDn" aria-label="کندتر">−</button><input type="range" class="rng" id="spdSl" min="0.4" max="2.5" step="0.05" value="1" aria-label="سرعت خواندن"><button type="button" class="btn sm rstep" id="spdUp" aria-label="تندتر">+</button><b id="spdVal">1×</b></div>
     <div class="dpeek" id="dockPeek" hidden>
       <button class="mplay" id="peekPlay" type="button" aria-label="پخش یا توقف" disabled>
@@ -1716,6 +1706,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
         <p class="hint">کاملاً رایگان و بدون سقف است؛ صدا یک‌بار بعد از نصب برنامه دانلود می‌شود و از آن به بعد بدون اینترنت کار می‌کند. ساخت صدا روی گوشی چند ثانیه زمان می‌برد.</p>
       </section>
 </div>
+<section class="grp" id="sleepBox"><h3>تایمر خواب</h3><div class="slh"><span>توقف خودکار پخش</span><b id="slV">خاموش</b></div><div class="chips" id="slChips"></div></section>
 
 <section class="grp" id="styleBox">
         <div class="field">
@@ -1755,8 +1746,8 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <div class="slist"><label class="chk"><input type="checkbox" id="svLvl" checked><span class="st"><b>تراز بلندی خودکار</b><small>تکه‌ای که بلندی‌اش ≥ ۲ دسی‌بل از میانهٔ اخیر همان گوینده فاصله دارد، تا ۴ دسی‌بل به آن نزدیک می‌شود (بدون بریدگی).</small></span></label></div>
 <h4 class="svh">متن و گفتار</h4>
 <p class="hint"><b>ناظر پاک‌سازی متن</b> همیشه فعال است و سرصفحه، نقطه‌چین، یکدست‌سازی، فاصله‌گذاری، کلمه‌های چسبیده، فهرست، مکث، املای OCR و ویرگول‌گذاری را خودش نگه می‌دارد؛ اختصار لاتین رایج یا تکرارشده (مثل SVM) را گاربیج حساب نمی‌کند.</p>
-<p class="hint"><b>ناظر تصحیح گفتار</b> همیشه فعال است و عدد، تاریخ، اختصار، لاتین، تنوین، ارجاع درون‌متنی، مکث‌گذاری و واژه‌نامهٔ آوایی را پیش از خواندن اصلاح می‌کند؛ قرن/سده را ترتیبی می‌خواند («قرن ۲۱» ← بیست‌ویکم) و فهرست حروف «ب ج د» را به واژه نمی‌چسباند.</p>
-<p class="hint"><b>ناظر ساختار متن</b> سطربندی، تشخیص کدگذاری، طول تکه‌جمله و ترتیب سطرها را خودکار نگه می‌دارد؛ ستون واژه‌به‌واژه، سطر پایان‌یافته با حرف‌ربط، پسوند جداافتاده (مثل «ها» و «تر») و پرانتز/گیومهٔ نیمه‌باز را به‌هم می‌چسباند و شعر، فهرست و جدول را دست‌نخورده می‌گذارد؛ عرض شکست سطر را از سطرهای میان‌جمله برآورد می‌کند، سطر انگلیسیِ تمام‌عرض با حرف بزرگ بعدی و «در سال/صفحه» + عدد را به‌هم می‌چسباند. <span id="svStrSt"></span></p>
+<p class="hint"><b>ناظر تصحیح گفتار</b> همیشه فعال است و عدد، تاریخ، اختصار، لاتین، تنوین، ارجاع درون‌متنی، مکث‌گذاری و واژه‌نامهٔ آوایی را پیش از خواندن اصلاح می‌کند؛ قرن/سده را ترتیبی می‌خواند («قرن ۲۱» ← بیست‌ویکم) و فهرست حروف «ب ج د» را به واژه نمی‌چسباند؛ مخفف‌های دانشگاهی و فارسی (et al.، Fig.، ن.ک، ک.پ)، یکاهای علمی (dB، nm، kV) را می‌خواند و شناسه‌های DOI/ISBN/arXiv را حذف می‌کند.</p>
+<p class="hint"><b>ناظر ساختار متن</b> سطربندی، تشخیص کدگذاری، طول تکه‌جمله، مرتب‌سازی سطرها بر اساس موقعیت (X/Y) و تشخیص ستون‌بندی (ستون راست ← چپ) را خودکار نگه می‌دارد؛ ستون واژه‌به‌واژه، سطر پایان‌یافته با حرف‌ربط، پسوند جداافتاده (مثل «ها» و «تر») و پرانتز/گیومهٔ نیمه‌باز را به‌هم می‌چسباند و شعر، فهرست و جدول را دست‌نخورده می‌گذارد؛ عرض شکست سطر را از سطرهای میان‌جمله برآورد می‌کند، سطر انگلیسیِ تمام‌عرض با حرف بزرگ بعدی و «در سال/صفحه» + عدد را به‌هم می‌چسباند. <span id="svStrSt"></span></p>
 <div class="slist"><label class="chk"><input type="checkbox" id="svTx" checked><span class="st"><b>نگهبان خروجی متن</b><small>پیش از ساخت صدا، مانده‌های لاتین، رقم و نماد در متن گفتار را می‌یابد و فقط ثبت می‌کند.</small></span></label></div>
 <h4 class="svh">پایداری و منابع</h4>
 <div class="slist"><label class="chk"><input type="checkbox" id="svMem" checked><span class="st"><b>ناظر حافظهٔ فعال</b><small>اگر حافظهٔ JS از ۷۰٪ سقف گذشت، حافظه‌های موقت و صفحه‌های دورِ رندرشده را آزاد می‌کند؛ به اعلان فشار حافظهٔ اندروید هم پاسخ می‌دهد.</small></span></label></div>
@@ -2362,8 +2353,8 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <input type="checkbox" id="humPace" checked>
 <input type="checkbox" id="smartPace">
 <input type="range" class="rng" id="maxL" min="60" max="300" step="10" value="200">
-<input type="checkbox" id="oPos">
-<input type="checkbox" id="oCols">
+<input type="checkbox" id="oPos" checked>
+<input type="checkbox" id="oCols" checked>
 <input type="checkbox" id="oDots" checked>
 <input type="checkbox" id="oHdr" checked>
 <input type="checkbox" id="oNorm" checked>
@@ -7980,6 +7971,24 @@ function jbWrapW(ls, old){
         [/(?<![A-Za-z])etc\.?(?![A-Za-z])/gi, ' و غیره '], [/(?<![A-Za-z])e\.\s?g\.?(?![A-Za-z])/gi, ' برای مثال '], [/(?<![A-Za-z])i\.\s?e\.?(?![A-Za-z])/gi, ' یعنی '],
         [/(?<![A-Za-z])vs\.?(?![A-Za-z])/gi, ' در برابر '], [/(?<![A-Za-z])Mr\.?(?=\s)/g, 'آقای'], [/(?<![A-Za-z])(?:Mrs|Ms)\.?(?=\s)/g, 'خانم'], [/(?<![A-Za-z])No\.\s*(?=\d)/g, 'شماره ']
       ];
+  /* r157: ارتقای ناظر تصحیح گفتار — مخفف‌های دانشگاهی/فارسی، یکاهای علمی و شناسه‌های کتاب‌شناختی */
+  var ABBR2 = [
+    [/(?<![A-Za-z])et\s+al\.?(?![A-Za-z])/gi, ' و همکاران '], [/(?<![A-Za-z])a\.k\.a\.?(?![A-Za-z])/gi, ' معروف به '], [/(?<![A-Za-z])cf\.(?=\s)/g, ' مقایسه کنید با '],
+    [/(?<![A-Za-z])Prof\.?(?=\s)/g, 'پروفسور'], [/(?<![A-Za-z])Figs?\.?\s*(?=\d)/g, ' شکل '], [/(?<![A-Za-z])Eqs?\.?\s*(?=\(?\d)/g, ' معادله '],
+    [/(?<![A-Za-z])[Vv]ol\.\s*(?=\d)/g, ' جلد '], [/(?<![A-Za-z])pp?\.\s*(?=\d)/g, ' صفحه '], [/(?<![A-Za-z])[Cc]h(?:ap)?\.\s*(?=\d)/g, ' فصل '],
+    [/(?<![A-Za-z])approx\.?(?![A-Za-z])/gi, ' تقریبن '], [/(?<![A-Za-z])Ph\.?\s?D\.?(?![A-Za-z])/g, ' پی‌اچ‌دی '],
+    [/(?<![A-Za-z])M\.\s?Sc\.?(?![A-Za-z])/g, ' ام‌اس‌سی '], [/(?<![A-Za-z])B\.\s?Sc\.?(?![A-Za-z])/g, ' بی‌اس‌سی '],
+    [new RegExp(L0 + 'ن\\s*\\.\\s*ک\\.?' + L1, 'gu'), ' نگاه کنید به '], [/\(\s*قده\s*\)/g, ' قدس الله سره '], [/\(\s*مد\s*ظله(?:\s*العالی)?\s*\)/g, ' مد ظله العالی '],
+    [new RegExp(L0 + 'ص\\s*\\.\\s*ب\\.?(?=\\s*\\d)', 'gu'), ' صندوق پستی '], [new RegExp(L0 + 'ک\\s*\\.\\s*پ\\.?(?=\\s*\\d)', 'gu'), ' کد پستی '],
+    [/\uFDFA/g, ' صلی الله علیه و آله و سلم '], [/\uFDFD/g, ' بسم الله الرحمن الرحیم '], [/\uFDFB/g, ' جل جلاله ']
+  ];
+  var UNIT3 = { db: 'دسی‌بل', nm: 'نانومتر', 'µm': 'میکرومتر', 'μm': 'میکرومتر', 'µs': 'میکروثانیه', 'μs': 'میکروثانیه', ns: 'نانوثانیه', ppm: 'پی‌پی‌ام', psi: 'پوند بر اینچ مربع', kv: 'کیلوولت', mv: 'میلی‌ولت', mah: 'میلی‌آمپر ساعت', 'ω': 'اهم', 'kω': 'کیلواهم', 'mω': 'مگااهم', mol: 'مول', lux: 'لوکس' };
+  function unitPlus(t){   /* یکاهای علمی پس از عدد (حساس به حروف: dB، kV، mV، MΩ …)؛ شمارش در «نماد» */
+    return t.replace(/(\d)\s*(dB|nm|[µμ]m|[µμ]s|ns|ppm|psi|kV|mV|mAh|[kM]?Ω|mol|lux)(?![\p{L}\d\/])/gu, function(_, d, u){
+      var k = u.toLowerCase().replace('ω', 'ω'); if (u === 'MΩ') k = 'mω'; else if (u === 'mV') k = 'mv';
+      bump('sym'); return d + ' ' + UNIT3[k] + ' ';
+    });
+  }
   function digitsAscii(t){
     return t.replace(/[۰-۹]/g, function(c){ return c.charCodeAt(0) - 1776; }).replace(/[٠-٩]/g, function(c){ return c.charCodeAt(0) - 1632; })
       .replace(/(\d)٫(?=\d)/g, '$1.').replace(/(\d)[,٬،](?=\d{3}(?!\d))/g, '$1');
@@ -8549,10 +8558,16 @@ function jbWrapW(ls, old){
       t = stripHar(t).replace(/\u00A0/g, ' ').replace(/[\u00ad\u200b\u200d-\u200f\u202a-\u202e\u2066-\u2069\ufeff\u061c\u2060\u180e\u206a-\u206f]/g, '');
       t = dictIn(t);
       t = digitsAscii(t);
-      if (citeOn()) t = fxr(fxr(t, RE_CITE, 'ref', ' '), RE_IBID, 'ref', ' ');
+      if (citeOn()) {
+        t = fxr(fxr(t, RE_CITE, 'ref', ' '), RE_IBID, 'ref', ' ');
+        t = fxr(t, /(?<![A-Za-z])doi\s*[:.]?\s*10\.\d{4,9}\/[^\s,;]*[^\s,;.]/gi, 'ref', ' ');          /* r157: شناسه‌های کتاب‌شناختی خوانده نمی‌شوند */
+        t = fxr(t, /(?<![A-Za-z])(?:ISBN(?:-1[03])?|ISSN|PMID)\s*[:.]?\s*[\dXx][\dXx\- ]{5,20}[\dXx]/g, 'ref', ' ');
+        t = fxr(t, /(?<![A-Za-z])arXiv\s*:\s*\d{4}\.\d{4,5}(?:v\d+)?/gi, 'ref', ' ');
+      }
       t = fxr(t, ADV_N, 'spell', function(m){ return m.slice(0, -1) + 'ن'; });
-      t = preFix(normPlus(numPre(phoneFix(t))));
+      t = unitPlus(preFix(normPlus(numPre(phoneFix(t)))));
       ABBR.forEach(function(a){ t = t.replace(a[0], a[1]); });
+      ABBR2.forEach(function(a){ t = fxr(t, a[0], 'acr', a[1]); });
       t = initialsFix(t);
       SPELL.forEach(function(r){ t = fxr(t, r[0], 'spell', r[1]); });
       if (fixHi()) {
@@ -11793,14 +11808,11 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   }
   holdRepeat($('#rateDn'), -1); holdRepeat($('#rateUp'), 1);
   showVals();
-  /* تایمر خواب (در کادر پخش): خاموش / ۱۰ / ۲۰ / ۳۰ / ۶۰ دقیقه */
+  /* تایمر خواب (در تب صدا): خاموش / ۱۰ / ۲۰ / ۳۰ / ۶۰ دقیقه */
   var SLP = [0, 10, 20, 30, 60], slSel = 0, slEnd = 0, slT = 0, slL = 0;
   function slLabel(){
     $('#slV').textContent = slEnd ? nf.format(Math.max(1, Math.ceil((slEnd - Date.now()) / 60000))) + ' دقیقه مانده' : 'خاموش';
     document.querySelectorAll('#slChips .chip').forEach(function(c){ c.classList.toggle('on', +c.dataset.v === slSel); });
-    var sb = $('#slBtn'), bd = $('#slBadge');
-    if (sb) sb.classList.toggle('on', !!slEnd);
-    if (bd) { bd.hidden = !slEnd; bd.textContent = slEnd ? nf.format(Math.max(1, Math.ceil((slEnd - Date.now()) / 60000))) : ''; }
   }
   function slOff(){ clearTimeout(slT); clearInterval(slL); slEnd = 0; slSel = 0; slLabel(); }
   function slSet(m){
@@ -11817,11 +11829,6 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     c.onclick = function(){ slSet(m); }; $('#slChips').appendChild(c);
   });
   slLabel();
-  var slP = $('#slPop'), slPT = 0;   /* لمس دکمهٔ ساعت = نمایش/پنهان؛ ۶ ثانیه بی‌کاری = بسته */
-  function slShow(on){ slP.hidden = !on; $('#slBtn').setAttribute('aria-expanded', on ? 'true' : 'false'); clearTimeout(slPT); if (on) slPT = setTimeout(function(){ slShow(false); }, 6000); }
-  $('#slBtn').onclick = function(){ slShow(slP.hidden); };
-  slP.addEventListener('click', function(){ if (!slP.hidden) { clearTimeout(slPT); slPT = setTimeout(function(){ slShow(false); }, 6000); } });
-  document.addEventListener('pointerdown', function(e){ if (!slP.hidden && !slP.contains(e.target) && !$('#slBtn').contains(e.target)) slShow(false); }, true);
   $('#locBtn').onclick = function(){ if (pvOn()) { pvUserT = 0; pvPage = 0; pvVp = null; pvMark(true); return; } if (curEl) curEl.scrollIntoView({ block: FOL.p, behavior: folBeh() }); };
   $('#prev').onclick = function(){ seekTo(idx - 1); };
   $('#next').onclick = function(){ seekTo(idx + 1); };
@@ -12783,7 +12790,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
   Array.prototype.forEach.call(toolsEl.querySelectorAll('.tile,.tbanner'), function(b){ b.addEventListener('click', function(){ toolRun(b); }); });
 
   /* ---- نشانگر «تغییریافته» و بازنشانی هر بخش ---- */
-  var CFG_DEF = {"qAuto":true,"hsOn":true,"svMem":true,"svMdl":true,"svLvl":true,"svPz":true,"svExit":true,"svTx":true,"svThm":true,"cAuto":true,"vstyle":"natural","emoLvl":"0","vclean":"a","vclarity":"2","gvOn":true,"nzMode":"auto","nzNs":"0.4","nzNw":"0.4","nzPause":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":false,"oCols":false,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"oSpellTL":false,"oVg":true,"oVgMode":"safe","ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
+  var CFG_DEF = {"qAuto":true,"hsOn":true,"svMem":true,"svMdl":true,"svLvl":true,"svPz":true,"svExit":true,"svTx":true,"svThm":true,"cAuto":true,"vstyle":"natural","emoLvl":"0","vclean":"a","vclarity":"2","gvOn":true,"nzMode":"auto","nzNs":"0.4","nzNw":"0.4","nzPause":"2","enh":true,"humPace":true,"smartPace":false,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":true,"oCols":true,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"oSpellTL":false,"oVg":true,"oVgMode":"safe","ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
   Array.prototype.forEach.call(document.querySelectorAll(CFG_SEC), function(s){
     var h = s.tagName === 'DETAILS' ? s.querySelector('summary .stt b') : s.querySelector('h3'), pn = s.closest('.panel');
     if (!s.id) s.id = 'cs-' + (++cfgN);
