@@ -1754,9 +1754,9 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <details class="sub" id="pzmBox"><summary>مکث و سکوت دستی (میلی‌ثانیه)</summary><div class="in"><label class="chk"><input type="checkbox" id="pzmOn"><span class="st"><b>فعال‌سازی مکث دستی</b><small>خانهٔ خالی = مقدار خودکار ناظر. عدد ۰ = بدون مکث. مقدارها برای سرعت ۱× است و با سرعت پخش متناسب می‌شود.</small></span></label><h4 class="svh">پایان جمله</h4><div class="pzg"><label><span>نقطه ( . )</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="p"></label><label><span>پرسش ( ؟ )</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="q"></label><label><span>تعجب ( ! )</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="x"></label><label><span>سه‌نقطه ( … )</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="el"></label><label><span>دونقطه / ؛ پایان جمله</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="s"></label><label><span>پایان پاراگراف یا مصرع</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="pe"></label><label><span>مرز صفحه</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="pg"></label></div><h4 class="svh">داخل جمله</h4><div class="pzg"><label><span>ویرگول ( ، )</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="c"></label><label><span>نقطه‌ویرگول ( ؛ )</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="sc"></label><label><span>دونقطه ( : )</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="co"></label><label><span>سه‌نقطه میان جمله</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="e2"></label></div><h4 class="svh">مکث پیش و پس از واژه‌ها</h4><textarea id="pzmW" class="pzw" rows="4" spellcheck="false" placeholder="هر سطر: واژه، «پیش» یا «پس»، میلی‌ثانیه&#10;اما پیش ۳۰۰&#10;بنابراین پس ۴۰۰&#10;سپس ۲۵۰"></textarea><p class="hint">بدون «پیش/پس» یعنی مکث پس از واژه. قاعدهٔ واژه بر مقدار ویرگول و علامت‌ها مقدم است. هر نقطهٔ مکث درون‌جمله، جمله را همان‌جا می‌شکند. مکث بین همهٔ واژه‌ها پشتیبانی نمی‌شود.</p><div class="btnrow"><button class="btn sm" id="pzmRst" type="button">بازنشانی مکث دستی</button></div></div></details>
 <div class="slist"><label class="chk"><input type="checkbox" id="svLvl" checked><span class="st"><b>تراز بلندی خودکار</b><small>تکه‌ای که بلندی‌اش ≥ ۲ دسی‌بل از میانهٔ اخیر همان گوینده فاصله دارد، تا ۴ دسی‌بل به آن نزدیک می‌شود (بدون بریدگی).</small></span></label></div>
 <h4 class="svh">متن و گفتار</h4>
-<p class="hint"><b>ناظر پاک‌سازی متن</b> همیشه فعال است و سرصفحه، نقطه‌چین، یکدست‌سازی، فاصله‌گذاری، کلمه‌های چسبیده، فهرست، مکث، املای OCR و ویرگول‌گذاری را خودش نگه می‌دارد.</p>
-<p class="hint"><b>ناظر تصحیح گفتار</b> همیشه فعال است و عدد، تاریخ، اختصار، لاتین، تنوین، ارجاع درون‌متنی، مکث‌گذاری و واژه‌نامهٔ آوایی را پیش از خواندن اصلاح می‌کند.</p>
-<p class="hint"><b>ناظر ساختار متن</b> سطربندی، تشخیص کدگذاری، طول تکه‌جمله و ترتیب سطرها را خودکار نگه می‌دارد؛ ستون واژه‌به‌واژه، سطر پایان‌یافته با حرف‌ربط، پسوند جداافتاده (مثل «ها» و «تر») و پرانتز/گیومهٔ نیمه‌باز را به‌هم می‌چسباند و شعر، فهرست و جدول را دست‌نخورده می‌گذارد. <span id="svStrSt"></span></p>
+<p class="hint"><b>ناظر پاک‌سازی متن</b> همیشه فعال است و سرصفحه، نقطه‌چین، یکدست‌سازی، فاصله‌گذاری، کلمه‌های چسبیده، فهرست، مکث، املای OCR و ویرگول‌گذاری را خودش نگه می‌دارد؛ اختصار لاتین رایج یا تکرارشده (مثل SVM) را گاربیج حساب نمی‌کند.</p>
+<p class="hint"><b>ناظر تصحیح گفتار</b> همیشه فعال است و عدد، تاریخ، اختصار، لاتین، تنوین، ارجاع درون‌متنی، مکث‌گذاری و واژه‌نامهٔ آوایی را پیش از خواندن اصلاح می‌کند؛ قرن/سده را ترتیبی می‌خواند («قرن ۲۱» ← بیست‌ویکم) و فهرست حروف «ب ج د» را به واژه نمی‌چسباند.</p>
+<p class="hint"><b>ناظر ساختار متن</b> سطربندی، تشخیص کدگذاری، طول تکه‌جمله و ترتیب سطرها را خودکار نگه می‌دارد؛ ستون واژه‌به‌واژه، سطر پایان‌یافته با حرف‌ربط، پسوند جداافتاده (مثل «ها» و «تر») و پرانتز/گیومهٔ نیمه‌باز را به‌هم می‌چسباند و شعر، فهرست و جدول را دست‌نخورده می‌گذارد؛ عرض شکست سطر را از سطرهای میان‌جمله برآورد می‌کند، سطر انگلیسیِ تمام‌عرض با حرف بزرگ بعدی و «در سال/صفحه» + عدد را به‌هم می‌چسباند. <span id="svStrSt"></span></p>
 <div class="slist"><label class="chk"><input type="checkbox" id="svTx" checked><span class="st"><b>نگهبان خروجی متن</b><small>پیش از ساخت صدا، مانده‌های لاتین، رقم و نماد در متن گفتار را می‌یابد و فقط ثبت می‌کند.</small></span></label></div>
 <h4 class="svh">پایداری و منابع</h4>
 <div class="slist"><label class="chk"><input type="checkbox" id="svMem" checked><span class="st"><b>ناظر حافظهٔ فعال</b><small>اگر حافظهٔ JS از ۷۰٪ سقف گذشت، حافظه‌های موقت و صفحه‌های دورِ رندرشده را آزاد می‌کند؛ به اعلان فشار حافظهٔ اندروید هم پاسخ می‌دهد.</small></span></label></div>
@@ -3169,6 +3169,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
         RT = /(?<![A-Za-z0-9@\/\\_%#&=+~.:-])[A-Za-z]+(?![A-Za-z0-9@\/\\_%#&=+~-]|\.[A-Za-z0-9]|:\/)/g,
         OPS = /[=+*\/^<>×÷≤≥±∑√∈]/, OPEN = /[(\[«]/, CLOSE = /[،؛:.!?؟)\]»,;٪%…]/,
         RS = new RegExp('[ \\t]*(?:' + S + '[ \\t]*)+', 'g'), RE0 = /[ \t]*(?:\(\s*\)|\[\s*\]|«\s*»)/g, RP = /^[\s\p{P}]*$/u;
+    var ACX = /(?:روش|الگوریتم|مدل|شبکه|سیستم|پروتکل|تکنیک|استاندارد|فناوری|تکنولوژی|آزمون|شاخص|نرم‌افزار|سرویس|کتابخانه|زبان|چارچوب|فرمت|قالب|پایگاه|ماژول|پلتفرم|سازمان|شرکت)[\s\u200c]*$/;
     function isAr(c){ return c >= 0x600 && c <= 0x6FF && !(c >= 0x660 && c <= 0x669) && !(c >= 0x6F0 && c <= 0x6F9); }
     function scan(l){ var i, c; nA = 0; nL = 0; for (i = 0; i < l.length; i++) { c = l.charCodeAt(i); if (isAr(c)) nA++; else if ((c >= 65 && c <= 90) || (c >= 97 && c <= 122)) nL++; } }
     function junkTok(w){                                                 /* فقط ویژگی خودِ توکن؛ زمینه جداگانه سنجیده می‌شود */
@@ -3210,13 +3211,16 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
     function fn(t){
       if (typeof t !== 'string' || !/[A-Za-z]/.test(t)) return t;
       if (t.indexOf(S) >= 0) t = t.split(S).join('');
+      var UCN = {}; (t.match(/(?<![A-Za-z])[A-Z]{2,5}(?![A-Za-z])/g) || []).forEach(function(q){ UCN[q] = (UCN[q] || 0) + 1; });   /* r154: اختصار بزرگ‌حرف تکرارشونده (SVM، KNN) گاربیج نیست */
       var ls = t.split('\n'), N = ls.length, AR = new Int32Array(N), VL = new Int32Array(N), TK = new Array(N), DEF = new Set(), i, k, j, m, e, x, l, w, tk, del, out, last, chg = false, res = [], drop, vl, ph, ok, lc, rc, ra, rb;
       for (i = 0; i < N; i++) {                                          /* گذر ۱: توکن‌ها (اندیس، واژه، پرچم گاربیج)، مجموع حروف لاتین معتبر، اختصارهای تعریف‌شده «(CT)» */
         l = ls[i]; scan(l); AR[i] = nA;
         if (!nL) continue;
         tk = []; RT.lastIndex = 0;
         while ((m = RT.exec(l))) {
-          w = m[0]; x = junkTok(w) ? 1 : 0; tk.push(m.index, w, x); if (!x) VL[i] += w.length;
+          w = m[0]; x = junkTok(w) ? 1 : 0;
+          if (x && w.length >= 2 && w.length <= 5 && w === w.toUpperCase() && (UCN[w] >= 2 || ACX.test(l.slice(Math.max(0, m.index - 16), m.index)))) x = 0;   /* تکرار ≥۲ یا پس از واژهٔ زمینه («روش SVM») */
+          tk.push(m.index, w, x); if (!x) VL[i] += w.length;
           if (w.length > 1 && w === w.toUpperCase() && l[m.index - 1] === '(' && l[m.index + w.length] === ')') DEF.add(w);
         }
         TK[i] = tk;
@@ -4868,7 +4872,7 @@ var ocrSpell = (function(){
   }
   /* ===== چسباندن سطرهای شکستهٔ PDF: بدون نقطهٔ پایان + سطر بعد ادامهٔ جمله (حرف کوچک لاتین یا کلمهٔ فارسی) ← یک فاصله ===== */
   var JB_END = /[.!?؟…؛:]["»”')\]]*$/, JB_ITEM = /^(?:[-–—•●▪■◦*·]\s|\(?[\d۰-۹٠-٩]+[.)\-–:]\s|[A-Za-z]\)\s)/;
-  function joinable(l, nx, shortLn){
+  function joinable(l, nx, shortLn, full){
     var lw;
     if (JB_END.test(l)) {                                              /* پایان جمله: فقط مخفف («Dr.» + حرف کوچک») ادامه است */
       lw = (l.match(/(\S+?)\.$/) || [])[1];
@@ -4876,7 +4880,7 @@ var ocrSpell = (function(){
     }
     if (JB_ITEM.test(nx)) return false;                                /* آیتم فهرست یا شمارهٔ بند */
     if (/^[a-z]/.test(nx)) return true;                                /* ادامهٔ لاتین */
-    if (/^[A-Z]/.test(nx)) return /[،,]$/.test(l);                     /* جملهٔ تازه یا عنوان */
+    if (/^[A-Z]/.test(nx)) return /[،,]$/.test(l) || !!full;           /* جملهٔ تازه یا عنوان؛ r154: سطر تمام‌عرض بدون نقطه + نام خاص/حرف بزرگ = ادامهٔ متن انگلیسی */
     return !(shortLn && !/[،,]$/.test(l));                             /* فارسی: سطر کوتاه بدون ویرگول = عنوان/پایان بند */
   }
   var TBL = /\u001f|\.{4,}|·{3,}/;   /* بعد از NFKC سه‌نقطهٔ منفرد «...» جدول نیست؛ «……» به «......» تبدیل می‌شود و با {4,} گرفته می‌شود */
@@ -4899,8 +4903,19 @@ var ocrSpell = (function(){
     return { b: pb, m: pm };
   }
   /* r153 (ناظر ساختار): نشانه‌های قطعیِ «سطر ادامه دارد» حتی وقتی سطر کوتاه است: پایان با حرف‌ربط/اضافهٔ ناتمام، آغاز با پسوند جداافتاده یا علامت بستن/ویرگول، و پرانتز/گیومهٔ باز که سطر بعد می‌بندد */
-  var JB_CONN_END = /(?:^|\s)(?:و|یا|که|از|به|در|با|تا|را|برای|بر|چون|اگر)$/;
-  var JB_SFX = /^(?:ها|های|هایی|تر|ترین|کننده|کنندگان|دهنده|دهندگان|گیری|سازی|بندی|گذاری)(?=$|[\s،.؛:!?؟)»])/;
+  var JB_CONN_END = /(?:^|\s)(?:و|یا|که|از|به|در|با|تا|را|برای|بر|چون|اگر|می|نمی|همی|بی|نیز|هم)$/;
+  var JB_SFX = /^(?:ها|های|هایی|تر|ترین|کننده|کنندگان|دهنده|دهندگان|گیری|سازی|بندی|گذاری|ای|ام|ایم|اید|اند|ات|اش|مان|تان|شان)(?=$|[\s،.؛:!?؟)»])/;
+/* r154 (ناظر ساختار): عرض شکست واقعیِ سطر — از سطرهای «میان‌جمله» (بدون نقطهٔ پایان) برآورد می‌شود نه از صدک ۹۰ همهٔ سطرها؛ بند تک‌سطری بلند، مرجع را باد می‌کرد و هر سطر معمولی «عنوان کوتاه» حساب می‌شد. اگر ≥۵۰٪ این سطرها نزدیک عرض نباشند، سطرها ناهم‌طول‌اند و کوتاهیِ سطر نشانهٔ عنوان نیست (ref=0) */
+var JB_NUM = /(?:^|\s)(?:سال|ماه|روز|قرن|ساعت|صفحهٔ?|شمارهٔ?|مادهٔ?|بند|تبصرهٔ?|حدود|حدودا|تقریبا|نزدیک|حداقل|حداکثر|بین|میان|فصل|بخش|جدول|شکل|نمودار)$/;   /* سطر کوتاه پیش‌عدد + سطر بعدِ شروع‌شده با رقم = یک عبارت («در سال» + «۱۳۹۸ …») */
+var JB_HD = /^(?:(?:فصل|بخش|گفتار|پیوست)\s+(?:[\d۰-۹٠-٩]+|اول|دوم|سوم|چهارم|پنجم|ششم|هفتم|هشتم|نهم|دهم)(?:\s|$)|(?:مقدمه|پیشگفتار|درآمد|فهرست|خلاصه|نتیجه‌گیری)$)/;
+function jbWrapW(ls, old){
+  var a = [], i, l, w, k = 0;
+  for (i = 0; i < ls.length; i++) { l = ls[i]; if (l.length >= 8 && !JB_END.test(l) && !JB_ITEM.test(l) && !TBL.test(l)) a.push(l.length); }
+  if (a.length < 3) return old;
+  a.sort(function(x, y){ return x - y; }); w = a[Math.floor(a.length * 0.85)];
+  for (i = 0; i < a.length; i++) if (a[i] >= w * 0.75) k++;
+  return k >= a.length * 0.5 ? w : 0;
+}
   var JB_CONT = /^[،؛,;)»\]”]/;
   function jbOpen(l, nx){
     var o = (l.match(/[«(\[“]/g) || []).length, c = (l.match(/[»)\]”]/g) || []).length, no = (nx.match(/[«(\[“]/g) || []).length, nc = (nx.match(/[»)\]”]/g) || []).length;
@@ -4908,7 +4923,7 @@ var ocrSpell = (function(){
   }
   function joinBrokenLines(t, mode){
     var ls = t.split('\n'), pf = mode === 'join' ? { b: [], m: [] } : poemFlags(ls), ln = ls.map(function(l){ return l.length; }).filter(Boolean).sort(function(a, b){ return a - b; });
-    var ref = ln.length ? ln[Math.floor(ln.length * 0.9)] : 0, out = '', fr = [];
+    var ref = mode === 'line' || mode === 'join' ? 0 : jbWrapW(ls, ln.length ? ln[Math.floor(ln.length * 0.9)] : 0), out = '', fr = [];
     /* r152 (ناظر ساختار): ستون واژه‌به‌واژه — PDFهایی که هر واژه را سطر جدا می‌دهند، در حالت خودکار «عنوان کوتاه» حساب می‌شدند و هر واژه یک بند/جمله می‌شد (پخش تکه‌تکه). ≥۴ سطر پیاپی ≤۲ واژه و ≤۱۶ نویسه (بدون نقطهٔ پایان، آیتم، جدول) که دست‌کم یکی‌شان حرف‌ربط/اضافهٔ مستقل (NB_AFTER) یا ویرگول‌دار باشد = نثر پیوسته؛ سطرهای آن به هم می‌چسبند. شعر (poemFlags) و حالت «هر سطر جدا» پیش‌تر/جداگانه محافظت می‌شوند */
     if (mode !== 'line' && mode !== 'join') {
       var isF = function(l){ return !!l && l.length <= 16 && /\p{L}/u.test(l) && l.trim().split(/\s+/).length <= 2 && !JB_END.test(l) && !JB_ITEM.test(l) && !TBL.test(l); };
@@ -4932,9 +4947,9 @@ var ocrSpell = (function(){
       if (/\u200c$/.test(l) && /^\p{L}/u.test(nx)) { out += l; return; }
       if (TBL.test(l) || TBL.test(nx)) { out += l + '\n'; return; }   /* جدول/خط‌چین: چسباندن نشود */
       if (pf.b[i]) { out += l + (pf.m[i] ? '\u001e' : '') + '\n'; return; }   /* مصرع شعر */
-      if (mode !== 'line' && mode !== 'join' && (jbOpen(l, nx) || (!JB_END.test(l) && (JB_CONN_END.test(l) || JB_SFX.test(nx) || JB_CONT.test(nx))))) { out += l + ' '; return; }   /* r153: ادامهٔ قطعی */
+      if (mode !== 'line' && mode !== 'join' && ((JB_NUM.test(l) && /^[\d۰-۹٠-٩]/.test(nx) && !JB_ITEM.test(nx) && !JB_END.test(l)) || jbOpen(l, nx) || (!JB_END.test(l) && (JB_CONN_END.test(l) || JB_SFX.test(nx) || JB_CONT.test(nx))))) { out += l + (JB_SFX.test(nx) && /[\u0621-\u06D3]$/.test(l) ? '\u200c' : ' '); return; }   /* r153: ادامهٔ قطعی */
       if (mode !== 'join' && i > 0 && JB_ITEM.test(l) && JB_ITEM.test(ls[i - 1]) && !JB_ITEM.test(nx) && !(ref >= 40 && l.length >= ref * 0.85)) { out += l + '\n'; return; }   /* آیتم آخر فهرست به سطر بعدی نچسبد (T-19) */
-      brk = mode === 'line' || (mode !== 'join' && !joinable(l, nx, ref >= 40 && l.length < ref * 0.45 && !fr[i]));
+      brk = mode === 'line' || (mode !== 'join' && (JB_HD.test(l) || JB_HD.test(nx) || !joinable(l, nx, ref >= 40 && l.length < ref * 0.45 && !fr[i], ref >= 40 && l.length >= ref * 0.85)));
       out += l + (brk ? '\n' : ' ');
     });
     return out.trim().replace(/\u001f/g, '، ');
@@ -8319,6 +8334,12 @@ var ocrSpell = (function(){
   }
   var FAL = '[\\u0621-\\u063A\\u0641-\\u064A\\u067E\\u0686\\u0698\\u06A9\\u06AF\\u06CC]';
   var RE_ISO = new RegExp('(?<![\\p{L}\\u200c])' + FAL + '(?:\\s' + FAL + '){2,}(?![\\p{L}\\u200c])', 'gu');
+  var ALPH_A = 'ابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی', ALPH_B = 'ابجدهوزحطیکلمنسعفصقرشتثخذضظغ';
+  function isSeqL(m){
+    var a = m.replace(/\s/g, '').split(''), k, ok;
+    if (a.length < 3) return false;
+    return [ALPH_A, ALPH_B].some(function(ab){ for (ok = true, k = 0; k < a.length; k++) if (ab.indexOf(a[k]) < 0 || (k && ab.indexOf(a[k]) <= ab.indexOf(a[k - 1]))) { ok = false; break; } return ok; });
+  }
   var RE_REP = /(?<![\p{L}\u200c])([\p{L}\u200c]{2,})((?:\s+\1)+)(?![\p{L}\u200c])/gu;
   var STOPW = /^(?:که|را|از|در|به|با|این|آن|تا|برای|است|بود|می|هم|نیز|یا|اما|ولی|پس|چون|اگر|بر|بی|the|of|to|and|in|is)$/;
   var RE_ROM = /^(?=[IVXLC])C{0,2}(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})$/;
@@ -8426,6 +8447,8 @@ var ocrSpell = (function(){
   var INI_NAME = { 'ا': 'الف', 'آ': 'آ', 'ب': 'به', 'پ': 'په', 'ت': 'ته', 'ث': 'ثه', 'ج': 'جیم', 'چ': 'چه', 'ح': 'حه', 'خ': 'خه', 'د': 'دال', 'ذ': 'ذال', 'ر': 'ره', 'ز': 'زه', 'ژ': 'ژه', 'س': 'سین', 'ش': 'شین', 'ص': 'صاد', 'ض': 'ضاد', 'ط': 'طا', 'ظ': 'ظا', 'ع': 'عین', 'غ': 'غین', 'ف': 'فه', 'ق': 'قاف', 'ک': 'کاف', 'گ': 'گاف', 'ل': 'لام', 'م': 'میم', 'ن': 'نون', 'و': 'واو', 'ه': 'هه', 'ی': 'یه' };
   function normPlus(t){
     var N = '(\\d+(?:[.٫]\\d+)?)';
+    t = t.replace(/(?<![\p{L}])(قرن|سده|سدۀ|سدهٔ)(\s+)(\d{1,2})(?![\d.\/:٫,])(?![\s\u200c]*(?:ام|م|امین|مین|ین)(?![\p{L}]))/gu, function(_, w, sp, n){ bump('ord'); return w + sp + ordFa(+n); });   /* r154: «قرن ۲۱» = «قرن بیست و یکم» */
+    t = t.replace(/(?<![\p{L}])(قرن[\u200c ]ها(?:ی)?)(\s+)(\d{1,2})(?:(\s+(?:و|تا)\s+)(\d{1,2}))?(?![\d.\/:٫,])(?![\s\u200c]*(?:ام|م|امین|مین|ین)(?![\p{L}]))/gu, function(_, w, sp, a, mid, b){ bump('ord'); return w + sp + ordFa(+a) + (b ? mid + ordFa(+b) : ''); });   /* «قرن‌های ۱۹ و ۲۰» */
     t = t.replace(/(ساعت\s+)?(?<![\d:.])(\d{1,2})(?::([0-5]\d))?\s*([ap])\.?m\.?(?![A-Za-z])/gi, function(_, sa, h, m, ap){
       h = +h; var pm = ap.toLowerCase() === 'p';
       var w = pm ? (h === 12 ? 'ظهر' : h < 5 ? 'بعدازظهر' : h < 8 ? 'عصر' : 'شب') : (h === 12 ? 'نیمه‌شب' : h < 5 ? 'بامداد' : 'صبح');
@@ -8502,7 +8525,7 @@ var ocrSpell = (function(){
       t = initialsFix(t);
       SPELL.forEach(function(r){ t = fxr(t, r[0], 'spell', r[1]); });
       if (fixHi()) {
-        t = fxr(t, RE_ISO, 'iso', function(m){ return m.replace(/\s/g, ''); });
+        t = t.replace(RE_ISO, function(m){ if (isSeqL(m)) return m; bump('iso'); return m.replace(/\s/g, ''); });   /* r154: فهرست حروف «ب ج د» واژه نمی‌شود */
         t = fxr(t, /([\u0621-\u0646\u0648-\u064A\u066E-\u06D3])\1{2,}/g, 'elong', function(_, c){ return c; });
         t = t.replace(RE_REP, function(m, w, r){
           if (r.trim().split(/\s+/).length === 1 && !STOPW.test(w)) return m;
@@ -9130,7 +9153,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r153 · 2026-10-30 · sv-own', npBuild = '';
+  var APP_BUILD = 'html-r154 · 2026-10-31 · sv-own', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
