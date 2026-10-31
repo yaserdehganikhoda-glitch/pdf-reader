@@ -1739,8 +1739,9 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <div class="btnrow" id="nsRow" hidden><button class="btn sm" id="nsRe" type="button">اندازه‌گیری دوبارهٔ ناظر نویز</button></div>
 <div class="slist"><label class="chk"><input type="checkbox" id="hsOn" checked><span class="st"><b>ناظر سلامت صدا (خودکار)</b><small>طول و سلامت هر تکهٔ ساخته‌شده را می‌سنجد و تکهٔ مشکوک (بریده، کشیده، خالی) را یک بار با نویز کمتر دوباره می‌سازد؛ خطای پخش را هم خودکار بازیابی می‌کند.</small></span></label></div>
 <p class="hint" id="hsSt" aria-live="polite" hidden></p>
-          <div class="slist"><label class="chk"><input type="checkbox" id="gvOn" checked><span class="st"><b>ناظر سرعت هوشمند</b><small>سرعت واقعی هر تکه را اندازه می‌گیرد و اگر تصادفاً تندتر یا کندتر از سرعت انتخابی شما ساخته شده باشد، هنگام پخش جبرانش می‌کند.</small></span></label></div>
+          <div class="slist"><label class="chk"><input type="checkbox" id="gvOn" checked><span class="st"><b>ناظر سرعت هوشمند</b><small>سرعت واقعی هر تکه را اندازه می‌گیرد و اگر تصادفاً تندتر یا کندتر از سرعت انتخابی شما ساخته شده باشد، هنگام پخش جبرانش می‌کند؛ با تغییر پایدار صدا سریع‌تر هم‌گام می‌شود و برای سبک تازه از یادگیری همان گوینده شروع می‌کند.</small></span></label></div>
           <p class="hint" id="gvSt" aria-live="polite" hidden></p>
+          <div class="slist"><button class="btn sm" id="gvRst" type="button">بازنشانی یادگیری ناظر سرعت</button></div>
 <div class="slist"><label class="chk"><input type="checkbox" id="svPz" checked><span class="st"><b>ناظر مکث و سکوت</b><small>ریتم و مکث انسانی (متناسب با طول و نوع جمله) را نگه می‌دارد؛ مکث بین جمله‌ها را دقیقاً برابر برنامهٔ مکث انسانی می‌کند (سکوت ذاتی مدل بریده می‌شود)، سکوت‌های داخلی بلندتر از ۹۰۰ میلی‌ثانیه را کوتاه و نشانه‌های مکثِ تکراری را ادغام می‌کند.</small></span></label></div>
 <details class="sub" id="pzmBox"><summary>مکث و سکوت دستی (میلی‌ثانیه)</summary><div class="in"><label class="chk"><input type="checkbox" id="pzmOn"><span class="st"><b>فعال‌سازی مکث دستی</b><small>خانهٔ خالی = مقدار خودکار ناظر. عدد ۰ = بدون مکث. مقدارها برای سرعت ۱× است و با سرعت پخش متناسب می‌شود.</small></span></label><h4 class="svh">پایان جمله</h4><div class="pzg"><label><span>نقطه ( . )</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="p"></label><label><span>پرسش ( ؟ )</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="q"></label><label><span>تعجب ( ! )</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="x"></label><label><span>سه‌نقطه ( … )</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="el"></label><label><span>دونقطه / ؛ پایان جمله</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="s"></label><label><span>پایان پاراگراف یا مصرع</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="pe"></label><label><span>مرز صفحه</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="pg"></label></div><h4 class="svh">داخل جمله</h4><div class="pzg"><label><span>ویرگول ( ، )</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="c"></label><label><span>نقطه‌ویرگول ( ؛ )</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="sc"></label><label><span>دونقطه ( : )</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="co"></label><label><span>سه‌نقطه میان جمله</span><input type="text" inputmode="numeric" maxlength="4" placeholder="خودکار" data-pz="e2"></label></div><h4 class="svh">مکث پیش و پس از واژه‌ها</h4><textarea id="pzmW" class="pzw" rows="4" spellcheck="false" placeholder="هر سطر: واژه، «پیش» یا «پس»، میلی‌ثانیه&#10;اما پیش ۳۰۰&#10;بنابراین پس ۴۰۰&#10;سپس ۲۵۰"></textarea><p class="hint">بدون «پیش/پس» یعنی مکث پس از واژه. قاعدهٔ واژه بر مقدار ویرگول و علامت‌ها مقدم است. هر نقطهٔ مکث درون‌جمله، جمله را همان‌جا می‌شکند. مکث بین همهٔ واژه‌ها پشتیبانی نمی‌شود.</p><div class="btnrow"><button class="btn sm" id="pzmRst" type="button">بازنشانی مکث دستی</button></div></div></details>
 <div class="slist"><label class="chk"><input type="checkbox" id="svLvl" checked><span class="st"><b>تراز بلندی خودکار</b><small>تکه‌ای که بلندی‌اش ≥ ۲ دسی‌بل از میانهٔ اخیر همان گوینده فاصله دارد، تا ۴ دسی‌بل به آن نزدیک می‌شود (بدون بریدگی).</small></span></label></div>
@@ -9608,12 +9609,33 @@ function chunkAt(i, lim){
     for (i = n - 1; i >= 0; i--) { t = a[i][n]; for (j = i + 1; j < n; j++) t -= a[i][j] * th[j]; th[i] = t / a[i][i]; }
     return (th[0] > 0.02 && th[0] < 0.2 && th[4] > 0.3 && th[4] < 2) ? th : null;
   }
-  function gvModel(key){
-    var M = GVS[key], o, z = [], i;
-    if (M) return M;
+  function gvParse(key){   /* r157: خواندن مدل ذخیره‌شده (بدون ساخت/ثبت) */
+    var o;
     try { o = JSON.parse(sget('gvN:' + key, '')); } catch (e) { o = null; }
-    if (o && o.A && o.A.length === GV_N * GV_N && o.b && o.b.length === GV_N && isFinite(o.n) && o.A.every(isFinite) && o.b.every(isFinite) && o.A.every(function(v){ return v !== null; }) && o.b.every(function(v){ return v !== null; })) M = { A: o.A, b: o.b, n: o.n, s2: o.s2 > 0 ? o.s2 : 0.0036, f: 1, k: 0, dev: 0 };
-    else { for (i = 0; i < GV_N * GV_N; i++) z.push(0); M = { A: z, b: [0, 0, 0, 0, 0, 0, 0], n: 0, s2: 0.0036, f: 1, k: 0, dev: 0 }; }
+    if (o && o.A && o.A.length === GV_N * GV_N && o.b && o.b.length === GV_N && isFinite(o.n) && o.A.every(isFinite) && o.b.every(isFinite) && o.A.every(function(v){ return v !== null; }) && o.b.every(function(v){ return v !== null; })) return { A: o.A, b: o.b, n: o.n, s2: o.s2 > 0 ? o.s2 : 0.0036, f: 1, k: 0, dev: 0 };
+    return null;
+  }
+  function gvSeed(key){   /* r157: گوینده‌ای که با سبک دیگر یاد گرفته شده، نقطهٔ شروع مدل سبک تازه می‌شود (θ ثابت، وزن نمونه‌ها ×۰٫۴، پراکندگی ×۱٫۳) */
+    var vid = String(key).split('~')[0], ks = {}, best = null, bn = 0, i, k, x, S;
+    try {
+      Object.keys(GVS).forEach(function(a){ ks[a] = 1; });
+      for (i = 0; i < localStorage.length; i++) { k = localStorage.key(i); if (k && k.indexOf('gvN:') === 0) ks[k.slice(4)] = 1; }
+    } catch (e) {}
+    for (x in ks) {
+      if (x === key || x.split('~')[0] !== vid) continue;
+      S = GVS[x] || gvParse(x);
+      if (!S || S.n < 30 || S.s2 > 0.04 || !gvSolve(S)) continue;
+      if (S.n > bn) { bn = S.n; best = S; }
+    }
+    if (!best) return null;
+    return { A: best.A.map(function(v){ return v * 0.4; }), b: best.b.map(function(v){ return v * 0.4; }), n: best.n * 0.4, s2: Math.min(0.04, best.s2 * 1.3), f: 1, k: 0, dev: 0, wm: 1, wc: 0 };
+  }
+  function gvModel(key){
+    var M = GVS[key], z = [], i;
+    if (M) return M;
+    M = gvParse(key);
+    if (!M) M = gvSeed(key);
+    if (!M) { for (i = 0; i < GV_N * GV_N; i++) z.push(0); M = { A: z, b: [0, 0, 0, 0, 0, 0, 0], n: 0, s2: 0.0036, f: 1, k: 0, dev: 0 }; }
     return (GVS[key] = M);
   }
   function gvSave(key, M){ M.k = 0; sset('gvN:' + key, JSON.stringify({ A: M.A.map(function(v){ return Math.round(v * 1e4) / 1e4; }), b: M.b.map(function(v){ return Math.round(v * 1e4) / 1e4; }), n: Math.round(M.n * 100) / 100, s2: Math.round(M.s2 * 1e5) / 1e5 })); }
@@ -9625,7 +9647,7 @@ function chunkAt(i, lim){
     if (!e) return;
     if (sget('gvOn', '1') !== '1') { e.hidden = true; return; }
     sg = Math.round(Math.sqrt(M.s2) * 100);
-    s = !th ? (M.n < 12 ? 'ناظر سرعت: در حال یادگیری گوینده (' + nf.format(Math.floor(M.n)) + ' از ' + nf.format(12) + ' نمونه).' : 'ناظر سرعت: مدل این گوینده هنوز معتبر نیست؛ جبران موقتاً خاموش است.') : M.off ? 'ناظر سرعت: مدل این گوینده هنوز ناپایدار است (خطا ±' + nf.format(sg) + '٪)؛ جبران موقتاً خاموش است.' : 'ناظر سرعت: خطای پیش‌بینی ±' + nf.format(sg) + '٪ ؛ ضریب جبران جاری ' + nf.format(M.f) + '.';
+    s = !th ? (M.n < 12 ? 'ناظر سرعت: در حال یادگیری گوینده (' + nf.format(Math.floor(M.n)) + ' از ' + nf.format(12) + ' نمونه).' : 'ناظر سرعت: مدل این گوینده هنوز معتبر نیست؛ جبران موقتاً خاموش است.') : M.off ? 'ناظر سرعت: مدل این گوینده هنوز ناپایدار است (خطا ±' + nf.format(sg) + '٪)؛ جبران موقتاً خاموش است.' : 'ناظر سرعت: خطای پیش‌بینی ±' + nf.format(sg) + '٪ ؛ ضریب جبران جاری ' + nf.format(M.f) + ' (' + nf.format(Math.floor(M.n)) + ' نمونه)' + (M.wm ? ' — شروع از یادگیری همین گوینده با سبک دیگر.' : '.');
     if (s !== gvTxt) { gvTxt = s; e.textContent = s; }
     e.hidden = false;
   }
@@ -9633,7 +9655,7 @@ function chunkAt(i, lim){
     try {
       hsDev = null; var gvOff = sget('gvOn', '1') !== '1';
       if (gvOff && !hsOn()) return 1;   /* r135: ناظر سلامت به مدل مدت نیاز دارد؛ یادگیری ادامه دارد ولی ضریب جبران فقط با «ناظر سرعت» اعمال می‌شود */
-      var P = c.parts, dur = (b.size - 44) / ((b.sr || 22050) * 2), tm = VOICE_TEMPOS[vid] || VOICE_TEMPO, key = vid, st, M, th, mk = b.marks, xs = [], ys = [], pr = [], i, j, k, n, ok, F, t, x, chars = 0, lat = 0, sw = 0, sy = 0, sp = 0, m = 0, lr = [], lw = [], lm, vw, se2, dev, w, f, d, upd = 0, rk, wt, lg;
+      var P = c.parts, dur = (b.size - 44) / ((b.sr || 22050) * 2), tm = VOICE_TEMPOS[vid] || VOICE_TEMPO, key = vid, st, M, th, mk = b.marks, xs = [], ys = [], pr = [], i, j, k, n, ok, F, t, x, chars = 0, lat = 0, sw = 0, sy = 0, sp = 0, m = 0, lr = [], lw = [], lm, vw, se2, dev, w, f, d, upd = 0, rk, wt, lg, dc;
       if (!P || !P.length || !(dur > 0.4)) return 1;
       try { st = styleParams(vid); key = vid + '~' + st[1]; } catch (e) {}
       n = P.length;
@@ -9663,9 +9685,12 @@ function chunkAt(i, lim){
         wt = Math.max(0.25, Math.min(4, Math.pow(2 / Math.max(0.4, t), 2)));
         lg = th ? Math.abs(Math.log(rk)) : 0;
         if (lg > 0.2) wt *= 0.2 / lg;
-        for (j = 0; j < GV_N * GV_N; j++) M.A[j] *= 0.985;
-        for (j = 0; j < GV_N; j++) M.b[j] *= 0.985;
-        M.n = M.n * 0.985 + 1;
+        if (th) M.bi = (M.bi || 0) * 0.85 + Math.log(rk) * 0.15;   /* r157: انحراف یک‌سویهٔ پایدار (>۹٪) = صدا/موتور عوض شده ⇒ فراموشی سریع‌تر تا مدل زود هم‌گام شود */
+        dc = Math.abs(M.bi || 0) > 0.09 ? 0.96 : 0.985;
+        if (M.wm && ++M.wc >= 10) M.wm = 0;
+        for (j = 0; j < GV_N * GV_N; j++) M.A[j] *= dc;
+        for (j = 0; j < GV_N; j++) M.b[j] *= dc;
+        M.n = M.n * dc + 1;
         for (j = 0; j < GV_N; j++) { for (k = 0; k < GV_N; k++) M.A[j * GV_N + k] += wt * xs[i].x[j] * xs[i].x[k]; M.b[j] += wt * xs[i].x[j] * ys[i]; }
         if (th) M.s2 = Math.max(0.0004, Math.min(0.09, M.s2 * 0.97 + Math.pow(Math.min(lg, 0.35), 2) * 0.03));
         upd++;
@@ -9702,7 +9727,16 @@ function chunkAt(i, lim){
     } catch (e) {}
     return r;
   }
-  window.gvInfo = function(){ var o = {}; Object.keys(GVS).forEach(function(k){ var M = GVS[k], th = M.n >= 12 ? gvSolve(M) : null; o[k] = { n: Math.round(M.n * 10) / 10, sigma: Math.round(Math.sqrt(M.s2) * 1000) / 1000, f: M.f, th: th ? th.map(function(v){ return Math.round(v * 1000) / 1000; }) : null }; }); return o; };
+  function gvReset(){   /* r157: پاک‌کردن یادگیری ناظر سرعت همهٔ گوینده‌ها؛ از نمونهٔ بعدی دوباره یاد می‌گیرد */
+    var ks = [], i, k;
+    Object.keys(GVS).forEach(function(a){ delete GVS[a]; });
+    try { for (i = 0; i < localStorage.length; i++) { k = localStorage.key(i); if (k && k.indexOf('gvN:') === 0) ks.push(k); } ks.forEach(function(a){ localStorage.removeItem(a); }); } catch (e) {}
+    gvTxt = '';
+    try { var e2 = $('#gvSt'); if (e2) { e2.textContent = 'ناظر سرعت: یادگیری پاک شد؛ از پخش بعدی دوباره یاد می‌گیرد.'; e2.hidden = false; gvTxt = e2.textContent; } } catch (x) {}
+    return ks.length;
+  }
+  (function(){ var b = $('#gvRst'); if (b) b.onclick = function(){ gvReset(); }; })();
+  window.gvInfo = function(){ var o = {}; Object.keys(GVS).forEach(function(k){ var M = GVS[k], th = M.n >= 12 ? gvSolve(M) : null; o[k] = { bias: Math.round((M.bi || 0) * 1000) / 1000, seeded: !!M.wm, n: Math.round(M.n * 10) / 10, sigma: Math.round(Math.sqrt(M.s2) * 1000) / 1000, f: M.f, th: th ? th.map(function(v){ return Math.round(v * 1000) / 1000; }) : null }; }); return o; };
   /* ---- r135: ناظر سلامت صدا — یک کلید «خودکار» (hsOn). ۱) خروجی ساخته‌شده: طول غیرعادی نسبت به مدل مدت ناظر سرعت (یا حدود مطلق)، خالی‌بودن، و برای PCM در دسترس بریدگی/بی‌صدایی/DC؛ مشکوک ⇒ یک بار ساخت مجدد با نویز کمتر. ۲) پخش: خطای عنصر صدا/پلاگین ⇒ بازیابی خودکار با سقف ۲ بار در دقیقه ---- */
 var HS = { bad: 0, fixed: 0, kept: 0, rec: 0, errs: [], vp: {}, ld: {}, lN: 0, lO: 0, lG: 0, nl: {}, nm: {}, nT: {}, nA: {}, pzS: { c: 0, n: 0, hid: 0, cut: 0, ni: 0, nic: 0 } }, hsDev = null;
 function hsOn(){ return sget('hsOn', '1') !== '0'; }
