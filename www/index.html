@@ -4903,7 +4903,7 @@ var ocrSpell = (function(){
     return { b: pb, m: pm };
   }
   /* r153 (ناظر ساختار): نشانه‌های قطعیِ «سطر ادامه دارد» حتی وقتی سطر کوتاه است: پایان با حرف‌ربط/اضافهٔ ناتمام، آغاز با پسوند جداافتاده یا علامت بستن/ویرگول، و پرانتز/گیومهٔ باز که سطر بعد می‌بندد */
-  var JB_CONN_END = /(?:^|\s)(?:و|یا|که|از|به|در|با|تا|را|برای|بر|چون|اگر|می|نمی|همی|بی|نیز|هم)$/;
+  var JB_CONN_END = /(?:^|\s)(?:و|یا|که|از|به|در|با|تا|را|برای|بر|چون|اگر|می|نمی|همی|بی|نیز|هم|اما|ولی|بلکه|لیکن|زیرا|چراکه|پس|سپس|همچنین|چنانچه|هرچند|اگرچه|وقتی|همین|همان)$/;   /* r155: حرف‌ربط/قید آغازگر جمله هرگز پایان سطرِ تمام‌شده نیست */
   var JB_SFX = /^(?:ها|های|هایی|تر|ترین|کننده|کنندگان|دهنده|دهندگان|گیری|سازی|بندی|گذاری|ای|ام|ایم|اید|اند|ات|اش|مان|تان|شان)(?=$|[\s،.؛:!?؟)»])/;
 /* r154 (ناظر ساختار): عرض شکست واقعیِ سطر — از سطرهای «میان‌جمله» (بدون نقطهٔ پایان) برآورد می‌شود نه از صدک ۹۰ همهٔ سطرها؛ بند تک‌سطری بلند، مرجع را باد می‌کرد و هر سطر معمولی «عنوان کوتاه» حساب می‌شد. اگر ≥۵۰٪ این سطرها نزدیک عرض نباشند، سطرها ناهم‌طول‌اند و کوتاهیِ سطر نشانهٔ عنوان نیست (ref=0) */
 var JB_NUM = /(?:^|\s)(?:سال|ماه|روز|قرن|ساعت|صفحهٔ?|شمارهٔ?|مادهٔ?|بند|تبصرهٔ?|حدود|حدودا|تقریبا|نزدیک|حداقل|حداکثر|بین|میان|فصل|بخش|جدول|شکل|نمودار)$/;   /* سطر کوتاه پیش‌عدد + سطر بعدِ شروع‌شده با رقم = یک عبارت («در سال» + «۱۳۹۸ …») */
@@ -4921,6 +4921,36 @@ function jbWrapW(ls, old){
     var o = (l.match(/[«(\[“]/g) || []).length, c = (l.match(/[»)\]”]/g) || []).length, no = (nx.match(/[«(\[“]/g) || []).length, nc = (nx.match(/[»)\]”]/g) || []).length;
     return o > c && nc > no;
   }
+  /* r155 (ناظر ساختار): ترمیم «تکه‌سطر» — وقتی ردیف‌های PDF/OCR یک سطر فیزیکی را تکه‌تکه می‌دهند («معرفت» / «نیز» / «همین نقش…» / «تازه‌ای» / «نمی‌آفریند.») سطرِ کوتاهِ بدون نقطه «عنوان/پایان بند» حساب می‌شد و جمله چند بند می‌شد.
+     دنباله‌ای از سطرهای کوتاهِ پیاپی که (۱) با سطر پایان‌جمله بسته شود، (۲) روی‌هم از ≈۱٫۶ سطر فیزیکی بیشتر نشود، (۳) میانگین پُرشدگی ردیف‌ها ≤ ۵۰٪ باشد و (۴) یا ردیفِ پیش از آن میان‌جمله باز باشد یا دست‌کم سه ردیف با یک حرف‌ربط/اضافه باشد = جملهٔ تکه‌تکه؛ ردیف‌هایش به هم می‌چسبند. سطر تمام‌عرض، فهرست، عنوان قطعی و جدول زنجیره را می‌شکنند؛ بدون عرض مرجع (ref<40) کاری نمی‌کند */
+  var JB_FWORD = /(?:^|\s)(?:و|یا|که|از|به|در|با|تا|را|برای|بر|بی|نیز|هم|این|آن|همین|همان|چون|اگر|اما|ولی|بلکه|نه|چه|می|نمی)(?=$|\s|[،,؛.:!?؟)»])/;
+  function jbWc(l){ return l.trim().split(/\s+/).length; }
+  function jbHeal(ls, ref, fr){
+    var n = ls.length, i, j, l, k, L, m, ok, pv, open, wl;
+    if (ref < 40) return;
+    for (i = 0; i < n - 1; i++) {
+      l = ls[i];
+      if (!l || l.length >= ref * 0.6 || JB_END.test(l) || JB_ITEM.test(l) || JB_HD.test(l) || TBL.test(l)) continue;
+      wl = jbWc(l); pv = i ? ls[i - 1] : '';
+      open = !!pv && pv.length >= ref * 0.5 && !JB_END.test(pv) && !JB_ITEM.test(pv) && !JB_HD.test(pv) && !TBL.test(pv);   /* ردیف پیشین میان‌جمله باز است */
+      if (wl > 4 || (wl > 3 && !open)) continue;
+      L = l.length; ok = false;
+      for (j = i + 1; j < n && j <= i + 6; j++) {
+        k = ls[j];
+        if (!k || JB_ITEM.test(k) || JB_HD.test(k) || TBL.test(k)) break;
+        L += 1 + k.length;
+        if (L > ref * 1.6) break;
+        if (JB_END.test(k)) { ok = true; break; }
+        if (k.length >= ref * 0.8) break;
+      }
+      if (ok) {
+        m = j - i + 1;
+        if (L / m <= ref * 0.5 && (open || (m >= 3 && JB_FWORD.test(ls.slice(i, j + 1).join(' '))))) { for (k = i; k < j; k++) fr[k] = true; i = j; continue; }
+      }
+      k = ls[i + 1];                                                   /* ردیفِ کوتاهِ میان‌جمله: ردیف پیشین باز است و این ردیف یا دنبالهٔ همان سطرِ ردیف پیشین است (روی‌هم از یک سطر بیشتر نمی‌شوند) یا با ردیف بعد یک سطر می‌شود؛ شکستِ بعد از آن درست نیست */
+      if (open && l.length < ref * 0.45 && k && !JB_ITEM.test(k) && !JB_HD.test(k) && !TBL.test(k) && (pv.length + 1 + l.length <= ref * 1.03 || (l.length + 1 + k.length <= ref * 1.03 && (wl <= 2 || (k.length >= ref * 0.45 && k.length < ref * 0.8))))) fr[i] = true;
+    }
+  }
   function joinBrokenLines(t, mode){
     var ls = t.split('\n'), pf = mode === 'join' ? { b: [], m: [] } : poemFlags(ls), ln = ls.map(function(l){ return l.length; }).filter(Boolean).sort(function(a, b){ return a - b; });
     var ref = mode === 'line' || mode === 'join' ? 0 : jbWrapW(ls, ln.length ? ln[Math.floor(ln.length * 0.9)] : 0), out = '', fr = [];
@@ -4935,6 +4965,7 @@ function jbWrapW(ls, old){
         q0 = q1;
       }
     }
+    if (mode !== 'line' && mode !== 'join') jbHeal(ls, ref, fr);                 /* r155: جملهٔ تکه‌تکه */
     ls.forEach(function(l, i){
       var nx = ls[i + 1], brk;
       if (nx === undefined) { out += l; return; }
@@ -9153,7 +9184,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r154 · 2026-10-31 · sv-own', npBuild = '';
+  var APP_BUILD = 'html-r155 · 2026-10-31 · sv-own', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
