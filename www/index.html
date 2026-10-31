@@ -1739,6 +1739,8 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <div class="btnrow" id="nsRow" hidden><button class="btn sm" id="nsRe" type="button">اندازه‌گیری دوبارهٔ ناظر نویز</button></div>
 <div class="slist"><label class="chk"><input type="checkbox" id="hsOn" checked><span class="st"><b>ناظر سلامت صدا (خودکار)</b><small>طول و سلامت هر تکهٔ ساخته‌شده را می‌سنجد و تکهٔ مشکوک (بریده، کشیده، خالی) را یک بار با نویز کمتر دوباره می‌سازد؛ خطای پخش را هم خودکار بازیابی می‌کند.</small></span></label></div>
 <p class="hint" id="hsSt" aria-live="polite" hidden></p>
+<div class="slist"><button class="btn sm" id="hsRep" type="button">گزارش ناظر سلامت صدا</button></div>
+<div id="hsRepBox" hidden><textarea id="hsRepText" readonly rows="9" style="width:100%;direction:ltr;font:11px monospace" aria-label="گزارش ناظر سلامت صدا"></textarea><div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="hsRepCopy">کپی</button></div></div>
           <div class="slist"><label class="chk"><input type="checkbox" id="gvOn" checked><span class="st"><b>ناظر سرعت هوشمند</b><small>سرعت واقعی هر تکه را اندازه می‌گیرد و اگر تصادفاً تندتر یا کندتر از سرعت انتخابی شما ساخته شده باشد، هنگام پخش جبرانش می‌کند؛ با تغییر پایدار صدا سریع‌تر هم‌گام می‌شود و برای سبک تازه از یادگیری همان گوینده شروع می‌کند.</small></span></label></div>
           <p class="hint" id="gvSt" aria-live="polite" hidden></p>
           <div class="slist"><button class="btn sm" id="gvRst" type="button">بازنشانی یادگیری ناظر سرعت</button></div>
@@ -2832,7 +2834,9 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       /* ضریب پایه برای همهٔ گوینده‌ها یکسان است (۱ = سرعت اصلی مدل) */
       var tempo = VOICE_TEMPOS[o.voiceId] || VOICE_TEMPO, fxp = (window.EQM || { nat: function(b){ return b; } }).nat($('#enh').checked ? fxProf(o.voiceId) : null);
       var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo), g: p.g, n: p.n, w: p.w }; }) : undefined;
-      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cleanLevel(o.voiceId), clarity: clarityLevel(), pause: pauseLevel(), keep: npPlay, master: !!fxp, eq: npPlay && window.EQM && EQM.on() ? EQM.payload() : undefined, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, lvT: svLvT(o.voiceId), pz: svOn('svPz'), speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null, hp: r.hs || null, pz: r.pz || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; b.hp = r.hs || null; return b; });
+      var cln = cleanLevel(o.voiceId), eqp = npPlay && window.EQM && EQM.on() ? EQM.payload() : undefined, sg = '', hq = function(h){ if (h) h._sg = sg; return h; };
+      try { sg = [o.st && o.st[0], o.st && o.st[1], cln, clarityLevel(), fxp ? 1 : 0, fxp ? fxp.pk : 0, fxp ? fxp.hs : 0, fxp ? fxp.lp : 0, eqp ? JSON.stringify(eqp) : ''].join('|'); } catch (e) {}   /* r159: امضای تنظیماتی که a0 بومی (پس از مسترینگ/EQ/OUT_TRIM) را جابه‌جا می‌کنند؛ تاریخچهٔ بلندی فقط در همان امضا معتبر است */
+      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cln, clarity: clarityLevel(), pause: pauseLevel(), keep: npPlay, master: !!fxp, eq: eqp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, lvT: svLvT(o.voiceId, sg), pz: svOn('svPz'), speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null, hp: hq(r.hs) || null, pz: r.pz || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; b.hp = hq(r.hs) || null; return b; });
     }
   };
 
@@ -2852,6 +2856,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
     var it = (window.__elog && window.__elog.items) || [], st = 0, k;
     if (!logAll) for (k = it.length - 1; k >= 0; k--) if (/^\[[^\]]*\] build: /.test(it[k])) { st = k; break; }
     var body = it.length ? (st ? '(' + st + ' ثبت مربوط به بیلدهای قدیمی‌تر مخفی است؛ «همهٔ ثبت‌ها»)\n' : '') + it.slice(st).join('\n') : '(خطایی ثبت نشده)';
+    try { var hr = typeof hsReport === 'function' ? hsReport(false) : ''; if (hr) body = hr + '\n---\n' + body; } catch (e) {}   /* r160: گزارش ناظر سلامت صدا فقط وقتی رویدادی ثبت شده */
     var ta = $('#logText');
     ta.value = head + '\n---\n' + body;
     if (npOK && NP && NP.diag) NP.diag().then(function(d){ ta.value = head + '\nnative: ' + JSON.stringify(d) + '\n---\n' + body; }).catch(function(){});
@@ -9200,7 +9205,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r155 · 2026-10-31 · sv-own', npBuild = '';
+  var APP_BUILD = 'html-r160 · 2026-10-31 · sv-own', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -9738,7 +9743,7 @@ function chunkAt(i, lim){
   (function(){ var b = $('#gvRst'); if (b) b.onclick = function(){ gvReset(); }; })();
   window.gvInfo = function(){ var o = {}; Object.keys(GVS).forEach(function(k){ var M = GVS[k], th = M.n >= 12 ? gvSolve(M) : null; o[k] = { bias: Math.round((M.bi || 0) * 1000) / 1000, seeded: !!M.wm, n: Math.round(M.n * 10) / 10, sigma: Math.round(Math.sqrt(M.s2) * 1000) / 1000, f: M.f, th: th ? th.map(function(v){ return Math.round(v * 1000) / 1000; }) : null }; }); return o; };
   /* ---- r135: ناظر سلامت صدا — یک کلید «خودکار» (hsOn). ۱) خروجی ساخته‌شده: طول غیرعادی نسبت به مدل مدت ناظر سرعت (یا حدود مطلق)، خالی‌بودن، و برای PCM در دسترس بریدگی/بی‌صدایی/DC؛ مشکوک ⇒ یک بار ساخت مجدد با نویز کمتر. ۲) پخش: خطای عنصر صدا/پلاگین ⇒ بازیابی خودکار با سقف ۲ بار در دقیقه ---- */
-var HS = { bad: 0, fixed: 0, kept: 0, rec: 0, errs: [], vp: {}, ld: {}, lN: 0, lO: 0, lG: 0, nl: {}, nm: {}, nT: {}, nA: {}, pzS: { c: 0, n: 0, hid: 0, cut: 0, ni: 0, nic: 0 } }, hsDev = null;
+var HS = { bad: 0, fixed: 0, kept: 0, rec: 0, errs: [], vp: {}, ld: {}, lk: {}, lN: 0, lO: 0, lG: 0, nl: {}, nm: {}, nk: {}, nT: {}, nA: {}, rb: [], rp: [], pzS: { c: 0, n: 0, hid: 0, cut: 0, ni: 0, nic: 0 } }, hsDev = null;
 function hsOn(){ return sget('hsOn', '1') !== '0'; }
 function hsSt(s){   /* کلید کش بومی شامل noiseScale/noiseScaleW است (کف بومی ۰٫۲)؛ اگر کاهش اثری نداشت، برای نمونهٔ تازه کمی بالا می‌رود */
   var a = Math.max(0.2, Math.round((s[0] - 0.05) * 100) / 100), b = Math.max(0.2, Math.round((s[1] - 0.05) * 100) / 100);
@@ -9766,7 +9771,8 @@ function hsPcmWhy(q){
 }
 function svNz(id, c, q){   /* r144: کف نویز زنده (بومی، همان تعریف nsMetrics) در برابر مقدار کالیبره؛ انحراف ≥ ۶ dB (۱ واحد جریمه، آستانهٔ آزمایشی) ⇒ اندازه‌گیری دوباره؛ اگر باز هم ماند ⇒ جبران نظام‌مند */
   var a, s, m, o, d, kk, t = Date.now();
-  if (!q || !isFinite(q.fl) || !hsOn()) return;
+  if (!q || !isFinite(q.fl) || !hsOn() || $('#vclean').value !== 'a') return;   /* r158: کالیبراسیون فقط برای حالت خودکار است (سطح دستی ≠ سطح کالیبره) */
+  kk = nsKey(id); if (HS.nk[id] !== kk) { HS.nk[id] = kk; HS.nl[id] = []; delete HS.nm[id]; }   /* تاریخچهٔ زنده فقط برای همان تنظیمات کالیبراسیون (سبک/افزایش کیفیت/شفافیت/مکث) */
   a = HS.nl[id] || (HS.nl[id] = []); a.push(q.fl); if (a.length > 15) a.shift();
   if (a.length < 8) return;
   s = a.slice().sort(function(p, r){ return p - r; }); m = (s[(s.length - 1) >> 1] + s[s.length >> 1]) / 2; HS.nm[id] = m;
@@ -9791,17 +9797,18 @@ function svLoud(id, c, q){
   var a, m, d, s, v;
   v = q && isFinite(q.a0) ? q.a0 : q && q.ar;   /* a0 = بلندی پیش از تراز (بومی)؛ وگرنه ar */
   if (!q || !isFinite(v) || v <= -90 || !hsOn()) return;
+  if (q._sg !== undefined && HS.lk[id] !== q._sg) { HS.lk[id] = q._sg; HS.ld[id] = []; }   /* r159: تنظیمات خروجی عوض شده ⇒ میانهٔ قبلی دیگر معیار نیست */
   a = HS.ld[id] || (HS.ld[id] = []); HS.lN++;
   if (isFinite(q.g) && Math.abs(q.g - 1) > 0.03) HS.lG++;
   if (a.length >= 6) {
     s = a.slice().sort(function(p, r){ return p - r; }); m = (s[(s.length - 1) >> 1] + s[s.length >> 1]) / 2; d = v - m;
-    if (Math.abs(d) > 6) { HS.lO++; hsLog('تکهٔ ' + (c ? c.start : '?') + ': بلندی ' + nf.format(Math.round(Math.abs(d) * 10) / 10) + ' dB ' + (d > 0 ? 'بلندتر' : 'کم‌صداتر') + ' از میانهٔ اخیر این گوینده'); }
+    if (Math.abs(d) > 6) { HS.lO++; hsRec({ k: 'loud', i: c ? c.start : -1, d: hsR(d, 10), v: hsR(v, 10), m: hsR(m, 10), n: a.length, g: hsR(q.g, 100) }); hsLog('تکهٔ ' + (c ? c.start : '?') + ': بلندی ' + nf.format(Math.round(Math.abs(d) * 10) / 10) + ' dB ' + (d > 0 ? 'بلندتر' : 'کم‌صداتر') + ' از میانهٔ اخیر این گوینده'); }
   }
   a.push(v); if (a.length > 15) a.shift();
 }
-function svLvT(id){   /* هدف تراز بلندی: میانهٔ ۱۵ تکهٔ اخیر همان گوینده (حداقل ۶ تکه)؛ undefined = بدون تراز */
+function svLvT(id, sg){   /* هدف تراز بلندی: میانهٔ ۱۵ تکهٔ اخیر همان گوینده (حداقل ۶ تکه)؛ undefined = بدون تراز */
   var a = HS.ld[id], s;
-  if (!a || a.length < 6 || !svOn('svLvl') || !hsOn()) return undefined;
+  if (!a || a.length < 6 || !svOn('svLvl') || !hsOn() || (sg !== undefined && HS.lk[id] !== sg)) return undefined;
   s = a.slice().sort(function(p, r){ return p - r; });
   return Math.round((s[(s.length - 1) >> 1] + s[s.length >> 1]) * 5) / 10;
 }
@@ -9982,36 +9989,108 @@ function svRender(){
   try { if (NP.diag) NP.diag().then(function(r){ if (r && isFinite(r.underruns)) { ex.push('• لکنت پخش (underrun) بومی: ' + nf.format(r.underruns) + ' بار' + (isFinite(r.bufMs) ? '؛ بافر پخش ' + nf.format(r.bufMs) + ' میلی‌ثانیه' + (r.bufGrow ? ' (' + nf.format(r.bufGrow) + ' بار افزایش خودکار)' : '') : '') + '.'); put(); } }).catch(function(){}); } catch (x) {}
   try { if (NP.cacheInfo) NP.cacheInfo().then(function(r){ var b = r.bytes || 0, m = r.max || 0; var ht = +r.hits || 0, tt = ht + (+r.misses || 0); ex.push('• ناظر کش صوت: ' + pcFmt(b) + ' از ' + pcFmt(m) + ' (' + nf.format(r.files || 0) + ' جمله)' + (tt ? '؛ نرخ برخورد ' + nf.format(Math.round(ht * 100 / tt)) + '٪ (' + nf.format(ht) + ' از ' + nf.format(tt) + ' جمله از شروع برنامه)' : '') + (r.evicted ? '؛ ' + nf.format(r.evicted) + ' جمله به‌دلیل سقف حذف شد' : '') + (m && b >= m * 0.9 ? ' ← نزدیک سقف؛ در «پیشرفته» سقف را بالا ببرید یا پاک‌سازی کنید' : '') + '.'); put(); }).catch(function(){}); } catch (x) {}
 }
+function hsRec(o){   /* r160: ثبت فشردهٔ رویداد برای «گزارش ناظر سلامت صدا»؛ سقف ۱۲، فقط مقدارهای ساده، فقط در حافظه */
+  try { o.t = new Date().toTimeString().slice(0, 8); HS.rp.push(o); if (HS.rp.length > 12) HS.rp.shift(); } catch (e) {}
+}
+function hsR(x, k){ return x != null && isFinite(x) ? Math.round(x * k) / k : null; }
+function hsSnap(h, o){ if (!h) return null; o = o || h; return { pk: hsR(h.pk, 1000), cl: hsR(h.cl, 10000), dc: hsR(h.dc, 10000), nan: h.nan | 0, ar: hsR(h.ar, 10), a0: hsR(o.a0, 10), g: hsR(o.g, 100), fl: hsR(o.fl, 10) }; }
+function hsEv(c, b, p, why, out, h, b2, w2){   /* رویداد تکهٔ مشکوک: p = n (بومی) | b (مرورگر)؛ out = fixed | improved | kept | cap | err */
+  try {
+    var e = { k: 'chunk', i: c.start, p: p, w: why, out: out, Ln: (c.text.match(/[\p{L}\p{N}]/gu) || []).length, d: hsR((b.size - 44) / ((b.sr || 22050) * 2), 100), dev: hsR(b._dev, 1000), h: hsSnap(h, b.hp), tx: c.text.slice(0, 40).replace(/\s+/g, ' ') + ' (' + c.text.length + ')' };
+    if (b2 || w2) { e.w2 = w2 || ''; if (b2 && b2.size) { e.d2 = hsR((b2.size - 44) / ((b2.sr || 22050) * 2), 100); e.dev2 = hsR(b2._dev, 1000); e.h2 = hsSnap(b2.hp); } }
+    hsRec(e);
+  } catch (x) {}
+}
+function hsFmt(e){
+  var h = e.h, s;
+  if (e.k === 'chunk') {
+    s = e.t + ' تکه#' + e.i + ' [' + e.p + '] ' + e.out + ' «' + e.w + '» Ln=' + e.Ln + ' dur=' + e.d + ' dev=' + e.dev;
+    if (h) s += ' | pk=' + h.pk + ' cl=' + h.cl + ' dc=' + h.dc + ' nan=' + h.nan + ' ar=' + h.ar + ' a0=' + h.a0 + ' g=' + h.g + ' fl=' + h.fl;
+    if (e.w2 != null) s += ' | بازساخت: «' + (e.w2 || 'سالم') + '»' + (e.d2 != null ? ' dur=' + e.d2 + ' dev=' + e.dev2 : '') + (e.h2 ? ' pk=' + e.h2.pk + ' ar=' + e.h2.ar + ' a0=' + e.h2.a0 : '');
+    return s + ' | «' + e.tx + '»';
+  }
+  if (e.k === 'loud') return e.t + ' بلندی تکه#' + e.i + ' انحراف=' + e.d + 'dB مقدار=' + e.v + ' میانه=' + e.m + ' تعداد=' + e.n + ' g=' + e.g;
+  if (e.k === 'play') return e.t + ' پخش#' + e.i + ' ' + e.out + ' «' + e.w + '» ' + e.m;
+  return e.t + ' ' + e.k;
+}
+function hsReport(force){   /* r160: گزارش کامل ناظر سلامت و یکنواختی صدا برای عیب‌یابی (دادهٔ لازم پرامپت «ناظر سلامت صدا» بند ۸)؛ بدون رویداد و بدون force ⇒ '' */
+  var o = [], id = '', v, a, s, m, nz, now = Date.now(), t;
+  if (!force && !HS.bad && !HS.lO && !HS.rec && !HS.rp.length) return '';
+  o.push('[ناظر سلامت و یکنواختی صدا] ' + APP_BUILD + (npBuild ? ' / ' + npBuild : '') + ' — ' + (onNative ? 'android' : 'web'));
+  try { v = currentVoice(); id = (v && v.id) || ''; } catch (e) {}
+  try { o.push('مسیر=' + (npPlay ? 'پخش بومی (handle)' : 'پخش مرورگر (wav)') + ' | موتور=' + engine() + ' | صدا=' + (id || '-') + ' | سرعت=' + (($('#rate') || {}).value || '-') + ' | سبک(ns/nw)=' + (id ? styleParams(id).join('/') : '-')); } catch (e) { o.push('مسیر/صدا: خطا در خواندن'); }
+  try { o.push('پاک‌سازی=' + (($('#vclean') || {}).value === 'a' ? 'خودکار→' : '') + cleanLevel(id) + ' | شفافیت=' + clarityLevel() + ' | افزایش کیفیت=' + ((($('#enh') || {}).checked) ? 1 : 0) + ' | EQ=' + (window.EQM && EQM.on() ? 1 : 0) + ' | مکث=' + pauseLevel()); } catch (e) {}
+  o.push('ناظرها: hsOn=' + (hsOn() ? 1 : 0) + ' تراز بلندی=' + (svOn('svLvl') ? 1 : 0) + ' ناظر مکث=' + (svOn('svPz') ? 1 : 0) + ' ناظر سرعت=' + sget('gvOn', '1'));
+  HS.rb = HS.rb.filter(function(x){ return now - x < 60000; });
+  o.push('شمارنده‌ها: مشکوک=' + HS.bad + ' اصلاح=' + HS.fixed + ' بدون‌تغییر=' + HS.kept + ' بازیابی‌پخش=' + HS.rec + ' | ساخت‌مجدد در ۶۰ث=' + HS.rb.length + '/۴ | بلندی: تکه=' + HS.lN + ' انحراف>۶dB=' + HS.lO + ' ترازشده=' + HS.lG);
+  try {
+    a = (HS.ld[id] || []).slice(); s = a.slice().sort(function(p, r){ return p - r; }); m = s.length ? (s[(s.length - 1) >> 1] + s[s.length >> 1]) / 2 : null;
+    o.push('تاریخچهٔ بلندی a0 (dB، ' + a.length + '/۱۵)=[' + a.map(function(x){ return hsR(x, 10); }).join(', ') + '] میانه=' + hsR(m, 10) + ' lvT=' + (svLvT(id, HS.lk[id]) === undefined ? '—' : svLvT(id, HS.lk[id])) + ' امضا=' + String(HS.lk[id] || '').slice(0, 60));
+  } catch (e) {}
+  try { nz = id ? nsGet(nsKey(id)) : null; o.push('کف نویز: زنده(میانه)=' + hsR(HS.nm[id], 10) + ' نمونهٔ زنده=' + (HS.nl[id] || []).length + ' | کالیبره=' + (nz ? hsR(nz.fl, 10) + ' سطح=' + nz.lv + ' جبران=' + (nz.off || 0) : 'ندارد')); } catch (e) {}
+  o.push('رویدادهای اخیر (' + HS.rp.length + '/۱۲):');
+  HS.rp.forEach(function(e){ o.push('  ' + hsFmt(e)); });
+  try { t = ((window.__elog && window.__elog.items) || []).filter(function(x){ return /\] (audio-health|noise-live): /.test(x); }).slice(-10); if (t.length) { o.push('لاگ‌های اخیر:'); t.forEach(function(x){ o.push('  ' + x.slice(0, 220)); }); } } catch (e) {}
+  return o.join('\n');
+}
+(function(){
+  var b = $('#hsRep'), bx = $('#hsRepBox'), ta = $('#hsRepText'), cp = $('#hsRepCopy');
+  if (b && bx && ta) b.onclick = function(){ bx.hidden = !bx.hidden; if (!bx.hidden) ta.value = hsReport(true); };
+  if (cp && ta) cp.onclick = function(){
+    var ok = false, bad = 'کپی نشد؛ متن را با لمس طولانی انتخاب و کپی کنید.';
+    ta.value = hsReport(true); ta.select();
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    if (!ok && navigator.clipboard && navigator.clipboard.writeText) { try { navigator.clipboard.writeText(ta.value).then(function(){ status('گزارش کپی شد.'); }, function(){ status(bad); }); return; } catch (e) {} }
+    status(ok ? 'گزارش کپی شد.' : bad);
+  };
+})();
+function hsRbOk(){   /* r158: سقف ساخت مجدد نگهبان — حداکثر ۴ بار در ۶۰ ثانیه (آستانهٔ آزمایشی)؛ رشتهٔ تکه‌های مشکوک با علت سیستماتیک هزینهٔ ساخت را دوبرابر نکند؛ شناسایی و ثبت دست‌نخورده می‌ماند */
+  var now = Date.now(); HS.rb = HS.rb.filter(function(t){ return now - t < 60000; });
+  if (HS.rb.length >= 4) return false;
+  HS.rb.push(now); return true;
+}
 function hsGuard(c, v, b){
-  var why;
+  var why, qs = null;
   svTx(c);
   if (!b || c.start < 0 || !hsOn()) return b;
   if (!b.nh) {   /* PCM در JS هست (بدون پخش بومی): طول + بریدگی/بی‌صدایی */
     hsDev = null; why = hsWhy(c, b);
-    return (why ? Promise.resolve(why) : b.arrayBuffer().then(function(ab){ var q = hsPcm(new Int16Array(ab, 44, (ab.byteLength - 44) >> 1), 1 / 32768); svLoud(v.id, c, q); return hsPcmWhy(q); })).then(function(w){
+    return (why ? Promise.resolve(why) : b.arrayBuffer().then(function(ab){ var q = hsPcm(new Int16Array(ab, 44, (ab.byteLength - 44) >> 1), 1 / 32768), w0 = hsPcmWhy(q); qs = q; if (!w0) { if (b.hp && isFinite(b.hp.a0)) {   /* r159: مسیر wav هم مثل بومی a0 پیش از تراز را ثبت کند (ar پس از تراز حلقهٔ بازخورد می‌سازد) */
+           q.a0 = b.hp.a0; q.g = b.hp.g; q._sg = b.hp._sg; } svLoud(v.id, c, q); } return w0; })).then(function(w){   /* r158: بلندی فقط برای تکهٔ سالم ثبت می‌شود */
       if (!w) return b;
-      HS.bad++; hsLog('تکهٔ ' + c.start + ': ' + w + ' ← ساخت مجدد'); hsShow();
-      return piperPredict(c.text, v.id, 0, c.parts, 1).then(function(b2){ hsDev = null; if (b2 && !b2.nh && !hsWhy(c, b2)) { HS.fixed++; hsShow(); return b2; } HS.kept++; hsShow(); return b; });
-    }).catch(function(){ return b; });
+      HS.bad++;
+      if (!hsRbOk()) { HS.kept++; hsLog('تکهٔ ' + c.start + ': ' + w + ' ← ساخت مجدد انجام نشد (سقف ۴ بار در دقیقه)'); hsEv(c, b, 'b', w, 'cap', qs); hsShow(); return b; }
+      hsLog('تکهٔ ' + c.start + ': ' + w + ' ← ساخت مجدد'); hsShow();
+      return piperPredict(c.text, v.id, 0, c.parts, 1).then(function(b2){
+        var w2; hsDev = null; w2 = b2 && !b2.nh ? hsWhy(c, b2) : 'نتیجهٔ ساخت مجدد نامعتبر';
+        if (b2 && !b2.nh && !w2) { HS.fixed++; hsEv(c, b, 'b', w, 'fixed', qs, b2, ''); hsShow(); return b2; }
+        HS.kept++; hsEv(c, b, 'b', w, 'kept', qs, b2, w2); hsShow(); return b;
+      });
+    }).catch(function(e){ hsEv(c, b, 'b', '', 'err', qs, null, String((e && e.message) || e).slice(0, 80)); return b; });
   }
-  b._gv = gvFactor(c, b, v.id); b._dev = hsDev; why = hsWhy(c, b) || hsHpWhy(b.hp); svLoud(v.id, c, b.hp); svPzSt(b.pz);
-  if (!why) return b;
-  HS.bad++; hsLog('تکهٔ ' + c.start + ': ' + why + ' ← ساخت مجدد'); hsShow();
+  b._gv = gvFactor(c, b, v.id); b._dev = hsDev; why = hsWhy(c, b) || hsHpWhy(b.hp); svPzSt(b.pz);
+  if (!why) { svLoud(v.id, c, b.hp); return b; }   /* r158: تکهٔ مشکوکِ در آستانهٔ جایگزینی وارد تاریخچهٔ بلندی/کف نویز نمی‌شود */
+  HS.bad++;
+  if (!hsRbOk()) { HS.kept++; hsLog('تکهٔ ' + c.start + ': ' + why + ' ← ساخت مجدد انجام نشد (سقف ۴ بار در دقیقه)'); hsEv(c, b, 'n', why, 'cap', b.hp); hsShow(); return b; }
+  hsLog('تکهٔ ' + c.start + ': ' + why + ' ← ساخت مجدد'); hsShow();
   return piperPredict(c.text, v.id, 0, c.parts, 1).then(function(b2){
     var w2, keep2;
-    if (!b2 || !b2.nh) return b;
+    if (!b2 || !b2.nh) { hsEv(c, b, 'n', why, 'kept', b.hp, null, 'ساخت مجدد نتیجه نداد'); return b; }
     b2._gv = gvFactor(c, b2, v.id); b2._dev = hsDev; w2 = hsWhy(c, b2) || hsHpWhy(b2.hp);
     keep2 = !w2 || (b._dev != null && b2._dev != null && Math.abs(b2._dev) < Math.abs(b._dev));
     if (w2) { HS.kept++; hsLog('تکهٔ ' + c.start + ': پس از ساخت مجدد هم مشکوک (' + w2 + ')'); } else HS.fixed++;
+    hsEv(c, b, 'n', why, keep2 ? (w2 ? 'improved' : 'fixed') : 'kept', b.hp, b2, w2);
     hsShow();
-    if (keep2) { if (b2.nh !== b.nh) hsRelease(b); return b2; }
+    if (keep2) { if (b2.nh !== b.nh) hsRelease(b); if (!w2) svLoud(v.id, c, b2.hp); return b2; }
     if (b2.nh !== b.nh) hsRelease(b2);
     return b;
-  }).catch(function(){ return b; });
+  }).catch(function(e){ hsEv(c, b, 'n', why, 'err', b.hp, null, String((e && e.message) || e).slice(0, 80)); return b; });
 }
 function hsAllow(){ var now = Date.now(); HS.errs = HS.errs.filter(function(t){ return now - t < 60000; }); if (HS.errs.length >= 2) return false; HS.errs.push(now); return true; }
 function hsFail(my, msg, why){   /* خطای پخش: یک بازیابی خودکار از همین جمله (سقف ۲ بار در دقیقه و سقف نگهبان)، وگرنه رفتار قبلی */
-  if (my === token && playing && hsOn() && hsAllow()) { wdRecover(why); hsShow(); return; }
+  var rc = my === token && playing && hsOn() && hsAllow();
+  hsRec({ k: 'play', i: idx, w: String(why || '').slice(0, 60), m: String(msg || '').slice(0, 80), out: rc ? 'rec' : 'fail' });
+  if (rc) { wdRecover(why); hsShow(); return; }
   fail(my, msg);
 }
 var rawBlob = {}, sTab = {}, markMap = {};   /* markMap: مرز واقعی شروع جمله‌ها (کسری از کل صدا) به ازای هر بافر/handle، از پلاگین بومی (T-14) */
