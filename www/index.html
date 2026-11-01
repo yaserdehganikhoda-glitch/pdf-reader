@@ -3152,8 +3152,8 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
   }
   /* پس از NFKC در clean اجرا می‌شود (شکل‌های نمایشی عربی تازه آن‌جا به ي/ك تبدیل می‌شوند). تنوین «ً» و همزهٔ «ٔ» برای تلفظ (مثلاً، خانهٔ) می‌مانند */
   /* ===== یکدست‌سازی تایپوگرافی فارسی: ي ى ك ة و شکل‌های هم‌خانواده ← ی ک ه (و ارقام عربی ← فارسی) ===== */
-  var PA_MAP = { 'ي': 'ی', 'ى': 'ی', 'ې': 'ی', 'ۍ': 'ی', 'ێ': 'ی', 'ك': 'ک', 'ڪ': 'ک', 'ػ': 'ک', 'ة': 'ه', 'ۃ': 'ه', 'ھ': 'ه', 'ہ': 'ه' },
-      PA_RE = /[يىېۍێكڪػةۃھہ]/g, PA_DG = /[\u0660-\u0669]/g;
+  var PA_MAP = { 'ي': 'ی', 'ى': 'ی', 'ې': 'ی', 'ۍ': 'ی', 'ێ': 'ی', 'ك': 'ک', 'ڪ': 'ک', 'ػ': 'ک', 'ة': 'ه', 'ۃ': 'ه', 'ھ': 'ه', 'ہ': 'ه', '۔': '.' },   /* r163: «۔» (U+06D4، نقطهٔ اردو) در خروجی OCR ← «.» (ممیزی «بینش»: ۷۰ مورد در ۶۳ صفحه) */
+      PA_RE = /[يىېۍێكڪػةۃھہ۔]/g, PA_DG = /[\u0660-\u0669]/g;
   function persianize(t, digits){
     if (!t) return t;
     t = t.replace(PA_RE, function(c){ return PA_MAP[c]; });
@@ -3161,7 +3161,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
   }
   function normL(t, keep){                                         /* keep: صفحهٔ اعراب‌دارِ دستی؛ فتحه/کسره/ضمه/تشدید/سکون/تنوین می‌مانند */
     if (!O.norm) return t;
-    return persianize(t).replace(/[\u0647\u06D5]\u0654/g, '\u06C0').replace(keep ? /[\u0653\u0655-\u065F\u0640\u06D6-\u06ED]/g : /[\u064C-\u0653\u0655-\u065F\u0670\u0640\u06D6-\u06ED]/g, '');
+    return persianize(t).replace(/([\u0647\u06D5])[ \t]+\u0654/g, '$1\u0654').replace(/[\u0647\u06D5]\u0654/g, '\u06C0').replace(keep ? /[\u0653\u0655-\u065F\u0640\u06D6-\u06ED]/g : /[\u064C-\u0653\u0655-\u065F\u0670\u0640\u06D6-\u06ED]/g, '');
   }
   /* ===== پاک‌سازی حروف لاتین بی‌معنی (گاربیج انکودینگ فونت PDF / نویز OCR) وسط متن فارسی =====
      فقط توکن‌های «فقط‌حرف» بررسی می‌شوند؛ URL، ایمیل، نام فایل، کد و ترکیب‌های حرف+رقم به‌دلیل الگوی همسایه‌ها از ابتدا خارج‌اند.
@@ -3558,7 +3558,16 @@ var ocrSpell = (function(){
     [new RegExp('(?<=' + AL + ')[lI|](?=' + AL + ')|(?<![A-Za-z0-9])[lI](?=' + AL + '{2})|(?<=' + AL + '{2})[lI](?![A-Za-z0-9])', 'g'), 'ا'],   /* l I | ← ا */
     [new RegExp('(?<=' + AL + ')[0\\u0665](?=' + AL + ')', 'g'), 'ه'],                                                                      /* 0 ٥ بین حروف ← ه */
     [/\u0640/g, ''], [/[\u0629\u06C1\u06BE\u06D5]/g, 'ه'], [/\u06AA/g, 'ک'], [/[\u06D0\u06D2]/g, 'ی'], [/\u0671/g, 'ا'],                                       /* ة ہ ھ ە ڪ ې ے ٱ */
-    [new RegExp('(?<=' + AL + ')[`\'\u2019\u2018\u00B4^~\u00A8*](?=' + AL + ')', 'g'), '']                                                  /* نشانهٔ مزاحم وسط واژه */
+    [new RegExp('(?<=' + AL + ')[`\'\u2019\u2018\u00B4^~\u00A8*](?=' + AL + ')', 'g'), ''],   /* نشانهٔ مزاحم وسط واژه */
+    /* r163 (ممیزی «بینش»، ۳۴۰ صفحه): غلط‌های تکرارشوندهٔ OCR که همه غیرواژه‌اند؛ مرز واژه دارند و دیکشنری لازم ندارند */
+    [new RegExp('(?<!' + AL + ')آیای(?!' + AL + ')', 'g'), 'آیا'],
+    [new RegExp('(?<!' + AL + ')(آنچ|هرچ|هرج)(?:ه|\\u06C0|\\u0647\\u0654)(?!' + AL + ')', 'g'), function(m, a){ return (a === 'هرج' ? 'هرچ' : a) + 'ه'; }],
+    [new RegExp('(?<!' + AL + ')جیزی(?!' + AL + ')', 'g'), 'چیزی'],
+    [new RegExp('(?<!' + AL + ')وی(?:زگی|زکی|رگی)', 'g'), 'ویژگی'],
+    [new RegExp('(?<!' + AL + ')جربان', 'g'), 'جریان'],
+    [new RegExp('(?<!' + AL + ')ناهماهنکی', 'g'), 'ناهماهنگی'],
+    [new RegExp('(?<!' + AL + ')شکفت[ \\u200c]?انگیز', 'g'), 'شگفت\u200cانگیز'],
+    [new RegExp('(?<!' + AL + ')(از (?:این|همین)) رون[،,]?(?!' + AL + ')', 'g'), '$1 رو،']
   ];
 
   /* ۲) دیکشنری ریشه‌ها: فهرست پایه + منابع موجود در برنامه (CW، EZ_*، LEX_SRC، اعداد) + صرف خودکار فعل */
@@ -5154,7 +5163,8 @@ function jbWrapW(ls, old){
       var fi = -1, la = -1;
       ls.forEach(function(l, i){ if (l) { if (fi < 0) fi = i; la = i; } });
       /* خط فقط‌عددی فقط وقتی شمارهٔ صفحه است که اولین یا آخرین خط غیرخالی صفحه باشد */
-      return ls.filter(function(l, i){ return !(E[p][i] && l && l.length < 80 && (cnt[key(l)] >= th || ((i === fi || i === la) && l.length <= 8 && /^[-–\s\d۰-۹٠-٩]+$/.test(l)))); }).join('\n');
+      /* r163: در مسیر OCR، شمارهٔ صفحهٔ چاپی که آخرین خط غیرخالی است ولی کمی بیرون ناحیهٔ هندسی ۱۲٪ افتاده («۲۴» پیش از صفحهٔ بعد) هم حذف شود؛ فقط ۱–۴ رقم و ≤ تعداد صفحه‌ها+۳۰ تا سال («۱۳۹۸») و شمارهٔ فصل نیفتد (ممیزی «بینش» S7) */
+      return ls.filter(function(l, i){ return !((E[p][i] && l && l.length < 80 && (cnt[key(l)] >= th || ((i === fi || i === la) && l.length <= 8 && /^[-–\s\d۰-۹٠-٩]+$/.test(l)))) || (ed && ed[p] && i === la && l && /^[\d۰-۹٠-٩]{1,4}$/.test(l) && +l.replace(/[۰-۹]/g, function(c){ return c.charCodeAt(0) - 0x6F0; }).replace(/[٠-٩]/g, function(c){ return c.charCodeAt(0) - 0x660; }) <= pg.length + 30)); }).join('\n');
     });
   }
   var RTLCH = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
@@ -7253,18 +7263,19 @@ function jbWrapW(ls, old){
     $('#msName').dataset.u = ''; $('#msScope').value = 'page'; msNameSync(); msSt(''); msPathUi();
     msLoad();
   }
+  function msClean(t){ return String(t == null ? '' : t).replace(/\u001f/g, ' ').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001E\u007F]/g, ''); }   /* r163: نشانگرهای داخلی (\u001e مصرع شعر، \u001f جدول) هرگز به فایل/کلیپ‌بورد نروند؛ ممیزی «بینش»: ۴۵۹ مورد \u001e در ۴۴ صفحهٔ خروجی */
   async function msText(scope){
-    var cur = $('#manTx').value.replace(/\r\n?/g, '\n').replace(/[ \t]+$/gm, '').trim(), n = rawItems.length, out = [], ks, i, pn, t;
+    var cur = msClean($('#manTx').value).replace(/\r\n?/g, '\n').replace(/[ \t]+$/gm, '').trim(), n = rawItems.length, out = [], ks, i, pn, t;
     if (scope === 'page') return cur;
     if (scope === 'fixed') {
       ks = Object.keys(ocrPages).map(Number).filter(function(k){ return k >= 1 && k <= n; });
       if (manDirty() && ks.indexOf(man.pn) < 0) ks.push(man.pn);
       ks.sort(function(a, b){ return a - b; });
-      for (i = 0; i < ks.length; i++) { pn = ks[i]; t = pn === man.pn ? cur : String(ocrPages[pn] || ''); if (t.trim()) out.push('--- صفحهٔ ' + nf.format(pn) + ' ---\n' + t.trim()); }
+      for (i = 0; i < ks.length; i++) { pn = ks[i]; t = pn === man.pn ? cur : msClean(ocrPages[pn] || ''); if (t.trim()) out.push('--- صفحهٔ ' + nf.format(pn) + ' ---\n' + t.trim()); }
       return out.join('\n\n');
     }
     for (pn = 1; pn <= n; pn++) {
-      t = pn === man.pn ? cur : (ocrPages[pn] != null ? String(ocrPages[pn]) : manText(pn).t);
+      t = pn === man.pn ? cur : msClean(ocrPages[pn] != null ? ocrPages[pn] : manText(pn).t);
       if (t && t.trim()) out.push('--- صفحهٔ ' + nf.format(pn) + ' ---\n' + t.trim());
       if (pn % 25 === 0) await new Promise(function(r){ setTimeout(r, 0); });   /* رابط روی گوشی ضعیف قفل نشود */
     }
@@ -9220,7 +9231,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r162 · 2026-10-31 · dsp-probe', npBuild = '';
+  var APP_BUILD = 'html-r163 · 2026-11-01 · binesh-audit', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
