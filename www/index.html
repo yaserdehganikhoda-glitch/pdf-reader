@@ -1014,6 +1014,17 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 .mchip input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
 .mchip input:disabled+span{opacity:.5}
 .mchip small{display:none}
+.rcfd{display:grid;gap:4px;font-size:.76rem;font-weight:600;color:var(--muted)}
+.rcf{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.rcf[hidden],.rcbar[hidden]{display:none}
+.rcbar{height:8px;border-radius:99px;background:color-mix(in srgb,var(--ink) 9%,transparent);overflow:hidden}
+.rcbar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.rch{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.82rem}
+.rcl{display:grid;gap:6px}
+.rcr{display:grid;gap:4px;padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.rcr b{font-size:.78rem;word-break:break-all;line-height:1.6}
+.rcr small{color:var(--muted);font-size:.72rem}
+.rb{display:flex;gap:6px;flex-wrap:wrap}
 .mgo{min-height:38px;border-radius:12px;font-size:.88rem}
 .mtxw{display:grid;gap:6px}
 .mfqk{gap:4px;padding:4px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,.08)}
@@ -1515,7 +1526,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
             <div class="tpanel on" id="tpanel-voice" role="tabpanel" aria-labelledby="ttab-voice" data-tp="voice">
 <p class="tlbl">تنظیمات صدا</p>
 
-<div class="cfgrow c2"><button type="button" class="tile t-a" data-go="voice" data-only="#spkBox,#styleBox,#rateBox" data-title="گوینده و گفتار" data-sub="سبک و سرعت"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg></span><span class="tx"><b>گوینده و گفتار</b><small>سبک و سرعت</small></span></button><button type="button" class="tile t-b" data-go="voice" data-only="#bgmBox" data-title="موسیقی پس‌زمینه" data-sub="همراه با خواندن"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8v8M8 5v14M12 9v6M16 6v12M20 10v4"/></svg></span><span class="tx"><b>موسیقی پس‌زمینه</b><small>همراه با خواندن</small></span></button><button type="button" class="tile t-g" data-go="voice" data-only="#eqBox" data-title="اکولایزر" data-sub="تنظیم تُن صدا"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></span><span class="tx"><b>اکولایزر</b><small>تنظیم تُن صدا</small></span></button></div>
+<div class="cfgrow c2"><button type="button" class="tile t-a" data-go="voice" data-only="#spkBox,#styleBox,#rateBox" data-title="گوینده و گفتار" data-sub="سبک و سرعت"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4"/></svg></span><span class="tx"><b>گوینده و گفتار</b><small>سبک و سرعت</small></span></button><button type="button" class="tile t-b" data-go="voice" data-only="#bgmBox" data-title="موسیقی پس‌زمینه" data-sub="همراه با خواندن"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8v8M8 5v14M12 9v6M16 6v12M20 10v4"/></svg></span><span class="tx"><b>موسیقی پس‌زمینه</b><small>همراه با خواندن</small></span></button><button type="button" class="tile t-g" data-go="voice" data-only="#eqBox" data-title="اکولایزر" data-sub="تنظیم تُن صدا"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></span><span class="tx"><b>اکولایزر</b><small>تنظیم تُن صدا</small></span></button><button type="button" class="tile t-b" data-click="#rcBtn"><span class="tic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 3v2M12 19v2M3 12h2M19 12h2"/></svg></span><span class="tx"><b>ضبط و ذخیرهٔ خوانش</b><small>ساخت فایل صوتی از متن</small></span></button></div>
             </div>
             <div class="tpanel" id="tpanel-text" role="tabpanel" aria-labelledby="ttab-text" data-tp="text">
 <p class="tlbl">تنظیمات متن</p>
@@ -2177,6 +2188,32 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <div id="seekTip" hidden></div>
 <input type="file" id="file" accept="application/pdf,.pdf" hidden>
 <button id="manBtn" type="button" hidden disabled aria-hidden="true" tabindex="-1"></button>
+<button id="rcBtn" type="button" hidden disabled aria-hidden="true" tabindex="-1"></button>
+<div class="manov" id="rcOv" hidden role="dialog" aria-modal="true" aria-label="ضبط و ذخیرهٔ خوانش">
+  <div class="manin">
+    <div class="manhd">
+      <button class="mib" id="rcX" type="button" aria-label="بازگشت" title="بازگشت"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></button>
+      <b class="mant"><i class="mai"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 3v2M12 19v2M3 12h2M19 12h2"/></svg></i>ضبط و ذخیرهٔ خوانش</b>
+    </div>
+    <div class="manbd">
+      <section class="mcard" aria-label="تنظیمات ضبط">
+        <label class="rcfd">محدودهٔ ضبط<select id="rcScope"><option value="cur">صفحهٔ فعلی</option><option value="here">از جملهٔ فعلی تا پایان</option><option value="rng">بازهٔ صفحه‌ها</option><option value="all">کل سند</option></select></label>
+        <div class="rcf" id="rcRng" hidden><label class="rcfd">از صفحه<input type="number" id="rcP1" min="1" value="1" inputmode="numeric"></label><label class="rcfd">تا صفحه<input type="number" id="rcP2" min="1" value="1" inputmode="numeric"></label></div>
+        <div class="rcf"><label class="rcfd">قالب فایل<select id="rcFmt"><option value="m4a">m4a (فشرده)</option><option value="wav">WAV (بدون فشرده‌سازی)</option></select></label><label class="rcfd">طول هر فایل<select id="rcLen"><option value="5">حدود ۵ دقیقه</option><option value="10">حدود ۱۰ دقیقه</option><option value="20">حدود ۲۰ دقیقه</option></select></label></div>
+        <label class="rcfd">سرعت ضبط<select id="rcSpd"><option value="1">عادی (۱×)</option><option value="cur">همان سرعت فعلی خواندن</option></select></label>
+        <p class="hint" id="rcInfo"></p>
+        <button class="btn primary wide" id="rcGo" type="button">شروع ضبط خوانش</button>
+        <div class="rcbar" id="rcBar" hidden><i></i></div>
+        <p class="hint" id="rcSt" aria-live="polite"></p>
+        <p class="hint">با همان گوینده، سبک و مکث‌های پخش ساخته می‌شود؛ طول بیشتر هر فایل حافظهٔ بیشتری می‌گیرد. اگر فشرده‌سازی در دسترس نباشد، همان WAV ذخیره می‌شود.</p>
+      </section>
+      <section class="mcard" aria-label="ضبط‌های ذخیره‌شده">
+        <div class="rch"><b>ضبط‌های ذخیره‌شده</b><div class="rb"><button class="btn xs" id="rcFold" type="button" hidden>انتخاب پوشهٔ ذخیره</button><button class="btn xs" id="rcAll" type="button" hidden>ذخیرهٔ همه</button></div></div>
+        <div class="rcl" id="rcList"></div>
+      </section>
+    </div>
+  </div>
+</div>
 <div class="manov" id="manOv" hidden role="dialog" aria-modal="true" aria-label="اسکن و اصلاح دستی">
   <div class="manin">
     <div class="manhd">
@@ -2845,7 +2882,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo), g: p.g, n: p.n, w: p.w }; }) : undefined;
       var cln = cleanLevel(o.voiceId), eqp = npPlay && window.EQM && EQM.on() ? EQM.payload() : undefined, sg = '', hq = function(h){ if (h) h._sg = sg; return h; };
       try { sg = [o.st && o.st[0], o.st && o.st[1], cln, clarityLevel(), fxp ? 1 : 0, fxp ? fxp.pk : 0, fxp ? fxp.hs : 0, fxp ? fxp.lp : 0, eqp ? JSON.stringify(eqp) : ''].join('|'); } catch (e) {}   /* r159: امضای تنظیماتی که a0 بومی (پس از مسترینگ/EQ/OUT_TRIM) را جابه‌جا می‌کنند؛ تاریخچهٔ بلندی فقط در همان امضا معتبر است */
-      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cln, clarity: clarityLevel(), pause: pauseLevel(), keep: npPlay, master: !!fxp, probe: !!(window.DSP && DSP.on), eq: eqp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, lvT: svLvT(o.voiceId, sg), pz: svOn('svPz'), speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ try { if (r.dsp && window.dspPush) dspPush(r.dsp); } catch (e) {} if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null, hp: hq(r.hs) || null, pz: r.pz || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; b.hp = hq(r.hs) || null; return b; });
+      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cln, clarity: clarityLevel(), pause: pauseLevel(), keep: o.rec ? false : npPlay, master: !!fxp, probe: !!(window.DSP && DSP.on), eq: eqp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, lvT: svLvT(o.voiceId, sg), pz: svOn('svPz'), speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ try { if (r.dsp && window.dspPush) dspPush(r.dsp); } catch (e) {} if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null, hp: hq(r.hs) || null, pz: r.pz || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; b.hp = hq(r.hs) || null; return b; });
     }
   };
 
@@ -9129,9 +9166,9 @@ function jbWrapW(ls, old){
     refresh();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ezmInit); else ezmInit();
-  function piperPredict(text, id, l, parts, jit){
+  function piperPredict(text, id, l, parts, jit, rec){
     if (npOK) {
-      var nat = function(tx, pts){ return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: tx, voiceId: id, st: jit ? hsSt(styleParams(id)) : styleParams(id), sp: paceSpeed(tx), parts: pts })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.'); };
+      var nat = function(tx, pts){ return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: tx, voiceId: id, st: jit ? hsSt(styleParams(id)) : styleParams(id), sp: paceSpeed(tx), parts: pts, rec: rec })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.'); };
       /* خطای گذرا یا نویسهٔ عجیب در یک جمله کل خواندن را متوقف نکند: یک بار دیگر با متن ساده‌شده (فقط حرف، عدد و نشانه‌های رایج) */
       var plain = function(e){
         var m = String((e && e.message) || e);
@@ -9231,7 +9268,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r163 · 2026-11-01 · binesh-audit', npBuild = '';
+  var APP_BUILD = 'html-r165 · 2026-11-02 · rec-save-native', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -11104,7 +11141,7 @@ function wlSync(want){ wlWant = want;   /* Screen Wake Lock برای نسخهٔ 
     } catch (e) {}
   }
   function kaSync(){
-    var scan = !!(ocrBusy || (man && (man.busy || man.fx))), kw = !!(playing || scan);   /* بیدار ماندن صفحه/CPU هم حین پخش و هم حین OCR (اصلی و دستی) */
+    var scan = !!(ocrBusy || (man && (man.busy || man.fx)) || (RC && RC.run)), kw = !!(playing || scan);   /* بیدار ماندن صفحه/CPU هم حین پخش و هم حین OCR (اصلی و دستی) */
     wlSync(kw && (kaBad || !npOK || !NP));
 document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام OCR انیمیشن/بلور متوقف (گرما) */
     kaFall(scan && !playing && (document.hidden || kaBad || !npOK || !NP));   /* r83: حلقهٔ صوتی فقط وقتی صفحه پنهان است یا پلاگین keepAwake نیست */
@@ -11112,12 +11149,13 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     kaOn = kw;
     try { Promise.resolve(NP.keepAwake({ on: kw, cpu: kw })).catch(function(){ kaBad = true; }); } catch (e) { kaBad = true; }
   }
-  setInterval(function(){ if (ocrBusy || (man && (man.busy || man.fx))) kaSync(); }, 4000);
+  setInterval(function(){ if (ocrBusy || (man && (man.busy || man.fx)) || (RC && RC.run)) kaSync(); }, 4000);
   document.addEventListener('visibilitychange', function(){ kaSync(); try { if (ocrBusy && ocrPerf && ocrPerf.vis && ocrPerf.vis.length < 60) ocrPerf.vis.push([ocrPerf.n, document.visibilityState, Math.round(performance.now() / 1000)]); } catch (e) {} });
   function ui(){ mnSync();
     kaSync(); manPbSync();
     var has = sents.length > 0 && canSpeak();
     $('#play').disabled = !has;
+    try { $('#rcBtn').disabled = !has; } catch (e) {}
     $('#prev').disabled = !has;
     $('#next').disabled = !has;
     $('#stop').disabled = !has;
@@ -11273,7 +11311,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     var v, key, prev, st, fxp, tm, S, R, cp, L, i, r, m, x, row, pk, pp = null, o, stored, t0;
     if (nsBusy || !NP || !npOK || $('#vclean').value !== 'a' || engine() !== 'piper') { nsStatus(); return; }
     v = currentVoice(); if (!v) return;
-    if (playing || svHot()) { nsLater(); return; }
+    if (playing || svHot() || (RC && RC.run)) { nsLater(); return; }
     key = nsKey(v.id);
     if (!force && nsGet(key)) { nsStatus(); return; }
     if (force) delete NSR[key];
@@ -14185,6 +14223,243 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
     return { sync: sync, open: open, close: close };
   })();
   VS.sync(); setTimeout(VS.sync, 900); setTimeout(VS.sync, 3000);
+  /* ---------- r164: ضبط و ذخیرهٔ صدای خوانش ----------
+     ساخت دسته‌ایِ بدون پخش با همان موتور/گوینده/سبک/مکث‌های پخش (chunkAt + piperPredict با rec) ← بخش‌های m4a (در صورت پشتیبانی پلاگین) یا WAV ← IndexedDB (rc:idx و rc:<id>) ← ذخیره/اشتراک فایل.
+     حافظه: هر تکهٔ ساخته‌شده فقط به‌صورت slice از Blob نگه داشته می‌شود (نه آرایهٔ JS)؛ هر بخش پس از ذخیره آزاد می‌شود. */
+  var RC = { run: false, stop: false, au: null, url: '', pid: '' }, RCK = 'rc:idx', rcQ = Promise.resolve();
+  function rcLock(f){ var p = rcQ.then(f); rcQ = p.catch(function(){}); return p; }
+  function rcSt(t){ var e = $('#rcSt'); if (e) e.textContent = t || ''; }
+  function rcBar(f){ var e = $('#rcBar'); if (!e) return; e.hidden = f < 0; if (f >= 0) e.firstChild.style.width = Math.round(Math.min(1, f) * 1000) / 10 + '%'; }
+  function rcDur(s){ s = Math.round(s); var r = s % 60; return nf.format(Math.floor(s / 60)) + ':' + (r < 10 ? nf.format(0) : '') + nf.format(r); }
+  function rcSize(n){ return n >= 1048576 ? nf.format(Math.round(n / 104857.6) / 10) + ' مگابایت' : nf.format(Math.max(1, Math.round(n / 1024))) + ' کیلوبایت'; }
+  function rcP2(n){ return (n < 10 ? '0' : '') + n; }
+  function rcRange(){   /* محدودهٔ جمله‌ها از روی صفحه‌ها؛ تکه‌ها هرگز از مرز صفحه نمی‌گذرند، پس مرز بازه هم مرز تکه است */
+    var n = sents.length, sc = $('#rcScope').value, ix, cur, last, a, b, i, i0 = -1, i1 = -1;
+    if (!n) return null;
+    ix = Math.max(0, Math.min(idx, n - 1)); cur = sents[ix].page; last = sents[n - 1].page;
+    if (sc === 'cur') a = b = cur; else if (sc === 'here') { a = cur; b = last; } else if (sc === 'rng') { a = Math.max(1, Math.floor(+$('#rcP1').value) || 1); b = Math.max(a, Math.floor(+$('#rcP2').value) || a); } else { a = 1; b = last; }
+    for (i = sc === 'here' ? ix : 0; i < n; i++) if (sents[i].page >= a) { i0 = i; break; }
+    if (i0 < 0) return { i0: -1, i1: -1, n: 0 };
+    for (i = n - 1; i >= i0; i--) if (sents[i].page <= b) { i1 = i; break; }
+    return { i0: i0, i1: i1, n: i1 - i0 + 1, p1: sents[i0].page, p2: i1 >= i0 ? sents[i1].page : sents[i0].page };
+  }
+  function rcInfo(){
+    var R = rcRange(), e = $('#rcInfo'), ch = 0, i;
+    if (!e) return;
+    if (!R) { e.textContent = 'ابتدا یک PDF باز کنید.'; return; }
+    if (R.i1 < R.i0) { e.textContent = 'در این محدوده متنی برای خواندن نیست.'; return; }
+    for (i = R.i0; i <= R.i1; i++) ch += sents[i].text.length;
+    e.textContent = nf.format(R.n) + ' جمله، صفحهٔ ' + nf.format(R.p1) + ' تا ' + nf.format(R.p2) + (pCps > 0 ? '، حدود ' + rcDur(ch / pCps) + ' صدا (برآورد)' : '');
+  }
+  async function rcPcm(b){   /* نشانی و اندازهٔ بخش data و نرخ نمونه از سرایند WAV؛ فقط PCM ۱۶بیتی تک‌کاناله (همان خروجی موتور بومی) */
+    var h = new DataView(await b.slice(0, 1024).arrayBuffer()), n = h.byteLength, p = 12, id, sz, sr = 0, ch = 0, bits = 0, fm = 0, o = -1, ds = 0;
+    if (n < 44 || h.getUint32(0, false) !== 0x52494646) throw new Error('صدای ساخته‌شده WAV نیست.');
+    while (p + 8 <= n) {
+      id = h.getUint32(p, false); sz = h.getUint32(p + 4, true);
+      if (id === 0x666d7420) { fm = h.getUint16(p + 8, true); ch = h.getUint16(p + 10, true); sr = h.getUint32(p + 12, true); bits = h.getUint16(p + 22, true); }
+      else if (id === 0x64617461) { o = p + 8; ds = sz; break; }
+      p += 8 + sz + (sz & 1);
+    }
+    if (o < 0 || fm !== 1 || ch !== 1 || bits !== 16 || !sr) throw new Error('قالب WAV خروجی موتور پشتیبانی نمی‌شود.');
+    if (!ds || o + ds > b.size) ds = b.size - o;
+    ds -= ds & 1;
+    return { sr: sr, o: o, n: ds };
+  }
+  async function rcSeal(seg, fmt){   /* WAV کامل از بخش‌ها؛ در صورت درخواست و پشتیبانی پلاگین، فشرده به m4a (هر خطا ⇒ همان WAV) */
+    var wav = new Blob([wavHdr(seg.sr, seg.n)].concat(seg.parts), { type: 'audio/wav' }), out = wav, ext = 'wav', r, z;
+    if (fmt === 'm4a' && NP && npOK && NP.encodeAac && acOK !== false) {
+      try {
+        r = await withTimeout(Promise.resolve(NP.encodeAac({ wav: await blobB64(wav) })), 180000, 'فشرده‌سازی بیش از حد طول کشید.');
+        if (r && r.aac) { z = b64Blob(r.aac, 'audio/mp4'); if (z.size > 512 && z.size < wav.size) { out = z; ext = 'm4a'; } }
+      } catch (e) { acNo(e); }
+    }
+    return { b: out, ext: ext, d: seg.n / 2 / seg.sr };
+  }
+  function rcRoom(n){
+    try { if (navigator.storage && navigator.storage.estimate) return navigator.storage.estimate().then(function(e){ return !(e && e.quota && e.quota - e.usage < n * 1.2 + 5242880); }, function(){ return true; }); } catch (e) {}
+    return Promise.resolve(true);
+  }
+  async function rcKeep(seg, fmt, base, stamp, k, rid){
+    var s = await rcSeal(seg, fmt), nm = base + '-خوانش-' + stamp + '-' + rcP2(k) + '-ص' + seg.p1 + '-' + seg.p2 + '.' + s.ext, id = rid.toString(36) + k,
+        m = { id: id, n: nm, d: s.d, s: s.b.size, t: Date.now(), r: rid, k: k, f: s.ext, a: seg.p1, z: seg.p2 };
+    if (!(await rcRoom(s.b.size))) throw new Error('فضای ذخیره‌سازی برنامه کافی نیست؛ ضبط‌های قدیمی را حذف کنید.');
+    if (!(await kvSet('rc:' + id, s.b))) throw new Error('ذخیرهٔ فایل صوتی در حافظهٔ برنامه ممکن نشد.');
+    await rcLock(function(){ return bmGet(RCK).then(function(a){ a.push(m); return kvSet(RCK, a); }); });
+    return m;
+  }
+  function rcUi(on){
+    var g = $('#rcGo'); g.textContent = on ? 'توقف و ذخیرهٔ بخش آماده' : 'شروع ضبط خوانش'; g.classList.toggle('primary', !on);
+    ['#rcScope', '#rcFmt', '#rcSpd', '#rcLen', '#rcP1', '#rcP2'].forEach(function(s){ $(s).disabled = on; });
+  }
+  async function rcRun(){
+    var R, v, ids, rate0, rsm0, cap, i, c, b, pr, gs, gb, seg = null, prevLen = 0, first = true, k = 0, ds = 0, tot = 0, bad = 0, kept = 0, t0, rid, d, stamp, base, fmt, spd, err = '', tr, r2, stopped;
+    if (RC.run) { RC.stop = true; npCancel(); rcSt('در حال پایان و ذخیرهٔ بخش آماده…'); return; }
+    R = rcRange();
+    if (!R) { rcSt('ابتدا یک PDF با متن قابل خواندن باز کنید.'); return; }
+    if (R.i1 < R.i0) { rcSt('در این محدوده متنی برای خواندن نیست.'); return; }
+    if (!NP || !NP.synthesize) { rcSt('ضبط خوانش به موتور گفتار بومی (برنامهٔ اندروید) نیاز دارد.'); return; }
+    try { if (!(await ensurePiper())) throw 0; ids = await NATIVE_PIPER.stored(); } catch (e) { rcSt('موتور گفتار بومی آماده نیست.'); return; }
+    v = currentVoice();
+    if (!v) { rcSt('گوینده‌ای انتخاب نشده است.'); return; }
+    if (ids.indexOf(v.id) < 0) { rcSt('صدای «' + v.id.replace(/^fa_IR-/, '').replace(/-medium$/, '') + '» هنوز دانلود نشده است.'); return; }
+    fmt = $('#rcFmt').value; spd = $('#rcSpd').value; cap = (+$('#rcLen').value || 5) * 60;
+    rid = Date.now(); d = new Date(rid); stamp = String(d.getFullYear()).slice(2) + rcP2(d.getMonth() + 1) + rcP2(d.getDate()) + '-' + rcP2(d.getHours()) + rcP2(d.getMinutes());
+    base = msBase(); rate0 = $('#rate').value; rsm0 = rsm;
+    RC.run = true; RC.stop = false; rcAuStop(); rcUi(true); rcBar(0); kaSync();
+    if (playing) pause();
+    npCancel();
+    if (spd === '1') $('#rate').value = '1';   /* سرعت ضبط عادی؛ مقدار قبلی در finally برمی‌گردد (رویدادی ارسال نمی‌شود) */
+    rsm = null; t0 = Date.now(); i = R.i0;
+    try {
+      while (i <= R.i1 && !RC.stop) {
+        c = chunkAt(i, first ? firstLim() : nextLim(prevLen));
+        if (c.end > R.i1) c = chunkAt(i, 1);
+        if (/[\p{L}\p{N}]/u.test(c.text)) {
+          b = null;
+          for (tr = 0; tr < 2 && !b && !RC.stop; tr++) {
+            try { b = await piperPredict(c.text, v.id, 0, c.parts, false, true); }
+            catch (e) {
+              if (RC.stop) break;
+              if (/دانلود نشده|نصب نشده|آماده نشده|espeak|مدل پیدا نشد|موتور/.test(String((e && e.message) || e))) throw e;
+              if (tr) bad += c.end - c.start + 1;   /* بار دوم هم شکست: همین تکه رد می‌شود (مثل پخش) */
+            }
+          }
+          if (b) {
+            pr = await rcPcm(b);
+            if (!seg) seg = { parts: [], n: 0, sr: pr.sr, p1: sents[c.start].page, p2: sents[c.start].page };
+            if (pr.sr !== seg.sr) throw new Error('نرخ نمونهٔ صدا در میانهٔ ضبط تغییر کرد.');
+            seg.parts.push(b.slice(pr.o, pr.o + pr.n)); seg.n += pr.n; b = null;
+          } else if (RC.stop) break;
+        }
+        if (seg) {
+          seg.p2 = sents[c.end].page;
+          gs = Math.min(8, Math.max(0, pauseMs(c.end) / 1000)); gb = Math.round(seg.sr * gs) * 2;   /* همان فاصلهٔ پخش بین تکه‌ها */
+          if (gb > 0) { seg.parts.push(new Uint8Array(gb)); seg.n += gb; }
+        }
+        i = c.end + 1; prevLen = c.text.length; first = false;
+        tot = ds + (seg ? seg.n / 2 / seg.sr : 0);
+        rcBar((i - R.i0) / R.n);
+        rcSt('در حال ضبط… ' + nf.format(Math.min(R.n, i - R.i0)) + ' از ' + nf.format(R.n) + ' جمله · ' + rcDur(tot) + ' صدا · سرعت ساخت ' + nf.format(Math.round(tot / Math.max(1, (Date.now() - t0) / 1000) * 10) / 10) + '× زمان واقعی');
+        if (seg && seg.n / 2 / seg.sr >= cap && i <= R.i1 && !RC.stop) { r2 = await rcKeep(seg, fmt, base, stamp, k + 1, rid); k++; ds += r2.d; kept++; seg = null; }
+      }
+      if (seg && seg.n > 0) { r2 = await rcKeep(seg, fmt, base, stamp, k + 1, rid); k++; ds += r2.d; kept++; seg = null; }
+    } catch (e) {
+      err = em(e);
+      try { if (seg && seg.n > 0) { r2 = await rcKeep(seg, fmt, base, stamp, k + 1, rid); k++; ds += r2.d; kept++; } } catch (x) {}   /* خطای میانه‌راه: بخش ساخته‌شده تا اینجا هم نگه داشته می‌شود */
+    } finally {
+      stopped = RC.stop; seg = null; b = null; $('#rate').value = rate0; rsm = rsm0; RC.run = false; RC.stop = false; rcUi(false); kaSync();
+    }
+    rcBar(err || stopped ? -1 : 1);
+    rcSt((err ? 'ضبط با خطا متوقف شد: ' + err + ' — ' : stopped ? 'ضبط متوقف شد — ' : 'ضبط کامل شد — ') + (kept ? nf.format(kept) + ' فایل (' + rcDur(ds) + ' صدا) در «ضبط‌های ذخیره‌شده» نگه‌داری شد.' : 'چیزی ذخیره نشد.') + (bad ? ' ' + nf.format(bad) + ' جمله ساخته نشد و رد شد.' : ''));
+    rcDraw(); rcInfo();
+  }
+  /* ---- پخش، ذخیرهٔ فایل، حذف ---- */
+  function rcAuStop(){
+    var a = RC.au; RC.au = null; RC.pid = '';
+    if (a) { try { a.onended = a.onerror = null; a.pause(); a.removeAttribute('src'); a.load(); } catch (e) {} }
+    if (RC.url) { try { URL.revokeObjectURL(RC.url); } catch (e) {} RC.url = ''; }
+  }
+  function rcPlay(m){
+    if (RC.pid === m.id) { rcAuStop(); rcDraw(); return; }
+    rcAuStop(); if (playing) pause();
+    kvGet('rc:' + m.id).then(function(x){
+      if (!x) { rcSt('فایل صوتی پیدا نشد.'); return; }
+      var u = URL.createObjectURL(x), a = new Audio(u);
+      RC.url = u; RC.au = a; RC.pid = m.id;
+      a.onended = a.onerror = function(){ if (RC.au === a) { rcAuStop(); rcDraw(); } };
+      a.play().then(function(){ rcDraw(); }, function(){ if (RC.au === a) { rcAuStop(); rcDraw(); } });
+    });
+  }
+  async function rcFolder(){   /* پوشهٔ ذخیرهٔ ماندگار (همان «مسیر ذخیره» برنامه: ms.nat)؛ false = بدون انتخاب */
+    var r = await NP.pickTextFolder();
+    if (!r || !r.uri) return false;
+    ms.nat = { uri: r.uri, name: r.name || 'پوشهٔ انتخابی' }; ms.dir = null; await kvSet('ms:nat', ms.nat); kvDel('ms:dir'); msPathUi();
+    return true;
+  }
+  async function rcNative(blob, name){   /* r165: ذخیرهٔ بومی (SAF) تکه‌تکه با تکه‌های ~۵۰۰KB؛ null = افزونهٔ قدیمی (متد ندارد) */
+    var uri = (ms.nat && ms.nat.uri) || '', CH = 524288, o, off, op = function(u){ return NP.saveBinaryOpen({ name: name, uri: u }); };
+    if (!NP || !NP.saveBinaryOpen || !NP.saveBinaryWrite || !NP.saveBinaryClose) return null;
+    try { o = await op(uri); }
+    catch (e) {
+      if (msUnimpl(e)) return null;
+      if (msCancel(e)) return 'ذخیره لغو شد.';
+      if (!uri) throw e;
+      uri = '';   /* پوشهٔ ذخیره از دست رفته یا قابل نوشتن نیست ⇒ «ذخیره به‌عنوان» */
+      try { o = await op(''); } catch (e2) { if (msCancel(e2)) return 'ذخیره لغو شد.'; throw e2; }
+    }
+    try {
+      for (off = 0; off < blob.size; off += CH) await NP.saveBinaryWrite({ sid: o.sid, data: await blobB64(blob.slice(off, off + CH)) });
+      await NP.saveBinaryClose({ sid: o.sid });
+    } catch (e) { try { await NP.saveBinaryClose({ sid: o.sid, abort: true }); } catch (x) {} throw e; }
+    return 'ذخیره شد' + (uri && ms.nat ? ' در پوشهٔ «' + ms.nat.name + '»' : '') + ': ' + (o.name || name);
+  }
+  async function rcDeliver(blob, name){   /* اندروید: ذخیرهٔ بومی (saveBinary) ← Filesystem ← برگهٔ اشتراک‌گذاری ← وب: دانلود. بدون مسیر ممکن، خطای صریح (فایل در برنامه می‌ماند) */
+    var FS, f = null, r;
+    if (onNative) {
+      r = await rcNative(blob, name); if (r) return r;
+      FS = msFsPlug();
+      if (FS) { try { await FS.writeFile({ path: 'PDFReader/Audio/' + name, data: await blobB64(blob), directory: 'DOCUMENTS', recursive: true }); return 'ذخیره شد: Documents/PDFReader/Audio/' + name; } catch (e) {} }
+    }
+    try { f = new File([blob], name, { type: blob.type || 'audio/mp4' }); } catch (e) {}
+    if (f && navigator.share && navigator.canShare && navigator.canShare({ files: [f] })) {
+      try { await navigator.share({ files: [f], title: name }); return 'فایل به برگهٔ اشتراک‌گذاری داده شد؛ مقصد را همان‌جا انتخاب کردید.'; }
+      catch (e) { if (e && e.name === 'AbortError') return 'ذخیره لغو شد.'; }
+    }
+    if (onNative) throw new Error('در این نسخهٔ APK ذخیرهٔ مستقیم فایل صوتی ممکن نیست؛ افزونهٔ بومی (PiperNativePlugin.kt) را به نسخهٔ r165 به‌روز کنید. ضبط داخل برنامه نگه‌داری می‌شود و قابل پخش است.');
+    msDl(blob, name); return 'در پوشهٔ دانلودها ذخیره شد: ' + name;
+  }
+  function rcSave(m){
+    return kvGet('rc:' + m.id).then(function(x){ if (!x) throw new Error('فایل صوتی پیدا نشد.'); return rcDeliver(x, m.n); }).then(function(t){ rcSt(t); return t; }, function(e){ var t = 'ذخیره انجام نشد: ' + em(e); rcSt(t); return t; });
+  }
+  function rcDel(m){
+    if (RC.pid === m.id) rcAuStop();
+    return rcLock(function(){ return kvDelMany(['rc:' + m.id]).then(function(){ return bmGet(RCK); }).then(function(a){ return kvSet(RCK, a.filter(function(q){ return q.id !== m.id; })); }); }).then(rcDraw);
+  }
+  function rcDraw(){
+    var box = $('#rcList'); if (!box) return Promise.resolve();
+    return bmGet(RCK).then(function(a){
+      var p;
+      var fb = $('#rcFold');
+      fb.hidden = !(onNative && NP && NP.saveBinaryOpen); fb.textContent = ms.nat && ms.nat.uri ? 'پوشه: ' + (ms.nat.name || 'انتخاب‌شده') : 'انتخاب پوشهٔ ذخیره';
+      box.textContent = ''; $('#rcAll').hidden = a.length < 2;
+      if (!a.length) { p = document.createElement('p'); p.className = 'hint'; p.textContent = 'هنوز ضبطی ذخیره نشده است.'; box.appendChild(p); return; }
+      a.sort(function(x, y){ return (y.r - x.r) || (x.k - y.k); });
+      a.forEach(function(m){
+        var r = document.createElement('div'), b = document.createElement('b'), s = document.createElement('small'), w = document.createElement('div'), pl = document.createElement('button'), sv = document.createElement('button'), dl = document.createElement('button');
+        r.className = 'rcr'; b.dir = 'auto'; b.textContent = m.n;
+        s.textContent = rcDur(m.d) + ' · ' + rcSize(m.s) + ' · ' + (m.f === 'wav' ? 'WAV' : 'm4a') + ' · صفحهٔ ' + nf.format(m.a) + ' تا ' + nf.format(m.z);
+        w.className = 'rb'; pl.type = sv.type = dl.type = 'button'; pl.className = sv.className = 'btn xs'; dl.className = 'btn xs dgr';
+        pl.textContent = RC.pid === m.id ? 'توقف' : 'پخش'; sv.textContent = 'ذخیره / ارسال'; dl.textContent = 'حذف';
+        pl.onclick = function(){ rcPlay(m); }; sv.onclick = function(){ rcSave(m); }; dl.onclick = function(){ rcDel(m); };
+        w.appendChild(pl); w.appendChild(sv); w.appendChild(dl); r.appendChild(b); r.appendChild(s); r.appendChild(w); box.appendChild(r);
+      });
+    });
+  }
+  function rcOpen(){
+    var cur = sents[idx] ? sents[idx].page : 1, last = sents.length ? sents[sents.length - 1].page : 1;
+    ['rcFmt', 'rcLen', 'rcSpd'].forEach(function(k){ var e = $('#' + k), v = sget(k, ''); if (v && Array.prototype.some.call(e.options, function(o){ return o.value === v; })) e.value = v; });
+    $('#rcP1').value = $('#rcP2').value = cur; $('#rcP1').max = $('#rcP2').max = last; $('#rcRng').hidden = $('#rcScope').value !== 'rng';
+    rcSt(''); rcBar(-1); rcInfo(); rcDraw();
+    $('#rcOv').hidden = false; BK.push('rc', function(){ if (RC.run) { rcSt('ابتدا ضبط را متوقف کنید.'); return false; } rcClose(); });
+  }
+  function rcClose(){ rcAuStop(); BK.drop('rc'); $('#rcOv').hidden = true; }
+  $('#rcBtn').onclick = rcOpen;
+  $('#rcX').onclick = function(){ if (RC.run) { rcSt('ابتدا ضبط را متوقف کنید.'); return; } rcClose(); };
+  $('#rcGo').onclick = rcRun;
+  $('#rcScope').onchange = function(){ $('#rcRng').hidden = this.value !== 'rng'; rcInfo(); };
+  $('#rcP1').oninput = $('#rcP2').oninput = rcInfo;
+  ['rcFmt', 'rcLen', 'rcSpd'].forEach(function(k){ $('#' + k).onchange = function(){ sset(k, this.value); }; });
+  $('#rcFold').onclick = async function(){ try { if (await rcFolder()) { rcSt('پوشهٔ ذخیره تعیین شد.'); rcDraw(); } } catch (e) { rcSt(msCancel(e) ? 'انتخاب پوشه لغو شد.' : 'انتخاب پوشه انجام نشد: ' + em(e)); } };
+  $('#rcAll').onclick = async function(){
+    var a = await bmGet(RCK), i, t, ok = 0;
+    if (onNative && NP && NP.saveBinaryOpen && !(ms.nat && ms.nat.uri) && a.length > 1) {   /* بدون پوشه، برای هر فایل یک پنجرهٔ «ذخیره به‌عنوان» باز می‌شد */
+      rcSt('یک پوشه برای ذخیرهٔ همهٔ فایل‌ها انتخاب کنید.');
+      try { if (!(await rcFolder())) return; } catch (e) { rcSt(msCancel(e) ? 'ذخیره لغو شد.' : 'انتخاب پوشه انجام نشد: ' + em(e)); return; }
+    }
+    a.sort(function(x, y){ return (y.r - x.r) || (x.k - y.k); });
+    for (i = 0; i < a.length; i++) { t = await rcSave(a[i]); if (!/^ذخیره شد/.test(t)) break; ok++; rcSt('ذخیره شد: ' + nf.format(ok) + ' از ' + nf.format(a.length)); }
+  };
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !$('#rcOv').hidden && !RC.run) rcClose(); });
   hRender(); hScanRun();
 
   window.addEventListener('pagehide', function(){ posFlush(); cancelAll(); });
