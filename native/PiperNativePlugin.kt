@@ -417,7 +417,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r14-eq").put("media", true))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r15-dsp").put("media", true))
     }
 
     @PluginMethod
@@ -1268,6 +1268,7 @@ class PiperNativePlugin : Plugin() {
         val eqCfg = MasterFx.EqCfg.from(call.getObject("eq"))   // r14: اکولایزر کامل ۱۰ باندی (null = خاموش یا تخت)
         val pzOn = call.getBoolean("pz") ?: false   // r145 (ناظر مکث): نرمال‌سازی سکوت مرز جمله‌ها و کوتاه‌کردن سکوت‌های داخلیِ طولانی
         val lvT: Double? = call.getDouble("lvT")   // r141: هدف بلندی (dBFS، میانهٔ اخیر همان گوینده)؛ بدون آن تراز نمی‌شود
+        val probe = call.getBoolean("probe") ?: false   // r15: اندازه‌گیری DSP (خام در برابر خروجی)؛ کش پردازش‌شده را دور می‌زند تا نسخهٔ خام همیشه در دسترس باشد؛ صدای خروجی تغییری نمی‌کند
         val strong = id.contains("mana", ignoreCase = true)   // مانا: خروجی خام SNR پایین دارد؛ بدون این حالت شرط ۲۵dB باعث می‌شد حذف نویز اصلاً اجرا نشود (اعتماد تدریجی ۱۲–۲۵dB + کاهش خش بالای ۴kHz در واکه‌ها). کلید کش شامل strong است
         val ep = epoch.get()   // لحظهٔ رسیدن درخواست؛ اگر بعدش cancel بیاید این کار رها می‌شود
         cpu.execute {
@@ -1287,6 +1288,7 @@ class PiperNativePlugin : Plugin() {
                     }
                 } else { items.add(Pair(text, sp)); itemGaps.add(gap) }
                 val pieces = ArrayList<FloatArray>()
+                val rawKeep: ArrayList<FloatArray>? = if (probe) ArrayList() else null   // r15: نسخهٔ خام هر جمله (فقط در probe)
                 val pieceGaps = ArrayList<Int>()   // نمونه‌های سکوت پس از هر تکه
                 val pieceItem = ArrayList<Int>()   // اندیس جملهٔ (part) هر تکه؛ جمله‌های خالی تکه ندارند
                 var genMs = 0L
@@ -1299,7 +1301,7 @@ class PiperNativePlugin : Plugin() {
                     // کش دولایه، هر دو جمله‌به‌جمله و مستقل از مرز تکه‌ها: ۱) خروجی پردازش‌شده (پرش از مدل و پاک‌سازی)  ۲) نسخهٔ خام (با تغییر سطح پاک‌سازی مدل دوباره اجرا نمی‌شود)
                     val procOn = lvlClean > 0 || lvlClarity > 0
                     val key2 = if (procOn) hashKey("v2|$id|$ns|$nw|" + psq + "|$lvlClean|$lvlClarity|$strong|" + pt) else key
-                    val done = if (procOn) cacheGet(key2, sr) else null
+                    val done = if (procOn && !probe) cacheGet(key2, sr) else null
                     if (done != null) {
                         hit++
                         pieces.add(done)
@@ -1313,6 +1315,7 @@ class PiperNativePlugin : Plugin() {
                             cachePut(key, sr, g)
                             g
                         }
+                        rawKeep?.add(s)
                         val pr = SpeechClean.process(s, sr, lvlClean, lvlClarity, strong)   // روی نسخهٔ خام کش؛ خودِ کش دست‌نخورده می‌ماند
                         if (procOn && pr !== s) cachePut(key2, sr, pr)
                         pieces.add(pr)
@@ -1404,15 +1407,21 @@ class PiperNativePlugin : Plugin() {
                     if (Math.abs(g - 1.0) > 0.03) { val gf = g.toFloat(); for (i in fin.indices) fin[i] *= gf; lvG = g }
                 }
                 val hs = finHealth(fin, rawHs, lvA0, lvG, sr)
+                val dsp: JSObject? = if (rawKeep != null && rawKeep.isNotEmpty()) {   // r15: آمار خام↔خروجی برای گزارش ناظر
+                    var rn = 0; for (x in rawKeep) rn += x.size
+                    val rw = FloatArray(rn); var rp = 0
+                    for (x in rawKeep) { System.arraycopy(x, 0, rw, rp, x.size); rp += x.size }
+                    JSObject().put("raw", dspStats(rw, sr)).put("out", dspStats(fin, sr))
+                } else null
                 if (keep) {
                     val h = pcmPut(fin, sr)
-                    val res = JSObject().put("hs", hs).put("handle", h).put("sampleRate", sr).put("durationMs", fin.size * 1000L / sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
+                    val res = JSObject().put("hs", hs).also { if (dsp != null) it.put("dsp", dsp) }.put("handle", h).put("sampleRate", sr).put("durationMs", fin.size * 1000L / sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
                     if (marks != null) res.put("marks", marks)
                     if (pzOn) res.put("pz", JSObject().put("n", pzN).put("hid", pzHid * 1000L / sr).put("cut", pzCut * 1000L / sr).put("ni", pzInt).put("nic", pzIntCut * 1000L / sr))
                     call.resolve(res)
                 } else {
                     val wav = toWav(fin, sr)
-                    val res = JSObject().put("hs", hs).put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
+                    val res = JSObject().put("hs", hs).also { if (dsp != null) it.put("dsp", dsp) }.put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
                     if (marks != null) res.put("marks", marks)
                     if (pzOn) res.put("pz", JSObject().put("n", pzN).put("hid", pzHid * 1000L / sr).put("cut", pzCut * 1000L / sr).put("ni", pzInt).put("nic", pzIntCut * 1000L / sr))
                     call.resolve(res)
@@ -1421,6 +1430,52 @@ class PiperNativePlugin : Plugin() {
                 call.reject(if (e.message == "NATIVE_CANCELLED") "NATIVE_CANCELLED" else "خطای موتور بومی: ${e.message}")
             }
         }
+    }
+
+    /** r15: آمار اندازه‌گیری DSP (فقط با probe). قاب‌های ۲۰ms که تا ۴۰dB زیر بلندترین قاب‌اند «فعال» حساب می‌شوند.
+     *  rng = صدک ۹۵ منهای ۱۰ بلندی قاب‌ها (dB)، sd = انحراف معیار آن، rms = RMS فعال (dBFS)، hf = نسبت انرژی بالای ۴kHz به کل (dB).
+     *  rng/sd/hf به بهرهٔ کلی حساس نیستند؛ پس خام و خروجی مستقیماً قابل مقایسه‌اند. */
+    private fun dspStats(f: FloatArray, sr: Int): JSObject {
+        val o = JSObject()
+        val fl = (sr * 0.02).toInt().coerceAtLeast(64)
+        val nf = f.size / fl
+        if (nf < 10) return o
+        val fc = Math.min(4000.0, sr * 0.45)
+        val w = 2.0 * Math.PI * fc / sr; val cw = Math.cos(w); val al = Math.sin(w) / (2.0 * 0.70710678)
+        val a0 = 1.0 + al; val b0 = (1.0 + cw) / 2.0 / a0; val b1 = -(1.0 + cw) / a0
+        val a1 = -2.0 * cw / a0; val a2 = (1.0 - al) / a0
+        val et = DoubleArray(nf); val eh = DoubleArray(nf)
+        var z1 = 0.0; var z2 = 0.0
+        for (m in 0 until nf) {
+            var s = 0.0; var h = 0.0
+            for (i in m * fl until m * fl + fl) {
+                val v = f[i].toDouble()
+                val y = b0 * v + z1
+                z1 = b1 * v - a1 * y + z2
+                z2 = b0 * v - a2 * y
+                s += v * v; h += y * y
+            }
+            et[m] = s; eh[m] = h
+        }
+        var mx = 0.0
+        for (m in 0 until nf) if (et[m] > mx) mx = et[m]
+        if (mx < 1e-9) return o
+        val thr = mx * 1e-4
+        val db = ArrayList<Double>()
+        var sT = 0.0; var sH = 0.0
+        for (m in 0 until nf) if (et[m] >= thr) { db.add(10.0 * Math.log10(et[m] / fl)); sT += et[m]; sH += eh[m] }
+        val k = db.size
+        if (k < 8) return o
+        db.sort()
+        fun pc(p: Double): Double = db[Math.min(k - 1, Math.round(p * (k - 1)).toInt())]
+        var mean = 0.0; for (x in db) mean += x
+        mean /= k
+        var vr = 0.0; for (x in db) vr += (x - mean) * (x - mean)
+        vr /= k
+        fun r1(x: Double): Double = Math.round(x * 10.0) / 10.0
+        o.put("rng", r1(pc(0.95) - pc(0.10))).put("sd", r1(Math.sqrt(vr)))
+        o.put("rms", r1(10.0 * Math.log10(sT / (k.toDouble() * fl) + 1e-20))).put("hf", r1(10.0 * Math.log10(sH / (sT + 1e-20) + 1e-20))).put("n", k)
+        return o
     }
 
     /** r13 (ناظر سلامت صدا): [کسر نمونه‌های با |x| ≥ ۰٫۹۸۵، تعداد NaN/Inf] روی خروجی خام پیش از صیقل */
