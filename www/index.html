@@ -1749,7 +1749,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <div class="slist"><label class="chk"><input type="checkbox" id="hsOn" checked><span class="st"><b>ناظر سلامت صدا (خودکار)</b><small>طول و سلامت هر تکهٔ ساخته‌شده را می‌سنجد و تکهٔ مشکوک (بریده، کشیده، خالی) را یک بار با نویز کمتر دوباره می‌سازد؛ خطای پخش را هم خودکار بازیابی می‌کند.</small></span></label></div>
 <p class="hint" id="hsSt" aria-live="polite" hidden></p>
 <div class="slist"><button class="btn sm" id="hsRep" type="button">گزارش ناظر سلامت صدا</button></div>
-<div id="hsRepBox" hidden><textarea id="hsRepText" readonly rows="9" style="width:100%;direction:ltr;font:11px monospace" aria-label="گزارش ناظر سلامت صدا"></textarea><div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="hsRepCopy">کپی</button></div></div>
+<div id="hsRepBox" hidden><textarea id="hsRepText" readonly rows="9" style="width:100%;direction:ltr;font:11px monospace" aria-label="گزارش ناظر سلامت صدا"></textarea><div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="hsRepCopy">کپی</button><button type="button" class="btn sm" id="hsDsp">اندازه‌گیری DSP</button></div></div>
           <div class="slist"><label class="chk"><input type="checkbox" id="gvOn" checked><span class="st"><b>ناظر سرعت هوشمند</b><small>سرعت واقعی هر تکه را اندازه می‌گیرد و اگر تصادفاً تندتر یا کندتر از سرعت انتخابی شما ساخته شده باشد، هنگام پخش جبرانش می‌کند؛ با تغییر پایدار صدا سریع‌تر هم‌گام می‌شود و برای سبک تازه از یادگیری همان گوینده شروع می‌کند.</small></span></label></div>
           <p class="hint" id="gvSt" aria-live="polite" hidden></p>
           <div class="slist"><button class="btn sm" id="gvRst" type="button">بازنشانی یادگیری ناظر سرعت</button></div>
@@ -2845,7 +2845,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo), g: p.g, n: p.n, w: p.w }; }) : undefined;
       var cln = cleanLevel(o.voiceId), eqp = npPlay && window.EQM && EQM.on() ? EQM.payload() : undefined, sg = '', hq = function(h){ if (h) h._sg = sg; return h; };
       try { sg = [o.st && o.st[0], o.st && o.st[1], cln, clarityLevel(), fxp ? 1 : 0, fxp ? fxp.pk : 0, fxp ? fxp.hs : 0, fxp ? fxp.lp : 0, eqp ? JSON.stringify(eqp) : ''].join('|'); } catch (e) {}   /* r159: امضای تنظیماتی که a0 بومی (پس از مسترینگ/EQ/OUT_TRIM) را جابه‌جا می‌کنند؛ تاریخچهٔ بلندی فقط در همان امضا معتبر است */
-      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cln, clarity: clarityLevel(), pause: pauseLevel(), keep: npPlay, master: !!fxp, eq: eqp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, lvT: svLvT(o.voiceId, sg), pz: svOn('svPz'), speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null, hp: hq(r.hs) || null, pz: r.pz || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; b.hp = hq(r.hs) || null; return b; });
+      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cln, clarity: clarityLevel(), pause: pauseLevel(), keep: npPlay, master: !!fxp, probe: !!(window.DSP && DSP.on), eq: eqp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, lvT: svLvT(o.voiceId, sg), pz: svOn('svPz'), speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ try { if (r.dsp && window.dspPush) dspPush(r.dsp); } catch (e) {} if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null, hp: hq(r.hs) || null, pz: r.pz || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; b.hp = hq(r.hs) || null; return b; });
     }
   };
 
@@ -9220,7 +9220,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r161 · 2026-10-31 · sv-own', npBuild = '';
+  var APP_BUILD = 'html-r162 · 2026-10-31 · dsp-probe', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10028,6 +10028,16 @@ function hsFmt(e){
   if (e.k === 'play') return e.t + ' پخش#' + e.i + ' ' + e.out + ' «' + e.w + '» ' + e.m;
   return e.t + ' ' + e.k;
 }
+window.DSP = { on: sget('dspProbe', '0') === '1', rows: [] };   /* r162: اندازهٔ خام↔خروجی در Kotlin (kt-r15)؛ پیش‌فرض خاموش چون کش پردازش‌شده را دور می‌زند */
+window.dspPush = function(d){ if (!d || !d.raw || !d.out || d.raw.rng == null || d.out.rng == null) return; DSP.rows.push({ r: d.raw, o: d.out }); if (DSP.rows.length > 12) DSP.rows.shift(); };
+function dspLine(){
+  var R = DSP.rows, k = R.length, i, s = { rr: 0, ro: 0, sr: 0, so: 0, hr: 0, ho: 0, mr: 0, mo: 0 };
+  if (!DSP.on) return 'DSP: اندازه‌گیری خاموش (دکمهٔ «اندازه‌گیری DSP» زیر گزارش؛ پس از روشن‌کردن چند جمله بخوانید)';
+  if (!k) return 'DSP: روشن؛ هنوز دادهای نیامده (فقط پخش بومی با kt-r15 به بالا؛ APK باید دوباره ساخته شود)';
+  for (i = 0; i < k; i++) { s.rr += R[i].r.rng; s.ro += R[i].o.rng; s.sr += R[i].r.sd; s.so += R[i].o.sd; s.hr += R[i].r.hf; s.ho += R[i].o.hf; s.mr += R[i].r.rms; s.mo += R[i].o.rms; }
+  function f(a, b){ return hsR(a / k, 10) + '→' + hsR(b / k, 10); }
+  return 'DSP خام→خروجی (میانگین ' + k + ' تکه): دامنهٔ بلندی p95−p10=' + f(s.rr, s.ro) + 'dB | انحراف=' + f(s.sr, s.so) + 'dB | انرژی>۴kHz=' + f(s.hr, s.ho) + 'dB | RMS=' + f(s.mr, s.mo) + 'dB';
+}
 function hsReport(force){   /* r160: گزارش کامل ناظر سلامت و یکنواختی صدا برای عیب‌یابی (دادهٔ لازم پرامپت «ناظر سلامت صدا» بند ۸)؛ بدون رویداد و بدون force ⇒ '' */
   var o = [], id = '', v, a, s, m, nz, now = Date.now(), t;
   if (!force && !HS.bad && !HS.lO && !HS.rec && !HS.rp.length) return '';
@@ -10035,6 +10045,7 @@ function hsReport(force){   /* r160: گزارش کامل ناظر سلامت و 
   try { v = currentVoice(); id = (v && v.id) || ''; } catch (e) {}
   try { o.push('مسیر=' + (npPlay ? 'پخش بومی (handle)' : 'پخش مرورگر (wav)') + ' | موتور=' + engine() + ' | صدا=' + (id || '-') + ' | سرعت=' + (($('#rate') || {}).value || '-') + ' | سبک(ns/nw)=' + (id ? styleParams(id).join('/') : '-') + ' | طبیعی‌سازی=' + natLvl()); } catch (e) { o.push('مسیر/صدا: خطا در خواندن'); }
   try { o.push('پاک‌سازی=' + (($('#vclean') || {}).value === 'a' ? 'خودکار→' : '') + cleanLevel(id) + ' | شفافیت=' + clarityLevel() + ' | افزایش کیفیت=' + ((($('#enh') || {}).checked) ? 1 : 0) + ' | EQ=' + (window.EQM && EQM.on() ? 1 : 0) + ' | مکث=' + pauseLevel()); } catch (e) {}
+  try { o.push(dspLine()); } catch (e) {}
   o.push('ناظرها: hsOn=' + (hsOn() ? 1 : 0) + ' تراز بلندی=' + (svOn('svLvl') ? 1 : 0) + ' ناظر مکث=' + (svOn('svPz') ? 1 : 0) + ' ناظر سرعت=' + sget('gvOn', '1'));
   HS.rb = HS.rb.filter(function(x){ return now - x < 60000; });
   o.push('شمارنده‌ها: مشکوک=' + HS.bad + ' اصلاح=' + HS.fixed + ' بدون‌تغییر=' + HS.kept + ' بازیابی‌پخش=' + HS.rec + ' | ساخت‌مجدد در ۶۰ث=' + HS.rb.length + '/۴ | بلندی: تکه=' + HS.lN + ' انحراف>۶dB=' + HS.lO + ' ترازشده=' + HS.lG);
@@ -10058,6 +10069,12 @@ function hsReport(force){   /* r160: گزارش کامل ناظر سلامت و 
     if (!ok && navigator.clipboard && navigator.clipboard.writeText) { try { navigator.clipboard.writeText(ta.value).then(function(){ status('گزارش کپی شد.'); }, function(){ status(bad); }); return; } catch (e) {} }
     status(ok ? 'گزارش کپی شد.' : bad);
   };
+  var dp = $('#hsDsp');
+  if (dp) {
+    var lab = function(){ dp.textContent = 'اندازه‌گیری DSP: ' + (DSP.on ? 'روشن' : 'خاموش'); };
+    lab();
+    dp.onclick = function(){ DSP.on = !DSP.on; DSP.rows = []; sset('dspProbe', DSP.on ? '1' : '0'); lab(); if (ta) ta.value = hsReport(true); try { changed(); } catch (e) {} };
+  }
 })();
 function hsRbOk(){   /* r158: سقف ساخت مجدد نگهبان — حداکثر ۴ بار در ۶۰ ثانیه (آستانهٔ آزمایشی)؛ رشتهٔ تکه‌های مشکوک با علت سیستماتیک هزینهٔ ساخت را دوبرابر نکند؛ شناسایی و ثبت دست‌نخورده می‌ماند */
   var now = Date.now(); HS.rb = HS.rb.filter(function(t){ return now - t < 60000; });
