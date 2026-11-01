@@ -50,6 +50,7 @@ import java.util.concurrent.Executors
  * متدها: ping, stored, bundled, download({id}) = نصب صدا از فایل همراه برنامه (بدون اینترنت), synthesize({id, text, noiseScale?, noiseScaleW?, speed?}), remove({id})
  * فهرست PDFهای دستگاه (صفحهٔ اصلی): listPdfs, pdfRequest
  * ذخیرهٔ متن: pickTextFolder, saveText({name,text,uri?})
+ * ذخیرهٔ فایل دودویی (r165، صدای ضبط‌شده): saveBinaryOpen({name,uri?}) → {sid,name}، saveBinaryWrite({sid,data:base64})، saveBinaryClose({sid,abort?}) — تکه‌تکه، بدون نگه‌داشتن کل فایل در حافظه
  * پوشهٔ دلخواه کاربر: pickFolder, folder, exportVoices({ids?}), importVoices({ids?, overwrite?})
  * رویداد: "progress" {loaded, total}
  * کیفیت صدا: synthesize({..., clean?: 0..3, clarity?: 0..3}) → حذف نویز و ارتقای شفافیت/رسایی؛ ۰ خاموش، ۲ متعادل (پیش‌فرض)؛ جزئیات در SpeechClean (انتهای فایل)
@@ -70,6 +71,7 @@ import java.util.concurrent.Executors
 class PiperNativePlugin : Plugin() {
 
     private val io = Executors.newSingleThreadExecutor()     // دانلود/استخراج
+    private val bio = Executors.newSingleThreadExecutor()    // r165: نوشتن فایل دودویی (جدا از io تا دانلود صدا ذخیره را معطل نکند)
     @Volatile private var underruns = 0                      // مجموع underrun های AudioTrack از شروع برنامه (نشانهٔ لکنت پخش)
     // r138 (ناظر لکنت): بافر AudioTrack با هر underrun ۱۰۰ms بزرگ‌تر می‌شود (سقف ۶۰۰ms)؛ ۳ دقیقه بدون لکنت ⇒ بازگشت به ۲۵۰ms.
     // هزینه: رویداد playerPos و هایلایت تا اندازهٔ بافر جلوتر از صدای شنیده‌شده‌اند (≤ ۳۵۰ms بیشتر از حالت عادی).
@@ -544,6 +546,103 @@ class PiperNativePlugin : Plugin() {
                 context.contentResolver.openOutputStream(u, "wt")!!.use { it.write(txt.toByteArray(Charsets.UTF_8)) }
                 call.resolve(JSObject().put("name", DocumentFile.fromSingleUri(context, u)?.name ?: ""))
             } catch (e: Exception) { call.reject("ذخیره ناموفق بود: " + (e.message ?: "")) }
+        }
+    }
+
+    // ---------- r165: ذخیرهٔ فایل دودویی (صدای ضبط‌شدهٔ خوانش) تکه‌تکه ----------
+    // saveBinaryOpen({name, uri?}) → {sid, name}: با uri (پوشهٔ SAF از pickTextFolder) بی‌صدا در همان پوشه؛ بدون uri پنجرهٔ «ذخیره به‌عنوان» (لغو ⇒ reject "CANCELLED")
+    // saveBinaryWrite({sid, data}) : data = base64 یک تکه؛ به انتهای فایل افزوده می‌شود (JS تکه‌های ~۵۰۰ کیلوبایتی می‌فرستد)
+    // saveBinaryClose({sid, abort?}) : بستن؛ abort=true فایل ناقص را حذف می‌کند
+    private val bins = java.util.concurrent.ConcurrentHashMap<Int, java.io.OutputStream>()
+    private val binUris = java.util.concurrent.ConcurrentHashMap<Int, Uri>()
+    private val binSeq = AtomicInteger(0)
+    private var pendBinName = ""
+
+    private fun binMime(name: String): String = when (name.substringAfterLast('.', "").lowercase()) {
+        "m4a" -> "audio/mp4"
+        "wav" -> "audio/x-wav"
+        else -> "application/octet-stream"
+    }
+
+    private fun binStart(u: Uri, name: String): JSObject {
+        if (bins.size >= 4) throw IllegalStateException("تعداد فایل‌های بازِ ذخیره زیاد است")
+        val os = context.contentResolver.openOutputStream(u, "wt") ?: throw IllegalStateException("نوشتن در فایل ممکن نشد")
+        val sid = binSeq.incrementAndGet()
+        bins[sid] = BufferedOutputStream(os, 1 shl 16)
+        binUris[sid] = u
+        return JSObject().put("sid", sid).put("name", name)
+    }
+
+    private fun binDrop(sid: Int, abort: Boolean) {
+        val os = bins.remove(sid)
+        val u = binUris.remove(sid)
+        try { os?.close() } finally {
+            if (abort && u != null) { try { DocumentFile.fromSingleUri(context, u)?.delete() } catch (e: Exception) {} }
+        }
+    }
+
+    @PluginMethod
+    fun saveBinaryOpen(call: PluginCall) {
+        val name = (call.getString("name") ?: "audio.m4a").map { c -> if (c in "/\\:*?\"<>|") '_' else c }.joinToString("")
+        val uri = call.getString("uri") ?: ""
+        val mime = binMime(name)
+        if (uri.isNotEmpty()) {
+            bio.execute {
+                try {
+                    val u = Uri.parse(uri)
+                    val ok = context.contentResolver.persistedUriPermissions.any { it.uri == u && it.isWritePermission }
+                    if (!ok) { call.reject("دسترسی به پوشه از بین رفته؛ مسیر را دوباره انتخاب کنید"); return@execute }
+                    val dir = DocumentFile.fromTreeUri(context, u)
+                    if (dir == null || !dir.canWrite()) { call.reject("پوشه قابل نوشتن نیست؛ مسیر را دوباره انتخاب کنید"); return@execute }
+                    val f = dir.findFile(name) ?: dir.createFile(mime, name)
+                    if (f == null) { call.reject("ساخت فایل ناموفق بود"); return@execute }
+                    call.resolve(binStart(f.uri, f.name ?: name))
+                } catch (e: Exception) { call.reject("ذخیره ناموفق بود: " + (e.message ?: "")) }
+            }
+            return
+        }
+        pendBinName = name
+        val i = Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
+            .setType(mime).putExtra(Intent.EXTRA_TITLE, name)
+        startActivityForResult(call, i, "binSaveResult")
+    }
+
+    @ActivityCallback
+    private fun binSaveResult(call: PluginCall?, result: ActivityResult) {
+        if (call == null) return
+        val u = result.data?.data
+        val nm = pendBinName; pendBinName = ""
+        if (result.resultCode != Activity.RESULT_OK || u == null) { call.reject("CANCELLED"); return }
+        bio.execute {
+            try { call.resolve(binStart(u, DocumentFile.fromSingleUri(context, u)?.name ?: nm)) }
+            catch (e: Exception) { call.reject("ذخیره ناموفق بود: " + (e.message ?: "")) }
+        }
+    }
+
+    @PluginMethod
+    fun saveBinaryWrite(call: PluginCall) {
+        val sid = call.getInt("sid") ?: -1
+        val data = call.getString("data") ?: ""
+        bio.execute {
+            try {
+                val os = bins[sid] ?: throw IllegalStateException("جریان ذخیره بسته یا نامعتبر است")
+                val b = Base64.decode(data, Base64.DEFAULT)
+                os.write(b)
+                call.resolve(JSObject().put("n", b.size))
+            } catch (e: Exception) {
+                try { binDrop(sid, true) } catch (x: Exception) {}
+                call.reject("نوشتن ناموفق بود: " + (e.message ?: ""))
+            }
+        }
+    }
+
+    @PluginMethod
+    fun saveBinaryClose(call: PluginCall) {
+        val sid = call.getInt("sid") ?: -1
+        val abort = call.getBoolean("abort") ?: false
+        bio.execute {
+            try { binDrop(sid, abort); call.resolve(JSObject().put("ok", true)) }
+            catch (e: Exception) { call.reject("بستن فایل ناموفق بود: " + (e.message ?: "")) }
         }
     }
 
@@ -1945,7 +2044,8 @@ class PiperNativePlugin : Plugin() {
         PlayerService.stopSafe(context)
         try { if (wl?.isHeld == true) wl?.release() } catch (e: Throwable) {}
         cpu.execute { try { tts?.release() } catch (e: Throwable) {}; tts = null; ttsId = null; ttsKey = null }
-        cpu.shutdown(); io.shutdown()
+        try { bins.keys.toList().forEach { try { binDrop(it, false) } catch (e: Exception) {} } } catch (e: Throwable) {}
+        cpu.shutdown(); io.shutdown(); bio.shutdown()
     }
 }
 
