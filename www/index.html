@@ -6711,11 +6711,21 @@ function jbWrapW(ls, old){
       if (m.length === 1) { out.push(m[0]); return; }
       m.sort(function(p, q){ var cp = (p.bbox.x0 + p.bbox.x1) / 2, cq = (q.bbox.x0 + q.bbox.x1) / 2; return rtl ? cq - cp : cp - cq; });
       bb = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9 }; t = [];
+      var tf = [], pf = [], ty0 = 1e9, ty1 = -1e9, th, pi, pq, pc, ov2, tj;
       m.forEach(function(l){
         var q = l.bbox, tx = String(l.text || '').replace(/\s+/g, ' ').trim();
         if (q.x0 < bb.x0) bb.x0 = q.x0; if (q.y0 < bb.y0) bb.y0 = q.y0; if (q.x1 > bb.x1) bb.x1 = q.x1; if (q.y1 > bb.y1) bb.y1 = q.y1;
-        if (/[\p{L}\p{N}]/u.test(tx)) t.push(tx);                       /* تکهٔ فقط‌نماد حذف می‌شود */
+        if (/[\p{L}\p{N}]/u.test(tx)) { t.push(tx); tf.push(q); if (q.y0 < ty0) ty0 = q.y0; if (q.y1 > ty1) ty1 = q.y1; }
+        else if (tx) pf.push([t.length, tx, q]);                            /* r167: تکهٔ فقط‌نماد کنار گذاشته می‌شود تا پس از دانستن خط نهاییِ متن، نقطه/ویرگول جداافتاده و نشانگر فهرست بازگردانده شود */
         w = Math.max(1, tx.length); c = l.confidence == null ? 100 : l.confidence; cs += c * w; cw += w;
+      });
+      th = ty1 - ty0;
+      if (t.length && th > 0) pf.forEach(function(f){                       /* r167: نقطه/ویرگول روی خط پایه و میان دو واژه (نه بالا/پایین حرف = نقطه‌ٔ حرف/اعراب) */
+        pi = f[0]; pq = f[2]; pc = (pq.y0 + pq.y1) / 2; ov2 = false;
+        for (tj = 0; tj < tf.length; tj++) if (Math.min(pq.x1, tf[tj].x1) - Math.max(pq.x0, tf[tj].x0) > 0.3 * (pq.x1 - pq.x0)) { ov2 = true; break; }
+        if (ov2) return;
+        if (/^[.،,؛;:!?؟…]{1,3}$/.test(f[1]) && pi > 0 && pc >= ty0 + 0.55 * th && pq.y1 - pq.y0 <= 0.6 * th) t[pi - 1] += f[1];
+        else if (/^[-–—•●▪■◦·∙]$/.test(f[1]) && pi === 0 && pq.y1 - pq.y0 <= 0.6 * th) t.unshift('-');   /* نشانگر آیتم فهرست در آغاز خط؛ JB_ITEM آن را می‌شناسد */
       });
       out.push({ text: t.join(' '), bbox: bb, confidence: cs / cw });
     });
@@ -6728,6 +6738,8 @@ function jbWrapW(ls, old){
     var x0 = 1e9, x1 = 0, ex;
     ls.forEach(function(l){ if (l.bbox) { if (l.bbox.x0 < x0) x0 = l.bbox.x0; if (l.bbox.x1 > x1) x1 = l.bbox.x1; } });
     ex = x1 - x0;
+    var jf = false, jn = 0;   /* r167: صفحهٔ دوطرفه‌تراز (≥۴۵٪ سطرها تمام‌عرض): سطر کوتاهِ بدون علامت پایان = آخر بند ← نقطه */
+    if (ls.length >= 6 && ex > 0) { ls.forEach(function(l){ if (l.bbox && l.bbox.x1 - l.bbox.x0 >= ex * 0.93) jn++; }); jf = jn / ls.length >= 0.45; }
     ls.forEach(function(l, li){
       var t = ocrPurge(l.text || '').replace(/\s+/g, ' ').trim(), nl = (t.match(/\p{L}/gu) || []).length, nd = (t.match(/[\p{L}\p{N}]/gu) || []).length, c = l.confidence == null ? 100 : l.confidence, bb = l.bbox, nx = ls[li + 1], nb = nx && nx.bbox;
       var att = !!bb && ((py !== null && bb.y0 - py <= mh * 0.9) || (!!nb && nb.y0 - bb.y1 <= mh * 0.9));   /* به پاراگراف پیوسته است (خط پایانی «است.»، «را») */
@@ -6737,6 +6749,7 @@ function jbWrapW(ls, old){
       if (l.bbox) py = l.bbox.y1;
       if (!/[\p{L}\p{N}]/u.test(t) || c < 25 || (c < 50 && nl < 4) || mg) { if (G && t && (c < 25 || (c < 50 && nl < 4)) && nd >= 3) { G.ld = (G.ld || 0) + 1; if ((G.dl || (G.dl = [])).length < 8) G.dl.push(t.slice(0, 120)); } return; }   /* حذف خط کم‌اطمینان شمرده می‌شود (نه جایگزین در متن: TTS نخواند) */
       if (pend && out.length) out.push('');
+      if (jf && bb && nb && !l._brk && bb.x1 - bb.x0 < ex * 0.82 && nb.y0 - bb.y1 <= mh * 0.9 && t.split(' ').length >= 3 && t.length >= 10 && /\p{L}$/u.test(t)) t += '.';
       pend = false; out.push(t); if (G && bb) G.push([t, bb.x0, bb.y0, bb.x1, bb.y1]);
     });
     return out.length ? out.join('\n') : (d.text || '');
@@ -9375,7 +9388,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r166 · 2026-11-02 · text-supervisors', npBuild = '';
+  var APP_BUILD = 'html-r168 · 2026-11-02 · join-pause', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10536,14 +10549,14 @@ function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مک
     if (humOn()) {
       /* مکث انسانی: بسته به نوع پایان، طول جمله و پایان بند؛ با نوسان ظریف تا ریتم مکانیکی نشود */
       var len = t.length, qs = /[?؟]["»”')\]]*$/.test(t), ex = /!["»”')\]]*$/.test(t);
-      if (q.pe) ms = (!strong && !soft && len < 80) ? 800 : (qs ? 600 : 520 + Math.min(140, len * 0.7));
-      else if (q.cont && !strong) ms = 30;
+      if (q.pe) ms = (!strong && !soft && len < 80) ? ((sents[i + 1] && sents[i + 1].pe && sents[i + 1].page === q.page && sents[i + 1].text.length < 80 && !/[.!?؟…؛:]["»”')\]]*$/.test(sents[i + 1].text)) ? 560 : 800) : (qs ? 600 : 520 + Math.min(140, len * 0.7));   /* r167: موردهای کوتاهِ فهرست‌وار پیاپی ۵۶۰ms (پیش‌تر ۸۰۰×آرامش ⇒ ≈۱٫۴ث میان هر مورد؛ ممیزی فایل «بینش» ص۳۱) */
+      else if (q.cont && !strong) ms = /[،,]["»”')\]]*$/.test(t) ? 150 : 100;   /* r168: برش میان‌جمله بدون ویرگول (۳۰ ⇒ ۱۰۰ms): در ضبط «بینش ص۳۰» در هر ۵ برش زیر و بمی پیش از برش می‌افتد و پس از آن ۳٫۳–۸٫۳ نیم‌پرده می‌جهد (هر تکه جدا ساخته می‌شود) و میانشان فقط ≈۵۰ms سکوت بود؛ مکث بندمانند جهش را شبیه آغاز بند می‌کند */ /* r167: مرز تکه‌های بریده‌شده در ویرگول، مکث ویرگولی (پیش‌تر ۳۰ms ⇒ ≈۵۰ms صفر دیجیتال میان دو تکه) */
       else ms = (qs ? 250 : ex ? 230 : strong ? 200 : soft ? 175 : 160) + Math.min(90, len * 0.6);
       if (/(?:…|\.{3})["»”')\]]*$/.test(t)) ms += 220;
       if (sents[i + 1] && sents[i + 1].page !== q.page) ms += 200;
       ms *= 0.94 + (hStr(t) % 13) / 100;
     } else if (q.pe) ms = (!strong && !soft && t.length < 80) ? 720 : (/[?؟]["»”')\]]*$/.test(t) ? 470 : 410);
-    else if (q.cont && !strong) ms = 25;
+    else if (q.cont && !strong) ms = /[،,]["»”')\]]*$/.test(t) ? 120 : 80;   /* r168 */
     else ms = strong ? 170 : soft ? 130 : 160;
     if (humOn()) { var zc = svPzCtx(i, q, t); ms += zc[0]; if (zc[1]) ms = Math.max(ms, zc[1]); }   /* r146: مکث بافتی ناظر مکث */
     if (!q.pe && !(q.cont && !strong)) ms = Math.max(ms, /[?\u061f]["\u00bb\u201d')\]]*$/.test(t) ? 380 : strong ? 320 : soft ? 220 : 0);   /* r120: کف مکث پایان جمله */
@@ -14408,6 +14421,7 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
     return { sr: sr, o: o, n: ds };
   }
   async function rcSeal(seg, fmt){   /* WAV کامل از بخش‌ها؛ در صورت درخواست و پشتیبانی پلاگین، فشرده به m4a (هر خطا ⇒ همان WAV) */
+    if (seg.gb > 0) { var tb = Math.min(seg.gb, Math.round(seg.sr * 0.35) * 2); if (tb > 0) { seg.parts.push(new Uint8Array(tb)); seg.n += tb; } seg.gb = 0; }   /* r167: دُم پایانی حداکثر ۰٫۳۵ث */
     var wav = new Blob([wavHdr(seg.sr, seg.n)].concat(seg.parts), { type: 'audio/wav' }), out = wav, ext = 'wav', r, z;
     if (fmt === 'm4a' && NP && npOK && NP.encodeAac && acOK !== false) {
       try {
@@ -14470,13 +14484,14 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
             pr = await rcPcm(b);
             if (!seg) seg = { parts: [], n: 0, sr: pr.sr, p1: sents[c.start].page, p2: sents[c.start].page };
             if (pr.sr !== seg.sr) throw new Error('نرخ نمونهٔ صدا در میانهٔ ضبط تغییر کرد.');
+            if (seg.gb > 0) { seg.parts.push(new Uint8Array(seg.gb)); seg.n += seg.gb; seg.gb = 0; }
             seg.parts.push(b.slice(pr.o, pr.o + pr.n)); seg.n += pr.n; b = null;
           } else if (RC.stop) break;
         }
         if (seg) {
           seg.p2 = sents[c.end].page;
           gs = Math.min(8, Math.max(0, pauseMs(c.end) / 1000)); gb = Math.round(seg.sr * gs) * 2;   /* همان فاصلهٔ پخش بین تکه‌ها */
-          if (gb > 0) { seg.parts.push(new Uint8Array(gb)); seg.n += gb; }
+          seg.gb = gb > 0 ? gb : 0;   /* r167: مکث تا تکهٔ بعدی نگه داشته می‌شود؛ انتهای فایل سکوت مرده نمی‌گیرد */
         }
         i = c.end + 1; prevLen = c.text.length; first = false;
         tot = ds + (seg ? seg.n / 2 / seg.sr : 0);
