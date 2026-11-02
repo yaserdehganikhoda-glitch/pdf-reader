@@ -561,6 +561,7 @@ class PiperNativePlugin : Plugin() {
     private fun binMime(name: String): String = when (name.substringAfterLast('.', "").lowercase()) {
         "m4a" -> "audio/mp4"
         "wav" -> "audio/x-wav"
+        "mp3" -> "audio/mpeg"
         else -> "application/octet-stream"
     }
 

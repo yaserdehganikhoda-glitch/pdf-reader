@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # One-time (needs internet). Usage: bash fetch-offline.sh <folder-next-to-index.html>
-# Creates ocr/ (onnxruntime-web + PaddleOCR PP-OCRv5 Arabic/Persian models), lib/ (pdf.js + cmaps + standard fonts) and fonts/ (Vazirmatn, Noto Naskh Arabic) for fully offline use.
+# Creates ocr/ (onnxruntime-web + PaddleOCR PP-OCRv5 Arabic/Persian models), lib/ (pdf.js + cmaps + standard fonts + lame.min.js) and fonts/ (Vazirmatn, Noto Naskh Arabic) for fully offline use.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 CACHE="${OFFLINE_CACHE:-$HOME/.offline-cache}"; mkdir -p "$CACHE"
@@ -26,7 +26,7 @@ mkdir -p "$D/ocr/ort" "$D/ocr/paddle" "$D/lib/cmaps" "$D/lib/standard_fonts" "$D
 T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
 cd "$T"
 npm init -y >/dev/null
-npm i --prefer-offline --no-audit --no-fund onnxruntime-web@1.17.3 pdfjs-dist@3.11.174 @fontsource/vazirmatn@5 @fontsource/noto-naskh-arabic@5 >/dev/null
+npm i --prefer-offline --no-audit --no-fund onnxruntime-web@1.17.3 pdfjs-dist@3.11.174 lamejs@1.2.1 @fontsource/vazirmatn@5 @fontsource/noto-naskh-arabic@5 >/dev/null
 N="$T/node_modules"
 # پاک‌سازی فایل‌های قدیمی Tesseract (دیگر استفاده نمی‌شوند)
 rm -rf "$D/ocr/lang" "$D/ocr/tesseract.min.js" "$D/ocr/worker.min.js" "$D"/ocr/tesseract-core*
@@ -40,6 +40,9 @@ for f in ort-wasm-simd-threaded.wasm ort-wasm-simd-threaded.jsep.wasm; do
   [ -s "$N/onnxruntime-web/dist/$f" ] && cp "$N/onnxruntime-web/dist/$f" "$D/ocr/ort/" || echo "WARN: $f not found; multithreaded OCR disabled" >&2
 done
 cp "$N/pdfjs-dist/build/pdf.min.js" "$N/pdfjs-dist/build/pdf.worker.min.js" "$D/lib/"
+# رمزگذار MP3 (lamejs) برای «ضبط و ذخیرهٔ خوانش»؛ اختیاری: نبودنش ضبط را خراب نمی‌کند (m4a/WAV)
+LM="$(find "$N/lamejs" -name lame.min.js 2>/dev/null | head -1 || true)"
+[ -n "$LM" ] && [ -s "$LM" ] && cp "$LM" "$D/lib/lame.min.js" || echo "WARN: lame.min.js not found; MP3 export needs internet (CDN)" >&2
 [ -d "$N/pdfjs-dist/cmaps" ] && cp -r "$N/pdfjs-dist/cmaps/." "$D/lib/cmaps/" || echo "WARN: cmaps not found" >&2
 [ -d "$N/pdfjs-dist/standard_fonts" ] && cp -r "$N/pdfjs-dist/standard_fonts/." "$D/lib/standard_fonts/" || echo "WARN: standard_fonts not found" >&2
 # مدل‌های PaddleOCR (PP-OCRv5 عربی/فارسی، ONNX) با بررسی sha256
