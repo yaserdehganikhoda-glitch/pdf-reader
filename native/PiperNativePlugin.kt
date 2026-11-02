@@ -2876,9 +2876,10 @@ class PlayerService : android.app.Service() {
         }
         val cmd = intent?.action == A_CMD
         var n0: android.app.Notification? = null
+        val warm = !cmd && MediaBridge.active && ms != null   /* اعلان کامل از قبل هست: اعلان ساده را دوباره نگذار (چشمک‌زدن) */
         if (!cmd) {   /* هر startForegroundService باید همین‌جا و بی‌قید‌وشرط startForeground بگیرد */
             try {
-                n0 = quick()
+                n0 = if (warm) { try { build() } catch (e: Throwable) { quick() } } else quick()
                 if (android.os.Build.VERSION.SDK_INT >= 29) startForeground(NID, n0, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
                 else startForeground(NID, n0)
             } catch (e: Throwable) { n0 = null }
@@ -2890,7 +2891,7 @@ class PlayerService : android.app.Service() {
             if (cb == null) { end() } else cb.invoke(intent?.getStringExtra("c") ?: "", 0L)
             return START_NOT_STICKY
         }
-        val n = try { build() } catch (e: Throwable) { n0 }
+        val n = if (warm && n0 != null) n0 else try { build() } catch (e: Throwable) { n0 }
         if (n == null) { stopSelf(); return START_NOT_STICKY }
         try {
             if (android.os.Build.VERSION.SDK_INT >= 29) startForeground(NID, n, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
