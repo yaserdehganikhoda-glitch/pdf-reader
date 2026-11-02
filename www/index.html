@@ -1014,6 +1014,7 @@ body.has-doc:not(.home-on)[data-apptab="read"] .frame::before{display:none}
 .mchip input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
 .mchip input:disabled+span{opacity:.5}
 .mchip small{display:none}
+.rcsk{width:100%;margin:6px 0 0;accent-color:var(--accent)}
 .rcfd{display:grid;gap:4px;font-size:.76rem;font-weight:600;color:var(--muted)}
 .rcf{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .rcf[hidden],.rcbar[hidden]{display:none}
@@ -2199,13 +2200,14 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
       <section class="mcard" aria-label="تنظیمات ضبط">
         <label class="rcfd">محدودهٔ ضبط<select id="rcScope"><option value="cur">صفحهٔ فعلی</option><option value="here">از جملهٔ فعلی تا پایان</option><option value="rng">بازهٔ صفحه‌ها</option><option value="all">کل سند</option></select></label>
         <div class="rcf" id="rcRng" hidden><label class="rcfd">از صفحه<input type="number" id="rcP1" min="1" value="1" inputmode="numeric"></label><label class="rcfd">تا صفحه<input type="number" id="rcP2" min="1" value="1" inputmode="numeric"></label></div>
-        <div class="rcf"><label class="rcfd">قالب فایل<select id="rcFmt"><option value="m4a">m4a (فشرده)</option><option value="wav">WAV (بدون فشرده‌سازی)</option></select></label><label class="rcfd">طول هر فایل<select id="rcLen"><option value="5">حدود ۵ دقیقه</option><option value="10">حدود ۱۰ دقیقه</option><option value="20">حدود ۲۰ دقیقه</option></select></label></div>
+        <div class="rcf"><label class="rcfd">قالب فایل<select id="rcFmt"><option value="mp3">MP3 (سازگار با همه)</option><option value="m4a">m4a (فشرده)</option><option value="wav">WAV (بدون فشرده‌سازی)</option></select></label><label class="rcfd">طول هر فایل<select id="rcLen"><option value="5">حدود ۵ دقیقه</option><option value="10">حدود ۱۰ دقیقه</option><option value="20">حدود ۲۰ دقیقه</option></select></label></div>
+        <label class="rcfd" id="rcBrL">کیفیت MP3<select id="rcBr"><option value="48">۴۸ kbps (کم‌حجم)</option><option value="64" selected>۶۴ kbps (پیشنهادی گفتار)</option><option value="96">۹۶ kbps</option><option value="128">۱۲۸ kbps (بالا)</option><option value="320">۳۲۰ kbps (حداکثر)</option></select></label>
         <label class="rcfd">سرعت ضبط<select id="rcSpd"><option value="1">عادی (۱×)</option><option value="cur">همان سرعت فعلی خواندن</option></select></label>
         <p class="hint" id="rcInfo"></p>
         <button class="btn primary wide" id="rcGo" type="button">شروع ضبط خوانش</button>
         <div class="rcbar" id="rcBar" hidden><i></i></div>
         <p class="hint" id="rcSt" aria-live="polite"></p>
-        <p class="hint">با همان گوینده، سبک و مکث‌های پخش ساخته می‌شود؛ طول بیشتر هر فایل حافظهٔ بیشتری می‌گیرد. اگر فشرده‌سازی در دسترس نباشد، همان WAV ذخیره می‌شود.</p>
+        <p class="hint">با همان گوینده، سبک و مکث‌های پخش ساخته می‌شود؛ طول بیشتر هر فایل حافظهٔ بیشتری می‌گیرد. MP3 با رمزگذار آفلاین (lib/lame.min.js) در پس‌زمینه ساخته می‌شود؛ اگر در دسترس نباشد، m4a یا WAV ذخیره می‌شود.</p>
       </section>
       <section class="mcard" aria-label="ضبط‌های ذخیره‌شده">
         <div class="rch"><b>ضبط‌های ذخیره‌شده</b><div class="rb"><button class="btn xs" id="rcFold" type="button" hidden>انتخاب پوشهٔ ذخیره</button><button class="btn xs" id="rcAll" type="button" hidden>ذخیرهٔ همه</button></div></div>
@@ -2996,7 +2998,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       probeOpt('fa_lexicon.js'),
       Promise.resolve(NP && NP.bundled ? NP.bundled() : null).catch(function(){ return null; }),
       Promise.resolve(NP && NP.stored ? NP.stored() : null).catch(function(){ return null; }),
-      probeOpt('fonts/fonts-extra.css')
+      probeOpt('fonts/fonts-extra.css'), probeOpt('lib/lame.min.js')
     ]).then(function(r){
       var b = (r[7] && r[7].ids) || [], s = (r[8] && r[8].ids) || [], dq = {}; try { dq = window.dictStatus() || {}; } catch (e) {}
       add(r[0], 'فونت‌های فارسی', true);
@@ -3004,6 +3006,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       add(r[9] && !fmiss.length, 'قلم‌های بومی بیشتر (fonts-extra.css)', true, !r[9] ? ' — فایل fonts/fonts-extra.css داخل برنامه نیست' : (fmiss.length ? ' — در فایل تعریف یا بارگذاری نشدند: ' + fmiss.join(' ، ') : ''));
       add(r[1] && r[2] && window.pdfjsLib, 'نمایش PDF (pdf.js)');
       add(r[3] && r[4], 'نگاشت‌ها و فونت‌های کمکی PDF', true);
+      add(r[10], 'رمزگذار MP3 (lib/lame.min.js)', true, ' — فایل داخل برنامه نیست؛ ضبط MP3 فقط با اینترنت (CDN) کار می‌کند، وگرنه m4a/WAV ذخیره می‌شود');
       add(r[5], 'موتور و مدل‌های OCR (PaddleOCR)' + (r[5] ? '' : (probeBad.length ? ' — پیدا نشد: ' + probeBad.join(' ، ') : '')));
       add(r[6] && dq.on, 'واژه‌نامهٔ املایی (fa_lexicon.js)' + (r[6] && dq.on ? ': ' + nf.format(dq.fileWords) + ' واژه' : ''), true, !r[6] ? ' — فایل داخل برنامه نیست؛ املا فقط با فهرست پایهٔ کوچک کار می‌کند' : ' — فایل هست ولی واژه‌ای از آن خوانده نشد' + (window.__faLexErr ? ' · خطای اجرا: ' + window.__faLexErr : ' (خطای اجرایی ثبت نشد؛ نام متغیر یا قالب؟)'));
       add(npOK, 'موتور صدای بومی');
@@ -9414,7 +9417,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r169 · 2026-11-02 · etc-word · bgm-keep', npBuild = '';
+  var APP_BUILD = 'html-r171 · 2026-11-02 · mp3-320-seek', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -14476,9 +14479,92 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
     ds -= ds & 1;
     return { sr: sr, o: o, n: ds };
   }
+  /* r170: خروجی MP3 — lamejs در Worker جدا (ترد اصلی قفل نمی‌شود)؛ PCM به‌صورت تکه‌های ≈۲۵۶KB با Transferable و پس‌فشار (هر تکه پس از تأیید Worker) می‌رود؛ خروجی فقط Blob-part نگه داشته می‌شود */
+  function rcMp3Worker(){
+    var enc = null, BL = 1152 * 40, up = 1, last = 0;
+    function upx(a){ var o = new Int16Array(a.length * up), i, k, q = last, c; for (i = 0; i < a.length; i++) { c = a[i]; for (k = 1; k <= up; k++) o[i * up + k - 1] = q + (c - q) * k / up; q = c; } last = q; return o; }
+    function out(parts, last){
+      var n = 0, o = 0, i, u;
+      for (i = 0; i < parts.length; i++) n += parts[i].length;
+      u = new Uint8Array(n);
+      for (i = 0; i < parts.length; i++) { u.set(parts[i], o); o += parts[i].length; }
+      self.postMessage({ t: 'o', b: u.buffer, last: !!last }, [u.buffer]);
+    }
+    self.onmessage = function(e){
+      var d = e.data, i, x, r, parts = [];
+      try {
+        if (d.t === 'i') {
+          for (i = 0; i < d.urls.length && !(self.lamejs && self.lamejs.Mp3Encoder); i++) { try { importScripts(d.urls[i]); } catch (z) {} }
+          if (!(self.lamejs && self.lamejs.Mp3Encoder)) { self.postMessage({ t: 'x', m: 'lib' }); return; }
+          up = d.up || 1; enc = new self.lamejs.Mp3Encoder(1, d.sr, d.br);
+          self.postMessage({ t: 'r' });
+        } else if (d.t === 'd') {
+          x = new Int16Array(d.b); if (up > 1) x = upx(x);
+          for (i = 0; i < x.length; i += BL) { r = enc.encodeBuffer(x.subarray(i, Math.min(x.length, i + BL))); if (r && r.length) parts.push(r); }
+          out(parts, false);
+        } else if (d.t === 'f') {
+          r = enc.flush(); if (r && r.length) parts.push(r);
+          out(parts, true);
+        }
+      } catch (err) { self.postMessage({ t: 'x', m: String((err && err.message) || err) }); }
+    };
+  }
+  var RC_MP3_SR = [8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000];
+  async function rcMp3(seg, br){
+    var w, u, pend = null, outp = [], acc = [], accN = 0, i, p, ab, n, o, c, d, k, up = 1, esr = seg.sr;
+    if (RC_MP3_SR.indexOf(seg.sr) < 0) throw new Error('نرخ نمونهٔ ' + seg.sr + ' برای MP3 پشتیبانی نمی\u200cشود.');
+    if (br > 160 && seg.sr < 32000) {   /* ۳۲۰kbps فقط در MPEG-1 (۳۲/۴۴٫۱/۴۸kHz) معتبر است ← نمونه‌برداری مجدد با ضریب صحیح؛ در نبود ضریب مناسب سقف ۱۶۰ */
+      for (k = 2; k <= 6; k++) if ([32000, 44100, 48000].indexOf(seg.sr * k) >= 0) { up = k; break; }
+      if (up > 1) esr = seg.sr * up; else br = 160;
+    }
+    if (esr < 16000 && br > 64) br = 64;
+    if (typeof Worker === 'undefined') throw new Error('Worker در این دستگاه در دسترس نیست.');
+    u = URL.createObjectURL(new Blob(['(' + rcMp3Worker.toString() + ')()'], { type: 'text/javascript' }));
+    w = new Worker(u); URL.revokeObjectURL(u);
+    function call(m, ms){
+      return new Promise(function(res, rej){
+        var tm = setTimeout(function(){ pend = null; rej(new Error('رمزگذار MP3 پاسخ نداد.')); }, ms || 60000);
+        pend = { res: function(v){ clearTimeout(tm); res(v); }, rej: function(e){ clearTimeout(tm); rej(e); } };
+        try { w.postMessage(m, m.b ? [m.b] : []); } catch (e) { clearTimeout(tm); pend = null; rej(e); }
+      });
+    }
+    w.onmessage = function(e){ var m = e.data, q = pend; pend = null; if (!q) return; if (m.t === 'x') q.rej(new Error(m.m === 'lib' ? 'کتابخانهٔ MP3 (lib/lame.min.js) پیدا نشد.' : m.m)); else q.res(m); };
+    w.onerror = function(){ var q = pend; pend = null; if (q) q.rej(new Error('خطای Worker رمزگذار MP3.')); };
+    async function flushAcc(){
+      n = accN - (accN & 1); o = 0; c = new Uint8Array(n);
+      for (i = 0; i < acc.length && o < n; i++) { c.set(acc[i].length > n - o ? acc[i].subarray(0, n - o) : acc[i], o); o += acc[i].length; }
+      acc = []; accN = 0;
+      if (!n) return;
+      d = await call({ t: 'd', b: c.buffer }, 120000); c = null;
+      if (d.b && d.b.byteLength) outp.push(d.b);
+    }
+    try {
+      await call({ t: 'i', sr: esr, up: up, br: br, urls: [new URL('lib/lame.min.js', location.href).href, 'https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js'] }, 30000);
+      for (p = 0; p < seg.parts.length; p++) {
+        ab = seg.parts[p] instanceof Blob ? new Uint8Array(await seg.parts[p].arrayBuffer()) : seg.parts[p];
+        acc.push(ab); accN += ab.length; ab = null;
+        if (accN >= 262144) await flushAcc();
+      }
+      await flushAcc();
+      d = await call({ t: 'f' }, 30000);
+      if (d.b && d.b.byteLength) outp.push(d.b);
+      return new Blob(outp, { type: 'audio/mpeg' });
+    } finally {
+      try { w.onmessage = w.onerror = null; w.terminate(); } catch (e) {}
+      outp = null; acc = null;
+    }
+  }
+  function rcFmtUi(){ var l = $('#rcBrL'); if (l) l.hidden = $('#rcFmt').value !== 'mp3'; }
   async function rcSeal(seg, fmt){   /* WAV کامل از بخش‌ها؛ در صورت درخواست و پشتیبانی پلاگین، فشرده به m4a (هر خطا ⇒ همان WAV) */
     if (seg.gb > 0) { var tb = Math.min(seg.gb, Math.round(seg.sr * 0.35) * 2); if (tb > 0) { seg.parts.push(new Uint8Array(tb)); seg.n += tb; } seg.gb = 0; }   /* r167: دُم پایانی حداکثر ۰٫۳۵ث */
     var wav = new Blob([wavHdr(seg.sr, seg.n)].concat(seg.parts), { type: 'audio/wav' }), out = wav, ext = 'wav', r, z;
+    if (fmt === 'mp3') {
+      try {
+        z = await rcMp3(seg, Math.max(8, +$('#rcBr').value || 64));
+        if (z && z.size > 512) return { b: z, ext: 'mp3', d: seg.n / 2 / seg.sr };
+        throw new Error('خروجی MP3 خالی بود.');
+      } catch (e) { RC.note = 'ساخت MP3 ممکن نشد (' + em(e) + ')؛ فایل با قالب جایگزین (m4a یا WAV) ذخیره شد.'; fmt = 'm4a'; }
+    }
     if (fmt === 'm4a' && NP && npOK && NP.encodeAac && acOK !== false) {
       try {
         r = await withTimeout(Promise.resolve(NP.encodeAac({ wav: await blobB64(wav) })), 180000, 'فشرده‌سازی بیش از حد طول کشید.');
@@ -14501,7 +14587,7 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
   }
   function rcUi(on){
     var g = $('#rcGo'); g.textContent = on ? 'توقف و ذخیرهٔ بخش آماده' : 'شروع ضبط خوانش'; g.classList.toggle('primary', !on);
-    ['#rcScope', '#rcFmt', '#rcSpd', '#rcLen', '#rcP1', '#rcP2'].forEach(function(s){ $(s).disabled = on; });
+    ['#rcScope', '#rcFmt', '#rcSpd', '#rcLen', '#rcBr', '#rcP1', '#rcP2'].forEach(function(s){ $(s).disabled = on; });
   }
   async function rcRun(){
     var R, v, ids, rate0, rsm0, cap, i, c, b, pr, gs, gb, seg = null, prevLen = 0, first = true, k = 0, ds = 0, tot = 0, bad = 0, kept = 0, t0, rid, d, stamp, base, fmt, spd, err = '', tr, r2, stopped;
@@ -14517,7 +14603,7 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
     fmt = $('#rcFmt').value; spd = $('#rcSpd').value; cap = (+$('#rcLen').value || 5) * 60;
     rid = Date.now(); d = new Date(rid); stamp = String(d.getFullYear()).slice(2) + rcP2(d.getMonth() + 1) + rcP2(d.getDate()) + '-' + rcP2(d.getHours()) + rcP2(d.getMinutes());
     base = msBase(); rate0 = $('#rate').value; rsm0 = rsm;
-    RC.run = true; RC.stop = false; rcAuStop(); rcUi(true); rcBar(0); kaSync();
+    RC.run = true; RC.stop = false; RC.note = ''; rcAuStop(); rcUi(true); rcBar(0); kaSync();
     if (playing) pause();
     npCancel();
     if (spd === '1') $('#rate').value = '1';   /* سرعت ضبط عادی؛ مقدار قبلی در finally برمی‌گردد (رویدادی ارسال نمی‌شود) */
@@ -14564,13 +14650,18 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
     }
     rcBar(err || stopped ? -1 : 1);
     rcSt((err ? 'ضبط با خطا متوقف شد: ' + err + ' — ' : stopped ? 'ضبط متوقف شد — ' : 'ضبط کامل شد — ') + (kept ? nf.format(kept) + ' فایل (' + rcDur(ds) + ' صدا) در «ضبط‌های ذخیره‌شده» نگه‌داری شد.' : 'چیزی ذخیره نشد.') + (bad ? ' ' + nf.format(bad) + ' جمله ساخته نشد و رد شد.' : ''));
+    if (RC.note) rcSt(($('#rcSt').textContent || '') + ' ' + RC.note);
     rcDraw(); rcInfo();
   }
   /* ---- پخش، ذخیرهٔ فایل، حذف ---- */
   function rcAuStop(){
-    var a = RC.au; RC.au = null; RC.pid = '';
+    var a = RC.au; RC.au = null; RC.pid = ''; RC.sl = RC.tm = null; RC.drag = false;
     if (a) { try { a.onended = a.onerror = null; a.pause(); a.removeAttribute('src'); a.load(); } catch (e) {} }
     if (RC.url) { try { URL.revokeObjectURL(RC.url); } catch (e) {} RC.url = ''; }
+  }
+  function rcTick(){   /* فقط لغزنده و برچسب ردیف فعال به‌روز می‌شود (بدون ساخت دوبارهٔ فهرست) */
+    var a = RC.au; if (!a || !RC.sl || RC.drag) return;
+    RC.sl.value = a.currentTime; RC.tm.textContent = rcDur(a.currentTime) + ' / ' + rcDur(RC.dur);
   }
   function rcPlay(m){
     if (RC.pid === m.id) { rcAuStop(); rcDraw(); return; }
@@ -14580,6 +14671,7 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
       var u = URL.createObjectURL(x), a = new Audio(u);
       RC.url = u; RC.au = a; RC.pid = m.id;
       a.onended = a.onerror = function(){ if (RC.au === a) { rcAuStop(); rcDraw(); } };
+      a.ontimeupdate = rcTick;
       a.play().then(function(){ rcDraw(); }, function(){ if (RC.au === a) { rcAuStop(); rcDraw(); } });
     });
   }
@@ -14638,21 +14730,30 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
       if (!a.length) { p = document.createElement('p'); p.className = 'hint'; p.textContent = 'هنوز ضبطی ذخیره نشده است.'; box.appendChild(p); return; }
       a.sort(function(x, y){ return (y.r - x.r) || (x.k - y.k); });
       a.forEach(function(m){
-        var r = document.createElement('div'), b = document.createElement('b'), s = document.createElement('small'), w = document.createElement('div'), pl = document.createElement('button'), sv = document.createElement('button'), dl = document.createElement('button');
-        r.className = 'rcr'; b.dir = 'auto'; b.textContent = m.n;
-        s.textContent = rcDur(m.d) + ' · ' + rcSize(m.s) + ' · ' + (m.f === 'wav' ? 'WAV' : 'm4a') + ' · صفحهٔ ' + nf.format(m.a) + ' تا ' + nf.format(m.z);
+        var sk, r = document.createElement('div'), b = document.createElement('b'), s = document.createElement('small'), w = document.createElement('div'), pl = document.createElement('button'), sv = document.createElement('button'), dl = document.createElement('button');
+        r.className = 'rcr'; b.dir = 'auto'; b.textContent = m.n; sk = null;
+        s.textContent = rcDur(m.d) + ' · ' + rcSize(m.s) + ' · ' + (m.f === 'wav' ? 'WAV' : m.f === 'mp3' ? 'MP3' : 'm4a') + ' · صفحهٔ ' + nf.format(m.a) + ' تا ' + nf.format(m.z);
         w.className = 'rb'; pl.type = sv.type = dl.type = 'button'; pl.className = sv.className = 'btn xs'; dl.className = 'btn xs dgr';
         pl.textContent = RC.pid === m.id ? 'توقف' : 'پخش'; sv.textContent = 'ذخیره / ارسال'; dl.textContent = 'حذف';
         pl.onclick = function(){ rcPlay(m); }; sv.onclick = function(){ rcSave(m); }; dl.onclick = function(){ rcDel(m); };
-        w.appendChild(pl); w.appendChild(sv); w.appendChild(dl); r.appendChild(b); r.appendChild(s); r.appendChild(w); box.appendChild(r);
+        w.appendChild(pl); w.appendChild(sv); w.appendChild(dl); r.appendChild(b); r.appendChild(s);
+        if (RC.pid === m.id && RC.au) {   /* لغزندهٔ پخش: فقط برای ردیفی که در حال پخش است */
+          var au = RC.au, sl = document.createElement('input'), tm = document.createElement('small');
+          sl.type = 'range'; sl.className = 'rcsk'; sl.min = 0; sl.max = Math.max(1, m.d); sl.step = 0.1; sl.value = au.currentTime || 0; sl.setAttribute('aria-label', 'جابه‌جایی در فایل صوتی');
+          tm.textContent = rcDur(au.currentTime || 0) + ' / ' + rcDur(m.d);
+          sl.oninput = function(){ RC.drag = true; tm.textContent = rcDur(+sl.value) + ' / ' + rcDur(m.d); };
+          sl.onchange = function(){ if (RC.au === au) { try { au.currentTime = +sl.value; } catch (e) {} } RC.drag = false; };
+          RC.sl = sl; RC.tm = tm; RC.dur = m.d; r.appendChild(sl); r.appendChild(tm);
+        }
+        r.appendChild(w); box.appendChild(r);
       });
     });
   }
   function rcOpen(){
     var cur = sents[idx] ? sents[idx].page : 1, last = sents.length ? sents[sents.length - 1].page : 1;
-    ['rcFmt', 'rcLen', 'rcSpd'].forEach(function(k){ var e = $('#' + k), v = sget(k, ''); if (v && Array.prototype.some.call(e.options, function(o){ return o.value === v; })) e.value = v; });
+    ['rcFmt', 'rcLen', 'rcSpd', 'rcBr'].forEach(function(k){ var e = $('#' + k), v = sget(k, ''); if (v && Array.prototype.some.call(e.options, function(o){ return o.value === v; })) e.value = v; });
     $('#rcP1').value = $('#rcP2').value = cur; $('#rcP1').max = $('#rcP2').max = last; $('#rcRng').hidden = $('#rcScope').value !== 'rng';
-    rcSt(''); rcBar(-1); rcInfo(); rcDraw();
+    rcFmtUi(); rcSt(''); rcBar(-1); rcInfo(); rcDraw();
     $('#rcOv').hidden = false; BK.push('rc', function(){ if (RC.run) { rcSt('ابتدا ضبط را متوقف کنید.'); return false; } rcClose(); });
   }
   function rcClose(){ rcAuStop(); BK.drop('rc'); $('#rcOv').hidden = true; }
@@ -14661,7 +14762,7 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
   $('#rcGo').onclick = rcRun;
   $('#rcScope').onchange = function(){ $('#rcRng').hidden = this.value !== 'rng'; rcInfo(); };
   $('#rcP1').oninput = $('#rcP2').oninput = rcInfo;
-  ['rcFmt', 'rcLen', 'rcSpd'].forEach(function(k){ $('#' + k).onchange = function(){ sset(k, this.value); }; });
+  ['rcFmt', 'rcLen', 'rcSpd', 'rcBr'].forEach(function(k){ $('#' + k).onchange = function(){ sset(k, this.value); rcFmtUi(); }; });
   $('#rcFold').onclick = async function(){ try { if (await rcFolder()) { rcSt('پوشهٔ ذخیره تعیین شد.'); rcDraw(); } } catch (e) { rcSt(msCancel(e) ? 'انتخاب پوشه لغو شد.' : 'انتخاب پوشه انجام نشد: ' + em(e)); } };
   $('#rcAll').onclick = async function(){
     var a = await bmGet(RCK), i, t, ok = 0;
