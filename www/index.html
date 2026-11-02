@@ -9125,10 +9125,12 @@ function jbWrapW(ls, old){
   window.natAB = function(i, on){ if (i === undefined) { natForce = null; changed(); return 'natForce=null'; } natForce = on ? 2 : 0; clearCache(); start(i); return on ? 'طبیعی‌سازی ۲' : 'خاموش (رفتار پیشین)'; };   /* A/B همان جمله روی گوشی: natAB(i,0) سپس natAB(i,1)؛ natAB() بازنشانی */
   function styleParams(id){
     PART_GAP = [0.12, 0.16, 0.2, 0.3][calmLvl()];   /* مقدار پیش‌فرض؛ مکث هر جمله در chunkAt با pauseMs جداگانه تعیین می‌شود */
-    var st = STYLES[$('#vstyle').value] || STYLES.natural, v, n, nw;
+    var st = STYLES[$('#vstyle').value] || STYLES.natural, v, n, nw, gyr;
     if (id === undefined) { v = currentVoice(); id = v && v.id; }
     /* مانا: نمونه‌برداری نویز VITS پایدارتر (تغییر رنگ صدا میان جمله‌ها، دوصدایی و خش از واریانس زیاد z و طول واج‌ها) — با هر سبک، متناسب کمتر */
     if (sget('nzMode', 'auto') === 'manual') { var a = parseFloat(sget('nzNs', '0.4')), b = parseFloat(sget('nzNw', '0.4')); return [Math.round(Math.max(0.15, Math.min(0.9, isFinite(a) ? a : 0.4)) * 100) / 100, Math.round(Math.max(0.1, Math.min(0.9, isFinite(b) ? b : 0.4)) * 100) / 100]; }   /* تنظیم دقیق نویز (دستی) */
+    gyr = /gyro/i.test(id || ''); if (gyr) PART_GAP = 0.9;   /* gyro: ریتم یکدست و مکث جمله‌ها مطابق نمونهٔ مرجع */
+    if (gyr) return [0.55, 0.4];
     if (/mana/i.test(id || '')) return [Math.round(Math.max(0.24, Math.min(0.36, st[0] * 0.6)) * 100) / 100, Math.round(Math.min(0.42, st[1] * 0.8) * 100) / 100];
     n = natLvl(); nw = Math.min(st[1], 0.4);   /* r130: سقف noise_w ۰٫۴ — نوسان تصادفی طول واج‌ها (تندوکند شدن جمله‌ها) از سرچشمه کم می‌شود */
     if (!n) return [st[0], nw];   /* سطح ۰ = دقیقاً رفتار پیشین */
@@ -10570,6 +10572,7 @@ function svPzCtx(i, q, t){   /* r146 (مکث بافتی): [افزوده ms، ک�
   if (rs.length) { st = q._pzs || (q._pzs = {}); rs.forEach(function(r){ if (!st[r]) { st[r] = 1; SV.pzR[r] = (SV.pzR[r] || 0) + 1; if (!SV.pzE[r]) { SV.pzE[r] = 1; elogR('pause', 'مکث ' + PZ_NM[r] + ' اعمال شد: «' + t.slice(-40) + '»'); } } }); }
   return [d, f];
 }
+function gyRef(){ try { var v = currentVoice(); return !!(v && /gyro/i.test(v.id)); } catch (e) { return false; } }   /* پروفایل مرجع gyro: مکث پایان جمله ≈ ۱ ثانیه (۹۰۰ms + ≈۱۱۵ms سکوت مرز) مطابق نمونهٔ فرید */
 function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مکث‌های داخل صدای ساخته‌شده که خود با سرعت پخش کشیده می‌شوند) */
     var q = sents[i]; if (!q) return 0;
     var t = q.text, r = Math.max(0.4, +$('#rate').value || 1), ms,
@@ -10589,6 +10592,7 @@ function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مک
     else ms = strong ? 170 : soft ? 130 : 160;
     if (humOn()) { var zc = svPzCtx(i, q, t); ms += zc[0]; if (zc[1]) ms = Math.max(ms, zc[1]); }   /* r146: مکث بافتی ناظر مکث */
     if (!q.pe && !(q.cont && !strong)) ms = Math.max(ms, /[?\u061f]["\u00bb\u201d')\]]*$/.test(t) ? 380 : strong ? 320 : soft ? 220 : 0);   /* r120: کف مکث پایان جمله */
+    if (gyRef() && !(q.cont && !strong) && !(!strong && !soft && !q.pe)) { ms = (strong || q.pe) ? 900 : 450; if (sents[i + 1] && sents[i + 1].page !== q.page) ms += 200; } else
     ms *= [1, 1.15, 1.3, 1.6][calmLvl()];   /* آرام: مکث‌ها بازتر (×۱٫۳)، بسیار آرام (×۱٫۶)، مثل نفس‌گیری آرام گوینده */
     return Math.round(nr ? ms : ms / Math.pow(r, 0.6));
   }
