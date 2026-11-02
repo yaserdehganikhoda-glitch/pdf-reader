@@ -1353,7 +1353,7 @@ class PiperNativePlugin : Plugin() {
         val text = call.getString("text") ?: return call.reject("text")
         if (text.isBlank()) return call.reject("متن خالی است")
         val ns = (call.getFloat("noiseScale") ?: 0.667f).coerceIn(0.2f, 1.2f)
-        val nw = (call.getFloat("noiseScaleW") ?: 0.8f).coerceIn(0.2f, 1.2f)
+        val nw = (call.getFloat("noiseScaleW") ?: 0.8f).coerceIn(0f, 1.2f)
         val sp = (call.getFloat("speed") ?: 1.0f).coerceIn(0.4f, 2.5f)   // <1 کندتر؛ >1 تندتر (سرعت کاربر داخل خود مدل)
         val gap = (call.getFloat("gap") ?: 0.12f).coerceIn(0f, 0.6f)      // ثانیه، سکوت بین جمله‌ها
         val partsArr = call.getArray("parts")
