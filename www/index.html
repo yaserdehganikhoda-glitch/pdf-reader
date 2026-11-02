@@ -2717,7 +2717,7 @@ var mdSet = new Set(), mdLast = 0;   /* r112: ردیابی قطعی عناصر �
 try { var mdPlay = HTMLMediaElement.prototype.play; HTMLMediaElement.prototype.play = function(){ mdSet.add(this); mdLast = Date.now(); return mdPlay.apply(this, arguments); }; } catch (e) {}
 function inAppMedia(){ var f = Date.now() - mdLast < 2500; mdSet.forEach(function(m){ if (m.paused || m.ended) { if (Date.now() - mdLast > 2500) mdSet.delete(m); } else f = true; }); return f; }
 var effNow = 0;   /* r113: سرعت واقعی تکهٔ جاری (نسبت به سرعت طبیعی مدل) برای نمایش کنار سرعت انتخابی */
-var mnAF = 0, mnName = '', mnOn = false, mnBad = false, mnK = '', mnT = 0, mnL = 0;   /* r107: اعلان رسانه‌ای بومی */
+var mnAF = 0, mnName = '', mnOn = false, mnBad = false, mnK = '', mnT = 0, mnL = 0, mnRetry = 0, mnHold = 0, mnPl = 0, mnKB = '';   /* r107: اعلان رسانه‌ای بومی */
 
   if (window.pdfjsLib) {
     pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('lib/pdf.worker.min.js', location.href).href;
@@ -8555,6 +8555,11 @@ function jbWrapW(ls, old){
       t = t.replace(/\u0647\u200c\u06CC(?![\p{L}\u200c])/gu, '\u06C0')
         .replace(/\u200c+/g, '\u200c').replace(/(?<![\p{L}\p{M}])\u200c|\u200c(?![\p{L}\p{M}])/gu, '');
     }
+    t = t.replace(/[ \t]*(?:(?<!…)…(?!…)|(?<![.…])\.{3}(?![.…]))([»”"')\]]*)/g, function(m, cl, off, str){   /* r169: سه‌نقطهٔ «...»/«…» در گفتار = «غیره» (چهار نقطه و بیشتر/«……» = خط‌چین و جدا پردازش می‌شود؛ بدون واژه پیش از آن دست‌نخورده) */
+      if (!/[\p{L}\p{N}]/u.test(str.slice(Math.max(0, off - 40), off))) return m;
+      var nx = str.slice(off + m.length);
+      return ' غیره' + cl + (/^\s*$/.test(nx) ? '.' : /^\s*[.,،;؛:!?؟]/.test(nx) ? '' : ' ');
+    });
     t = t.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, ' ').replace(/\.{4,}/g, ', ').replace(/[_=\-–—]{3,}/g, ' ').replace(/&/g, ' و ')
       .replace(/[»”]\s+(?=(?!(?:را|است|که|و|یا|هم|نیز|بود|می|نه)(?![\p{L}\u200c]))[\p{L}\p{N}])/gu, ', ').replace(/[«»"“”]/g, '').replace(/\s*[(\[]\s*/g, ', ').replace(/\s*[)\]]\s*/g, ', ')
       .replace(/[•▪■◆●○◦*_#|~^<>{}\\\/]/g, ' ').replace(/\s*[–—]\s*/g, ', ')
@@ -9409,7 +9414,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r168 · 2026-11-02 · join-pause · maxl260', npBuild = '';
+  var APP_BUILD = 'html-r169 · 2026-11-02 · etc-word · bgm-keep', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -11304,13 +11309,15 @@ function wlSync(want){ wlWant = want;   /* Screen Wake Lock برای نسخهٔ 
       }
     } catch (e) {}
   }
+  var kaOffAt = 0;
   function kaSync(){
     var scan = !!(ocrBusy || (man && (man.busy || man.fx)) || (RC && RC.run)), kw = !!(playing || scan);   /* بیدار ماندن صفحه/CPU هم حین پخش و هم حین OCR (اصلی و دستی) */
     wlSync(kw && (kaBad || !npOK || !NP));
 document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام OCR انیمیشن/بلور متوقف (گرما) */
     kaFall(scan && !playing && (document.hidden || kaBad || !npOK || !NP));   /* r83: حلقهٔ صوتی فقط وقتی صفحه پنهان است یا پلاگین keepAwake نیست */
-    if (kaBad || !npOK || !NP || (kaOn === null && !kw) || kaOn === kw) return;
-    kaOn = kw;
+    if (kaBad || !npOK || !NP || (kaOn === null && !kw) || kaOn === kw) { if (kw) kaOffAt = 0; return; }
+    if (!kw && kaOn) { if (!kaOffAt) { kaOffAt = Date.now(); setTimeout(kaSync, 3100); } if (Date.now() - kaOffAt < 3000) return; }
+    kaOffAt = 0; kaOn = kw;
     try { Promise.resolve(NP.keepAwake({ on: kw, cpu: kw })).catch(function(){ kaBad = true; }); } catch (e) { kaBad = true; }
   }
   setInterval(function(){ if (ocrBusy || (man && (man.busy || man.fx)) || (RC && RC.run)) kaSync(); }, 4000);
@@ -11364,14 +11371,17 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   }
   function mnSync(){
     if (mnBad || !NP || !npOK || !npPlay || !sents.length || (!playing && !mnOn)) return;
+    if (playing) mnHold = 0;
+    if (!mnOn && Date.now() < mnRetry) { clearTimeout(mnT); mnT = setTimeout(mnSync, mnRetry - Date.now() + 20); return; }   /* پس از NO_MEDIA، اعلان را بلافاصله دوباره نساز */
+    if (!playing && mnPl && !mnHold) { clearTimeout(mnT); mnT = setTimeout(function(){ mnHold = 1; mnSync(); }, 1200); return; }   /* توقف‌های گذرا (فوکوس/بازیابی) اعلان را به «متوقف» نمی‌برند */
     var s = sents[idx], pg = s && s.page, rt = Math.round((+$('#rate').value || 1) * 100) / 100, nm = (mnName || '').replace(/\.pdf$/i, '') || 'خوانندهٔ صوتی PDF';
     var sub = pg ? 'صفحهٔ ' + nf.format(pg) + ' از ' + nf.format(pdfDoc ? pdfDoc.numPages : pg) : '';
-    var k = [nm, sub, idx, sents.length, playing ? 1 : 0, rt].join('|');
+    var k = [nm, sub, idx, sents.length, playing ? 1 : 0, rt].join('|'), kb = [nm, sub, playing ? 1 : 0, rt].join('|');
     if (k === mnK) return;
-    var d = Date.now() - mnL;
+    var d = Date.now() - mnL, dm = kb === mnKB ? 1500 : 900;
     clearTimeout(mnT);
-    if (d < 900) { mnT = setTimeout(mnSync, 900 - d); return; }
-    mnK = k; mnL = Date.now();
+    if (d < dm) { mnT = setTimeout(mnSync, dm - d); return; }
+    mnK = k; mnKB = kb; mnL = Date.now(); mnPl = playing ? 1 : 0;
     var o = { title: nm, sub: sub, total: sents.length, index: idx, playing: !!playing, rate: rt }, first = !mnOn;
     mnCumBuild(); o.pos = Math.round(mnCum[idx]); o.dur = Math.round(mnCum[sents.length]);
     if (mnCoverSent !== pdfDoc) {
@@ -11379,12 +11389,12 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
       else if (mnCoverDoc !== pdfDoc) mnCoverGet().then(function(c){ if (c) { mnK = ''; mnSync(); } });
     }
     mnOn = true;
-    try { Promise.resolve(first ? NP.mediaStart(o) : NP.mediaUpdate(o)).catch(function(e){ mnOn = false; mnK = ''; if (!/NO_MEDIA/.test(String((e && e.message) || e))) mnBad = true; }); } catch (e) { mnBad = true; }
+    try { Promise.resolve(first ? NP.mediaStart(o) : NP.mediaUpdate(o)).catch(function(e){ mnOn = false; mnK = ''; mnPl = 0; if (!/NO_MEDIA/.test(String((e && e.message) || e))) mnBad = true; else mnRetry = Date.now() + 4000; }); } catch (e) { mnBad = true; }
   }
   function mnStop(){
     clearTimeout(mnT); mnK = ''; mnCoverSent = null;
     if (!mnOn) return;
-    mnOn = false;
+    mnOn = false; mnPl = 0; mnHold = 0; mnKB = '';
     try { if (NP && NP.mediaStop) Promise.resolve(NP.mediaStop()).catch(function(){}); } catch (e) {}
   }
   function mnAct(e){
@@ -11950,7 +11960,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
       src.connect(hp); hp.connect(mid); mid.connect(pres); pres.connect(lp); lp.connect(cp); cp.connect(mk); mk.connect(g); g.connect(dk); dk.connect(c.destination);
       bgm.ctx = c; bgm.gain = g; bgm.dk = dk;
       try { bgm.el.volume = 1; } catch (e) {}
-      c.onstatechange = function(){ if (bgmWant() && c.state !== 'running') { try { c.resume(); } catch (e) {} } };
+      c.onstatechange = function(){ if (bgmWant() && c.state !== 'running') { bgmLog('ctx:' + c.state); try { c.resume(); } catch (e) {} } };
     } catch (e) { bgm.ctx = null; bgm.gain = null; bgm.dk = null; return false; }
     return true;
   }
@@ -11981,6 +11991,23 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     var pr; try { pr = el.play(); } catch (e) { bgm.blocked = true; return; }
     if (pr && pr.then) pr.then(function(){ bgm.blocked = false; }, function(){ bgm.blocked = true; });
   }
+  var bgmLg = 0;
+  function bgmLog(ev){   /* r169: ثبت کم‌حجم (حداکثر هر ۱۰ ثانیه) برای یافتن علت قطع موسیقی در «گزارش خطا» */
+    var t = Date.now(); if (t - bgmLg < 10000) return; bgmLg = t;
+    try { if (window.__elog) window.__elog.add('bgm', ev + ' | hid=' + (document.hidden ? 1 : 0) + ' play=' + (playing ? 1 : 0) + ' ctx=' + (bgm.ctx ? bgm.ctx.state : '-') + ' paused=' + (bgm.el && bgm.el.paused ? 1 : 0) + ' t=' + Math.round(bgm.el ? bgm.el.currentTime : 0)); } catch (e) {}
+  }
+  function bgmRetry(n){   /* توقف ناخواستهٔ سیستم (تمرکز صدا/WebView): تا ۸ بار با فاصلهٔ فزاینده دوباره تلاش می‌کند، نه فقط یک‌بار */
+    clearTimeout(bgm.re);
+    if (n > 8) return;
+    bgm.re = setTimeout(function(){
+      if (!bgm.loaded || !bgmWant() || !bgm.el.paused) return;
+      bgmPlay(); bgmRetry(n + 1);
+    }, n ? 400 * n : 300);
+  }
+  setInterval(function(){   /* ناظر سبک: هر ۲ ثانیه، فقط وقتی موسیقی باید پخش شود ولی متوقف یا ctx معلق است */
+    if (bgm.loaded && bgm.el && bgmWant() && (bgm.el.paused || (bgm.ctx && bgm.ctx.state !== 'running'))) { bgmLog('revive'); musicSync(); }
+  }, 2000);
+  document.addEventListener('visibilitychange', function(){ if (bgm.loaded && bgmWant()) { bgmLog('vis'); musicSync(); } });
   function musicSync(){
     if (!bgm || !bgm.loaded || !bgm.el) return;
     clearTimeout(bgm.off);
@@ -12008,13 +12035,13 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   function bgmLoadBlob(blob, name){
     if (!bgm.el) {
       bgm.el = new Audio(); bgm.el.loop = true; bgm.el.preload = 'auto';
-      bgm.el.onerror = function(){ if (bgm.loaded) { bgm.preview = false; bgmUi(); status('این فایل موسیقی پخش نشد؛ فایل دیگری انتخاب کنید.'); } };
+      bgm.el.onerror = function(){ if (bgm.loaded) { bgmLog('error'); bgm.preview = false; bgmUi(); status('این فایل موسیقی پخش نشد؛ فایل دیگری انتخاب کنید.'); } };
       /* اگر هنگام شروع صدای گفتار، سیستم موسیقی را متوقف کرد، دوباره ادامه می‌دهد */
       bgm.el.onpause = function(){
         if (!bgm.loaded || !bgmWant() || bgm.el.ended) return;
-        clearTimeout(bgm.re);
-        bgm.re = setTimeout(function(){ if (bgm.loaded && bgmWant() && bgm.el.paused) bgmPlay(); }, 300);
+        bgmLog('pause'); bgmRetry(0);
       };
+      bgm.el.onended = function(){ if (bgm.loaded && bgmWant()) { bgmLog('ended'); try { bgm.el.currentTime = 0; } catch (e) {} bgmPlay(); } };   /* با loop=true نباید رخ دهد؛ اگر WebView حلقه را رها کرد ادامه می‌دهد */
     }
     if (bgm.url) { try { URL.revokeObjectURL(bgm.url); } catch (e) {} }
     bgm.url = URL.createObjectURL(blob); bgm.el.src = bgm.url; bgm.loaded = true;
