@@ -1151,6 +1151,20 @@ body:not(.view-page) #rdRot{display:none}
 [data-panel="voice"]{gap:8px;padding:8px 10px 18px}
 .svh{margin:10px 2px 0;font-size:.74rem;font-weight:700;color:var(--muted)}
 #svLive{white-space:pre-line}
+/* r174: خلاصهٔ تشخیصی رنگی در «گزارش خطا» */
+#logSum{margin:6px 0 8px;display:grid;gap:6px}
+#logSum .lgh{display:flex;flex-wrap:wrap;gap:6px;font-size:.76rem;font-weight:700}
+#logSum .lgc{padding:2px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink)}
+#logSum .lgs{font-size:.82rem;font-weight:800;margin:8px 2px 0;color:var(--ink)}
+#logSum .lgi{border:1px solid var(--line);border-inline-start:4px solid var(--muted);border-radius:10px;padding:6px 10px;font-size:.78rem;line-height:1.8;background:color-mix(in srgb,var(--card) 70%,transparent);color:var(--ink)}
+#logSum .lgi b{display:block;font-weight:700}
+#logSum .lgi small{display:block;color:var(--muted);font-size:.72rem;line-height:1.75;word-break:break-word}
+#logSum .lgi small.fx{color:var(--accent);font-weight:600}
+#logSum .lgi.e{border-inline-start-color:#d9444f}
+#logSum .lgi.w{border-inline-start-color:var(--gold)}
+#logSum .lgi.o{border-inline-start-color:var(--accent)}
+#logSum .lgi.i{border-inline-start-color:var(--accent-2)}
+#logSum .lgc.e{border-color:#d9444f}#logSum .lgc.w{border-color:var(--gold)}#logSum .lgc.o{border-color:var(--accent)}
 [data-panel="voice"] .grp{gap:6px}
 [data-panel="voice"]>.grp,[data-panel="voice"] .cfgv>.grp{padding:8px 10px 10px;border-radius:14px}
 [data-panel="voice"] .grp>h3{font-size:.84rem}
@@ -1851,8 +1865,9 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
             <button type="button" class="btn sm" id="logShow">گزارش خطا</button>
           </div>
           <div id="logBox" hidden>
-            <textarea id="logText" readonly rows="9" style="width:100%;direction:ltr;font:11px monospace" aria-label="گزارش خطا"></textarea>
-            <div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="logCopy">کپی</button><button type="button" class="btn sm" id="logAll">همهٔ ثبت‌ها</button><button type="button" class="btn sm" id="logClear">پاک‌کردن</button></div>
+            <div id="logSum" dir="rtl" aria-live="polite"></div>
+            <textarea id="logText" readonly rows="14" dir="auto" style="width:100%;font:11px/1.7 monospace;unicode-bidi:plaintext" aria-label="گزارش خطا"></textarea>
+            <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><button type="button" class="btn sm" id="logCopy">کپی</button><button type="button" class="btn sm" id="logOk">نمایش موارد سالم</button><button type="button" class="btn sm" id="logAll">همهٔ ثبت‌ها</button><button type="button" class="btn sm" id="logClear">پاک‌کردن</button></div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0"><button type="button" class="btn sm" id="ocrPerfShow">سرعت OCR (JSON)</button><button type="button" class="btn sm" id="ocrGpuRetry">آزمون دوبارهٔ GPU</button><button type="button" class="btn sm" id="natAutoBtn">بهینه‌سازی خودکار سرعت OCR</button><button type="button" class="btn sm" id="natRetryBtn">فعال‌سازی دوبارهٔ موتور بومی</button></div>
           <p class="hint" id="natAutoRes" aria-live="polite"></p>
@@ -2891,6 +2906,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       /* قطع اینترنت: منتظر «online» می‌ماند و تا ۶ بار خودکار ادامه می‌دهد (بومی فایل ناقص را از ابتدا/ادامه می‌گیرد) */
       var run = function(){
         return once().catch(function(e){
+          dgLog('voice-dl', id + ' · تلاش ' + (tries + 1) + ' از ۶ · ' + String((e && (e.message || e.code)) || e).slice(0, 120));
           if (++tries > 6) throw e;
           if (cb) cb({ stage: 'retry', n: tries });
           return waitOnline().then(function(){ return new Promise(function(r){ setTimeout(r, 1200 * tries); }); }).then(run);
@@ -2920,18 +2936,237 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       }).catch(function(){});
     } catch (e) {}
   }
-  var logAll = false;
-  function logRender(){
+  /* r174: ثبت یکپارچهٔ خطاهای گفتار/صدا (شمارندهٔ نشست + حذف تکرار پشت‌سرهم) برای «گزارش خطا» */
+  var DG = { c: {}, last: {} };
+  function dgLog(kind, msg){
+    try {
+      var m = String(msg == null ? '' : msg).replace(/\s+/g, ' ').slice(0, 220), t = Date.now(), l = DG.last[kind];
+      DG.c[kind] = (DG.c[kind] || 0) + 1;
+      if (l && l.m === m && t - l.t < 20000) { l.t = t; return; }
+      DG.last[kind] = { m: m, t: t };
+      if (window.__elog) window.__elog.add(kind, m);
+    } catch (e) {}
+  }
+  var DG_GRP = [
+    ['موتور و صداها', ['engine', 'engine-fail', 'compat', 'voice-dl', 'model', 'noise', 'noise-live', 'thr']],
+    ['گفتار و پخش', ['tts-synth', 'tts-skip', 'tts-fail', 'tts-play', 'tts-polish', 'tts-stretch', 'watchdog', 'audio-health', 'native-crash', 'bgm', 'pause', 'swk', 'worker', 'read']],
+    ['متن و تصحیح گفتار', ['txguard', 'text-guard', 'text-fix', 'numdrop', 'txw', 'prefix-join', 'dict', 'font', 'ocr-quality', 'hl-sync', 'ocr', 'ocr-save']],
+    ['سامانه', ['error', 'promise', 'storage', 'idb', 'mem', 'exit', 'gov', 'build']]
+  ];
+  var DG_SEC = ['موتور و صداها', 'گفتار و پخش', 'متن و تصحیح گفتار', 'سامانه'];
+  function dgKinds(cur){
+    var k = {}, i, m, x;
+    for (i = 0; i < cur.length; i++) {
+      m = /^\[[^\]]*\] ([^:\n]+): ([\s\S]*)/.exec(cur[i]); if (!m) continue;
+      x = k[m[1]] || (k[m[1]] = { n: 0, last: '' });
+      x.n++; x.last = m[2].replace(/\s+/g, ' ').slice(0, 170);
+    }
+    return k;
+  }
+  function dgItems(cur, X){
+    var o = [], K = dgKinds(cur), A = DG_SEC[0], B = DG_SEC[1], C = DG_SEC[2], D = DG_SEC[3], v = null, id = '', r, n, p, q, t, mr, vv;
+    var add = function(l, s, ti, d, f){ o.push({ l: l, s: s, t: ti, d: d || '', f: f || '' }); };
+    var N = function(x){ return nf.format(x); };
+    var T = function(fn){ try { fn(); } catch (e) { add('i', D, 'بخشی از بررسی انجام نشد', String((e && e.message) || e).slice(0, 100)); } };
+    var lastOf = function(k){ return (DG.last[k] && DG.last[k].m) || (K[k] && K[k].last) || ''; };
+    var cntOf = function(k){ return Math.max(DG.c[k] || 0, (K[k] && K[k].n) || 0); };
+    try { v = currentVoice(); id = (v && v.id) || ''; } catch (e) {}
+
+    /* ---- ۱) موتور و صداها ---- */
+    T(function(){
+      if (npOK) add('o', A, 'موتور گفتار بومی فعال است', (npBuild || '—') + (npPlay ? ' · پخش بومی (AudioTrack) فعال' : ''));
+      else if (npErr) add('e', A, 'افزونهٔ بومی Piper پاسخ نداد', npErr, 'APK را با افزونهٔ PiperNative دوباره بسازید و نصب کنید.');
+      else if (!NP) add(onNative ? 'e' : 'w', A, onNative ? 'افزونهٔ PiperNative در این اجرا وجود ندارد' : 'برنامه در حالت وب اجرا می‌شود؛ گفتار بومی در دسترس نیست', '', onNative ? 'APK را با افزونهٔ PiperNative دوباره بسازید و نصب کنید.' : 'برنامه را به‌صورت APK نصب‌شده اجرا کنید.');
+      else add('i', A, 'موتور بومی در حال راه‌اندازی است');
+      if (npOK && !npPlay) add('w', A, 'پخش بومی (AudioTrack) غیرفعال است', 'پخش با عنصر صدای مرورگر انجام می‌شود؛ گسست و قطع بیشتر محتمل است.', 'افزونه/APK را به‌روزرسانی کنید.');
+      if (cntOf('engine-fail')) add('e', A, 'راه‌اندازی موتور ' + N(cntOf('engine-fail')) + ' بار ناموفق بود', lastOf('engine-fail'), 'برنامه را کامل ببندید و دوباره باز کنید؛ تکرار شد APK را دوباره نصب کنید.');
+      if (K.compat) add('e', A, 'WebView دستگاه قدیمی است', K.compat.last, 'Android System WebView و Chrome را به‌روزرسانی کنید (نسخهٔ ۶۴ یا بالاتر).');
+    });
+    T(function(){
+      var have = (X && X.stored && X.stored.ids) ? X.stored.ids : (HAVE.length ? HAVE : null);
+      if (!v) { add('e', A, 'هیچ صدایی انتخاب نشده است', '', 'از بخش صدا یک گوینده انتخاب کنید.'); return; }
+      if (npOK && have) {
+        if (have.indexOf(id) < 0) add('e', A, 'صدای انتخاب‌شده نصب نیست', v.name, 'در بخش صدا دکمهٔ دانلود/نصب را بزنید (یک‌بار اینترنت لازم است).');
+        else add('o', A, 'صدای انتخاب‌شده نصب است', v.name);
+      }
+      mr = sget('svMdl:' + id, '').split('|')[0];
+      if (mr === 'bad') add('e', A, 'یکپارچگی مدل صدا با مرجع نمی‌خواند', v.name, 'صدا را حذف و دوباره نصب کنید.');
+      else if (mr === 'broken') add('e', A, 'فایل‌های مدل صدا ناقص‌اند', v.name, 'صدا را حذف و دوباره نصب کنید.');
+      else if (mr === 'err') add('w', A, 'بررسی یکپارچگی مدل ناموفق بود', 'پلاگین بومی پاسخ نداد.');
+      else if (mr === 'ok') add('o', A, 'یکپارچگی مدل صدا سالم است', v.name);
+    });
+    T(function(){
+      n = cntOf('voice-dl');
+      if (n) add('e', A, 'دانلود/نصب صدا ' + N(n) + ' بار ناموفق یا با تلاش مجدد همراه بود', lastOf('voice-dl'), 'اتصال اینترنت/VPN را بررسی کنید؛ دانلود ادامه‌پذیر است و از همان‌جا ادامه می‌یابد.');
+      r = rtf();
+      if (r) {
+        t = 'ساخت صدا ' + N(Math.round(r * 100) / 100) + '× زمان واقعی' + (pFirst ? ' · اولین ساخت ' + N(Math.round(pFirst)) + ' ثانیه' : '') + (pBoot ? ' · بارگذاری موتور ' + N(Math.round(pBoot / 1000)) + ' ثانیه' : '');
+        if (r > 1) add('e', A, 'ساخت صدا کندتر از پخش است', t, 'گوینده‌ٔ سبک‌تر انتخاب کنید، «کیفیت HD» و «افزایش کیفیت» را خاموش کنید و برنامه‌های پس‌زمینه را ببندید.');
+        else if (r > 0.7) add('w', A, 'ساخت صدا نزدیک به سرعت پخش است', t, 'اگر مکث وسط خواندن دارید «کیفیت HD» را خاموش کنید.');
+        else add('o', A, 'سرعت ساخت صدا مناسب است', t);
+      }
+    });
+    T(function(){
+      mr = vv = null;
+      try { mr = id ? nsGet(nsKey(id)) : null; } catch (e) {}
+      if (mr && isFinite(mr.fl) && mr.fl >= -32) add('w', A, 'کف نویز مدل بالاست', 'کف نویز ' + N(mr.fl) + ' dB؛ با حذف نویز پاک نمی‌شود.', 'گوینده‌ٔ دیگری امتحان کنید یا «پاک‌سازی» صدا را بالاتر ببرید.');
+      n = 0; q = 0;
+      try { Object.keys(GVS).forEach(function(k){ n++; if (GVS[k].off) q++; }); } catch (e) {}
+      if (q) add('w', A, N(q) + ' مدل سرعت ناپایدار است', 'جبران سرعت موقتاً خاموش شده.', 'چند دقیقه بیشتر بخوانید تا مدل دوباره پایدار شود.');
+    });
+
+    /* ---- ۲) گفتار و پخش ---- */
+    T(function(){
+      n = cntOf('tts-skip');
+      if (n) add('e', B, N(n) + ' جمله ساخته نشد و از خواندن رد شد', lastOf('tts-skip') + (dbg.log && dbg.log.length ? ' · نمونه: ' + dbg.log.slice(0, 3).join(' | ') : ''), 'متن آن جمله را (نویسه‌های عجیب/خیلی طولانی) در ویرایش متن اصلاح کنید.');
+      n = cntOf('tts-synth') - n * 2;
+      if (cntOf('tts-synth') && n > 0) add('w', B, N(cntOf('tts-synth')) + ' خطای ساخت صدا (با تلاش مجدد)', lastOf('tts-synth'), 'اگر تکرار شد صدا را دوباره نصب کنید یا حافظهٔ دستگاه را آزاد کنید.');
+      n = cntOf('tts-fail');
+      if (n) add('e', B, 'پخش ' + N(n) + ' بار متوقف شد', lastOf('tts-fail'), 'دکمهٔ پخش را دوباره بزنید؛ تکرار شد این گزارش را کپی و ارسال کنید.');
+      n = cntOf('tts-play');
+      if (n) add('w', B, N(n) + ' خطای پخش (بازیابی خودکار)', lastOf('tts-play'), 'اگر لکنت داشت «کیفیت HD» را خاموش کنید.');
+      n = cntOf('tts-polish') + cntOf('tts-stretch');
+      if (n) add('w', B, N(n) + ' پردازش پس از ساخت ناموفق بود', lastOf('tts-polish') || lastOf('tts-stretch'), 'صدا بدون آن پردازش پخش شده؛ اگر کیفیت افت کرد EQ/HD را خاموش و روشن کنید.');
+    });
+    T(function(){
+      p = wdFails.length;
+      if (p >= 3) add('e', B, 'نگهبان پخش ' + N(p) + ' قطع در ۲ دقیقهٔ اخیر دید', 'کل بازیابی‌ها در این نشست: ' + N(HS.rec), 'ساخت صدا یا رویدادهای پخش گیر می‌کنند؛ HD را خاموش و گوینده‌ٔ سبک‌تر را امتحان کنید.');
+      else if (HS.rec) add('w', B, 'نگهبان پخش ' + N(HS.rec) + ' بار پخش را بازیابی کرد', K.watchdog ? K.watchdog.last : '');
+      else add('o', B, 'قطع ناگهانی پخش ثبت نشده');
+      if (X && X.diag && isFinite(X.diag.underruns)) {
+        if (X.diag.underruns > 0) add('w', B, 'لکنت پخش (underrun) بومی: ' + N(X.diag.underruns) + ' بار', (isFinite(X.diag.bufMs) ? 'بافر پخش ' + N(X.diag.bufMs) + ' میلی‌ثانیه' + (X.diag.bufGrow ? ' (' + N(X.diag.bufGrow) + ' بار افزایش خودکار)' : '') : ''), 'ساخت صدا از پخش عقب است؛ «کیفیت HD» را خاموش کنید.');
+        else add('o', B, 'لکنت پخش بومی ثبت نشده');
+      }
+      if (dbg && dbg.under) add('w', B, 'گسست پخش (مرورگر): ' + N(dbg.under) + ' بار');
+      if (HS.bad) add('w', B, 'ناظر سلامت صدا: ' + N(HS.bad) + ' تکهٔ مشکوک', N(HS.fixed) + ' اصلاح‌شده، ' + N(HS.kept) + ' بدون تغییر' + (HS.rp.length ? ' · آخرین: ' + hsFmt(HS.rp[HS.rp.length - 1]).slice(0, 160) : ''), 'جزئیات کامل زیر در «گزارش ناظر سلامت» است.');
+      else if (HS.lN) add('o', B, 'ناظر سلامت صدا: تکهٔ مشکوکی نیست', N(HS.lN) + ' تکه بررسی شد');
+      if (HS.lN >= 5 && HS.lO > 0) add(HS.lO * 4 >= HS.lN ? 'w' : 'i', B, 'بلندی ناهمگون: ' + N(HS.lO) + ' از ' + N(HS.lN) + ' تکه بیش از ۶ dB انحراف دارد', svOn('svLvl') ? N(HS.lG) + ' تکه تراز شد' : 'تراز بلندی خاموش است', svOn('svLvl') ? '' : 'در «ناظر هوشمند» تراز بلندی را روشن کنید.');
+      if (SV.hlE) add('w', B, 'هم‌گامی هایلایت: ' + N(SV.hlE) + ' تکه تخمینی', N(SV.hlR) + ' تکه با مرز واقعی', 'هایلایت ممکن است کمی جلو/عقب بماند.');
+      if (K['native-crash']) add('e', B, 'برنامه بار قبل ناگهان بسته شده (کرش بومی)', K['native-crash'].last, 'این گزارش را کپی و برای عیب‌یابی ارسال کنید.');
+      if (SV.prev) add('w', B, 'خروج غیرمنتظره در اجرای قبل', SV.prev);
+    });
+    T(function(){
+      if (SV.mem || SV.trN) add('w', B, 'فشار حافظه: ' + N(SV.mem || 0) + ' بار سبک‌سازی' + (SV.trN ? '، ' + N(SV.trN) + ' اعلان حافظهٔ سیستم' : ''), SV.memH ? 'حافظهٔ JS ≈ ' + N(SV.memH) + ' از ' + N(SV.memL) + ' مگابایت' : '', 'برنامه‌های پس‌زمینه را ببندید؛ سند را کوچک‌تر بخوانید.');
+      if (X && X.cache) {
+        var b = X.cache.bytes || 0, m = X.cache.max || 0, ht = +X.cache.hits || 0, tt = ht + (+X.cache.misses || 0);
+        add(m && b >= m * 0.9 ? 'w' : 'i', B, 'کش صوت: ' + pcFmt(b) + ' از ' + pcFmt(m), N(X.cache.files || 0) + ' جمله' + (tt ? ' · نرخ برخورد ' + N(Math.round(ht * 100 / tt)) + '٪' : '') + (X.cache.evicted ? ' · ' + N(X.cache.evicted) + ' جمله حذف شد' : ''), m && b >= m * 0.9 ? 'سقف کش را بالا ببرید یا پاک‌سازی کنید.' : '');
+      }
+    });
+
+    /* ---- ۳) متن و تصحیح گفتار ---- */
+    T(function(){
+      if (SV.txB) add('w', C, 'نگهبان متن: ' + N(SV.txB) + ' مورد مشکوک', N(SV.txN) + ' تکه بررسی، ' + N(SV.txF) + ' بازمانده پیش از ساخت اصلاح شد' + (SV.txS ? ' · نمونه: …' + SV.txS + '…' : ''), 'متن آن بخش را در ویرایش اصلاح کنید.');
+      else if (SV.txN) add('o', C, 'نگهبان متن: ' + N(SV.txN) + ' تکه بدون مشکل', SV.txF ? N(SV.txF) + ' بازمانده خودکار اصلاح شد' : '');
+      p = svTgParts();
+      if (p.length) add('w', C, 'باقی‌ماندهٔ مشکوک در جمله‌ها', p.join(' · '), 'نمونه‌ها و شمارهٔ صفحه‌ها در «ثبت‌های بخش متن» زیر است.');
+      n = K.numdrop && K.numdrop.n;
+      if (n) add('w', C, 'تکهٔ عددی/نمایه از گفتار حذف شد', K.numdrop.last, 'اگر آن عددها باید خوانده شوند، آنها را با حروف بنویسید.');
+      if (SV.ocq) { q = Math.round(SV.ocq.r * 100 / SV.ocq.n); add(q >= 25 ? 'e' : q >= 10 ? 'w' : 'o', C, 'کیفیت متن: ' + N(q) + '٪ جمله‌ها مشکوک‌اند', N(SV.ocq.r) + ' از ' + N(SV.ocq.n), q >= 10 ? 'اسکن دوباره یا اصلاح دستی پیشنهاد می‌شود.' : ''); }
+    });
+    T(function(){
+      t = ''; try { t = window.dictLine(); } catch (e) { t = 'خطا در بررسی — ' + String((e && e.message) || e).slice(0, 60); }
+      if (window.__faLexMissing) add('e', C, 'فایل واژه‌نامهٔ املا (fa_lexicon.js) بارگذاری نشد', 'املا به فهرست پایهٔ کوچک برمی‌گردد.', 'فایل را کنار index.html در APK قرار دهید و دوباره بسازید.');
+      else if (/خالی|خطا/.test(t)) add('e', C, 'واژه‌نامه مشکل دارد', t, 'فایل واژه‌نامه را بررسی و APK را دوباره بسازید.');
+      else add('o', C, 'واژه‌نامه سالم است', t);
+      if (K.dict && !window.__faLexMissing && !/خالی|خطا/.test(t) && /بیش از/.test(K.dict.last)) add('w', C, 'واژه‌نامهٔ کاربر از سقف گذشته', K.dict.last, 'مدخل‌های کم‌اهمیت را پاک کنید.');
+      n = 0; (K.txw ? [K.txw] : []).forEach(function(){ cur.forEach(function(x){ if (/\] txw: (init error|process failed|fallback)/.test(x)) n++; }); });
+      if (n) add('w', C, 'پردازشگر متن (Worker) ' + N(n) + ' بار خطا/بازگشت به حالت ساده داشت', K.txw.last, 'متن با روش کندتر پردازش شده؛ در صورت تکرار برنامه را دوباره باز کنید.');
+      n = 0; try { n = (window.rfDiag ? window.rfDiag() : []).length; } catch (e) {}
+      if (n) add('w', C, N(n) + ' فایل قلم بارگذاری نشد', K.font ? K.font.last : '', 'پوشهٔ fonts را داخل APK بررسی کنید.');
+      if (K['text-fix']) add('i', C, 'اصلاح خودکار متن پیش از ساخت صدا', K['text-fix'].last);
+      if (K['prefix-join']) add('i', C, 'واژه‌های پیشوندی چسبانده‌شده ثبت شد', 'جزئیات در ثبت‌های بخش متن.');
+      if (K.ocr) add('w', C, N(K.ocr.n) + ' خطای OCR', K.ocr.last, 'برای صفحهٔ مشکل‌دار «اسکن دستی» را امتحان کنید.');
+    });
+
+    /* ---- ۴) سامانه ---- */
+    T(function(){
+      ['error', 'promise', 'worker'].forEach(function(k){ if (K[k]) add('e', D, N(K[k].n) + ' خطای ' + (k === 'error' ? 'جاوااسکریپت' : k === 'promise' ? 'Promise رد‌شده' : 'Worker'), K[k].last, 'متن کامل با stack در ثبت‌های زیر است.'); });
+      ['storage', 'idb'].forEach(function(k){ if (K[k]) add('w', D, N(K[k].n) + ' خطای ذخیره‌سازی (' + (k === 'idb' ? 'IndexedDB' : 'localStorage') + ')', K[k].last, 'حافظهٔ دستگاه را آزاد کنید.'); });
+      n = 0; q = '';
+      Object.keys(K).forEach(function(k){ if (/^c\d+$/.test(k)) { n += K[k].n; q = K[k].last; } });
+      if (n) add('i', D, N(n) + ' خطای داخلی بی‌صدا (کدهای cNNNN)', q);
+    });
+    return o;
+  }
+  var DG_L = { e: ['✖', 'خطا'], w: ['▲', 'هشدار'], i: ['●', 'اطلاع'], o: ['✔', 'سالم'] }, DG_ORD = { e: 0, w: 1, i: 2, o: 3 };
+  function dgSorted(items){
+    return items.map(function(x, i){ x.k = i; return x; }).sort(function(a, b){ return DG_ORD[a.l] - DG_ORD[b.l] || a.k - b.k; });
+  }
+  function dgText(items){
+    var c = { e: 0, w: 0, i: 0, o: 0 }, out = [], S = dgSorted(items.slice());
+    items.forEach(function(x){ c[x.l]++; });
+    out.push('══ خلاصهٔ تشخیصی گفتار، صدا و متن ══', 'خطا: ' + nf.format(c.e) + ' | هشدار: ' + nf.format(c.w) + ' | اطلاع: ' + nf.format(c.i) + ' | سالم: ' + nf.format(c.o));
+    DG_SEC.forEach(function(sec){
+      var L = S.filter(function(x){ return x.s === sec; });
+      if (!L.length) return;
+      out.push('', '▌ ' + sec);
+      L.forEach(function(x){
+        out.push(' ' + DG_L[x.l][0] + ' [' + DG_L[x.l][1] + '] ' + x.t);
+        if (x.d) out.push('     ' + x.d);
+        if (x.f) out.push('     ⇐ راه‌حل: ' + x.f);
+      });
+    });
+    return out.join('\n');
+  }
+  function dgPanel(items){
+    var box = $('#logSum'), c = { e: 0, w: 0, i: 0, o: 0 }, h, S, last = '';
+    if (!box) return;
+    box.textContent = '';
+    items.forEach(function(x){ c[x.l]++; });
+    h = document.createElement('div'); h.className = 'lgh';
+    ['e', 'w', 'o'].forEach(function(l){ var s = document.createElement('span'); s.className = 'lgc ' + l; s.textContent = DG_L[l][0] + ' ' + DG_L[l][1] + ': ' + nf.format(c[l]); h.appendChild(s); });
+    box.appendChild(h);
+    S = dgSorted(items.slice());
+    DG_SEC.forEach(function(sec){
+      var L = S.filter(function(x){ return x.s === sec && (logOk || x.l !== 'o'); }), t;
+      if (!L.length) return;
+      t = document.createElement('div'); t.className = 'lgs'; t.textContent = sec; box.appendChild(t);
+      L.forEach(function(x){
+        var d = document.createElement('div'), b = document.createElement('b'), sm;
+        d.className = 'lgi ' + x.l; b.textContent = DG_L[x.l][0] + ' ' + x.t; d.appendChild(b);
+        if (x.d) { sm = document.createElement('small'); sm.textContent = x.d; d.appendChild(sm); }
+        if (x.f) { sm = document.createElement('small'); sm.className = 'fx'; sm.textContent = 'راه‌حل: ' + x.f; d.appendChild(sm); }
+        box.appendChild(d);
+      });
+    });
+    if (!c.e && !c.w) { var ok = document.createElement('div'); ok.className = 'lgi o'; ok.textContent = '✔ مشکلی در گفتار، صدا و متن ثبت نشده است.'; box.appendChild(ok); }
+  }
+  /* گروه‌بندی ثبت‌های خام بر اساس نوع (گفتار/صدا/متن/سامانه) */
+  function dgGroups(cur){
+    var g = {}, other = [], i, m, k, f, name;
+    DG_GRP.forEach(function(x){ g[x[0]] = []; });
+    for (i = 0; i < cur.length; i++) {
+      m = /^\[[^\]]*\] ([^:\n]+): /.exec(cur[i]); k = m ? m[1] : ''; f = false;
+      DG_GRP.forEach(function(x){ if (!f && x[1].indexOf(k) >= 0) { g[x[0]].push(cur[i]); f = true; } });
+      if (!f) other.push(cur[i]);
+    }
+    var out = [];
+    DG_GRP.forEach(function(x){ if (g[x[0]].length) out.push('', '▌ ثبت‌های ' + x[0] + ' (' + nf.format(g[x[0]].length) + ')', g[x[0]].join('\n')); });
+    if (other.length) out.push('', '▌ ثبت‌های دیگر (' + nf.format(other.length) + ')', other.join('\n'));
+    return out.join('\n');
+  }
+  var logAll = false, logOk = false, logTok = 0, logT = 0;
+  function logRender(X){
     var head = ['نسخه ' + APP_BUILD + (npBuild ? ' / ' + npBuild : '') + ' — ' + (onNative ? 'اندروید' : 'وب'), 'UA: ' + navigator.userAgent, 'rtf: ' + (rtf() ? rtf().toFixed(2) : '-'), 'واژه‌نامه: ' + (function(){ try { return window.dictLine(); } catch (e) { return 'خطا در بررسی — ' + String((e && e.message) || e).slice(0, 60); } })()].join('\n');
-    var it = (window.__elog && window.__elog.items) || [], st = 0, k;
+    var it = (window.__elog && window.__elog.items) || [], st = 0, k, cur, items = [], body, hr = '', ta = $('#logText');
     if (!logAll) for (k = it.length - 1; k >= 0; k--) if (/^\[[^\]]*\] build: /.test(it[k])) { st = k; break; }
-    var body = it.length ? (st ? '(' + st + ' ثبت مربوط به بیلدهای قدیمی‌تر مخفی است؛ «همهٔ ثبت‌ها»)\n' : '') + it.slice(st).join('\n') : '(خطایی ثبت نشده)';
-    try { var hr = typeof hsReport === 'function' ? hsReport(false) : ''; if (hr) body = hr + '\n---\n' + body; } catch (e) {}   /* r160: گزارش ناظر سلامت صدا فقط وقتی رویدادی ثبت شده */
-    var ta = $('#logText');
-    ta.value = head + '\n---\n' + body;
-    if (npOK && NP && NP.diag) NP.diag().then(function(d){ ta.value = head + '\nnative: ' + JSON.stringify(d) + '\n---\n' + body; }).catch(function(){});
+    cur = it.slice(st);
+    body = it.length ? (st ? '(' + st + ' ثبت مربوط به بیلدهای قدیمی‌تر مخفی است؛ «همهٔ ثبت‌ها»)\n' : '') + dgGroups(cur).replace(/^\n/, '') : '(خطایی ثبت نشده)';
+    try { hr = typeof hsReport === 'function' ? hsReport(false) : ''; if (hr) body = hr + '\n---\n' + body; } catch (e) {}   /* r160: گزارش ناظر سلامت صدا فقط وقتی رویدادی ثبت شده */
+    try { items = dgItems(cur, X); } catch (e) { items = [{ l: 'w', s: DG_SEC[3], t: 'ساخت خلاصهٔ تشخیصی ناموفق بود', d: String((e && e.message) || e).slice(0, 120), f: '' }]; }
+    ta.value = head + (X && X.diag ? '\nnative: ' + JSON.stringify(X.diag) : '') + '\n---\n' + dgText(items) + '\n---\n' + body;
+    try { dgPanel(items); } catch (e) {}
+    if (!X && npOK && NP) {
+      var tk = ++logTok, q = function(f){ try { return Promise.resolve(f()).catch(function(){ return null; }); } catch (e) { return Promise.resolve(null); } };
+      Promise.all([q(function(){ return NP.diag ? NP.diag() : null; }), q(function(){ return NP.cacheInfo ? NP.cacheInfo() : null; }), q(function(){ return NP.stored ? NP.stored() : null; })]).then(function(r){
+        if (tk !== logTok) return;
+        var b = $('#logBox'); if (!b || b.hidden) return;
+        logRender({ diag: r[0], cache: r[1], stored: r[2] });
+      });
+    }
   }
   $('#logShow').onclick = function(){ var b = $('#logBox'); b.hidden = !b.hidden; if (!b.hidden) logRender(); };
+  $('#logOk').onclick = function(){ logOk = !logOk; this.textContent = logOk ? 'فقط مشکلات' : 'نمایش موارد سالم'; logRender(); };
   $('#logCopy').onclick = function(){
     var ta = $('#logText'); ta.select();
     var ok = false, bad = 'کپی نشد؛ متن را با لمس طولانی انتخاب و کپی کنید.'; try { ok = document.execCommand('copy'); } catch (e) {}
@@ -2939,12 +3174,12 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
     status(ok ? 'گزارش کپی شد.' : bad);
   };
   $('#logAll').onclick = function(){ logAll = !logAll; this.textContent = logAll ? 'فقط بیلد فعلی' : 'همهٔ ثبت‌ها'; logRender(); };
-  if (window.__elog) window.__elog.onAdd = function(){ var b = $('#logBox'); if (b && !b.hidden) logRender(); };   /* بروزرسانی خودکار هنگام باز بودن */
+  if (window.__elog) window.__elog.onAdd = function(){ var b = $('#logBox'); if (b && !b.hidden) { clearTimeout(logT); logT = setTimeout(function(){ logRender(); }, 350); } };   /* بروزرسانی خودکار هنگام باز بودن */
   $('#logClear').onclick = function(){ if (window.__elog) { window.__elog.items = []; try { localStorage.removeItem('errlog'); } catch (e) {} } logRender(); };
   function ensurePiper(){
     if (npOK) return Promise.resolve(true);
     if (NP) {
-      if (!npTry) npTry = NP.ping().then(function(r){ npOK = true; npBuild = (r && r.build) || ''; buildBadge(); try { npPlay = !!(r && r.player); if (npPlay) npListen(); } catch (e) { npPlay = false; } window.PiperTTS = NATIVE_PIPER; npCrashCheck(); try { ['mimic3-fa-haaniye_low', 'coqui-fa-negar', 'coqui-fa-shiva', 'coqui-fa-mahtab'].forEach(function(x){ NP.remove({ id: x }).catch(function(){}); }); } catch (e) {} return true; }, function(e){ npErr = String((e && (e.message || e.errorMessage || e.code)) || e || 'unknown'); NP = null; perf(); return false; });
+      if (!npTry) npTry = NP.ping().then(function(r){ npOK = true; npBuild = (r && r.build) || ''; buildBadge(); try { npPlay = !!(r && r.player); if (npPlay) npListen(); } catch (e) { npPlay = false; } window.PiperTTS = NATIVE_PIPER; npCrashCheck(); try { ['mimic3-fa-haaniye_low', 'coqui-fa-negar', 'coqui-fa-shiva', 'coqui-fa-mahtab'].forEach(function(x){ NP.remove({ id: x }).catch(function(){}); }); } catch (e) {} return true; }, function(e){ npErr = String((e && (e.message || e.errorMessage || e.code)) || e || 'unknown'); dgLog('engine-fail', 'ping افزونهٔ بومی: ' + npErr); NP = null; perf(); return false; });
       return npTry.then(function(ok){ return ok ? true : ensurePiperWeb(); });
     }
     return ensurePiperWeb();
@@ -3000,7 +3235,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       say('در حال آزمایش صدا…');
       return piperPredict('سلام.', id);
     }).then(function(){ say('«' + nm + '» نصب شد و آفلاین کار می‌کند.'); warmPiper(); vfAuto(id); }).catch(function(e){
-      say('نصب صدا ناموفق بود: ' + em(e));
+      dgLog('voice-dl', 'نصب ' + id + ' ناموفق: ' + em(e)); say('نصب صدا ناموفق بود: ' + em(e));
     }).then(function(){ dlBusy = false; btn.disabled = false; bar.hidden = true; vb.hidden = true; vfBtns(); updatePiperStatus(); });
   }
   $('#pdl').onclick = function(){ var v = engVoice(); if (v) installVoice(v.id); };
@@ -9478,7 +9713,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r173 · 2026-11-03 · spell-v3', npBuild = '';
+  var APP_BUILD = 'html-r174 · 2026-11-03 · spell-v3 · errbox-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10404,6 +10639,7 @@ function hsAllow(){ var now = Date.now(); HS.errs = HS.errs.filter(function(t){ 
 function hsFail(my, msg, why){   /* خطای پخش: یک بازیابی خودکار از همین جمله (سقف ۲ بار در دقیقه و سقف نگهبان)، وگرنه رفتار قبلی */
   var rc = my === token && playing && hsOn() && hsAllow();
   hsRec({ k: 'play', i: idx, w: String(why || '').slice(0, 60), m: String(msg || '').slice(0, 80), out: rc ? 'rec' : 'fail' });
+  dgLog('tts-play', String(why || '') + ' | ' + String(msg || '').slice(0, 100) + ' | ' + (rc ? 'بازیابی خودکار' : 'توقف'));
   if (rc) { wdRecover(why); hsShow(); return; }
   fail(my, msg);
 }
@@ -10423,7 +10659,7 @@ var rawBlob = {}, sTab = {}, markMap = {};   /* markMap: مرز واقعی شر�
     return piperFetch(c).then(function(url){
       if (r === 1 || url === SILENT || !rawBlob[url]) return { url: url, baked: 1 };
       var t = sTab[url] || (sTab[url] = {}), k = String(r);
-      if (!t[k]) t[k] = stretchBlob(rawBlob[url], r).then(function(b){ return b ? URL.createObjectURL(b) : ''; }).catch(function(){ return ''; });
+      if (!t[k]) t[k] = stretchBlob(rawBlob[url], r).then(function(b){ return b ? URL.createObjectURL(b) : ''; }).catch(function(e){ dgLog('tts-stretch', 'کشش زمانی ×' + r + ': ' + em(e)); return ''; });
       return t[k].then(function(u){ if (u && markMap[url]) markMap[u] = markMap[url]; return u ? { url: u, baked: r } : { url: url, baked: 1 }; });
     });
   }
@@ -10475,7 +10711,7 @@ var rawBlob = {}, sTab = {}, markMap = {};   /* markMap: مرز واقعی شر�
         perf();
         return b;
       });
-    }).then(function(b){ return typeof b.gen === 'number' ? b : polish(b, c.mid).catch(function(){ return b; }); }).then(function(b){ if (ak && !b.nh) achPut(ak, b, { v: v.id, sr: b.sr, np: b.np }); return b; }).then(function(b){ return hsGuard(c, v, b); });
+    }).then(function(b){ return typeof b.gen === 'number' ? b : polish(b, c.mid).catch(function(e){ dgLog('tts-polish', 'جمله ' + c.start + ': ' + em(e)); return b; }); }).then(function(b){ if (ak && !b.nh) achPut(ak, b, { v: v.id, sr: b.sr, np: b.np }); return b; }).then(function(b){ return hsGuard(c, v, b); });
     }).then(function(b){ if (b.nh) { if (b.marks) markMap['np:' + b.nh] = b.marks; gvMap['np:' + b.nh] = c.start >= 0 ? (b._gv !== undefined ? b._gv : gvFactor(c, b, v.id)) : 1; return 'np:' + b.nh; } var u = URL.createObjectURL(b); rawBlob[u] = b; if (b.marks) markMap[u] = b.marks; return u; });
     L.q = pr.catch(function(){});
     pr.then(function(){ L.b--; }, function(){ L.b--; });
@@ -10663,6 +10899,7 @@ function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مک
   }
   function fail(my, msg){
     if (my !== token) return;
+    dgLog('tts-fail', msg);
     playing = false; wdSet('idle'); ui(); status(msg);
   }
   /* handle بومی که حافظه‌اش آزاد شده (سقف PCM) نباید پخش را متوقف کند؛ ورودی کش را دور بریز و دوباره بساز (کش دیسک آن را فوری می‌کند) */
@@ -10827,11 +11064,12 @@ function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مک
       clearInterval(tk);
       if (my !== token || !playing) return;
       var m = String((e && e.message) || e);
+      if (!/NATIVE_CANCELLED/.test(m)) dgLog('tts-synth', 'جمله ' + c.start + ' (' + c.text.length + ' نویسه): ' + m);
       if (/دانلود نشده|نصب نشده|آماده نشده|espeak|مدل پیدا نشد|NATIVE_CANCELLED|موتور/.test(m)) { fail(my, 'خطا در صدای Piper: ' + m); return; }
       var k = c.start, nf2 = failN[k] = (failN[k] || 0) + 1;
       dropChunkCache(c);
       if (nf2 < 2) { setTimeout(function(){ if (my === token && playing) speakNow(); }, 250); return; }
-      dbg.skip++; if (dbg.log.length < 20) dbg.log.push(k + ': ' + m.slice(0, 80));   /* بار دوم هم شکست: همین جمله رد می‌شود و خواندن ادامه می‌یابد */
+      dbg.skip++; dgLog('tts-skip', 'جمله ' + k + ' رد شد: ' + m.slice(0, 100)); if (dbg.log.length < 20) dbg.log.push(k + ': ' + m.slice(0, 80));   /* بار دوم هم شکست: همین جمله رد می‌شود و خواندن ادامه می‌یابد */
       idx = c.end; status('یک جمله ساخته نشد و رد شد؛ خواندن ادامه دارد.'); advance(my);
     });
   }
