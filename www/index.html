@@ -1833,6 +1833,10 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
           <div class="field"><label for="eqQ"><span>پهنای باندها (Q)</span><span id="eqQV"></span></label><input type="range" class="rng" id="eqQ" min="0.3" max="4" step="0.1" value="1.1"></div>
           <div class="pzg"><label><span>قطع بم (Hz)</span><input type="text" inputmode="numeric" maxlength="3" id="eqLc" placeholder="خاموش"></label><label><span>قطع زیر (Hz)</span><input type="text" inputmode="numeric" maxlength="5" id="eqHc" placeholder="خاموش"></label></div>
           <label class="chk"><input type="checkbox" id="eqLim" checked><span class="st"><b>محافظ برش (Limiter)</b><small>از اعوجاج هنگام تقویت زیاد جلوگیری می‌کند.</small></span></label>
+          <div class="field"><label for="eqDs"><span>دی‌اسر (کاهش سین و خش)</span><span id="eqDsV"></span></label><input type="range" class="rng" id="eqDs" min="0" max="100" step="5" value="0"></div>
+          <div class="field"><label for="eqCp"><span>کمپرسور (یکنواخت‌سازی بلندی)</span><span id="eqCpV"></span></label><input type="range" class="rng" id="eqCp" min="0" max="100" step="5" value="0"></div>
+          <label class="chk"><input type="checkbox" id="eqHd" checked><span class="st"><b>کیفیت HD برای gyro (۴۴٫۱ کیلوهرتز)</b><small>بالانمونه‌برداری ۲× و بازسازی تمیز بالاها (بدون هارمونیک و نویز)؛ فقط پخش بومی. اگر بالاها تیز بود، شدت را کم کنید. با تغییر، صدا دوباره ساخته می‌شود.</small></span></label>
+          <div class="field"><label for="eqHa"><span>شدت بازسازی بالاها (HD)</span><span id="eqHaV"></span></label><input type="range" class="rng" id="eqHa" min="0" max="100" step="5" value="65"></div>
           <p class="hint" id="eqHint"></p>
           <div class="btnrow"><button class="btn sm" id="eqRst" type="button">بازنشانی اکولایزر</button></div>
         </div>
@@ -2529,13 +2533,22 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
   window.PZM = PZ;
 
   /* ================= اکولایزر ================= */
-  var EQF = [60, 125, 250, 500, 1000, 2000, 4000, 6000, 8000, 12000];
-  var EQP = { flat: ['تخت (بدون تغییر)', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0, 0], clear: ['شفافیت گفتار', [-3, -2, -1, 0, 1, 2.5, 3, 1.5, 0, -1], 70, 0], warm: ['گرم و نرم (کتاب‌خوان)', [2, 2, 1.5, 0.5, 0, -0.5, -1, -2, -2.5, -3], 0, 12000], bright: ['روشن و شفاف', [-4, -2, -1, 0, 1, 2, 3, 3, 2.5, 2], 80, 0], bass: ['بم‌دار (رادیویی)', [4, 3.5, 2, 1, 0, -0.5, 0, -0.5, -1, -2], 0, 0], desib: ['کاهش سین و خش', [0, 0, 0, 0, 0, 0, -1, -3.5, -3, -2], 0, 0], phone: ['تقویت صدای ضعیف', [-6, -3, 0, 1, 2, 3, 3, 1, -1, -3], 100, 9000], spk: ['بلندگوی گوشی', [-8, -5, -2, 0, 1, 2, 2.5, 2, 1, 0], 110, 0] };
+  var EQF = [40, 63, 100, 160, 250, 400, 630, 1000, 1600, 2500, 4000, 6300, 8000, 10000, 12500, 16000], EQN = EQF.length, EQF10 = [60, 125, 250, 500, 1000, 2000, 4000, 6000, 8000, 12000];
+  function up16(a){   /* درون‌یابی لگاریتمی تنظیم/پیش‌تنظیم ۱۰ باندی قدیمی روی ۱۶ باند */
+    return EQF.map(function(f){ var k = 0, t; if (f <= EQF10[0]) return a[0]; if (f >= EQF10[9]) return a[9]; while (EQF10[k + 1] < f) k++; t = Math.log(f / EQF10[k]) / Math.log(EQF10[k + 1] / EQF10[k]); return Math.round((a[k] + (a[k + 1] - a[k]) * t) * 2) / 2; });
+  }
+  var EQP0 = { flat: ['تخت (بدون تغییر)', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0, 0], clear: ['شفافیت گفتار', [-3, -2, -1, 0, 1, 2.5, 3, 1.5, 0, -1], 70, 0], warm: ['گرم و نرم (کتاب‌خوان)', [2, 2, 1.5, 0.5, 0, -0.5, -1, -2, -2.5, -3], 0, 12000], bright: ['روشن و شفاف', [-4, -2, -1, 0, 1, 2, 3, 3, 2.5, 2], 80, 0], bass: ['بم‌دار (رادیویی)', [4, 3.5, 2, 1, 0, -0.5, 0, -0.5, -1, -2], 0, 0], desib: ['کاهش سین و خش', [0, 0, 0, 0, 0, 0, -1, -3.5, -3, -2], 0, 0], phone: ['تقویت صدای ضعیف', [-6, -3, 0, 1, 2, 3, 3, 1, -1, -3], 100, 9000], spk: ['بلندگوی گوشی', [-8, -5, -2, 0, 1, 2, 2.5, 2, 1, 0], 110, 0] };
+  var EQP = {};   /* [نام، ۱۶ بهره، قطع بم، قطع زیر، دی‌اسر٪، کمپرسور٪] */
+  Object.keys(EQP0).forEach(function(k){ var p = EQP0[k]; EQP[k] = [p[0], up16(p[1]), p[2], p[3], k === 'desib' ? 40 : 0, 0]; });
+  EQP.studio = ['استودیویی HD (هوای بالا)', [-6, -4, -2, 0, 0, -0.5, 0, 0.5, 1, 2, 2.5, 1.5, 1.5, 2, 2.5, 2.5], 70, 0, 25, 20];
+  EQP.podcast = ['پادکست و گفتاری', [-6, -4, -1, 1.5, 2, 1, 0, 0, 0.5, 1.5, 2, 1, 0, -0.5, -1, -1], 80, 0, 30, 40];
+  EQP.night = ['شبانه و ملایم', [1, 1.5, 1.5, 1, 0.5, 0, -0.5, -1, -1.5, -2, -2.5, -3, -3, -3.5, -4, -4], 0, 0, 0, 30];
+  EQP.noisy = ['محیط پرنویز (خودرو)', [-8, -6, -3, 0, 1, 2, 2.5, 3, 3, 3.5, 3, 2, 1, 0, 0, 0], 120, 0, 20, 55];
   var EQ = { hook: null, isNative: function(){ return false; } }, eqRaw = null, eqObj = null, G = null, els = [];
   function vid(){ var e = document.getElementById('voice'); return e ? String(e.value || '') : ''; }
   function clean(o){
-    o = o || {}; var g = [], i; for (i = 0; i < 10; i++) g.push(Math.round(nz(o.g && o.g[i], -12, 12, 0) * 2) / 2);
-    return { on: o.on ? 1 : 0, pre: nz(o.pre, -12, 12, 0), lc: nz(o.lc, 0, 500, 0), hc: nz(o.hc, 0, 20000, 0), q: nz(o.q, 0.3, 4, 1.1), lim: o.lim === 0 || o.lim === false ? 0 : 1, ps: typeof o.ps === 'string' ? o.ps : 'flat', g: g };
+    o = o || {}; var g = [], i, src = o.g && o.g.length === 10 ? up16(o.g) : o.g; for (i = 0; i < EQN; i++) g.push(Math.round(nz(src && src[i], -12, 12, 0) * 2) / 2);
+    return { on: o.on ? 1 : 0, pre: nz(o.pre, -12, 12, 0), lc: nz(o.lc, 0, 500, 0), hc: nz(o.hc, 0, 20000, 0), q: nz(o.q, 0.3, 4, 1.1), lim: o.lim === 0 || o.lim === false ? 0 : 1, ps: typeof o.ps === 'string' ? o.ps : 'flat', ds: Math.round(nz(o.ds, 0, 100, 0)), cp: Math.round(nz(o.cp, 0, 100, 0)), g: g };
   }
   function store(){
     var raw = LS('eqCfg', ''); if (raw === eqRaw && eqObj) return eqObj;
@@ -2554,8 +2567,10 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
   var cl = function(x, a, b){ return Math.max(a, Math.min(b, x)); }, r1 = function(x){ return Math.round(x * 10) / 10; };
   /* پخش بومی (r151): Kotlin تمام ۱۰ باند، Preamp، قطع بم/زیر و Limiter را مستقیم از کلید eq اعمال می‌کند؛ پروفایل master دست‌نخورده می‌ماند (جمع‌کردن باندها در pk/hs حذف شد: اثر دوباره‌کاری) */
   EQ.nat = function(base){ return base; };
-  EQ.sig = function(){ var c = eq(); return c.on && EQ.isNative() ? '~eq' + [c.pre, c.lc, c.hc, c.q, c.lim, c.g.join(',')].join(':') : ''; };
-  EQ.payload = function(){ var c = eq(); return { pre: c.pre, lc: c.lc, hc: c.hc, q: c.q, limiter: c.lim, mapped: true, bands: EQF.map(function(f, i){ return [f, c.g[i]]; }) }; };
+  EQ.hd = function(id){ try { return !!(EQ.isNative() && /gyro/i.test(id || '') && LS('hdOn', '1') !== '0'); } catch (e) { return false; } };   /* کیفیت HD (۴۴٫۱kHz) فقط برای gyro در پخش بومی */
+  EQ.hdAmt = function(){ var v = parseFloat(LS('hdAmt', '65')); return isFinite(v) ? Math.max(0, Math.min(100, v)) : 65; };
+  EQ.sig = function(){ var c = eq(); return (c.on && EQ.isNative() ? '~eq' + [c.pre, c.lc, c.hc, c.q, c.lim, c.ds, c.cp, c.g.join(',')].join(':') : '') + (EQ.hd(vid()) ? '~hd' + EQ.hdAmt() : ''); };
+  EQ.payload = function(){ var c = eq(); return { pre: c.pre, lc: c.lc, hc: c.hc, q: c.q, limiter: c.lim, ds: c.ds, cp: c.cp, mapped: true, bands: EQF.map(function(f, i){ return [f, c.g[i]]; }) }; };
   function build(){
     if (G) return G;
     var AC = window.AudioContext || window.webkitAudioContext, c = null; if (!AC) return null;
@@ -2565,8 +2580,9 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
       n.pre = c.createGain(); n.hp = f('highpass', 10, 0.7);
       n.b = EQF.map(function(fr, i){ return f(i === 0 ? 'lowshelf' : i === EQF.length - 1 ? 'highshelf' : 'peaking', fr, 1.1); });
       n.lp = f('lowpass', c.sampleRate / 2, 0.7);
+      n.cp = c.createDynamicsCompressor(); n.cp.knee.value = 12; n.cp.attack.value = 0.01; n.cp.release.value = 0.2; n.cp.threshold.value = 0; n.cp.ratio.value = 1;
       n.lim = c.createDynamicsCompressor(); n.lim.knee.value = 0; n.lim.attack.value = 0.003; n.lim.release.value = 0.12; n.lim.threshold.value = 0; n.lim.ratio.value = 1;
-      prev = n.pre; [n.hp].concat(n.b, [n.lp, n.lim]).forEach(function(x){ prev.connect(x); prev = x; }); prev.connect(c.destination);
+      prev = n.pre; [n.hp].concat(n.b, [n.lp, n.cp, n.lim]).forEach(function(x){ prev.connect(x); prev = x; }); prev.connect(c.destination);
       els.forEach(function(e){ try { if (!e.__eqs) e.__eqs = c.createMediaElementSource(e); e.__eqs.connect(n.pre); ok++; } catch (x) {} });
       c.onstatechange = function(){ if (c.state !== 'running' && EQ.on()) { try { c.resume(); } catch (x) {} } };
       G = { c: c, n: n };
@@ -2581,6 +2597,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
     set(n.hp.frequency, on && cf.lc > 0 ? cf.lc : 10);
     set(n.lp.frequency, on && cf.hc > 0 ? Math.min(cf.hc, c.sampleRate / 2) : c.sampleRate / 2);
     n.b.forEach(function(x, i){ set(x.gain, on ? cf.g[i] : 0); set(x.Q, cf.q); });
+    set(n.cp.threshold, on && cf.cp ? -14 - 0.2 * cf.cp : 0); set(n.cp.ratio, on && cf.cp ? 1.4 + 0.036 * cf.cp : 1);
     set(n.lim.threshold, on && cf.lim ? -2 : 0); set(n.lim.ratio, on && cf.lim ? 20 : 1);
   }
   function arm(){
@@ -2620,7 +2637,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
     [-12, -6, 0, 6, 12].forEach(function(db){ y = H / 2 - db / 15 * H / 2; x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke(); });
     [100, 1000, 10000].forEach(function(fr){ var px = Math.log(fr / 20) / Math.log(1000) * W; x.beginPath(); x.moveTo(px, 0); x.lineTo(px, H); x.stroke(); x.fillText(fr >= 1000 ? (fr / 1000) + 'k' : fr, px + 2, H - 3); });
     if (cf.lc > 0) ks.push(coef('highpass', cf.lc, 0.7071, 0, fs));
-    EQF.forEach(function(fr, k){ ks.push(coef(k === 0 ? 'lowshelf' : k === 9 ? 'highshelf' : 'peaking', fr, cf.q, cf.g[k], fs)); });
+    EQF.forEach(function(fr, k){ ks.push(coef(k === 0 ? 'lowshelf' : k === EQN - 1 ? 'highshelf' : 'peaking', fr, cf.q, cf.g[k], fs)); });
     if (cf.hc > 0) ks.push(coef('lowpass', Math.min(cf.hc, fs / 2 - 100), 0.7071, 0, fs));
     x.strokeStyle = ac; x.lineWidth = 2; x.globalAlpha = cf.on ? 1 : 0.35; x.beginPath();
     for (i = 0; i <= 160; i++) {
@@ -2675,11 +2692,12 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
       $i('eqPre').value = c.pre; $i('eqPreV').textContent = (c.pre > 0 ? '+' : '') + fa(c.pre) + ' dB';
       $i('eqQ').value = c.q; $i('eqQV').textContent = fa(Math.round(c.q * 10) / 10);
       $i('eqLc').value = c.lc ? String(c.lc) : ''; $i('eqHc').value = c.hc ? String(c.hc) : ''; $i('eqLim').checked = !!c.lim;
-      $i('eqHint').textContent = EQ.isNative() ? 'پخش بومی (برنامهٔ اندروید): هر ۱۰ باند، تقویت کلی، قطع بم/زیر و محافظ برش هنگام ساخت صدا اعمال می‌شود؛ با هر تغییر، صدا دوباره ساخته می‌شود.' : 'تغییرها هنگام پخش، زنده شنیده می‌شود.';
+      $i('eqDs').value = c.ds; $i('eqDsV').textContent = fa(c.ds) + '٪'; $i('eqCp').value = c.cp; $i('eqCpV').textContent = fa(c.cp) + '٪'; $i('eqHd').checked = LS('hdOn', '1') !== '0'; $i('eqHa').value = EQ.hdAmt(); $i('eqHaV').textContent = fa(EQ.hdAmt()) + '٪';
+      $i('eqHint').textContent = EQ.isNative() ? 'پخش بومی (برنامهٔ اندروید): هر ۱۶ باند، تقویت کلی، قطع بم/زیر، دی‌اسر، کمپرسور و محافظ برش هنگام ساخت صدا اعمال می‌شود؛ با هر تغییر، صدا دوباره ساخته می‌شود.' : 'تغییرها هنگام پخش، زنده شنیده می‌شود (دی‌اسر و HD فقط در پخش بومی).';
       busy = 0; EQ.draw($i('eqCv'));
     }
     function collect(ps){
-      var c = { on: $i('eqOn').checked ? 1 : 0, ps: ps || 'custom', g: [], pre: $i('eqPre').value, q: $i('eqQ').value, lc: $i('eqLc').value, hc: $i('eqHc').value, lim: $i('eqLim').checked ? 1 : 0 };
+      var c = { on: $i('eqOn').checked ? 1 : 0, ps: ps || 'custom', g: [], pre: $i('eqPre').value, q: $i('eqQ').value, lc: $i('eqLc').value, hc: $i('eqHc').value, lim: $i('eqLim').checked ? 1 : 0, ds: $i('eqDs').value, cp: $i('eqCp').value };
       rows.querySelectorAll('input').forEach(function(e){ c.g[+e.dataset.b] = +e.value; });
       return c;
     }
@@ -2688,13 +2706,13 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
       if (c.on) EQ.arm(); else if (G) apply();
       if (EQ.isNative()) { clearTimeout(note.t); note.t = setTimeout(function(){ if (typeof EQ.hook === 'function') EQ.hook(); }, 700); }
     }
-    box.addEventListener('input', function(e){ if (busy || !e.target.closest) return; if (e.target === sel || e.target.id === 'eqSc') return; commit(collect('custom')); });
-    box.addEventListener('change', function(e){ if (busy) return; if (e.target.id === 'eqSc') { var c = eq(); EQ.save(c, $i('eqSc').value); show(); return; } if (e.target === sel) { applyPs(sel.value); return; } if (e.target.type === 'checkbox') commit(collect(eq().ps)); });
+    box.addEventListener('input', function(e){ if (busy || !e.target.closest) return; if (e.target.id === 'eqHa') { $i('eqHaV').textContent = fa(e.target.value) + '٪'; return; } if (e.target === sel || e.target.id === 'eqSc' || e.target.id === 'eqHd') return; commit(collect('custom')); });
+    box.addEventListener('change', function(e){ if (busy) return; if (e.target.id === 'eqSc') { var c = eq(); EQ.save(c, $i('eqSc').value); show(); return; } if (e.target === sel) { applyPs(sel.value); return; } if (e.target.id === 'eqHa') { SS('hdAmt', e.target.value); if (EQ.isNative()) { clearTimeout(note.t); note.t = setTimeout(function(){ if (typeof EQ.hook === 'function') EQ.hook(); }, 700); } return; } if (e.target.id === 'eqHd') { SS('hdOn', e.target.checked ? '1' : '0'); if (EQ.isNative()) { clearTimeout(note.t); note.t = setTimeout(function(){ if (typeof EQ.hook === 'function') EQ.hook(); }, 700); } return; } if (e.target.type === 'checkbox') commit(collect(eq().ps)); });
     function applyPs(k){
       if (k === 'custom' || !EQP[k]) return;
-      var p = EQP[k], c = collect(k); c.g = p[1].slice(); c.lc = String(p[2] || ''); c.hc = String(p[3] || ''); c.pre = 0; c.q = 1.1; commit(c);
+      var p = EQP[k], c = collect(k); c.g = p[1].slice(); c.lc = String(p[2] || ''); c.hc = String(p[3] || ''); c.ds = p[4] || 0; c.cp = p[5] || 0; c.pre = 0; c.q = 1.1; commit(c);
     }
-    $i('eqRst').onclick = function(){ var c = collect('flat'); c.g = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; c.lc = ''; c.hc = ''; c.pre = 0; c.q = 1.1; c.lim = 1; commit(c); };
+    $i('eqRst').onclick = function(){ var c = collect('flat'); c.g = EQF.map(function(){ return 0; }); c.lc = ''; c.hc = ''; c.ds = 0; c.cp = 0; c.pre = 0; c.q = 1.1; c.lim = 1; commit(c); };
     var v = $i('voice'); if (v) v.addEventListener('change', show);
     box.addEventListener('toggle', function(){ if (box.open) show(); });
     window.addEventListener('resize', function(){ if (box.open) EQ.draw($i('eqCv')); });
@@ -2886,8 +2904,8 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       var tempo = VOICE_TEMPOS[o.voiceId] || VOICE_TEMPO, fxp = (window.EQM || { nat: function(b){ return b; } }).nat($('#enh').checked ? fxProf(o.voiceId) : null);
       var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo), g: p.g, n: p.n, w: p.w }; }) : undefined;
       var cln = cleanLevel(o.voiceId), eqp = npPlay && window.EQM && EQM.on() ? EQM.payload() : undefined, sg = '', hq = function(h){ if (h) h._sg = sg; return h; };
-      try { sg = [o.st && o.st[0], o.st && o.st[1], cln, clarityLevel(), fxp ? 1 : 0, fxp ? fxp.pk : 0, fxp ? fxp.hs : 0, fxp ? fxp.lp : 0, eqp ? JSON.stringify(eqp) : ''].join('|'); } catch (e) {}   /* r159: امضای تنظیماتی که a0 بومی (پس از مسترینگ/EQ/OUT_TRIM) را جابه‌جا می‌کنند؛ تاریخچهٔ بلندی فقط در همان امضا معتبر است */
-      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cln, clarity: clarityLevel(), pause: pauseLevel(), keep: o.rec ? false : npPlay, master: !!fxp, probe: !!(window.DSP && DSP.on), eq: eqp, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, lvT: svLvT(o.voiceId, sg), pz: svOn('svPz'), speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ try { if (r.dsp && window.dspPush) dspPush(r.dsp); } catch (e) {} if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null, hp: hq(r.hs) || null, pz: r.pz || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; b.hp = hq(r.hs) || null; return b; });
+      try { sg = [o.st && o.st[0], o.st && o.st[1], cln, clarityLevel(), fxp ? 1 : 0, fxp ? fxp.pk : 0, fxp ? fxp.hs : 0, fxp ? fxp.lp : 0, eqp ? JSON.stringify(eqp) : '', (window.EQM && EQM.hd && EQM.hd(o.voiceId)) ? 'hd' + EQM.hdAmt() : ''].join('|'); } catch (e) {}   /* r159: امضای تنظیماتی که a0 بومی (پس از مسترینگ/EQ/OUT_TRIM) را جابه‌جا می‌کنند؛ تاریخچهٔ بلندی فقط در همان امضا معتبر است */
+      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cln, clarity: clarityLevel(), pause: pauseLevel(), keep: o.rec ? false : npPlay, master: !!fxp, probe: !!(window.DSP && DSP.on), eq: eqp, hd: !!(window.EQM && EQM.hd && EQM.hd(o.voiceId)), hdAmt: window.EQM && EQM.hdAmt ? EQM.hdAmt() : 65, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, lvT: svLvT(o.voiceId, sg), pz: svOn('svPz'), speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ try { if (r.dsp && window.dspPush) dspPush(r.dsp); } catch (e) {} if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null, hp: hq(r.hs) || null, pz: r.pz || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; b.hp = hq(r.hs) || null; return b; });
     }
   };
 
