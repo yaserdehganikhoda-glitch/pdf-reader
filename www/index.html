@@ -8367,7 +8367,8 @@ function jbWrapW(ls, old){
       var paras = [], pp = pre ? txt : txt.split(/\n+/).map(function(par){ var ss = splitSentences(par); if (O.script) ss = ss.filter(keepScript); if (O.numdrop !== false) ss = ss.filter(keepNum); return ss; });
       pp.forEach(function(ss){
         var ids = [];
-        ss.forEach(function(o, k){ ids.push(sents.length); sents.push({ text: o.t, cont: o.c, page: pi + 1, el: null, pe: k === ss.length - 1 }); });
+        ss.forEach(function(o, k){ ids.push(sents.length); if (O.glue !== false && typeof o.t === 'string' && o.t.indexOf('می ') >= 0) { try { o.t = miFix(o.t); } catch (e) {} }   /* r175: «می رسند» ← «می‌رسند» حتی در صفحه‌هایی که glueFix را رد کرده‌اند */
+          sents.push({ text: o.t, cont: o.c, page: pi + 1, el: null, pe: k === ss.length - 1 }); });
         if (ids.length) paras.push(ids);
       });
       if (!paras.length) return;
@@ -9417,6 +9418,7 @@ function jbWrapW(ls, old){
   var NAT_ADD = [[0, 0], [0.04, 0.03], [0.09, 0.07], [0.14, 0.11]], NAT_CAP = [0.4, 0.46, 0.5, 0.55], natForce = null;   /* r161: افزایش (ns, nw) و سقف nw در هر سطح طبیعی‌سازی */
   function natLvl(){ if (natForce !== null) return natForce; var v = +sget('nzNat', '2'); return v >= 0 && v <= 3 ? Math.round(v) : 2; }
   window.natAB = function(i, on){ if (i === undefined) { natForce = null; changed(); return 'natForce=null'; } natForce = on ? 2 : 0; clearCache(); start(i); return on ? 'طبیعی‌سازی ۲' : 'خاموش (رفتار پیشین)'; };   /* A/B همان جمله روی گوشی: natAB(i,0) سپس natAB(i,1)؛ natAB() بازنشانی */
+  function nsNsGet(id){ var v = parseFloat(sget('nsNs:' + id, '')); return v >= 0.3 && v < 0.55 ? Math.round(v * 100) / 100 : 0.55; }   /* r176: noise_scale اختصاصی هر گوینده (پیش‌فرض ۰٫۵۵) */
   function styleParams(id){
     PART_GAP = [0.12, 0.16, 0.2, 0.3][calmLvl()];   /* مقدار پیش‌فرض؛ مکث هر جمله در chunkAt با pauseMs جداگانه تعیین می‌شود */
     var st = STYLES[$('#vstyle').value] || STYLES.natural, v, n, nw, gyr;
@@ -9424,7 +9426,7 @@ function jbWrapW(ls, old){
     /* مانا: نمونه‌برداری نویز VITS پایدارتر (تغییر رنگ صدا میان جمله‌ها، دوصدایی و خش از واریانس زیاد z و طول واج‌ها) — با هر سبک، متناسب کمتر */
     if (sget('nzMode', 'auto') === 'manual') { var a = parseFloat(sget('nzNs', '0.4')), b = parseFloat(sget('nzNw', '0.4')); return [Math.round(Math.max(0.15, Math.min(0.9, isFinite(a) ? a : 0.4)) * 100) / 100, Math.round(Math.max(0.1, Math.min(0.9, isFinite(b) ? b : 0.4)) * 100) / 100]; }   /* تنظیم دقیق نویز (دستی) */
     gyr = /gyro/i.test(id || ''); if (gyr) PART_GAP = 1.0;   /* gyro: ریتم یکدست و مکث جمله‌ها مطابق نمونهٔ مرجع */
-    return [0.55, 0.01];   /* همهٔ صداها: noise_w ≈ ۰؛ طول واج‌ها قطعی و بدون نوسان تصادفی سرعت */
+    return [nsNsGet(id), 0.01];   /* همهٔ صداها: noise_w ≈ ۰؛ طول واج‌ها قطعی و بدون نوسان تصادفی سرعت. r176: noise_scale پیش‌فرض ۰٫۵۵ و فقط با آزمون اندازه‌گیری‌شدهٔ ناظر نویز برای همان گوینده کمتر می‌شود */
     if (/mana/i.test(id || '')) return [Math.round(Math.max(0.24, Math.min(0.36, st[0] * 0.6)) * 100) / 100, Math.round(Math.min(0.42, st[1] * 0.8) * 100) / 100];
     n = natLvl(); nw = Math.min(st[1], 0.4);   /* r130: سقف noise_w ۰٫۴ — نوسان تصادفی طول واج‌ها (تندوکند شدن جمله‌ها) از سرچشمه کم می‌شود */
     if (!n) return [st[0], nw];   /* سطح ۰ = دقیقاً رفتار پیشین */
@@ -9713,7 +9715,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r174 · 2026-11-03 · spell-v3 · errbox-v1', npBuild = '';
+  var APP_BUILD = 'html-r178 · 2026-11-04 · spell-v3 · errbox-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10383,9 +10385,12 @@ function svTxScan(){
   var tg = { q: 0, c: 0, n: 0, a: 0, m: 0 }, pg = { q: [], c: [], n: [], a: [], m: [] }, sm = {}, i, t, k, qi, x, sig;
   var hit = function(key, c, o){ tg[key] += c; if (pg[key].length < 20 && pg[key].indexOf(o.page) < 0) pg[key].push(o.page); if (!sm[key]) sm[key] = o.text.slice(0, 70); };
   if (!svOn('svTx')) { SV.tg = null; return; }
+  var qd = 0, qpg = 0;   /* r175: عمق گیومهٔ باز میان جمله‌های هم‌صفحه؛ «...»ِ چندجمله‌ای هشدار کاذب نمی‌دهد */
   for (i = 0; i < sents.length; i++) {
     t = sents[i].text; if (typeof t !== 'string') continue;
-    if (t.indexOf('»') >= 0) { qi = t.search(/[«»]/); if (t.charAt(qi) === '»') hit('q', 1, sents[i]); }
+    if (sents[i].page !== qpg) { qpg = sents[i].page; qd = 0; }
+    if (t.indexOf('»') >= 0) { qi = t.search(/[«»]/); if (t.charAt(qi) === '»' && qd <= 0) hit('q', 1, sents[i]); }
+    if (t.indexOf('«') >= 0 || t.indexOf('»') >= 0) { qd += (t.match(/«/g) || []).length - (t.match(/»/g) || []).length; if (qd < 0) qd = 0; }
     if (TG_CT.test(t)) hit('c', 1, sents[i]);
     if (TG_N8.test(t)) hit('n', 1, sents[i]);
     if (t.indexOf('\u200cای') >= 0 && (x = t.match(TG_AMB))) hit('a', x.length, sents[i]);
@@ -11716,9 +11721,11 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
      هنگام بی‌کاری (پخش خاموش) ۳ جملهٔ ثابت با هر چهار سطح ساخته و از PCM سنجیده می‌شود: کف نویز در کم‌صداترین فریم‌های غیرسکوت، خش بالای ۵kHz در همان فریم‌ها،
      و آسیب به گفتار (افت پرده‌های بالای گفتار و تغییر تراز نسبت به سطح ۰). هزینهٔ هر سطح = جریمهٔ نویز + جریمهٔ آسیب + ۰٫۱۲×سطح (کمترین دخالت)؛
      اگر سطح ۲ (پیش‌فرض) کمتر از ۰٫۲۵ از بهترین بدتر باشد همان می‌ماند تا انتخاب با نوسان تصادفی ساخت بالا و پایین نشود. با شروع پخش اندازه‌گیری متوقف و بعداً ادامه می‌یابد. */
-  var NS = {}, NSR = {}, nsBusy = false, nsTry = 0, nsTm = 0, NS_V = 'v2';
+  var NS = {}, NSR = {}, nsBusy = false, nsTry = 0, nsTm = 0, NS_V = 'v4';
   /* r136: کلید نسخه‌دار (نتایج قدیمی بی‌اثر و یک‌بار پاک می‌شوند)؛ ادامهٔ اندازه‌گیری نیمه‌تمام در NSR */
   try { for (var qi = localStorage.length - 1, qk; qi >= 0; qi--) { qk = localStorage.key(qi); if (qk && qk.indexOf('nsv:') === 0 && qk.indexOf('~' + NS_V + '~') < 0) localStorage.removeItem(qk); } } catch (e) {}
+  /* r177: حذف نویز بومی برای gyro اصلاح شد (اعتماد تدریجی)؛ نتیجهٔ اندازه‌گیری و آزمون noise_scale قبلی باطل و از نو انجام می‌شود */
+  try { if (sget('nsNsVer', '') !== 'n178') { for (var qj = localStorage.length - 1, qm; qj >= 0; qj--) { qm = localStorage.key(qj); if (qm && qm.indexOf('nsNs') === 0) localStorage.removeItem(qm); } sset('nsNsVer', 'n178'); } } catch (e) {}
   function nsKey(id){
     var st; try { st = styleParams(id); } catch (e) { st = [0, 0]; }
     return id + '~' + NS_V + '~' + st[0] + '~' + st[1] + '~' + ($('#enh').checked ? 1 : 0) + '~' + clarityLevel() + '~' + pauseLevel();
@@ -11825,12 +11832,35 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
       o.cf = pk.mg >= 0.6 ? 'h' : pk.mg >= 0.35 ? 'm' : 'l'; if (nsMid(v.id)) o.m = nsMid(v.id);
       if (o.fl >= -32) svLog('noise', 'گوینده «' + v.id + '»: حتی در بهترین سطح (' + o.lv + ') کف نویز ' + nf.format(o.fl) + ' dB است (≥ ‎−۳۲)؛ نویز این مدل با حذف نویز کامل پاک نمی‌شود، سبک گفتار آرام‌تر یا گوینده‌ٔ دیگر را امتحان کنید');
       NS[key] = o; sset('nsv:' + key, JSON.stringify(o)); delete NSR[key];
+      try { nsAdapt(v.id, o); } catch (e) {}
       try { var hq = R[pk.lv].map(function(q){ return q.hp; }).filter(Boolean), hw = '', hk; hq.forEach(function(q){ hk = hsPcmWhy(q); if (hk && !hw) hw = hk; }); HS.vp[v.id] = hw ? 'سنجش صدای این گوینده: ' + hw + ' در سطح انتخابی.' : 'سنجش صدای این گوینده: بدون بریدگی و بی‌صدایی.'; hsShow(); } catch (e) {}
       if (o.lv !== prev && !playing && $('#vclean').value === 'a') changed();
     } catch (e) {
       if (e !== 'abort') delete NSR[key];
       nsLater();
     } finally { nsBusy = false; nsStatus(); }
+  }
+  /* r176: وقتی کف نویز در بهترین سطح هنوز ≥ ‎−۳۲ dB است، noise_scale همان گوینده یک پله (۰٫۱) کم می‌شود (۰٫۵۵ ← ۰٫۴۵ ← ۰٫۳۵)، ناظر دوباره می‌سنجد و فقط اگر کف نویز ≥ ۳ dB بهتر شد می‌ماند؛ وگرنه به مقدار پیشین برمی‌گردد (نتیجهٔ قبلی ذخیره است). حالت دستی (nzMode) دست‌نخورده */
+  function nsAdapt(id, o){
+    var cur, b, nx;
+    if (sget('nzMode', 'auto') === 'manual' || sget('nsNsDone:' + id, '') === '1') return;
+    cur = nsNsGet(id); try { b = JSON.parse(sget('nsNsB:' + id, '')); } catch (e) { b = null; }
+    if (!b) {
+      if (!(o.fl >= -32) || cur - 0.1 < 0.34) return;
+      sset('nsNsB:' + id, JSON.stringify({ ns: cur, fl: o.fl })); nx = Math.round((cur - 0.1) * 100) / 100;
+      sset('nsNs:' + id, String(nx)); svLog('noise', 'گوینده «' + id + '»: کف نویز ' + nf.format(o.fl) + ' dB؛ آزمون noise_scale ' + nf.format(cur) + ' ← ' + nf.format(nx));
+      nsKick(); return;
+    }
+    if (o.fl <= b.fl - 3) {   /* بهتر شد: نگه‌دار؛ اگر هنوز بالاست یک پلهٔ دیگر */
+      svLog('noise', 'گوینده «' + id + '»: noise_scale ' + nf.format(cur) + ' کف نویز را از ' + nf.format(b.fl) + ' به ' + nf.format(o.fl) + ' dB رساند؛ نگه داشته شد');
+      if (o.fl >= -32 && cur - 0.1 >= 0.34) { sset('nsNsB:' + id, JSON.stringify({ ns: cur, fl: o.fl })); nx = Math.round((cur - 0.1) * 100) / 100; sset('nsNs:' + id, String(nx)); nsKick(); }
+      else { try { localStorage.removeItem('nsNsB:' + id); } catch (e) {} sset('nsNsDone:' + id, '1'); }
+    } else {   /* بهتر نشد: بازگشت */
+      svLog('noise', 'گوینده «' + id + '»: noise_scale ' + nf.format(cur) + ' کف نویز را کم نکرد (' + nf.format(o.fl) + ' در برابر ' + nf.format(b.fl) + ' dB)؛ مقدار پیشین برگردانده شد');
+      if (b.ns >= 0.55) { try { localStorage.removeItem('nsNs:' + id); } catch (e) {} } else sset('nsNs:' + id, String(b.ns));
+      try { localStorage.removeItem('nsNsB:' + id); } catch (e) {} sset('nsNsDone:' + id, '1');
+    }
+    clearCache(); changed();
   }
   window.nsInfo = function(){ var v = currentVoice(), o = v ? nsGet(nsKey(v.id)) : null; return o ? { voice: v.id, level: o.lv, rows: o.rows } : null; };
   window.nsRun = function(){ return nsRun(true); };
