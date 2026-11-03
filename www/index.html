@@ -1835,7 +1835,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
           <label class="chk"><input type="checkbox" id="eqLim" checked><span class="st"><b>محافظ برش (Limiter)</b><small>از اعوجاج هنگام تقویت زیاد جلوگیری می‌کند.</small></span></label>
           <div class="field"><label for="eqDs"><span>دی‌اسر (کاهش سین و خش)</span><span id="eqDsV"></span></label><input type="range" class="rng" id="eqDs" min="0" max="100" step="5" value="0"></div>
           <div class="field"><label for="eqCp"><span>کمپرسور (یکنواخت‌سازی بلندی)</span><span id="eqCpV"></span></label><input type="range" class="rng" id="eqCp" min="0" max="100" step="5" value="0"></div>
-          <label class="chk"><input type="checkbox" id="eqHd" checked><span class="st"><b>کیفیت HD برای gyro (۴۴٫۱ کیلوهرتز)</b><small>بالانمونه‌برداری ۲× و بازسازی تمیز بالاها (بدون هارمونیک و نویز)؛ فقط پخش بومی. اگر بالاها تیز بود، شدت را کم کنید. با تغییر، صدا دوباره ساخته می‌شود.</small></span></label>
+          <label class="chk"><input type="checkbox" id="eqHd" checked><span class="st"><b>کیفیت HD برای همهٔ گوینده‌ها (۴۴٫۱ کیلوهرتز)</b><small>بالانمونه‌برداری ۲× و بازسازی تمیز بالاها (بدون هارمونیک و نویز)؛ فقط پخش بومی. اگر بالاها تیز بود، شدت را کم کنید. با تغییر، صدا دوباره ساخته می‌شود.</small></span></label>
           <div class="field"><label for="eqHa"><span>شدت بازسازی بالاها (HD)</span><span id="eqHaV"></span></label><input type="range" class="rng" id="eqHa" min="0" max="100" step="5" value="65"></div>
           <p class="hint" id="eqHint"></p>
           <div class="btnrow"><button class="btn sm" id="eqRst" type="button">بازنشانی اکولایزر</button></div>
@@ -2567,7 +2567,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
   var cl = function(x, a, b){ return Math.max(a, Math.min(b, x)); }, r1 = function(x){ return Math.round(x * 10) / 10; };
   /* پخش بومی (r151): Kotlin تمام ۱۰ باند، Preamp، قطع بم/زیر و Limiter را مستقیم از کلید eq اعمال می‌کند؛ پروفایل master دست‌نخورده می‌ماند (جمع‌کردن باندها در pk/hs حذف شد: اثر دوباره‌کاری) */
   EQ.nat = function(base){ return base; };
-  EQ.hd = function(id){ try { return !!(EQ.isNative() && /gyro/i.test(id || '') && LS('hdOn', '1') !== '0'); } catch (e) { return false; } };   /* کیفیت HD (۴۴٫۱kHz) فقط برای gyro در پخش بومی */
+  EQ.hd = function(id){ try { return !!(EQ.isNative() && id && LS('hdOn', '1') !== '0'); } catch (e) { return false; } };   /* کیفیت HD (۴۴٫۱kHz) برای همهٔ گوینده‌ها در پخش بومی */
   EQ.hdAmt = function(){ var v = parseFloat(LS('hdAmt', '65')); return isFinite(v) ? Math.max(0, Math.min(100, v)) : 65; };
   EQ.sig = function(){ var c = eq(); return (c.on && EQ.isNative() ? '~eq' + [c.pre, c.lc, c.hc, c.q, c.lim, c.ds, c.cp, c.g.join(',')].join(':') : '') + (EQ.hd(vid()) ? '~hd' + EQ.hdAmt() : ''); };
   EQ.payload = function(){ var c = eq(); return { pre: c.pre, lc: c.lc, hc: c.hc, q: c.q, limiter: c.lim, ds: c.ds, cp: c.cp, mapped: true, bands: EQF.map(function(f, i){ return [f, c.g[i]]; }) }; };
@@ -9148,7 +9148,7 @@ function jbWrapW(ls, old){
     /* مانا: نمونه‌برداری نویز VITS پایدارتر (تغییر رنگ صدا میان جمله‌ها، دوصدایی و خش از واریانس زیاد z و طول واج‌ها) — با هر سبک، متناسب کمتر */
     if (sget('nzMode', 'auto') === 'manual') { var a = parseFloat(sget('nzNs', '0.4')), b = parseFloat(sget('nzNw', '0.4')); return [Math.round(Math.max(0.15, Math.min(0.9, isFinite(a) ? a : 0.4)) * 100) / 100, Math.round(Math.max(0.1, Math.min(0.9, isFinite(b) ? b : 0.4)) * 100) / 100]; }   /* تنظیم دقیق نویز (دستی) */
     gyr = /gyro/i.test(id || ''); if (gyr) PART_GAP = 1.0;   /* gyro: ریتم یکدست و مکث جمله‌ها مطابق نمونهٔ مرجع */
-    if (gyr) return [0.55, 0.01];   /* noise_w ≈ ۰: طول واج‌ها قطعی؛ بدون نوسان تصادفی سرعت */
+    return [0.55, 0.01];   /* همهٔ صداها: noise_w ≈ ۰؛ طول واج‌ها قطعی و بدون نوسان تصادفی سرعت */
     if (/mana/i.test(id || '')) return [Math.round(Math.max(0.24, Math.min(0.36, st[0] * 0.6)) * 100) / 100, Math.round(Math.min(0.42, st[1] * 0.8) * 100) / 100];
     n = natLvl(); nw = Math.min(st[1], 0.4);   /* r130: سقف noise_w ۰٫۴ — نوسان تصادفی طول واج‌ها (تندوکند شدن جمله‌ها) از سرچشمه کم می‌شود */
     if (!n) return [st[0], nw];   /* سطح ۰ = دقیقاً رفتار پیشین */
@@ -9955,7 +9955,7 @@ function chunkAt(i, lim){
   /* r136: پایداری — M.f همواره «ضریب واقعاً اعمال‌شدهٔ آخر» است (تکهٔ کوتاه/ناکافی ⇒ ۱)، تا لغزش ≤۰٫۱ نسبت به مقدار واقعی سنجیده شود نه مقدار کهنه */
   function gvFactor(c, b, vid){
     var r, p = 1, M, st, k;
-    if (/gyro/i.test(vid || '')) { hsDev = null; return 1; }   /* gyro: بدون جبران خودکار سرعت */
+    { hsDev = null; return 1; }   /* همهٔ صداها: بدون جبران خودکار سرعت */
     try { st = styleParams(vid); k = vid + '~' + st[1]; M = GVS[k]; if (M) p = M.f; } catch (e) {}
     r = gvCore(c, b, vid);
     try {
@@ -10679,7 +10679,7 @@ function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مک
     }).catch(function(){});
   }
   function playNp(c, url, my, chained){
-    c.marks = markMap[url] || null; c.gv = (sget('gvOn', '1') === '1' && gvMap[url]) || 1; try { if (/gyro/i.test((currentVoice() || {}).id || '')) c.gv = 1; } catch (e) {}
+    c.marks = markMap[url] || null; c.gv = (sget('gvOn', '1') === '1' && gvMap[url]) || 1; c.gv = 1;
     if (c.gv !== 1 && chained && npCurC && npCurC !== c) { var pg = npCurC.gv || 1; c.gv = Math.round((pg + Math.max(-0.1, Math.min(0.1, c.gv - pg))) * 100) / 100; }   /* r136: بین تکه‌های پیوسته، تغییر ضریب ≤۰٫۱؛ سقف ۰٫۰۶ در شبیه‌سازی دقت سرعت مؤثر را ~۱۰–۱۵٪ بدتر می‌کرد (با جست‌وجو/شروع مجدد اعمال نمی‌شود) */
     curC = c; npCur = npH(url); npCurC = c; npMy = my; wdSet('play', 0, true); effShow(c);
     if (chained) npSetRate(c); else npLastR = npResid(c);
