@@ -1368,6 +1368,8 @@ class PiperNativePlugin : Plugin() {
         val eqCfg = MasterFx.EqCfg.from(call.getObject("eq"))   // r14: اکولایزر کامل ۱۰ باندی (null = خاموش یا تخت)
         val pzOn = call.getBoolean("pz") ?: false   // r145 (ناظر مکث): نرمال‌سازی سکوت مرز جمله‌ها و کوتاه‌کردن سکوت‌های داخلیِ طولانی
         val lvT: Double? = call.getDouble("lvT")   // r141: هدف بلندی (dBFS، میانهٔ اخیر همان گوینده)؛ بدون آن تراز نمی‌شود
+        val hdAmt = ((call.getFloat("hdAmt") ?: 65f).coerceIn(0f, 100f) / 100f).toDouble()   // شدت بازسازی بالاهای HD
+        val hdOn = call.getBoolean("hd") ?: false   // HD: بالانمونه‌برداری ۲× + بازسازی بالاها (۴۴٫۱kHz برای مدل‌های ۲۲٫۰۵kHz)
         val probe = call.getBoolean("probe") ?: false   // r15: اندازه‌گیری DSP (خام در برابر خروجی)؛ کش پردازش‌شده را دور می‌زند تا نسخهٔ خام همیشه در دسترس باشد؛ صدای خروجی تغییری نمی‌کند
         val strong = id.contains("mana", ignoreCase = true)   // مانا: خروجی خام SNR پایین دارد؛ بدون این حالت شرط ۲۵dB باعث می‌شد حذف نویز اصلاً اجرا نشود (اعتماد تدریجی ۱۲–۲۵dB + کاهش خش بالای ۴kHz در واکه‌ها). کلید کش شامل strong است
         val ep = epoch.get()   // لحظهٔ رسیدن درخواست؛ اگر بعدش cancel بیاید این کار رها می‌شود
@@ -1486,14 +1488,16 @@ class PiperNativePlugin : Plugin() {
                 val rawHs = rawHealth(all)   // r13: بریدگی و مقدار نامعتبر پیش از صیقل/لیمیتر (ناظر سلامت صدا)
                 val trim = IntArray(1)   // نمونه‌هایی که صیقل از ابتدای بافر بریده (مرزها باید همین‌قدر جابه‌جا شوند)
                 val pol = polish(all, sr, trim)
-                val fin0 = if (fxOn) MasterFx.process(pol, sr, fxPk, fxHs, fxLp, strong, lvlPause) else pol
-                val fin = if (eqCfg != null) MasterFx.eq(fin0, sr, eqCfg) else fin0   // r14: اکولایزر کاربر بعد از مسترینگ
+                val polH = if (hdOn && sr <= 24000) MasterFx.hdUp(pol, sr, hdAmt) else pol
+                val sro = if (polH !== pol) sr * 2 else sr   // نرخ نمونهٔ خروجی (HD: ۲×)
+                val fin0 = if (fxOn) MasterFx.process(polH, sro, fxPk, fxHs, if (sro != sr) Math.max(fxLp, 18000f) else fxLp, strong, lvlPause) else polH
+                val fin = if (eqCfg != null) MasterFx.eq(fin0, sro, eqCfg) else fin0   // r14: اکولایزر کاربر بعد از مسترینگ
                 for (i in fin.indices) fin[i] *= OUT_TRIM   // r120: ۳dB headroom (پیک ≈ −۳ dBFS)؛ بعد از کش و مسترینگ، پس کش بی‌اثر می‌ماند
                 // مرز واقعی شروع هر جمله (کسری از ۰ تا ۱ از کل خروجی)؛ برای هم‌گام‌سازی هایلایت به‌جای تخمین از نسبت نویسه‌ها (T-14)
                 // playerPos بومی هم کسری از همین بافر است (مستقل از سرعت پخش)؛ در وب نسبت زمان به مدت صداست
                 val marks: JSArray? = if (partsArr != null && partsArr.length() > 0 && fin.isNotEmpty()) {
                     val m = DoubleArray(items.size) { -1.0 }
-                    for (k in pieces.indices) m[pieceItem[k]] = ((starts[k] - trim[0]).coerceAtLeast(0).toDouble() / fin.size).coerceIn(0.0, 1.0)
+                    for (k in pieces.indices) m[pieceItem[k]] = ((starts[k] - trim[0]).coerceAtLeast(0).toDouble() * sro / sr / fin.size).coerceIn(0.0, 1.0)
                     var nx = 1.0
                     for (ix in items.size - 1 downTo 0) { if (m[ix] < 0.0) m[ix] = nx else nx = m[ix] }   // جملهٔ بدون تکه: مرزش شروع جملهٔ بعدی
                     JSArray().also { a -> for (v in m) a.put(v) }
@@ -1506,22 +1510,22 @@ class PiperNativePlugin : Plugin() {
                     if (g > 1.0) { var pk = 0f; for (x in fin) { val a = kotlin.math.abs(x); if (a > pk) pk = a }; if (pk > 0f) g = Math.min(g, OUT_TRIM.toDouble() / pk) }
                     if (Math.abs(g - 1.0) > 0.03) { val gf = g.toFloat(); for (i in fin.indices) fin[i] *= gf; lvG = g }
                 }
-                val hs = finHealth(fin, rawHs, lvA0, lvG, sr)
+                val hs = finHealth(fin, rawHs, lvA0, lvG, sro)
                 val dsp: JSObject? = if (rawKeep != null && rawKeep.isNotEmpty()) {   // r15: آمار خام↔خروجی برای گزارش ناظر
                     var rn = 0; for (x in rawKeep) rn += x.size
                     val rw = FloatArray(rn); var rp = 0
                     for (x in rawKeep) { System.arraycopy(x, 0, rw, rp, x.size); rp += x.size }
-                    JSObject().put("raw", dspStats(rw, sr)).put("out", dspStats(fin, sr))
+                    JSObject().put("raw", dspStats(rw, sr)).put("out", dspStats(fin, sro))
                 } else null
                 if (keep) {
-                    val h = pcmPut(fin, sr)
-                    val res = JSObject().put("hs", hs).also { if (dsp != null) it.put("dsp", dsp) }.put("handle", h).put("sampleRate", sr).put("durationMs", fin.size * 1000L / sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
+                    val h = pcmPut(fin, sro)
+                    val res = JSObject().put("hs", hs).also { if (dsp != null) it.put("dsp", dsp) }.put("handle", h).put("sampleRate", sro).put("durationMs", fin.size * 1000L / sro).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
                     if (marks != null) res.put("marks", marks)
                     if (pzOn) res.put("pz", JSObject().put("n", pzN).put("hid", pzHid * 1000L / sr).put("cut", pzCut * 1000L / sr).put("ni", pzInt).put("nic", pzIntCut * 1000L / sr))
                     call.resolve(res)
                 } else {
-                    val wav = toWav(fin, sr)
-                    val res = JSObject().put("hs", hs).also { if (dsp != null) it.put("dsp", dsp) }.put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", sr).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
+                    val wav = toWav(fin, sro)
+                    val res = JSObject().put("hs", hs).also { if (dsp != null) it.put("dsp", dsp) }.put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", sro).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
                     if (marks != null) res.put("marks", marks)
                     if (pzOn) res.put("pz", JSObject().put("n", pzN).put("hid", pzHid * 1000L / sr).put("cut", pzCut * 1000L / sr).put("ni", pzInt).put("nic", pzIntCut * 1000L / sr))
                     call.resolve(res)
@@ -2594,13 +2598,91 @@ private object MasterFx {
         return (if (v < 0) -y else y).toFloat()
     }
 
+
+    /** دی‌اسر (کاهش سین و خش): باند ۵–۱۰٫۵kHz فقط وقتی نسبت به کل سیگنال غالب شود (سین/شین) کم می‌شود؛ amt ۰…۱ */
+    private fun deEss(x: DoubleArray, sr: Int, amt: Double) {
+        val n = x.size
+        val sb = x.copyOf()
+        highpass(5000.0, 0.8, sr).run(sb); lowpass(Math.min(10500.0, sr * 0.45), 0.8, sr).run(sb)
+        val ca = Math.exp(-1.0 / (0.001 * sr)); val cr = Math.exp(-1.0 / (0.03 * sr)); val cb = Math.exp(-1.0 / (0.02 * sr))
+        val thr = 0.5 - 0.2 * amt; val minG = 1.0 - 0.8 * amt
+        var es = 0.0; var eb = 0.0; var gc = 1.0
+        for (i in 0 until n) {
+            val a = Math.abs(sb[i]); val b = Math.abs(x[i])
+            es = if (a > es) ca * es + (1 - ca) * a else cb * es + (1 - cb) * a
+            eb = if (b > eb) ca * eb + (1 - ca) * b else cb * eb + (1 - cb) * b
+            val r = es / (eb + 1e-5)
+            val tg = if (r > thr && eb > 0.004) Math.max(minG, thr / r) else 1.0
+            gc = if (tg < gc) ca * gc + (1 - ca) * tg else cr * gc + (1 - cr) * tg
+            x[i] -= sb[i] * (1.0 - gc)
+        }
+    }
+
+    private fun bessel0(x: Double): Double { var s = 1.0; var t = 1.0; val q = x * x / 4.0; var k = 1; while (k < 40) { t *= q / (k.toDouble() * k); s += t; if (t < 1e-12 * s) break; k++ }; return s }
+
+    /**
+     * HD (نسخهٔ ۳): بالانمونه‌برداری ۲× با فیلتر نیم‌باند Kaiser (۶۴ ضریب، β=۹؛ بدون تغییر در طیف اصلی) + «هوای» بالا بدون غیرخطی‌سازی:
+     * انتقال فرکانسی باند ۵٫۵–۱۰٫۵kHz به ۱۱–۱۶kHz (جهت و شکل طیف حفظ می‌شود) با شیب نزولی؛ هیچ هارمونیک/اعوجاجی ساخته نمی‌شود و بالای ۱۶kHz چیزی نمی‌ماند.
+     * گیت نرم روی بلندی باند ۵٫۵–۱۰٫۵kHz: مکث‌ها و واکه‌های بی‌بالا بی‌صدا می‌مانند (نویز اضافه نمی‌شود). amt ۰…۱ شدت بازسازی
+     */
+    fun hdUp(src: FloatArray, sr: Int, amt: Double = 0.5): FloatArray {
+        val n = src.size
+        if (n < 64) return src
+        val K = 32
+        val h = DoubleArray(2 * K); var hs = 0.0
+        val b0 = bessel0(9.0)
+        for (j in 0 until 2 * K) {
+            val t = (j - K + 1) - 0.5
+            val r = t / K
+            h[j] = Math.sin(Math.PI * t) / (Math.PI * t) * bessel0(9.0 * Math.sqrt(Math.max(0.0, 1.0 - r * r))) / b0
+            hs += h[j]
+        }
+        for (j in h.indices) h[j] /= hs
+        val x = DoubleArray(2 * n)
+        for (i in 0 until n) {
+            x[2 * i] = src[i].toDouble()
+            var acc = 0.0
+            for (j in 0 until 2 * K) { val idx = i + j - K + 1; if (idx in 0 until n) acc += src[idx] * h[j] }
+            x[2 * i + 1] = acc
+        }
+        if (amt > 0.0) {
+            val sr2 = sr * 2
+            // باند منبع ۵٫۵–۱۰٫۵kHz
+            val b = x.copyOf()
+            highpass(5500.0, 0.8, sr2).run(b); highpass(5500.0, 0.8, sr2).run(b)
+            lowpass(10500.0, 0.8, sr2).run(b); lowpass(10500.0, 0.8, sr2).run(b)
+            // انتقال فرکانسی +۵٫۵kHz (مدولاسیون با کسینوس + بالاگذر ۳ مرحله‌ای) ⇒ باند ۱۱–۱۶kHz با همان جهت و شکل طیف؛ شیب نزولی نرم
+            val ext = DoubleArray(2 * n)
+            val wm = 2.0 * Math.PI * 5500.0 / sr2
+            for (i in ext.indices) ext[i] = 2.0 * b[i] * Math.cos(wm * i)
+            for (k in 0 until 3) highpass(11000.0, 0.8, sr2).run(ext)
+            lowpass(16200.0, 0.8, sr2).run(ext); lowpass(16200.0, 0.8, sr2).run(ext)
+            lowpass(12500.0, 0.6, sr2).run(ext)
+            val ca = Math.exp(-1.0 / (0.002 * sr2)); val cr = Math.exp(-1.0 / (0.025 * sr2))
+            val gain = 0.35 * amt; val mid = 0.3 * amt
+            var eb = 0.0; var eh = 0.0
+            for (i in x.indices) {
+                val a0 = Math.abs(b[i])
+                eb = if (a0 > eb) ca * eb + (1 - ca) * a0 else cr * eb + (1 - cr) * a0
+                val t = ((eb - 0.0015) / 0.004).coerceIn(0.0, 1.0)
+                val gt = t * t * (3.0 - 2.0 * t)   // گیت نرم: مکث و واکه‌های بی‌بالا بی‌صدا می‌مانند
+                var hf = ext[i] * gain * gt
+                val ah = Math.abs(hf)
+                eh = if (ah > eh) ca * eh + (1 - ca) * ah else cr * eh + (1 - cr) * ah
+                if (eh > 0.5 * eb) hf *= 0.5 * eb / eh   // سقف نسبی: بالاها هرگز بلندتر از نصف باند منبع نمی‌شوند (بدون تیزی ناگهانی)
+                x[i] += Math.tanh(hf * 4.0) / 4.0 + b[i] * mid * gt   // + کمی حضور باند ۵٫۵–۱۰٫۵kHz فقط هنگام وجود محتوا
+            }
+        }
+        return FloatArray(x.size) { softClip(x[it]) }
+    }
+
     /** تنظیمات اکولایزر کاربر (کلید eq از index.html؛ همان ساختار EQM.payload). null ⇒ خاموش یا کاملاً تخت */
-    class EqCfg(val pre: Double, val lc: Double, val hc: Double, val q: Double, val lim: Boolean, val fc: DoubleArray, val g: DoubleArray) {
+    class EqCfg(val pre: Double, val lc: Double, val hc: Double, val q: Double, val lim: Boolean, val fc: DoubleArray, val g: DoubleArray, val ds: Double = 0.0, val cp: Double = 0.0) {
         companion object {
             fun from(o: org.json.JSONObject?): EqCfg? {
                 if (o == null) return null
                 val arr = o.optJSONArray("bands") ?: return null
-                val n = Math.min(arr.length(), 10)
+                val n = Math.min(arr.length(), 24)
                 val fc = DoubleArray(n); val g = DoubleArray(n)
                 for (i in 0 until n) {
                     val b = arr.optJSONArray(i) ?: return null
@@ -2610,8 +2692,9 @@ private object MasterFx {
                 val lv = o.opt("limiter")
                 val lim = when (lv) { is Boolean -> lv; is Number -> lv.toDouble() != 0.0; else -> true }
                 val c = EqCfg(o.optDouble("pre", 0.0).coerceIn(-12.0, 12.0), o.optDouble("lc", 0.0).coerceIn(0.0, 500.0),
-                    o.optDouble("hc", 0.0).coerceIn(0.0, 20000.0), o.optDouble("q", 1.1).coerceIn(0.3, 4.0), lim, fc, g)
-                val flat = Math.abs(c.pre) < 0.01 && c.lc <= 0.0 && c.hc <= 0.0 && c.g.all { Math.abs(it) < 0.01 }
+                    o.optDouble("hc", 0.0).coerceIn(0.0, 20000.0), o.optDouble("q", 1.1).coerceIn(0.3, 4.0), lim, fc, g,
+                    o.optDouble("ds", 0.0).coerceIn(0.0, 100.0), o.optDouble("cp", 0.0).coerceIn(0.0, 100.0))
+                val flat = Math.abs(c.pre) < 0.01 && c.lc <= 0.0 && c.hc <= 0.0 && c.ds < 1.0 && c.cp < 1.0 && c.g.all { Math.abs(it) < 0.01 }
                 return if (flat) null else c
             }
         }
@@ -2631,9 +2714,12 @@ private object MasterFx {
         for (i in c.fc.indices) {
             val f = c.fc[i]; val gd = c.g[i]
             if (f <= 0.0 || Math.abs(gd) < 0.01) continue
-            val f0 = Math.min(f, sr * 0.45)
+            if (f > sr * 0.45) continue   // باند بالاتر از پهنای باند صدا (مثلاً ۱۶kHz در ۲۲٫۰۵kHz) اثری ندارد؛ با HD فعال می‌شود
+            val f0 = f
             (if (i == 0) lowShelf(f0, gd, sr) else if (i == last) highShelf(f0, gd, sr) else peaking(f0, c.q, gd, sr)).run(x)
         }
+        if (c.ds >= 1.0) deEss(x, sr, c.ds / 100.0)
+        if (c.cp >= 1.0) comp(x, sr, -14.0 - 0.2 * c.cp, 12.0, 1.4 + 0.036 * c.cp, 0.010, 0.20, 0.004)
         if (c.hc > 0.0 && c.hc < sr * 0.45) lowpass(c.hc, 1.085, sr).run(x)
         if (c.lim) comp(x, sr, -2.0, 0.0, 20.0, 0.003, 0.12, 0.003, false)
         return FloatArray(x.size) { softClip(x[it]) }
