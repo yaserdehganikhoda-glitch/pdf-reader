@@ -1372,6 +1372,8 @@ class PiperNativePlugin : Plugin() {
         val hdOn = call.getBoolean("hd") ?: false   // HD: بالانمونه‌برداری ۲× + بازسازی بالاها (۴۴٫۱kHz برای مدل‌های ۲۲٫۰۵kHz)
         val probe = call.getBoolean("probe") ?: false   // r15: اندازه‌گیری DSP (خام در برابر خروجی)؛ کش پردازش‌شده را دور می‌زند تا نسخهٔ خام همیشه در دسترس باشد؛ صدای خروجی تغییری نمی‌کند
         val strong = id.contains("mana", ignoreCase = true)   // مانا: خروجی خام SNR پایین دارد؛ بدون این حالت شرط ۲۵dB باعث می‌شد حذف نویز اصلاً اجرا نشود (اعتماد تدریجی ۱۲–۲۵dB + کاهش خش بالای ۴kHz در واکه‌ها). کلید کش شامل strong است
+        // r176: gyro — کف نویز خام ≈ ‎−۱۷dB (SNR مرجع < ۲۵dB) بود و شرط سخت‌گیرانهٔ ۲۵dB حذف نویز را اصلاً اجرا نمی‌کرد؛ اعتماد تدریجی (۸ تا ۲۰dB) مثل مانا، ولی بدون سایر ویژگی‌های اختصاصی مانا (گیت/کاهش بالای ۴kHz/۱٫۱۵×)
+        val grad = true   // r178: همهٔ صداها (gyro، ganji، …): SNR مرجع < ۲۵dB قبلاً حذف نویز را کاملاً خاموش می‌کرد؛ برای SNR ≥ ۲۰dB رفتار پیشین است
         val ep = epoch.get()   // لحظهٔ رسیدن درخواست؛ اگر بعدش cancel بیاید این کار رها می‌شود
         cpu.execute {
             try {
@@ -1402,7 +1404,7 @@ class PiperNativePlugin : Plugin() {
                     val key = hashKey("v1|$id|$ns|$nw|" + psq + "|" + pt)
                     // کش دولایه، هر دو جمله‌به‌جمله و مستقل از مرز تکه‌ها: ۱) خروجی پردازش‌شده (پرش از مدل و پاک‌سازی)  ۲) نسخهٔ خام (با تغییر سطح پاک‌سازی مدل دوباره اجرا نمی‌شود)
                     val procOn = lvlClean > 0 || lvlClarity > 0
-                    val key2 = if (procOn) hashKey("v2|$id|$ns|$nw|" + psq + "|$lvlClean|$lvlClarity|$strong|" + pt) else key
+                    val key2 = if (procOn) hashKey("v5|$id|$ns|$nw|" + psq + "|$lvlClean|$lvlClarity|$strong|$grad|" + pt) else key
                     val done = if (procOn && !probe) cacheGet(key2, sr) else null
                     if (done != null) {
                         hit++
@@ -1418,7 +1420,7 @@ class PiperNativePlugin : Plugin() {
                             g
                         }
                         rawKeep?.add(s)
-                        val pr = SpeechClean.process(s, sr, lvlClean, lvlClarity, strong)   // روی نسخهٔ خام کش؛ خودِ کش دست‌نخورده می‌ماند
+                        val pr = SpeechClean.process(s, sr, lvlClean, lvlClarity, strong, grad)   // روی نسخهٔ خام کش؛ خودِ کش دست‌نخورده می‌ماند
                         if (procOn && pr !== s) cachePut(key2, sr, pr)
                         pieces.add(pr)
                     }
@@ -2125,7 +2127,7 @@ private object SpeechClean {
     }
 
     @Synchronized
-    fun process(src: FloatArray, sr: Int, clean: Int, clarity: Int, strong: Boolean = false): FloatArray {
+    fun process(src: FloatArray, sr: Int, clean: Int, clarity: Int, strong: Boolean = false, grad: Boolean = strong): FloatArray {
         if ((clean <= 0 && clarity <= 0) || src.size < sr / 20) return src
         var x = src.copyOf()
         try {
@@ -2135,7 +2137,7 @@ private object SpeechClean {
                 val beta = when (clean) { 1 -> 1.0; 3 -> 1.5; else -> 1.2 }
                 val silDb = when (clean) { 1 -> 3.0; 2 -> 6.0; 3 -> 10.0; else -> 0.0 }
                 val cl = when (clarity) { 1 -> 0.6; 2 -> 1.0; 3 -> 1.4; else -> 0.0 }
-                x = enhance(x, sr, cleanDb, beta, silDb, cl, strong)
+                x = enhance(x, sr, cleanDb, beta, silDb, cl, strong, grad)
             }
         } catch (e: Throwable) {
             return src   // هر خطای پیش‌بینی‌نشده: صدای اصلی بدون پردازش
@@ -2186,7 +2188,7 @@ private object SpeechClean {
         for (m in v.size - 2 downTo 0) v[m] = v[m + 1] + coef * (v[m] - v[m + 1])
     }
 
-    private fun enhance(x: FloatArray, sr: Int, cleanDb0: Double, beta: Double, silDb0: Double, cl: Double, strong: Boolean): FloatArray {
+    private fun enhance(x: FloatArray, sr: Int, cleanDb0: Double, beta: Double, silDb0: Double, cl: Double, strong: Boolean, grad: Boolean = strong): FloatArray {
         // مانا: عمق پاک‌سازی ۱۵٪ بیشتر از سایر صداها، ولی دیگر یک سطح بالاتر از انتخاب کاربر نمی‌رود (۱۸dB سقف)؛ شدت زیاد + بهرهٔ بی‌هموار = «نویز موزیکال»/غ‌غ‌غ
         var cleanDb = if (strong) minOf(18.0, cleanDb0 * 1.15) else cleanDb0
         var silDb = silDb0
@@ -2248,10 +2250,11 @@ private object SpeechClean {
         // مرجع نویز قابل‌اعتماد نیست (سکوتی در جمله نیست): حذف نویز و دروازه اعمال نمی‌شود (جز مانا: اعتماد تدریجی)
         val snrDb = 10.0 * Math.log10(speech / maxOf(en, 1e-20))
         // مانا: خروجی خام خش بیشتری دارد و شرط سخت‌گیرانهٔ ۲۵dB باعث می‌شد حذف نویز اصلاً اجرا نشود؛ برای آن اعتماد تدریجی (۸ تا ۲۰dB) و شدت متناسب (آزمون عددی روی گفتار مصنوعی: ۴ تا ۶dB کاهش بیشتر نویز در ۱۰ تا ۱۴dB SNR، بدون افت SDR)
-        val relW = if (strong) ((snrDb - 8.0) / 12.0).coerceIn(0.0, 1.0) else if (snrDb >= 25.0) 1.0 else 0.0
+        val relW = if (grad) ((snrDb - 8.0) / 12.0).coerceIn(0.0, 1.0) else if (snrDb >= 25.0) 1.0 else 0.0
         val reliable = relW > 0.0
         if (reliable && relW < 1.0) { cleanDb *= relW; silDb *= relW }
-        if (!reliable && cl <= 0.0 && !(strong && cleanDb > 0.0)) return x
+        if (reliable && !strong && snrDb < 25.0) { cleanDb *= 0.7; silDb *= 0.7 }   // r178: صداهایی که پیش‌تر اصلاً حذف نویز نمی‌گرفتند (SNR < ۲۵dB) با ۷۰٪ شدت شروع می‌کنند؛ در صورت تمیز بودن بالاتر برده می‌شود
+        if (!reliable && cl <= 0.0 && !(grad && cleanDb > 0.0)) return x
         val noiseRaw = DoubleArray(bins)
         for (k in 0 until bins) {
             val a = maxOf(0, k - 2)
