@@ -2647,17 +2647,18 @@ private object MasterFx {
         }
         if (amt > 0.0) {
             val sr2 = sr * 2
-            // باند منبع ۵٫۵–۱۰٫۵kHz
+            // باند منبع = نیمهٔ بالایی پهنای باند مدل (۲۲٫۰۵kHz ⇒ ۵٫۵–۱۰٫۵kHz؛ مدل ۱۶kHz ⇒ ۴–۷٫۶kHz)
+            val nyq = sr / 2.0; val fLo = nyq * 0.5; val fHi = nyq * 0.95
             val b = x.copyOf()
-            highpass(5500.0, 0.8, sr2).run(b); highpass(5500.0, 0.8, sr2).run(b)
-            lowpass(10500.0, 0.8, sr2).run(b); lowpass(10500.0, 0.8, sr2).run(b)
+            highpass(fLo, 0.8, sr2).run(b); highpass(fLo, 0.8, sr2).run(b)
+            lowpass(fHi, 0.8, sr2).run(b); lowpass(fHi, 0.8, sr2).run(b)
             // انتقال فرکانسی +۵٫۵kHz (مدولاسیون با کسینوس + بالاگذر ۳ مرحله‌ای) ⇒ باند ۱۱–۱۶kHz با همان جهت و شکل طیف؛ شیب نزولی نرم
             val ext = DoubleArray(2 * n)
-            val wm = 2.0 * Math.PI * 5500.0 / sr2
+            val wm = 2.0 * Math.PI * fLo / sr2
             for (i in ext.indices) ext[i] = 2.0 * b[i] * Math.cos(wm * i)
-            for (k in 0 until 3) highpass(11000.0, 0.8, sr2).run(ext)
-            lowpass(16200.0, 0.8, sr2).run(ext); lowpass(16200.0, 0.8, sr2).run(ext)
-            lowpass(12500.0, 0.6, sr2).run(ext)
+            for (k in 0 until 3) highpass(nyq, 0.8, sr2).run(ext)
+            lowpass(nyq * 1.47, 0.8, sr2).run(ext); lowpass(nyq * 1.47, 0.8, sr2).run(ext)
+            lowpass(nyq * 1.13, 0.6, sr2).run(ext)
             val ca = Math.exp(-1.0 / (0.002 * sr2)); val cr = Math.exp(-1.0 / (0.025 * sr2))
             val gain = 0.35 * amt; val mid = 0.3 * amt
             var eb = 0.0; var eh = 0.0
