@@ -30,6 +30,7 @@ import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
+import com.k2fsa.sherpa.onnx.GenerationConfig
 import com.k2fsa.sherpa.onnx.OfflineTts
 import com.k2fsa.sherpa.onnx.OfflineTtsConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
@@ -44,6 +45,7 @@ import java.nio.ByteOrder
 import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.Executors
+import com.pdfvoice.phon.Phonemizer
 
 /**
  * Piper (VITS) فارسی به‌صورت بومی با sherpa-onnx.
@@ -66,6 +68,9 @@ import java.util.concurrent.Executors
  *   رویدادها: playerStart {h}, playerPos {h, p:0..1}, playerEnd {h}, playerError {h, msg}
  *
  * مسیر ذخیرهٔ صداها (یک‌جا قابل تغییر): <externalFilesDir>/piper/<id>/
+ *
+ * r181: sherpa-onnx 2.x. espeak-ng از خود sherpa حذف شده؛ آوانگاری فارسی را piper-phonemize (+espeak-ng) از طریق Phonemizer انجام می‌دهد
+ *   و خروجی (کدپوینت آواها برای هر جمله) به‌صورت GenerationConfig.phonemeCodepoints به sherpa داده می‌شود. کاملاً آفلاین: کتابخانه و دادهٔ espeak داخل APK هستند.
  */
 @CapacitorPlugin(name = "PiperNative")
 class PiperNativePlugin : Plugin() {
@@ -419,7 +424,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r15-dsp").put("media", true))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r15-dsp · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true))
     }
 
     @PluginMethod
@@ -844,7 +849,7 @@ class PiperNativePlugin : Plugin() {
                 // ۱) espeak-ng-data: از صدای gyro (اگر نصب نیست، یک‌بار دانلود می‌شود)
                 var donorBytes = 0L
                 var espeakSrc: File? = sharedEspeak(id)
-                if (espeakSrc == null) {
+                if (espeakSrc == null && !phonAsset()) {   // r181: با دادهٔ espeak داخل APK دیگر دانلود صدای gyro فقط برای espeak لازم نیست
                     val dpart = File(root(), "$ESPEAK_DONOR.dl")
                     fetchResumable("$VOICE_BASE/vits-piper-$ESPEAK_DONOR.tar.bz2", dpart) { l, t -> emit(l, t + 114_000_000L) }
                     donorBytes = dpart.length()
@@ -857,7 +862,7 @@ class PiperNativePlugin : Plugin() {
                     dpart.delete()
                     espeakSrc = File(findRoot(dd), "espeak-ng-data").takeIf { it.isDirectory }
                 }
-                if (espeakSrc == null) throw IllegalStateException("espeak-ng-data پیدا نشد")
+                if (espeakSrc == null && !phonAsset()) throw IllegalStateException("espeak-ng-data پیدا نشد")
                 // ۲) توکن‌ها و مدل (با ادامه پس از قطع شبکه)
                 fetchMirrors(dl.folder + "/tokens.txt", partTok) { _, _ -> }
                 fetchMirrors(dl.folder + "/model.onnx", partOnnx) { l, t -> emit(donorBytes + l, donorBytes + t) }
@@ -868,7 +873,7 @@ class PiperNativePlugin : Plugin() {
                 dst.deleteRecursively(); dst.mkdirs()
                 partOnnx.copyTo(File(dst, "$id.onnx"), overwrite = true)
                 partTok.copyTo(File(dst, "tokens.txt"), overwrite = true)
-                espeakSrc.copyRecursively(File(dst, "espeak-ng-data"), overwrite = true)
+                espeakSrc?.copyRecursively(File(dst, "espeak-ng-data"), overwrite = true)
                 if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists())
                     throw IllegalStateException("فایل‌های مدل کامل نیست")
                 okMark(id).writeText("1")
@@ -951,7 +956,7 @@ class PiperNativePlugin : Plugin() {
                 // ۱) espeak-ng-data: از صدای gyro (اگر نصب نیست، یک‌بار دانلود می‌شود)
                 var donorBytes = 0L
                 var espeakSrc: File? = sharedEspeak(id)
-                if (espeakSrc == null) {
+                if (espeakSrc == null && !phonAsset()) {   // r181: با دادهٔ espeak داخل APK دیگر دانلود صدای gyro فقط برای espeak لازم نیست
                     val dpart = File(root(), "$ESPEAK_DONOR.dl")
                     fetchResumable("$VOICE_BASE/vits-piper-$ESPEAK_DONOR.tar.bz2", dpart) { l, t -> emit(l, t + 64_000_000L) }
                     donorBytes = dpart.length()
@@ -964,7 +969,7 @@ class PiperNativePlugin : Plugin() {
                     dpart.delete()
                     espeakSrc = File(findRoot(dd), "espeak-ng-data").takeIf { it.isDirectory }
                 }
-                if (espeakSrc == null) throw IllegalStateException("espeak-ng-data پیدا نشد")
+                if (espeakSrc == null && !phonAsset()) throw IllegalStateException("espeak-ng-data پیدا نشد")
                 // ۲) پیکربندی و مدل (با ادامه پس از قطع شبکه)
                 fetchFrom(MANA_BASES, "fa_IR-mana-medium.onnx.json", partJson) { _, _ -> }
                 fetchFrom(MANA_BASES, "fa_IR-mana-medium.onnx", partOnnx) { l, t -> emit(donorBytes + l, donorBytes + t) }
@@ -986,7 +991,7 @@ class PiperNativePlugin : Plugin() {
                     Pair("voice", voice), Pair("has_espeak", "1"), Pair("n_speakers", ns.toString()), Pair("sample_rate", sr.toString())
                 ))
                 File(dst, "tokens.txt").writeText(tokens, Charsets.UTF_8)
-                espeakSrc.copyRecursively(File(dst, "espeak-ng-data"), overwrite = true)
+                espeakSrc?.copyRecursively(File(dst, "espeak-ng-data"), overwrite = true)
                 if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists())
                     throw IllegalStateException("فایل‌های مدل کامل نیست")
                 okMark(id).writeText("1")
@@ -1198,16 +1203,15 @@ class PiperNativePlugin : Plugin() {
         val onnx = findOnnx(voiceDir(id)) ?: throw IllegalStateException("مدل پیدا نشد؛ دوباره نصب کنید")
         val flags = modelFlags(onnx)
         if ((flags and 1) == 0 || (flags and 6) == 0)
-            throw IllegalStateException("این مدل برای sherpa-onnx آماده نشده (متادیتا ندارد) و باز کردنش برنامه را می‌بندد؛ مدل دیگری برای آن لازم است")
+            throw IllegalStateException("این مدل برای sherpa-onnx آماده نشده (متادیتا ندارد)؛ مدل دیگری برای آن لازم است")
         val ownEspeak = File(r, "espeak-ng-data")
         val espeak: File? = if (ownEspeak.isDirectory) ownEspeak else sharedEspeak(id)
-        // مدل‌های حرفی (characters) به espeak نیاز ندارند؛ بقیه حتماً لازم دارند
-        if (((flags and 2) == 0 || (flags and 4) != 0) && espeak == null)
-            throw IllegalStateException("این صدا به دادهٔ espeak نیاز دارد؛ اول یکی از صداهای دیگر (مثلاً gyro) را دانلود کنید")
+        // مدل‌های حرفی (characters) آوانگار نمی‌خواهند؛ بقیه (piper/coqui) متنشان باید قبل از sherpa آوانگاری شود (sherpa ≥ 2.0 خودش نمی‌کند)
+        val needPhon = (flags and 2) == 0 || (flags and 4) != 0
+        if (needPhon) ensurePhonemizer(espeak)
         val vits = OfflineTtsVitsModelConfig(
             model = onnx.absolutePath,
             tokens = File(r, "tokens.txt").absolutePath,
-            dataDir = espeak?.absolutePath ?: "",
             // noiseScale/noiseScaleW: کمتر = یکنواخت‌تر و پایدارتر، بیشتر = پرحالت‌تر ولی ناپایدارتر
             noiseScale = ns,
             noiseScaleW = nw,
@@ -1224,7 +1228,92 @@ class PiperNativePlugin : Plugin() {
         // assetManager = null → مدل از مسیر فایل خوانده می‌شود
         val t = OfflineTts(assetManager = null, config = cfg)
         tts = t; ttsId = id; ttsKey = key; sampleRate = t.sampleRate()
+        ttsPhon = needPhon; ttsVoice = if (needPhon) onnxVoice(onnx) else "fa"
         return t
+    }
+
+    // ---------- r181: آوانگار بیرونی (piper-phonemize + espeak-ng) ----------
+    private val ENGINE_VER = "__SHERPA_VER__"   // inject-native.sh جایگزین می‌کند
+    /** آیا دادهٔ espeak هم‌نسخهٔ کتابخانه داخل APK هست (پس برای نصب صدا لازم نیست espeak از جای دیگر بیاید) */
+    private fun phonAsset(): Boolean = try { (context.assets.list("phonemizer/espeak-ng-data")?.size ?: 0) > 0 } catch (e: Throwable) { false }
+    private val phonLock = Any()
+    @Volatile private var ttsPhon = false       // آیا متن این موتور باید قبل از sherpa آوانگاری شود
+    @Volatile private var ttsVoice = "fa"       // نام صدای espeak (از متادیتای مدل؛ پیش‌فرض fa)
+    private val voiceCache = HashMap<String, String>()
+
+    private fun phonTag(): String = try {
+        val v = Phonemizer.version()
+        if (v.isNotEmpty()) v else "ERR:" + (Phonemizer.loadError() ?: "no-version")
+    } catch (e: Throwable) { "ERR" }
+
+    private fun copyAssetDir(am: android.content.res.AssetManager, src: String, dst: File) {
+        val names = am.list(src) ?: emptyArray()
+        if (names.isEmpty()) {
+            dst.parentFile?.mkdirs()
+            try { am.open(src).use { i -> FileOutputStream(dst).use { o -> i.copyTo(o, 64 * 1024) } } }
+            catch (e: java.io.FileNotFoundException) { dst.mkdirs() }   // پوشهٔ خالی
+        } else {
+            dst.mkdirs()
+            for (n in names) copyAssetDir(am, "$src/$n", File(dst, n))
+        }
+    }
+
+    /**
+     * espeak-ng-data را در مسیر ثابتِ filesDir آماده و Phonemizer را راه‌اندازی می‌کند.
+     * منبع: ۱) دادهٔ هم‌نسخهٔ خود کتابخانه (داخل APK؛ کاملاً آفلاین)  ۲) espeak-ng-data یکی از صداهای نصب‌شده.
+     */
+    private fun ensurePhonemizer(voiceEspeak: File?) {
+        synchronized(phonLock) {
+            val shared = File(context.filesDir, "espeak-ng-data-shared")
+            val mark = File(context.filesDir, "espeak-ng-data-shared.ok")
+            val hasAsset = phonAsset()
+            val want = if (hasAsset) "asset|$ENGINE_VER" else "voice"
+            val have = if (mark.exists() && File(shared, "phondata").isFile) mark.readText() else ""
+            if (have != want && !(want == "voice" && have.isNotEmpty())) {
+                mark.delete(); shared.deleteRecursively()
+                if (hasAsset) copyAssetDir(context.assets, "phonemizer/espeak-ng-data", shared)
+                else if (voiceEspeak != null) voiceEspeak.copyRecursively(shared, overwrite = true)
+                else throw IllegalStateException("این صدا به دادهٔ espeak نیاز دارد؛ اول یکی از صداهای دیگر (مثلاً gyro) را دانلود کنید")
+                if (!File(shared, "phondata").isFile) { shared.deleteRecursively(); throw IllegalStateException("دادهٔ espeak ناقص است (phondata نیست)") }
+                mark.writeText(want)
+            }
+            try { Phonemizer.init(shared.absolutePath) }
+            catch (e: Throwable) { mark.delete(); throw e }
+        }
+    }
+
+    /** نام صدای espeak از متادیتای ONNX (کلید voice)؛ اگر نبود fa */
+    private fun onnxVoice(onnx: File): String {
+        val key = onnx.absolutePath + "|" + onnx.length()
+        voiceCache[key]?.let { return it }
+        var v = "fa"
+        try {
+            val len = onnx.length(); val from = maxOf(0L, len - 4_000_000L); val n = (len - from).toInt()
+            val buf = ByteArray(n)
+            java.io.RandomAccessFile(onnx, "r").use { it.seek(from); it.readFully(buf) }
+            // StringStringEntryProto: 0x0A len "voice" 0x12 len value
+            val pat = byteArrayOf(0x0A, 0x05, 0x76, 0x6F, 0x69, 0x63, 0x65, 0x12)
+            val at = indexOf(buf, n, pat)
+            if (at >= 0 && at + pat.size < n) {
+                val l = buf[at + pat.size].toInt() and 0xFF; val s = at + pat.size + 1
+                if (l in 1..24 && s + l <= n) {
+                    val x = String(buf, s, l, Charsets.ISO_8859_1)
+                    if (Regex("[A-Za-z][A-Za-z0-9_-]*").matches(x)) v = x
+                }
+            }
+        } catch (e: Throwable) { }
+        voiceCache[key] = v
+        return v
+    }
+
+    /** GenerationConfig.phonemeCodepoints (آرایهٔ کدپوینت آواها برای هر جمله) را با بازتاب می‌گذارد؛ اگر نوع فیلد غیرمنتظره بود خطای روشن می‌دهد */
+    private fun setPhonemeCodepoints(cfg: GenerationConfig, ph: Array<IntArray>) {
+        val f = try { GenerationConfig::class.java.getDeclaredField("phonemeCodepoints") }
+                catch (e: NoSuchFieldException) { throw IllegalStateException("sherpa-onnx این نسخه phonemeCodepoints ندارد (espeak/آوانگار بیرونی ممکن نیست)") }
+        f.isAccessible = true
+        if (f.type != Array<IntArray>::class.java)
+            throw IllegalStateException("نوع phonemeCodepoints در این نسخهٔ sherpa-onnx پشتیبانی نمی‌شود: ${f.type.name}")
+        f.set(cfg, ph)
     }
 
     // ---------- حافظهٔ نهان صدا روی دیسک ----------
@@ -1286,10 +1375,21 @@ class PiperNativePlugin : Plugin() {
     /** ساخت یک جمله با تولید جریانی (callback): با لغو، همان لحظه‌ای که تکهٔ جاری برسد ساخت قطع می‌شود */
     private fun genPart(eng: OfflineTts, text: String, sp: Float, ep: Int): FloatArray {
         val acc = ArrayList<FloatArray>()
-        val a = eng.generateWithCallback(text = text, sid = 0, speed = sp, callback = { s: FloatArray ->
+        val cb: (FloatArray) -> Int = { s ->
             acc.add(s.copyOf())
             if (ep != epoch.get()) 0 else 1      // ۰ = توقف
-        })
+        }
+        val a = if (ttsPhon) {
+            // r181: آوانگاری بیرونی؛ جمله‌های خالی حذف می‌شوند (برای هر جمله یک آرایهٔ کدپوینت)
+            val ph = Phonemizer.phonemize(text, ttsVoice).filter { it.isNotEmpty() }.toTypedArray()
+            if (ph.isEmpty()) throw IllegalStateException("آوانگاری espeak برای این متن چیزی نداد")
+            if (ep != epoch.get()) throw IllegalStateException("NATIVE_CANCELLED")
+            val gc = GenerationConfig(silenceScale = 0.2f, speed = sp, sid = 0)
+            setPhonemeCodepoints(gc, ph)
+            eng.generateWithConfigAndCallback("", gc, cb)
+        } else {
+            eng.generateWithCallback(text = text, sid = 0, speed = sp, callback = cb)
+        }
         if (ep != epoch.get()) throw IllegalStateException("NATIVE_CANCELLED")
         if (a.samples.isNotEmpty()) return peakGuard(a.samples)
         var n = 0
@@ -1401,10 +1501,10 @@ class PiperNativePlugin : Plugin() {
                     val pt = itp.first; val ps = itp.second
                     if (pt.isBlank() || pt.none { it.isLetterOrDigit() }) continue
                     val psq = String.format(java.util.Locale.US, "%.2f", ps)
-                    val key = hashKey("v1|$id|$ns|$nw|" + psq + "|" + pt)
+                    val key = hashKey("v2|$id|$ns|$nw|" + psq + "|" + pt)
                     // کش دولایه، هر دو جمله‌به‌جمله و مستقل از مرز تکه‌ها: ۱) خروجی پردازش‌شده (پرش از مدل و پاک‌سازی)  ۲) نسخهٔ خام (با تغییر سطح پاک‌سازی مدل دوباره اجرا نمی‌شود)
                     val procOn = lvlClean > 0 || lvlClarity > 0
-                    val key2 = if (procOn) hashKey("v5|$id|$ns|$nw|" + psq + "|$lvlClean|$lvlClarity|$strong|$grad|" + pt) else key
+                    val key2 = if (procOn) hashKey("v6|$id|$ns|$nw|" + psq + "|$lvlClean|$lvlClarity|$strong|$grad|" + pt) else key
                     val done = if (procOn && !probe) cacheGet(key2, sr) else null
                     if (done != null) {
                         hit++
