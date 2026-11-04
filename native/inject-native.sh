@@ -55,31 +55,22 @@ fi
 echo "ORT نسخهٔ sherpa = $ORT_V"
 export ORT_V
 # r181: نسخهٔ ORT در sherpa 2.x عوض شده؛ AAR هم‌نسخه باید روی Maven باشد وگرنه Gradle بعد از ده‌ها دقیقه می‌شکند
-ort_code() {   # کد HTTP وجود onnxruntime-android:$1 روی Maven (200 = موجود)
-  local v="$1" c="000" M
-  for M in https://repo1.maven.org/maven2 https://repo.maven.apache.org/maven2 https://maven-central.storage-download.googleapis.com/maven2; do
-    c="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$M/com/microsoft/onnxruntime/onnxruntime-android/$v/onnxruntime-android-$v.pom" || echo 000)"
-    [ "$c" = 200 ] && break
-  done
-  echo "$c"
-}
-ORT_HTTP="$(ort_code "$ORT_V")"
-# r182: sherpa-onnx ≥ 1.13.8 از بیلد اختصاصی ORT (مثلاً 1.28.2) استفاده می‌کند که روی Maven نیست (فقط 1.28.0). API در یک minor ثابت است؛ پس AAR همان minor با نزدیک‌ترین patch کمتر سازگار است. اگر ORT_VER دستی داده شده باشد، دست نمی‌زنیم.
-if [ "$ORT_HTTP" = 404 ] && [ -z "${ORT_VER:-}" ] && [[ "$ORT_V" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  ORT_MM="${ORT_V%.*}"; ORT_P="${ORT_V##*.}"
-  while [ "$ORT_P" -gt 0 ]; do
-    ORT_P=$((ORT_P-1))
-    if [ "$(ort_code "$ORT_MM.$ORT_P")" = 200 ]; then
-      echo "WARN: AAR onnxruntime-android:$ORT_V روی Maven نیست؛ از $ORT_MM.$ORT_P (همان minor، API یکسان) استفاده می‌شود"
-      ORT_V="$ORT_MM.$ORT_P"; export ORT_V; ORT_HTTP=200; break
-    fi
-  done
-fi
-echo "ORT نسخهٔ AAR = $ORT_V"
+ORT_POM="com/microsoft/onnxruntime/onnxruntime-android/$ORT_V/onnxruntime-android-$ORT_V.pom"
+ORT_HTTP="000"
+for M in https://repo1.maven.org/maven2 https://repo.maven.apache.org/maven2 https://maven-central.storage-download.googleapis.com/maven2; do
+  ORT_HTTP="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$M/$ORT_POM" || echo 000)"
+  [ "$ORT_HTTP" = 200 ] && break
+done
 if [ "$ORT_HTTP" = 404 ]; then
   echo "ERROR: onnxruntime-android:$ORT_V روی Maven نیست. نسخهٔ موجود را با ORT_VER=... بدهید (باید با libonnxruntime.so داخل sherpa سازگار باشد)"; exit 1
 elif [ "$ORT_HTTP" != 200 ]; then
   echo "WARN: وجود onnxruntime-android:$ORT_V روی Maven تأیید نشد (HTTP $ORT_HTTP)"
+fi
+# r182: sherpa 2.x و AAR جاوای ORT (OCR بومی) هر دو libonnxruntime.so دارند و فقط یکی داخل APK می‌ماند؛ کپی sherpa باعث
+# «cannot locate symbol OrtGetApiBase» در libonnxruntime4j_jni.so و خرابی OCR شد. پس تنها منبع، خودِ AAR (جاوا + JNI + کتابخانهٔ هم‌نسخه) است.
+if [ "${KEEP_SHERPA_ORT:-0}" != 1 ] && [ "$ORT_HTTP" = 200 ]; then
+  rm -f android/app/src/main/jniLibs/*/libonnxruntime.so
+  echo "ORT: libonnxruntime.so فقط از AAR (onnxruntime-android:$ORT_V)؛ کپی sherpa حذف شد"
 fi
 
 # 2) API کاتلین همان نسخه
@@ -104,13 +95,28 @@ if [ "$NEED_PHON" = 1 ]; then
   cp "$HERE/Phonemizer.java" android/app/src/main/java/com/pdfvoice/phon/Phonemizer.java
   OFFLINE_CACHE="$CACHE" bash "$HERE/build-phonemizer.sh" android/app/src/main/jniLibs android/app/src/main/assets
   for abi in arm64-v8a armeabi-v7a; do
-    for so in libpiper_phonemize_core.so libpiperphon_jni.so libsherpa-onnx-jni.so libonnxruntime.so; do
+    for so in libpiper_phonemize.so libpiperphon_jni.so libsherpa-onnx-jni.so; do
       [ -s "android/app/src/main/jniLibs/$abi/$so" ] || { echo "ERROR: $abi/$so در jniLibs نیست"; exit 1; }
     done
   done
 else
   echo "ERROR: SHERPA_VER=$VER (۱.x) با این پلاگین (r181) سازگار نیست؛ برای برگشت، اسکریپت و PiperNativePlugin.kt نسخهٔ r180 را با هم برگردانید"; exit 1
 fi
+
+# 2c) r182: حذف نویز عصبی (DPDFNet از sherpa-onnx) برای نویز پخته‌شدهٔ gyro. مدل کوچک است و داخل APK می‌رود (آفلاین).
+# DN_MODEL="" یعنی بدون این قابلیت؛ مثلاً DN_MODEL=gtcrn_simple.onnx برای مدل سبک‌تر ۱۶kHz.
+DN_MODEL="${DN_MODEL-dpdfnet2_48khz_hr.onnx}"
+rm -rf android/app/src/main/assets/denoise
+if [ -n "$DN_MODEL" ]; then
+  if DP="$(dl "https://github.com/k2-fsa/sherpa-onnx/releases/download/speech-enhancement-models/$DN_MODEL" "$DN_MODEL")" && [ "$(stat -c %s "$DP")" -gt 100000 ]; then
+    mkdir -p android/app/src/main/assets/denoise
+    cp "$DP" "android/app/src/main/assets/denoise/$DN_MODEL"
+    echo "denoise model: $DN_MODEL ($(stat -c %s "$DP") bytes)"
+  else
+    echo "WARN: مدل حذف نویز ($DN_MODEL) دانلود نشد؛ حذف نویز عصبی غیرفعال می‌ماند"
+  fi
+fi
+python3 "$HERE/gen-denoiser.py" "$KT" "$PKG_PATH/NeuralDenoiser.kt" "$APP_ID"
 
 # 3) پلاگین + MainActivity با appId درست
 sed -e "s/^package .*/package $APP_ID/" -e "s/__SHERPA_VER__/$VER/" "$HERE/PiperNativePlugin.kt" > "$PKG_PATH/PiperNativePlugin.kt"
@@ -267,27 +273,5 @@ if 'onnxruntime-android' not in s:
 if 'documentfile' not in s:
     s=re.sub(r"(dependencies\s*\{)", r"\1\n    implementation 'androidx.documentfile:documentfile:1.0.1'", s, count=1)
 open(p,'w').write(s)
-PY
-# 6) r184: onnxruntime-android:1.28.x در مانیفست خودش minSdk 24 اعلام می‌کند، ولی پروژهٔ Capacitor با 22 ساخته می‌شد
-#    (خطای manifest merger). minSdk را به 24 می‌بریم؛ یعنی Android 5.x و 6.0 دیگر پشتیبانی نمی‌شوند.
-python3 - <<'PY'
-import re, os, sys
-REQ = 24
-changed = False
-for p in ('android/variables.gradle', 'android/app/build.gradle'):
-    if not os.path.exists(p): continue
-    s = open(p, encoding='utf-8').read()
-    def fix(m):
-        global changed
-        v = int(m.group(2))
-        if v >= REQ: return m.group(0)
-        changed = True
-        return m.group(1) + str(REQ)
-    n = re.sub(r'(\bminSdk(?:Version)?\s*=?\s*)(\d+)', fix, s)
-    if n != s: open(p, 'w', encoding='utf-8').write(n)
-    for line in n.splitlines():
-        if re.search(r'\bminSdk(?:Version)?\b', line): print(p + ': ' + line.strip())
-if not changed:
-    print('WARN: مقدار عددی minSdk کمتر از %d پیدا/اصلاح نشد؛ خطوط بالا را ببینید' % REQ)
 PY
 echo "inject-native: تمام شد"
