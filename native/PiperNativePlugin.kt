@@ -83,6 +83,7 @@ class PiperNativePlugin : Plugin() {
     // هزینه: رویداد playerPos و هایلایت تا اندازهٔ بافر جلوتر از صدای شنیده‌شده‌اند (≤ ۳۵۰ms بیشتر از حالت عادی).
     private val BUF_MIN_MS = 250
     private val BUF_MAX_MS = 600
+    private val IDLE_GRACE_MS = 2500L   // r166: وقتی ساخت صدا از پخش عقب می‌ماند، ترک (متوقف‌شده) تا این مدت زنده می‌ماند تا برای هر جمله دوباره ساخته نشود
     @Volatile private var bufMs = 250
     @Volatile private var bufGrow = 0
     @Volatile private var bufAt = 0L
@@ -2084,15 +2085,33 @@ class PiperNativePlugin : Plugin() {
                 pend?.cancel(true)
                 if (android.os.Build.VERSION.SDK_INT >= 24) { val u = t.underrunCount; underruns += u - lastU; lastU = u }
                 var nx: PlItem? = takeNext()
+                var dHead = t.playbackHeadPosition
+                var dAt = android.os.SystemClock.elapsedRealtime()
                 while (nx == null) {   // تا خالی‌شدن بافر منتظر آیتم بعدی می‌مانیم
                     if (gen != plGen) return
-                    if (t.playbackHeadPosition - base >= written) break
+                    val hp = t.playbackHeadPosition
+                    if (hp - base >= written) break
+                    val tn = android.os.SystemClock.elapsedRealtime()
+                    // r166: ترکِ در حال پخش که ۳ثانیه جلو نرود (قطع مسیر صدا/گیر HAL) ⇒ خطا تا JS بلافاصله از همان جمله بازیابی کند (به‌جای ۸ثانیه سکوت)
+                    if (hp != dHead) { dHead = hp; dAt = tn }
+                    else if (tn - dAt > 3000 && t.playState == AudioTrack.PLAYSTATE_PLAYING) throw IllegalStateException("stall")
                     Thread.sleep(8)
                     nx = takeNext()
                 }
                 if (nx == null) {
-                    if (closeIfIdle(gen)) { emitPl("playerEnd", item.h); return }
-                    nx = takeNext()
+                    // r166: بافر خالی شد ولی آیتم بعدی هنوز ساخته نشده: ترک را مکث می‌کنیم و جلسه را باز نگه می‌داریم (playerQueue همچنان queued=true می‌گیرد)
+                    try { t.pause() } catch (e: Throwable) {}
+                    val graceEnd = android.os.SystemClock.elapsedRealtime() + IDLE_GRACE_MS
+                    while (nx == null && android.os.SystemClock.elapsedRealtime() < graceEnd) {
+                        if (gen != plGen) return
+                        Thread.sleep(10)
+                        nx = takeNext()
+                    }
+                    if (nx == null) {
+                        if (closeIfIdle(gen)) { emitPl("playerEnd", item.h); return }
+                        nx = takeNext()
+                    }
+                    if (nx != null) { try { t.play() } catch (e: Throwable) {} }
                 }
                 item = nx ?: return
             }
