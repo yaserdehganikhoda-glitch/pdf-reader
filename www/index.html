@@ -2392,8 +2392,8 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <select id="vclean" aria-label="حذف نویز و صداهای اضافه">
             <option value="0" data-short="خاموش" data-desc="صدا دقیقاً همان خروجی خام مدل است.">خاموش</option>
             <option value="1" data-short="ملایم" data-desc="کاهش ملایم خش‌خش زمینه و حذف «تق» مرز جمله‌ها؛ کمترین دخالت در صدا.">ملایم</option>
-            <option value="2" data-short="متعادل" data-desc="حذف خش‌خش و نویز زمینه، غرّش کم‌صدا، نفس و «تق» مرز جمله‌ها و مکث‌های تمیز، بدون دست‌زدن به وضوح گفتار (پیشنهادی).">متعادل (پیشنهادی)</option>
-            <option value="3" data-short="قوی" data-desc="پاک‌سازی بیشتر نویز؛ اگر گفتار کمی «خفه» شد به حالت متعادل برگردید.">قوی</option>
+            <option value="2" data-short="متعادل" data-desc="حذف خش‌خش و نویز زمینه، غرّش کم‌صدا، نفس و «تق» مرز جمله‌ها و مکث‌های تمیز، بدون دست‌زدن به وضوح گفتار (پیشنهادی). در اندروید با حذف‌نویز عصبی (DPDFNet) ۸۵٪ پیش از فیلتر کلاسیک.">متعادل (پیشنهادی)</option>
+            <option value="3" data-short="قوی" data-desc="پاک‌سازی بیشتر نویز؛ اگر گفتار کمی «خفه» شد به حالت متعادل برگردید. در اندروید با حذف‌نویز عصبی (DPDFNet) کامل پیش از فیلتر کلاسیک.">قوی</option>
             <option value="a" data-short="هوشمند" data-desc="ناظر نویز: برای هر گوینده، خروجی واقعی را اندازه می‌گیرد و کمترین سطحی را که خش و نویز را می‌گیرد و گفتار را خفه نمی‌کند برمی‌گزیند (پیشنهادی).">هوشمند (ناظر نویز)</option>
           </select>
 <select id="vclarity" aria-label="شفافیت و رسایی صدا">
@@ -3009,7 +3009,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
     T(function(){
       mr = vv = null;
       try { mr = id ? nsGet(nsKey(id)) : null; } catch (e) {}
-      if (mr && isFinite(mr.fl) && mr.fl >= -32) add('w', A, 'کف نویز مدل بالاست', 'کف نویز ' + N(mr.fl) + ' dB؛ با حذف نویز پاک نمی‌شود.', 'گوینده‌ٔ دیگری امتحان کنید یا «پاک‌سازی» صدا را بالاتر ببرید.');
+      if (mr && isFinite(mr.fl) && mr.fl >= -32 && !mr.np) add('w', A, 'کف نویز مدل بالاست', 'کف نویز ' + N(mr.fl) + ' dB؛ با حذف نویز پاک نمی‌شود.', 'گوینده‌ٔ دیگری امتحان کنید یا «پاک‌سازی» صدا را بالاتر ببرید.');
       n = 0; q = 0;
       try { Object.keys(GVS).forEach(function(k){ n++; if (GVS[k].off) q++; }); } catch (e) {}
       if (q) add('w', A, N(q) + ' مدل سرعت ناپایدار است', 'جبران سرعت موقتاً خاموش شده.', 'چند دقیقه بیشتر بخوانید تا مدل دوباره پایدار شود.');
@@ -3037,13 +3037,19 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
         if (X.diag.underruns > 0) add('w', B, 'لکنت پخش (underrun) بومی: ' + N(X.diag.underruns) + ' بار', (isFinite(X.diag.bufMs) ? 'بافر پخش ' + N(X.diag.bufMs) + ' میلی‌ثانیه' + (X.diag.bufGrow ? ' (' + N(X.diag.bufGrow) + ' بار افزایش خودکار)' : '') : ''), 'ساخت صدا از پخش عقب است؛ «کیفیت HD» را خاموش کنید.');
         else add('o', B, 'لکنت پخش بومی ثبت نشده');
       }
+      if (X && X.diag && typeof X.diag.nd === 'string') {   /* r17: وضعیت حذف‌نویز عصبی (idle = هنوز با سطح ۲/۳ ساخته نشده؛ بدون مورد) */
+        var ndS = X.diag.nd;
+        if (/^ok/.test(ndS)) add('o', B, 'حذف‌نویز عصبی (DPDFNet) فعال است', ndS);
+        else if (/^off/.test(ndS)) add('w', B, 'حذف‌نویز عصبی کار نکرد', ndS.slice(4), 'فقط فیلتر کلاسیک اجرا می‌شود؛ این متن را برای رفع خطا بفرستید.');
+        else if (ndS === 'no-model') add('w', B, 'مدل حذف‌نویز عصبی داخل برنامه نیست', '', 'بیلد را با add-denoise-model.sh دوباره بگیرید؛ فعلاً فقط فیلتر کلاسیک اجرا می‌شود.');
+      }
       if (dbg && dbg.under) add('w', B, 'گسست پخش (مرورگر): ' + N(dbg.under) + ' بار');
       if (HS.bad) add('w', B, 'ناظر سلامت صدا: ' + N(HS.bad) + ' تکهٔ مشکوک', N(HS.fixed) + ' اصلاح‌شده، ' + N(HS.kept) + ' بدون تغییر' + (HS.rp.length ? ' · آخرین: ' + hsFmt(HS.rp[HS.rp.length - 1]).slice(0, 160) : ''), 'جزئیات کامل زیر در «گزارش ناظر سلامت» است.');
       else if (HS.lN) add('o', B, 'ناظر سلامت صدا: تکهٔ مشکوکی نیست', N(HS.lN) + ' تکه بررسی شد');
       if (HS.lN >= 5 && HS.lO > 0) add(HS.lO * 4 >= HS.lN ? 'w' : 'i', B, 'بلندی ناهمگون: ' + N(HS.lO) + ' از ' + N(HS.lN) + ' تکه بیش از ۶ dB انحراف دارد', svOn('svLvl') ? N(HS.lG) + ' تکه تراز شد' : 'تراز بلندی خاموش است', svOn('svLvl') ? '' : 'در «ناظر هوشمند» تراز بلندی را روشن کنید.');
       if (SV.hlE) add('w', B, 'هم‌گامی هایلایت: ' + N(SV.hlE) + ' تکه تخمینی', N(SV.hlR) + ' تکه با مرز واقعی', 'هایلایت ممکن است کمی جلو/عقب بماند.');
       if (K['native-crash']) add('e', B, 'برنامه بار قبل ناگهان بسته شده (کرش بومی)', K['native-crash'].last, 'این گزارش را کپی و برای عیب‌یابی ارسال کنید.');
-      if (SV.prev) add('w', B, 'خروج غیرمنتظره در اجرای قبل', SV.prev);
+      if (SV.prev) add(SV.prevI ? 'i' : 'w', B, SV.prevI ? 'بسته‌شدن برنامه در پس‌زمینهٔ بیکار' : 'خروج غیرمنتظره در اجرای قبل', SV.prev);
     });
     T(function(){
       if (SV.mem || SV.trN) add('w', B, 'فشار حافظه: ' + N(SV.mem || 0) + ' بار سبک‌سازی' + (SV.trN ? '، ' + N(SV.trN) + ' اعلان حافظهٔ سیستم' : ''), SV.memH ? 'حافظهٔ JS ≈ ' + N(SV.memH) + ' از ' + N(SV.memL) + ' مگابایت' : '', 'برنامه‌های پس‌زمینه را ببندید؛ سند را کوچک‌تر بخوانید.');
@@ -3680,7 +3686,7 @@ window.ocrNatQuick = async function(){   /* r82: تنظیم خودکار سبک 
   for (i = 0; i < cs.length; i++) {
     if (thermal() >= 2 || headroom() >= 0.88) break;
     a = { tw: 768, b: 3, n: 3 }; for (k in cs[i]) a[k] = cs[i][k];
-    try { r = await P.bench(a); if (r && r.pxs) out.push({ cfg: cs[i], pxs: r.pxs, ep: r.ep }); } catch (e) { window.__elogR && window.__elogR('c723', 'r  await P.bench(a) if (r  r.pxs) : ' + String((e && e.message) || e).slice(0, 80));}
+    try { r = await P.bench(a); if (r && r.pxs) out.push({ cfg: cs[i], pxs: r.pxs, ep: r.ep }); } catch (e) { var em3 = String((e && e.message) || e); window.__elogR && window.__elogR('c723', 'r  await P.bench(a) if (r  r.pxs) : ' + em3.slice(0, 80)); if (/dlopen|OrtGetApiBase|UnsatisfiedLink|OrtEnvironment|NoClassDefFound/.test(em3)) { try { sset('ocrNatBad', APP_BUILD + '|' + em3.slice(0, 60) + '|' + Date.now()); } catch (x) {} break; } }
   }
   if (!out.length) return null;
   best = out.slice().sort(function(x, y){ return y.pxs - x.pxs; })[0];
@@ -3737,9 +3743,9 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
   /* ===== جداکردن «می» و «نمی» از فعل با نیم‌فاصله: میکنم ← می‌کنم، نمیدانم ← نمی‌دانم ===== */
   var miFix = (function(){
     var Z = '\u200c', NB = '(?<![\\p{L}\u200c])', NE = '(?![\\p{L}\u200c])',
-        PRES = 'شو|کن|ده|رو|آی|ای|گو|بین|خور|گیر|توان|دان|خواه|باش|دار|نویس|خوان|مان|آور|اور|بر|ساز|یاب|پذیر|ریز|کش|زن|گذار|شناس|فرست|رس|خواب|نشین|پرس|فهم|آموز|گرد|ایست|انداز|افت|افزا|افروز|آفرین|آمیز|آزما|اندیش|کوش|شنو|پرداز|پندار|شمار|خند|پز|پوش|بخش|بند|تاز|تراش|ترس|چین|چسب|خر|خیز|دو|دوز|رقص|رنج|سپار|سوز|شکن|شکف|فروش|فرما|فشار|کار|کوب|گذر|گزین|گشا|گمار|نمای|نواز|پسند|پیچ|پیما|پیوند|بخش|بیز|جو|جنگ|چرخ|خوش|دز|دم|رنج|زی|ستان|سنج|شو|شکن|لرز|مال|مان|نگار|نگر|نشان|هراس|یاب|یاور|بار|بافت?',
-        PAST = 'کرد|گفت|رفت|شد|داد|دید|خواست|آمد|برد|خورد|گرفت|بود|داشت|ماند|نوشت|خواند|توانست|دانست|آورد|ساخت|زد|رسید|پرسید|شنید|فهمید|گذاشت|کشید|ریخت|نشست|افتاد|یافت|ایستاد|انداخت|پرداخت|پنداشت|شمرد|خندید|پوشید|پخت|فروخت|گشت|دوید|ترسید|کوشید|پذیرفت|شناخت|فرستاد|خوابید|خرید|چید|دوخت|سوخت|شکست|شکفت|بخشید|بست|جست|رقصید|ماسید|نمود|نماید|فرمود|گذشت|گزید|گمارد|گمارید|یاوید|سپرد|بافت|توان|بایست|شایست|بایستی';
-    var R = new RegExp(NB + '(ن?می)[ ]?(?!دانی' + NE + ')(?=(?:' + PRES + ')(?:م|ی|یم|ید|ند|یند|د)' + NE + '|(?:' + PAST + ')(?:م|ی|یم|ید|ند|ه(?:\u200c?(?:ام|ای|ایم|اید|اند))?)?' + NE + ')', 'gu');   /* r173: «می کرده است» ← «می‌کرده است» (گزارش دستگاه: «می␠فعل» جدا) */
+        PRES = 'شو|کن|ده|رو|آی|ای|گو|بین|خور|گیر|توان|دان|خواه|باش|دار|نویس|خوان|مان|آور|اور|بر|ساز|یاب|پذیر|ریز|کش|زن|گذار|شناس|فرست|رس|خواب|نشین|پرس|فهم|آموز|گرد|ایست|انداز|افت|افزا|افروز|آفرین|آمیز|آزما|اندیش|کوش|شنو|پرداز|پندار|شمار|خند|پز|پوش|بخش|بند|تاز|تراش|ترس|چین|چسب|خر|خیز|دو|دوز|رقص|رنج|سپار|سوز|شکن|شکف|فروش|فرما|فشار|کار|کوب|گذر|گزین|گشا|گمار|نمای|نواز|پسند|پیچ|پیما|پیوند|بخش|بیز|جو|جنگ|چرخ|خوش|دز|دم|رنج|زی|ستان|سنج|شو|شکن|لرز|مال|مان|نگار|نگر|نشان|هراس|یاب|یاور|بار|بافت?|گریز|چش|ستیز|سرای|جوش|درخش|ربا|نال|فریب|آرای',
+        PAST = 'کرد|گفت|رفت|شد|داد|دید|خواست|آمد|برد|خورد|گرفت|بود|داشت|ماند|نوشت|خواند|توانست|دانست|آورد|ساخت|زد|رسید|پرسید|شنید|فهمید|گذاشت|کشید|ریخت|نشست|افتاد|یافت|ایستاد|انداخت|پرداخت|پنداشت|شمرد|خندید|پوشید|پخت|فروخت|گشت|دوید|ترسید|کوشید|پذیرفت|شناخت|فرستاد|خوابید|خرید|چید|دوخت|سوخت|شکست|شکفت|بخشید|بست|جست|رقصید|ماسید|نمود|نماید|فرمود|گذشت|گزید|گمارد|گمارید|یاوید|سپرد|بافت|توان|بایست|شایست|بایستی|گریخت|چشید|ستیزید|سرود|جوشید|درخشید|ربود|نالید|فریفت|آراست|ستود|گشود|گسست|نگریست|تپید|لغزید|لرزید|تابید|گسیخت';
+    var R = new RegExp(NB + '(ن?می)[ ]?(?!(?:دانی|چشم)' + NE + ')(?=(?:' + PRES + ')(?:م|ی|یم|ید|ند|یند|د)' + NE + '|(?:' + PAST + ')(?:م|ی|یم|ید|ند|ه(?:\u200c?(?:ام|ای|ایم|اید|اند))?)?' + NE + ')', 'gu');   /* r173: «می کرده است» ← «می‌کرده است» (گزارش دستگاه: «می␠فعل» جدا) */
     var f = function(t){ return t.replace(R, '$1' + Z); };
     f.PRES = PRES; f.PAST = PAST;
     return f;
@@ -5600,13 +5606,17 @@ function jbWrapW(ls, old){
     });
     L.forEach(function(ls, p){ var seen = {}; ls.forEach(function(l, i){ var k = key(l); if (E[p][i] && l.length < 80 && !seen[k]) { seen[k] = 1; cnt[k] = (cnt[k] || 0) + 1; } }); });
     var th = pg.length < 8 ? Math.max(3, Math.ceil(pg.length * 0.5)) : Math.max(3, pg.length * 0.4);
+    var DM = /(?<![\p{L}\p{N}@.\-\/])(?:https?:\/\/)?(?:www\.)?[a-z0-9][a-z0-9-]{2,}[ ]?\.[ ]?(?:com|ir|org|net|info|edu|co)(?![\p{L}\p{N}])/giu, dc = {}, dk = function(m){ return m.toLowerCase().replace(/[ ]/g, ''); }, dn = 0;   /* r180: دامنه/واترمارک تکراری (taheriacademy.com) حتی وسط خط؛ شمارش روی ورودی، حذف روی خروجی (اندیس خط‌های ed دست‌نخورده می‌ماند) */
+    pg.forEach(function(t){ var s = {}; (String(t).match(DM) || []).forEach(function(x){ x = dk(x); if (!s[x]) { s[x] = 1; dc[x] = (dc[x] || 0) + 1; } }); });
+    Object.keys(dc).forEach(function(k){ if (dc[k] >= th) dn++; });
+    var dstrip = function(t){ return dn ? t.replace(DM, function(m){ return dc[dk(m)] >= th ? '' : m; }).replace(/[ \t]{2,}/g, ' ').replace(/^[ \t]+$/gm, '') : t; };
     return L.map(function(ls, p){
       var fi = -1, la = -1;
       ls.forEach(function(l, i){ if (l) { if (fi < 0) fi = i; la = i; } });
       /* خط فقط‌عددی فقط وقتی شمارهٔ صفحه است که اولین یا آخرین خط غیرخالی صفحه باشد */
       /* r163: در مسیر OCR، شمارهٔ صفحهٔ چاپی که آخرین خط غیرخالی است ولی کمی بیرون ناحیهٔ هندسی ۱۲٪ افتاده («۲۴» پیش از صفحهٔ بعد) هم حذف شود؛ فقط ۱–۴ رقم و ≤ تعداد صفحه‌ها+۳۰ تا سال («۱۳۹۸») و شمارهٔ فصل نیفتد (ممیزی «بینش» S7) */
       return ls.filter(function(l, i){ return !((E[p][i] && l && l.length < 80 && (cnt[key(l)] >= th || ((i === fi || i === la) && l.length <= 8 && /^[-–\s\d۰-۹٠-٩]+$/.test(l)))) || (ed && ed[p] && i === la && l && /^[\d۰-۹٠-٩]{1,4}$/.test(l) && +l.replace(/[۰-۹]/g, function(c){ return c.charCodeAt(0) - 0x6F0; }).replace(/[٠-٩]/g, function(c){ return c.charCodeAt(0) - 0x660; }) <= pg.length + 30)); }).join('\n');
-    });
+    }).map(dstrip);
   }
   var RTLCH = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
   function joinItems(items){
@@ -5929,7 +5939,7 @@ function jbWrapW(ls, old){
       ln.ow.post('natres', { id: v.id, dims: r.dims, idx: ix.buffer, val: vl.buffer }, [ix.buffer, vl.buffer]);
     } catch (e) { try { ln.ow.post('natres', { id: v.id, err: String((e && e.message) || e).slice(0, 120) }); } catch (x) { window.__elogR && window.__elogR('c702', 'ln.ow.post(natres  id v.id err Str : ' + String((x && x.message) || x).slice(0, 80));} }
   }
-  function natBadNow(){ var s = sget('ocrNatBad', '') || '', a, ts; if (s.indexOf(APP_BUILD) !== 0) return false; if (/mismatch/.test(s)) return true; a = s.split('|'); ts = +a[2] || 0; return !ts || (Date.now() - ts) < 1200000; }
+  function natBadNow(){ var s = sget('ocrNatBad', '') || '', a, ts; if (s.indexOf(APP_BUILD) !== 0) return false; if (/mismatch|dlopen|OrtGetApiBase|UnsatisfiedLink|OrtEnvironment|NoClassDefFound/.test(s)) return true; a = s.split('|'); ts = +a[2] || 0; return !ts || (Date.now() - ts) < 1200000; }
   function natCfg(){ try { return JSON.parse(sget('ocrNatCfg', '') || '{}') || {}; } catch (e) { return {}; } }
   function pinitT(ow, d){ var t = performance.now(), a = [].slice.call(arguments, 1), f = function(){ try { (ocrPerf.pi || (ocrPerf.pi = [])).push(Math.round(performance.now() - t)); if (ocrPerf.pi.length > 12) ocrPerf.pi.shift(); } catch (e) {} };   /* گام ۲: زمان راه‌اندازی Worker (بارگذاری مدل + گرم‌کردن) */
     return ow.call.apply(ow, ['pinit'].concat(a)).then(function(v){ f(); return v; }, function(e){ f(); throw e; }); }
@@ -9715,7 +9725,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r179 · 2026-11-04 · spell-v3 · errbox-v1', npBuild = '';
+  var APP_BUILD = 'html-r180 · 2026-11-04 · spell-v3 · errbox-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10486,8 +10496,8 @@ function svBoot(){
   var f = sget('svSes', ''), a = sget('svLast', '').split('|'), ph = a[0], w;
   if (!svOn('svExit') || f !== '1' || a.length < 4) return;
   w = ph === 'play' ? 'پخش' : ph === 'ocr' ? 'OCR' : 'بیکار';
-  SV.prev = 'جلسهٔ قبل بدون خروج عادی بسته شد (مرحله: ' + w + (a[1] === '0' ? '، در پس‌زمینه' : '') + '، حافظهٔ JS ≈ ' + nf.format(+a[2] || 0) + ' مگابایت، جملهٔ ' + nf.format(+a[4] || 0) + ')';
-  svLog('exit', SV.prev);
+  SV.prevI = ph === 'idle' && a[1] === '0'; SV.prev = 'جلسهٔ قبل بدون خروج عادی بسته شد (مرحله: ' + w + (a[1] === '0' ? '، در پس‌زمینه' : '') + '، حافظهٔ JS ≈ ' + nf.format(+a[2] || 0) + ' مگابایت، جملهٔ ' + nf.format(+a[4] || 0) + ')';
+  svLog('exit', SV.prev);   /* r180: بیکار+پس‌زمینه معمولاً بستن/آزادسازی توسط اندروید است، نه خرابی */
   if (ph === 'play' || ph === 'ocr') status('برنامه بار قبل هنگام ' + w + ' بدون خروج عادی بسته شد؛ جزئیات در «ناظر هوشمند» و گزارش خطا است.');
 }
 function svLive(){
@@ -10498,7 +10508,7 @@ function svLive(){
   o.push('• ناظر حافظه: ' + (SV.memH ? 'حافظهٔ JS ≈ ' + nf.format(SV.memH) + ' از ' + nf.format(SV.memL) + ' مگابایت' : 'اندازه‌گیری در این دستگاه ممکن نیست') + (SV.mem ? '؛ ' + nf.format(SV.mem) + ' بار سبک‌سازی (' + nf.format(SV.memN) + ' صفحه)' : '') + (SV.trN ? '؛ ' + nf.format(SV.trN) + ' اعلان فشار حافظهٔ سیستم (آخرین سطح ' + nf.format(SV.trL) + ')' : '') + '.');
   try {
     vid = ($('#voice') || {}).value; mr = vid ? nsGet(nsKey(vid)) : null;
-    o.push('• ناظر نویز: ' + (mr ? 'سطح ' + nf.format(mr.lv) + '، کف نویز ' + nf.format(mr.fl) + ' dB، اطمینان ' + (mr.cf === 'h' ? 'بالا' : mr.cf === 'm' ? 'متوسط' : mr.cf === 'l' ? 'کم (مرزی)' : 'نامشخص') + (mr.fl >= -32 ? ' ← نویز مدل با حذف نویز پاک نمی‌شود' : '') + (HS.nm[vid] != null ? '؛ کف نویز زنده ≈ ' + nf.format(Math.round(HS.nm[vid])) + ' dB (اختلاف ' + nf.format(Math.round(HS.nm[vid] - mr.fl - (mr.off || 0))) + ')' + (mr.off ? '، جبران نظام‌مند ' + nf.format(mr.off) + ' dB' : '') : '') : nsBusy ? 'در حال اندازه‌گیری' : 'هنوز اندازه‌گیری نشده') + '.');
+    o.push('• ناظر نویز: ' + (mr ? 'سطح ' + nf.format(mr.lv) + '، کف نویز ' + nf.format(mr.fl) + ' dB، اطمینان ' + (mr.cf === 'h' ? 'بالا' : mr.cf === 'm' ? 'متوسط' : mr.cf === 'l' ? 'کم (مرزی)' : 'نامشخص') + (mr.np ? ' (سکوت مرجع در جمله‌های آزمون نبود؛ کف نویز قابل‌اندازه‌گیری نیست)' : mr.fl >= -32 ? ' ← نویز مدل با حذف نویز پاک نمی‌شود' : '') + (HS.nm[vid] != null ? '؛ کف نویز زنده ≈ ' + nf.format(Math.round(HS.nm[vid])) + ' dB (اختلاف ' + nf.format(Math.round(HS.nm[vid] - mr.fl - (mr.off || 0))) + ')' + (mr.off ? '، جبران نظام‌مند ' + nf.format(mr.off) + ' dB' : '') : '') : nsBusy ? 'در حال اندازه‌گیری' : 'هنوز اندازه‌گیری نشده') + '.');
   } catch (e) {}
   o.push('• ناظر سلامت و یکنواختی صدا: ' + nf.format(HS.bad) + ' تکهٔ مشکوک (' + nf.format(HS.fixed) + ' اصلاح‌شده، ' + nf.format(HS.kept) + ' بدون تغییر)؛ بلندی: ' + nf.format(HS.lO) + ' انحراف > ۶ dB از ' + nf.format(HS.lN) + ' تکه' + (svOn('svLvl') ? '؛ ' + nf.format(HS.lG) + ' تکه تراز شد' : '؛ تراز خاموش') + '.');
   try {
@@ -10523,7 +10533,7 @@ function svRender(){
   if (!e) return;
   base = svLive(); put = function(){ e.textContent = base.concat(ex).join('\n'); }; put();
   if (!npOK || !NP) return;
-  try { if (NP.diag) NP.diag().then(function(r){ if (r && isFinite(r.underruns)) { ex.push('• لکنت پخش (underrun) بومی: ' + nf.format(r.underruns) + ' بار' + (isFinite(r.bufMs) ? '؛ بافر پخش ' + nf.format(r.bufMs) + ' میلی‌ثانیه' + (r.bufGrow ? ' (' + nf.format(r.bufGrow) + ' بار افزایش خودکار)' : '') : '') + '.'); put(); } }).catch(function(){}); } catch (x) {}
+  try { if (NP.diag) NP.diag().then(function(r){ if (r && isFinite(r.underruns)) { ex.push('• لکنت پخش (underrun) بومی: ' + nf.format(r.underruns) + ' بار' + (isFinite(r.bufMs) ? '؛ بافر پخش ' + nf.format(r.bufMs) + ' میلی‌ثانیه' + (r.bufGrow ? ' (' + nf.format(r.bufGrow) + ' بار افزایش خودکار)' : '') : '') + '.'); put(); } if (r && typeof r.nd === 'string' && r.nd !== 'idle') { ex.push('• حذف‌نویز عصبی (DPDFNet): ' + r.nd); put(); } }).catch(function(){}); } catch (x) {}
   try { if (NP.cacheInfo) NP.cacheInfo().then(function(r){ var b = r.bytes || 0, m = r.max || 0; var ht = +r.hits || 0, tt = ht + (+r.misses || 0); ex.push('• ناظر کش صوت: ' + pcFmt(b) + ' از ' + pcFmt(m) + ' (' + nf.format(r.files || 0) + ' جمله)' + (tt ? '؛ نرخ برخورد ' + nf.format(Math.round(ht * 100 / tt)) + '٪ (' + nf.format(ht) + ' از ' + nf.format(tt) + ' جمله از شروع برنامه)' : '') + (r.evicted ? '؛ ' + nf.format(r.evicted) + ' جمله به‌دلیل سقف حذف شد' : '') + (m && b >= m * 0.9 ? ' ← نزدیک سقف؛ در «پیشرفته» سقف را بالا ببرید یا پاک‌سازی کنید' : '') + '.'); put(); }).catch(function(){}); } catch (x) {}
 }
 function hsRec(o){   /* r160: ثبت فشردهٔ رویداد برای «گزارش ناظر سلامت صدا»؛ سقف ۱۲، فقط مقدارهای ساده، فقط در حافظه */
@@ -11069,7 +11079,7 @@ function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مک
       clearInterval(tk);
       if (my !== token || !playing) return;
       var m = String((e && e.message) || e);
-      if (!/NATIVE_CANCELLED/.test(m)) dgLog('tts-synth', 'جمله ' + c.start + ' (' + c.text.length + ' نویسه): ' + m);
+      if (!/NATIVE_CANCELLED/.test(m) && !/^cancelled$/.test(m)) dgLog('tts-synth', 'جمله ' + c.start + ' (' + c.text.length + ' نویسه): ' + m);
       if (/دانلود نشده|نصب نشده|آماده نشده|espeak|مدل پیدا نشد|NATIVE_CANCELLED|موتور/.test(m)) { fail(my, 'خطا در صدای Piper: ' + m); return; }
       var k = c.start, nf2 = failN[k] = (failN[k] || 0) + 1;
       dropChunkCache(c);
@@ -11721,11 +11731,11 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
      هنگام بی‌کاری (پخش خاموش) ۳ جملهٔ ثابت با هر چهار سطح ساخته و از PCM سنجیده می‌شود: کف نویز در کم‌صداترین فریم‌های غیرسکوت، خش بالای ۵kHz در همان فریم‌ها،
      و آسیب به گفتار (افت پرده‌های بالای گفتار و تغییر تراز نسبت به سطح ۰). هزینهٔ هر سطح = جریمهٔ نویز + جریمهٔ آسیب + ۰٫۱۲×سطح (کمترین دخالت)؛
      اگر سطح ۲ (پیش‌فرض) کمتر از ۰٫۲۵ از بهترین بدتر باشد همان می‌ماند تا انتخاب با نوسان تصادفی ساخت بالا و پایین نشود. با شروع پخش اندازه‌گیری متوقف و بعداً ادامه می‌یابد. */
-  var NS = {}, NSR = {}, nsBusy = false, nsTry = 0, nsTm = 0, NS_V = 'v4';
+  var NS = {}, NSR = {}, nsBusy = false, nsTry = 0, nsTm = 0, NS_V = 'v5';
   /* r136: کلید نسخه‌دار (نتایج قدیمی بی‌اثر و یک‌بار پاک می‌شوند)؛ ادامهٔ اندازه‌گیری نیمه‌تمام در NSR */
   try { for (var qi = localStorage.length - 1, qk; qi >= 0; qi--) { qk = localStorage.key(qi); if (qk && qk.indexOf('nsv:') === 0 && qk.indexOf('~' + NS_V + '~') < 0) localStorage.removeItem(qk); } } catch (e) {}
   /* r177: حذف نویز بومی برای gyro اصلاح شد (اعتماد تدریجی)؛ نتیجهٔ اندازه‌گیری و آزمون noise_scale قبلی باطل و از نو انجام می‌شود */
-  try { if (sget('nsNsVer', '') !== 'n178') { for (var qj = localStorage.length - 1, qm; qj >= 0; qj--) { qm = localStorage.key(qj); if (qm && qm.indexOf('nsNs') === 0) localStorage.removeItem(qm); } sset('nsNsVer', 'n178'); } } catch (e) {}
+  try { if (sget('nsNsVer', '') !== 'n180') { for (var qj = localStorage.length - 1, qm; qj >= 0; qj--) { qm = localStorage.key(qj); if (qm && qm.indexOf('nsNs') === 0) localStorage.removeItem(qm); } sset('nsNsVer', 'n180'); } } catch (e) {}
   function nsKey(id){
     var st; try { st = styleParams(id); } catch (e) { st = [0, 0]; }
     return id + '~' + NS_V + '~' + st[0] + '~' + st[1] + '~' + ($('#enh').checked ? 1 : 0) + '~' + clarityLevel() + '~' + pauseLevel();
@@ -11753,30 +11763,32 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   }
   /* r136: متریک تک‌گذر بدون تخصیص حافظه (فیلتر بالاگذر ۵kHz درجا) + نسبت فریم‌های مرده (سکوت دیجیتال) داخل بازهٔ گفتار برای تشخیص گیت‌شدن بیش‌ازحد */
   function nsMetrics(x, sr){
-    var N = Math.round(sr * 0.02), n = Math.floor(x.length / N), w = 2 * Math.PI * 5000 / sr, cs = Math.cos(w), al = Math.sin(w) / 1.414, a0 = 1 + al, b0 = (1 + cs) / 2 / a0, b1 = -(1 + cs) / a0, c1 = -2 * cs / a0, c2 = (1 - al) / a0, x1 = 0, x2 = 0, y1 = 0, y2 = 0, r = new Float32Array(n), rh = new Float32Array(n), ix = [], i, j, s, t, v, o, qn, qs, eN = 0, eNh = 0, eS = 0, eSh = 0, f1 = -1, f2 = -1, dead = 0;
+    var N = Math.round(sr * 0.02), n = Math.floor(x.length / N), w = 2 * Math.PI * 5000 / sr, cs = Math.cos(w), al = Math.sin(w) / 1.414, a0 = 1 + al, b0 = (1 + cs) / 2 / a0, b1 = -(1 + cs) / a0, c1 = -2 * cs / a0, c2 = (1 - al) / a0, x1 = 0, x2 = 0, y1 = 0, y2 = 0, r = new Float32Array(n), rh = new Float32Array(n), ix = [], i, j, s, t, v, o, qn, qs, eN = 0, eNh = 0, eS = 0, eSh = 0, f1 = -1, f2 = -1, dead = 0, RM = 1e-10, p3, p15;
     for (i = 0; i < n; i++) {
       s = 0; t = 0;
       for (j = i * N; j < i * N + N; j++) { v = x[j]; o = b0 * v + b1 * x1 + b0 * x2 - c1 * y1 - c2 * y2; x2 = x1; x1 = v; y2 = y1; y1 = o; s += v * v; t += o * o; }
       r[i] = s / N; rh[i] = t / N;
-      if (r[i] > 1e-9) { ix.push(i); if (f1 < 0) f1 = i; f2 = i; }
+      if (r[i] > 1e-9) { if (f1 < 0) f1 = i; f2 = i; }
     }
+    if (f1 < 0) return null;
+    for (i = f1; i <= f2; i++) { ix.push(i); if (r[i] <= 1e-9) dead++; }   /* r180: فریم مردهٔ داخل گفتار (گیت/حذف نویز) سکوتِ واقعی است و کف حساب می‌شود؛ پیش‌تر حذف می‌شد و «کف» دامنهٔ پویای خود گفتار (≈ −۱۸dB) را می‌سنجید، هر چه نویز را بیشتر پاک می‌کردیم بدتر می‌شد */
     if (ix.length < 20) return null;
-    for (i = f1; i <= f2; i++) if (r[i] <= 1e-9) dead++;
     ix.sort(function(p, q){ return r[p] - r[q]; });
     qn = Math.max(3, Math.floor(ix.length * 0.15)); qs = Math.max(5, Math.floor(ix.length * 0.4));
-    for (i = 0; i < qn; i++) { eN += r[ix[i]]; eNh += rh[ix[i]]; }
+    for (i = 0; i < qn; i++) { eN += Math.max(r[ix[i]], RM); eNh += Math.max(rh[ix[i]], RM * 0.1); }
     for (i = ix.length - qs; i < ix.length; i++) { eS += r[ix[i]]; eSh += rh[ix[i]]; }
     eN /= qn; eNh /= qn; eS /= qs; eSh /= qs;
-    return { fl: 10 * Math.log10(eN / eS + 1e-10), hs: 10 * Math.log10(eNh / eS + 1e-10), sh: eSh / (eS + 1e-12), sd: 10 * Math.log10(eS + 1e-12), dz: dead / (f2 - f1 + 1) };
+    p3 = Math.max(r[ix[Math.floor(ix.length * 0.03)]], RM); p15 = Math.max(r[ix[qn - 1]], RM);   /* پلاتوی کف: ۱۵٪ کم‌انرژی‌ترین فریم‌ها باید هم‌سطح باشند (≤ ۳dB)؛ وگرنه سکوت مرجعی در جمله نیست و عدد نویز نیست */
+    return { fl: 10 * Math.log10(eN / eS + 1e-10), hs: 10 * Math.log10(eNh / eS + 1e-10), sh: eSh / (eS + 1e-12), sd: 10 * Math.log10(eS + 1e-12), dz: dead / ix.length, np: 10 * Math.log10(p15 / p3) > 3 ? 1 : 0 };
   }
   function nsMed(a, k){ var v = a.map(function(m){ return m[k]; }).sort(function(p, q){ return p - q; }), h = v.length >> 1; return v.length & 1 ? v[h] : (v[h - 1] + v[h]) / 2; }
   function nsPick(R){   /* R[سطح][جمله] = متریک؛ میانه (مقاوم به جملهٔ پرت) + جریمهٔ سکوت مصنوعی نسبت به سطح ۰ + حاشیهٔ اطمینان mg */
-    var c = [], q, L, fl, hs, sh, sd, dz, dh, dl, cl = function(v, a, b){ return Math.max(a, Math.min(b, v)); }, best = 0, o = [], s0 = nsMed(R[0], 'sh'), d0 = nsMed(R[0], 'sd'), z0 = nsMed(R[0], 'dz');
+    var c = [], q, L, fl, hs, sh, sd, dz, dh, dl, np, cl = function(v, a, b){ return Math.max(a, Math.min(b, v)); }, best = 0, o = [], s0 = nsMed(R[0], 'sh'), d0 = nsMed(R[0], 'sd'), z0 = nsMed(R[0], 'dz');
     for (L = 0; L < 4; L++) {
-      fl = nsMed(R[L], 'fl'); hs = nsMed(R[L], 'hs'); sh = nsMed(R[L], 'sh'); sd = nsMed(R[L], 'sd'); dz = Math.max(0, nsMed(R[L], 'dz') - z0);
+      fl = nsMed(R[L], 'fl'); hs = nsMed(R[L], 'hs'); np = nsMed(R[L], 'np') >= 0.5; sh = nsMed(R[L], 'sh'); sd = nsMed(R[L], 'sd'); dz = Math.max(0, nsMed(R[L], 'dz') - z0);
       dh = 10 * Math.log10((s0 + 1e-12) / (sh + 1e-12)); dl = Math.abs(sd - d0);
-      c[L] = cl((fl + 50) / 6, 0, 3) + 0.7 * cl((hs + 58) / 6, 0, 3) + 1.2 * cl((dh - 1.2) / 1.5, 0, 3) + cl((dl - 1.5) / 1.5, 0, 2) + cl((dz - 0.03) / 0.05, 0, 3) + 0.12 * L;
-      o.push({ fl: Math.round(fl * 10) / 10, hs: Math.round(hs * 10) / 10, dh: Math.round(dh * 10) / 10, dl: Math.round(dl * 10) / 10, dz: Math.round(dz * 1000) / 1000, c: Math.round(c[L] * 100) / 100 });
+      c[L] = (np ? 1.5 : cl((fl + 50) / 6, 0, 3)) + 0.7 * (np ? 1.5 : cl((hs + 58) / 6, 0, 3)) + 1.2 * cl((dh - 1.2) / 1.5, 0, 3) + cl((dl - 1.5) / 1.5, 0, 2) + cl((dz - 0.03) / 0.05, 0, 3) + 0.12 * L;
+      o.push({ np: np ? 1 : 0, fl: Math.round(fl * 10) / 10, hs: Math.round(hs * 10) / 10, dh: Math.round(dh * 10) / 10, dl: Math.round(dl * 10) / 10, dz: Math.round(dz * 1000) / 1000, c: Math.round(c[L] * 100) / 100 });
     }
     for (L = 1; L < 4; L++) if (c[L] < c[best]) best = L;
     q = c.slice().sort(function(p, r){ return p - r; });
@@ -11828,9 +11840,9 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
         pp = pk;
       }
       if (!pk) pk = nsPick(R);
-      o = { lv: pk.lv, fl: pk.rows[pk.lv].fl, rows: pk.rows, n: cp.i, mg: Math.round(pk.mg * 100) / 100, t: Date.now() };
+      o = { lv: pk.lv, fl: pk.rows[pk.lv].fl, np: pk.rows[pk.lv].np, rows: pk.rows, n: cp.i, mg: Math.round(pk.mg * 100) / 100, t: Date.now() };
       o.cf = pk.mg >= 0.6 ? 'h' : pk.mg >= 0.35 ? 'm' : 'l'; if (nsMid(v.id)) o.m = nsMid(v.id);
-      if (o.fl >= -32) svLog('noise', 'گوینده «' + v.id + '»: حتی در بهترین سطح (' + o.lv + ') کف نویز ' + nf.format(o.fl) + ' dB است (≥ ‎−۳۲)؛ نویز این مدل با حذف نویز کامل پاک نمی‌شود، سبک گفتار آرام‌تر یا گوینده‌ٔ دیگر را امتحان کنید');
+      if (o.fl >= -32 && !o.np) svLog('noise', 'گوینده «' + v.id + '»: حتی در بهترین سطح (' + o.lv + ') کف نویز ' + nf.format(o.fl) + ' dB است (≥ ‎−۳۲)؛ نویز این مدل با حذف نویز کامل پاک نمی‌شود، سبک گفتار آرام‌تر یا گوینده‌ٔ دیگر را امتحان کنید');
       NS[key] = o; sset('nsv:' + key, JSON.stringify(o)); delete NSR[key];
       try { nsAdapt(v.id, o); } catch (e) {}
       try { var hq = R[pk.lv].map(function(q){ return q.hp; }).filter(Boolean), hw = '', hk; hq.forEach(function(q){ hk = hsPcmWhy(q); if (hk && !hw) hw = hk; }); HS.vp[v.id] = hw ? 'سنجش صدای این گوینده: ' + hw + ' در سطح انتخابی.' : 'سنجش صدای این گوینده: بدون بریدگی و بی‌صدایی.'; hsShow(); } catch (e) {}
@@ -11846,12 +11858,12 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     if (sget('nzMode', 'auto') === 'manual' || sget('nsNsDone:' + id, '') === '1') return;
     cur = nsNsGet(id); try { b = JSON.parse(sget('nsNsB:' + id, '')); } catch (e) { b = null; }
     if (!b) {
-      if (!(o.fl >= -32) || cur - 0.1 < 0.34) return;
+      if (o.np || !(o.fl >= -32) || cur - 0.1 < 0.34) return;
       sset('nsNsB:' + id, JSON.stringify({ ns: cur, fl: o.fl })); nx = Math.round((cur - 0.1) * 100) / 100;
       sset('nsNs:' + id, String(nx)); svLog('noise', 'گوینده «' + id + '»: کف نویز ' + nf.format(o.fl) + ' dB؛ آزمون noise_scale ' + nf.format(cur) + ' ← ' + nf.format(nx));
       nsKick(); return;
     }
-    if (o.fl <= b.fl - 3) {   /* بهتر شد: نگه‌دار؛ اگر هنوز بالاست یک پلهٔ دیگر */
+    if (!o.np && o.fl <= b.fl - 3) {   /* بهتر شد: نگه‌دار؛ اگر هنوز بالاست یک پلهٔ دیگر */
       svLog('noise', 'گوینده «' + id + '»: noise_scale ' + nf.format(cur) + ' کف نویز را از ' + nf.format(b.fl) + ' به ' + nf.format(o.fl) + ' dB رساند؛ نگه داشته شد');
       if (o.fl >= -32 && cur - 0.1 >= 0.34) { sset('nsNsB:' + id, JSON.stringify({ ns: cur, fl: o.fl })); nx = Math.round((cur - 0.1) * 100) / 100; sset('nsNs:' + id, String(nx)); nsKick(); }
       else { try { localStorage.removeItem('nsNsB:' + id); } catch (e) {} sset('nsNsDone:' + id, '1'); }
