@@ -2,13 +2,14 @@
 # ساخت آوانگار بیرونی برای اندروید: piper-phonemize (+ espeak-ng) و پل JNI.
 # sherpa-onnx ≥ 2.0 دیگر espeak ندارد؛ این کتابخانه جای آن را برای فارسی می‌گیرد.
 #   usage: build-phonemizer.sh <jniLibs-dir> [assets-dir]
-# متغیرهای اختیاری: PP_VER (پیش‌فرض v1.8.5، همان نسخه‌ای که sherpa-onnx 2.0 معرفی می‌کند)، ANDROID_NDK، OFFLINE_CACHE
+# متغیرهای اختیاری: PP_VER (پیش‌فرض v1.5.8 = بالاترین تگ v1.x که وجودش روی csukuangfj/piper-phonemize تأیید شد؛ v1.8.5 وجود ندارد)،
+#   PP_VER_STRICT=1 (اگر تگ نبود به‌جای جایگزینی خطا بده)، ANDROID_NDK، OFFLINE_CACHE
 # GPL: espeak-ng و piper-phonemize GPL-3.0 هستند (sherpa-onnx 1.x هم همین‌ها را داخل خودش داشت؛ وضعیت مجوز عوض نمی‌شود).
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 OUT_LIBS="$(cd "${1:?usage: build-phonemizer.sh <jniLibs-dir> [assets-dir]}" && pwd)"
 OUT_ASSETS="${2:-}"
-PP_VER="${PP_VER:-v1.8.5}"
+PP_VER="${PP_VER:-v1.5.8}"
 CACHE="${OFFLINE_CACHE:-$HOME/.offline-cache}"; mkdir -p "$CACHE"
 SIG="$(cat "$0" "$HERE/piperphon_jni.c" | sha256sum | cut -c1-12)"
 STORE="$CACHE/phonemizer-$PP_VER-$SIG"
@@ -52,11 +53,35 @@ echo "phonemizer: NDK=$NDK ; piper-phonemize=$PP_VER"
 
 # ---- سورس ----
 SRC=/tmp/piper-phonemize-src
+PP_URL=https://github.com/csukuangfj/piper-phonemize
+# r182: پیش از کلون، وجود تگ را با ls-remote می‌سنجیم (قبلاً سه کلون بی‌فایده و خطای مبهم می‌داد)
+PP_TAGS=""
+for i in 1 2 3; do
+  PP_TAGS="$(git ls-remote --tags --refs "$PP_URL" 2>/dev/null | sed -n 's#.*refs/tags/##p' || true)"
+  [ -n "$PP_TAGS" ] && break
+  sleep 3
+done
+if [ -n "$PP_TAGS" ] && ! grep -Fxq "$PP_VER" <<<"$PP_TAGS"; then
+  PP_SEMVER="$(printf '%s\n' "$PP_TAGS" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V || true)"
+  echo "WARN: تگ $PP_VER در $PP_URL وجود ندارد. تگ‌های نسخه‌دار موجود (۱۵ آخر):"
+  printf '%s\n' "$PP_SEMVER" | tail -15 | tr '\n' ' '; echo
+  [ -z "${PP_VER_STRICT:-}" ] || { echo "ERROR: PP_VER_STRICT فعال است؛ تگ $PP_VER باید وجود داشته باشد"; exit 1; }
+  PP_NEW="$(printf '%s\n' "$PP_SEMVER" | grep -E '^v1\.' | tail -1 || true)"   # فقط major=1 (امضای C API با پل JNI سازگار می‌ماند؛ بررسی نام توابع پایین‌تر انجام می‌شود)
+  [ -n "$PP_NEW" ] || { echo "ERROR: هیچ تگ v1.x روی $PP_URL پیدا نشد؛ PP_VER را دستی بدهید"; exit 1; }
+  echo "WARN: جایگزینی $PP_VER → $PP_NEW"
+  PP_VER="$PP_NEW"
+  # کلید حافظهٔ نهان باید نسخهٔ واقعاً ساخته‌شده را نشان بدهد
+  STORE="$CACHE/phonemizer-$PP_VER-$SIG"
+  if [ -f "$STORE/.done" ]; then echo "phonemizer: از حافظهٔ نهان ($STORE)"; install_from_store; exit 0; fi
+elif [ -z "$PP_TAGS" ]; then
+  echo "WARN: ls-remote پاسخ نداد؛ بدون بررسی تگ ادامه می‌دهیم"
+fi
+echo "phonemizer: piper-phonemize@$PP_VER"
 rm -rf "$SRC"
 for i in 1 2 3; do
-  if git clone --depth 1 --branch "$PP_VER" https://github.com/csukuangfj/piper-phonemize "$SRC"; then break; fi
+  if git clone --depth 1 --branch "$PP_VER" "$PP_URL" "$SRC"; then break; fi
   rm -rf "$SRC"
-  [ "$i" = 3 ] && { echo "ERROR: git clone piper-phonemize@$PP_VER ناموفق (آیا تگ وجود دارد؟)"; exit 1; }
+  [ "$i" = 3 ] && { echo "ERROR: git clone piper-phonemize@$PP_VER ناموفق (شبکه؟ تگ وجود دارد؟)"; exit 1; }
   sleep 5
 done
 cd "$SRC"
