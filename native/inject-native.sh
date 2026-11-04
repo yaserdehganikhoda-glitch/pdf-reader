@@ -55,12 +55,27 @@ fi
 echo "ORT نسخهٔ sherpa = $ORT_V"
 export ORT_V
 # r181: نسخهٔ ORT در sherpa 2.x عوض شده؛ AAR هم‌نسخه باید روی Maven باشد وگرنه Gradle بعد از ده‌ها دقیقه می‌شکند
-ORT_POM="com/microsoft/onnxruntime/onnxruntime-android/$ORT_V/onnxruntime-android-$ORT_V.pom"
-ORT_HTTP="000"
-for M in https://repo1.maven.org/maven2 https://repo.maven.apache.org/maven2 https://maven-central.storage-download.googleapis.com/maven2; do
-  ORT_HTTP="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$M/$ORT_POM" || echo 000)"
-  [ "$ORT_HTTP" = 200 ] && break
-done
+ort_code() {   # کد HTTP وجود onnxruntime-android:$1 روی Maven (200 = موجود)
+  local v="$1" c="000" M
+  for M in https://repo1.maven.org/maven2 https://repo.maven.apache.org/maven2 https://maven-central.storage-download.googleapis.com/maven2; do
+    c="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$M/com/microsoft/onnxruntime/onnxruntime-android/$v/onnxruntime-android-$v.pom" || echo 000)"
+    [ "$c" = 200 ] && break
+  done
+  echo "$c"
+}
+ORT_HTTP="$(ort_code "$ORT_V")"
+# r182: sherpa-onnx ≥ 1.13.8 از بیلد اختصاصی ORT (مثلاً 1.28.2) استفاده می‌کند که روی Maven نیست (فقط 1.28.0). API در یک minor ثابت است؛ پس AAR همان minor با نزدیک‌ترین patch کمتر سازگار است. اگر ORT_VER دستی داده شده باشد، دست نمی‌زنیم.
+if [ "$ORT_HTTP" = 404 ] && [ -z "${ORT_VER:-}" ] && [[ "$ORT_V" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  ORT_MM="${ORT_V%.*}"; ORT_P="${ORT_V##*.}"
+  while [ "$ORT_P" -gt 0 ]; do
+    ORT_P=$((ORT_P-1))
+    if [ "$(ort_code "$ORT_MM.$ORT_P")" = 200 ]; then
+      echo "WARN: AAR onnxruntime-android:$ORT_V روی Maven نیست؛ از $ORT_MM.$ORT_P (همان minor، API یکسان) استفاده می‌شود"
+      ORT_V="$ORT_MM.$ORT_P"; export ORT_V; ORT_HTTP=200; break
+    fi
+  done
+fi
+echo "ORT نسخهٔ AAR = $ORT_V"
 if [ "$ORT_HTTP" = 404 ]; then
   echo "ERROR: onnxruntime-android:$ORT_V روی Maven نیست. نسخهٔ موجود را با ORT_VER=... بدهید (باید با libonnxruntime.so داخل sherpa سازگار باشد)"; exit 1
 elif [ "$ORT_HTTP" != 200 ]; then
