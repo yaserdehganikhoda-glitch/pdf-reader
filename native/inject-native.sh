@@ -4,7 +4,8 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(pwd)"
-VER="${SHERPA_VER:-1.12.13}"
+# r181: sherpa-onnx 2.x (بدون espeak؛ آوانگاری فارسی با piper-phonemize بیرونی). برای برگشت به قبل باید پلاگین و اسکریپت r180 را با هم برگرداند
+VER="${SHERPA_VER:-2.0.1}"
 CACHE="${OFFLINE_CACHE:-$HOME/.offline-cache}"; mkdir -p "$CACHE"
 SUMS="$HERE/checksums.txt"   # خطوط: <sha256>  <نام فایل> ؛ اگر نبود، مقدار فایل چاپ می‌شود تا اضافه کنید
 # dl URL NAME → مسیر فایل را چاپ می‌کند؛ از حافظهٔ نهان استفاده می‌کند و در صورت وجود checksum صحت را بررسی می‌کند
@@ -38,7 +39,9 @@ SA="sherpa-onnx-v${VER}-android.tar.bz2"
 SU="https://github.com/k2-fsa/sherpa-onnx/releases/download/v${VER}/$SA"
 SP="$(dl "$SU" "$SA")"
 if ! tar tjf "$SP" >/dev/null 2>&1; then rm -f "$SP"; SP="$(dl "$SU" "$SA")"; fi
+rm -rf /tmp/jniLibs
 tar xjf "$SP" -C /tmp
+[ -d /tmp/jniLibs/arm64-v8a ] || { echo "ERROR: jniLibs/arm64-v8a در بستهٔ sherpa-onnx v$VER نیست"; exit 1; }
 cp -r /tmp/jniLibs/* android/app/src/main/jniLibs/
 # فقط ARM (گوشی‌های واقعی): حجم APK بسیار کمتر می‌شود
 rm -rf android/app/src/main/jniLibs/x86 android/app/src/main/jniLibs/x86_64
@@ -51,6 +54,18 @@ fi
 [ -n "$ORT_V" ] || { ORT_V=1.22.0; echo "WARN: نسخهٔ ORT داخل sherpa تشخیص داده نشد؛ پیش‌فرض $ORT_V (با ORT_VER=... عوض کن)" >&2; }
 echo "ORT نسخهٔ sherpa = $ORT_V"
 export ORT_V
+# r181: نسخهٔ ORT در sherpa 2.x عوض شده؛ AAR هم‌نسخه باید روی Maven باشد وگرنه Gradle بعد از ده‌ها دقیقه می‌شکند
+ORT_POM="com/microsoft/onnxruntime/onnxruntime-android/$ORT_V/onnxruntime-android-$ORT_V.pom"
+ORT_HTTP="000"
+for M in https://repo1.maven.org/maven2 https://repo.maven.apache.org/maven2 https://maven-central.storage-download.googleapis.com/maven2; do
+  ORT_HTTP="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$M/$ORT_POM" || echo 000)"
+  [ "$ORT_HTTP" = 200 ] && break
+done
+if [ "$ORT_HTTP" = 404 ]; then
+  echo "ERROR: onnxruntime-android:$ORT_V روی Maven نیست. نسخهٔ موجود را با ORT_VER=... بدهید (باید با libonnxruntime.so داخل sherpa سازگار باشد)"; exit 1
+elif [ "$ORT_HTTP" != 200 ]; then
+  echo "WARN: وجود onnxruntime-android:$ORT_V روی Maven تأیید نشد (HTTP $ORT_HTTP)"
+fi
 
 # 2) API کاتلین همان نسخه
 rm -rf /tmp/sherpa-src
@@ -62,8 +77,28 @@ for i in 1 2 3; do
 done
 cp /tmp/sherpa-src/sherpa-onnx/kotlin-api/*.kt android/app/src/main/java/com/k2fsa/sherpa/onnx/
 
+# 2b) r181: sherpa-onnx ≥ 2.0 آوانگاری را به بیرون سپرده؛ API کاتلین باید phonemeCodepoints و generateWithConfigAndCallback را داشته باشد
+KT=android/app/src/main/java/com/k2fsa/sherpa/onnx
+case "$VER" in 1.*) NEED_PHON=0;; *) NEED_PHON=1;; esac   # ۱.x: espeak داخل خود sherpa بود
+if [ "$NEED_PHON" = 1 ]; then
+  grep -q 'phonemeCodepoints' "$KT"/*.kt || { echo "ERROR: API کاتلین sherpa-onnx v$VER فیلد phonemeCodepoints ندارد؛ این نسخه با پلاگین سازگار نیست"; exit 1; }
+  grep -q 'generateWithConfigAndCallback' "$KT"/*.kt || { echo "ERROR: generateWithConfigAndCallback در API کاتلین v$VER نیست"; exit 1; }
+  echo "--- تعریف‌های Kotlin API (برای لاگ) ---"; grep -n 'phonemeCodepoints\|fun generateWithConfigAndCallback' "$KT"/*.kt | head -8
+  # آوانگار بیرونی: piper-phonemize + espeak-ng + پل JNI (کتابخانه‌ها داخل jniLibs، دادهٔ espeak هم‌نسخه داخل assets/phonemizer)
+  mkdir -p android/app/src/main/java/com/pdfvoice/phon android/app/src/main/assets
+  cp "$HERE/Phonemizer.java" android/app/src/main/java/com/pdfvoice/phon/Phonemizer.java
+  OFFLINE_CACHE="$CACHE" bash "$HERE/build-phonemizer.sh" android/app/src/main/jniLibs android/app/src/main/assets
+  for abi in arm64-v8a armeabi-v7a; do
+    for so in libpiper_phonemize.so libpiperphon_jni.so libsherpa-onnx-jni.so libonnxruntime.so; do
+      [ -s "android/app/src/main/jniLibs/$abi/$so" ] || { echo "ERROR: $abi/$so در jniLibs نیست"; exit 1; }
+    done
+  done
+else
+  echo "ERROR: SHERPA_VER=$VER (۱.x) با این پلاگین (r181) سازگار نیست؛ برای برگشت، اسکریپت و PiperNativePlugin.kt نسخهٔ r180 را با هم برگردانید"; exit 1
+fi
+
 # 3) پلاگین + MainActivity با appId درست
-sed "s/^package .*/package $APP_ID/" "$HERE/PiperNativePlugin.kt" > "$PKG_PATH/PiperNativePlugin.kt"
+sed -e "s/^package .*/package $APP_ID/" -e "s/__SHERPA_VER__/$VER/" "$HERE/PiperNativePlugin.kt" > "$PKG_PATH/PiperNativePlugin.kt"
 sed "s/^package .*/package $APP_ID;/" "$HERE/MainActivity.java"   > "$PKG_PATH/MainActivity.java"
 sed "s/^package .*/package $APP_ID;/" "$HERE/OcrNativePlugin.java" > "$PKG_PATH/OcrNativePlugin.java"   # r23: OCR بومی (ORT)
 
@@ -204,7 +239,7 @@ p='android/app/build.gradle'; s=open(p).read()
 if "kotlin-android" not in s:
     s=re.sub(r"(apply plugin: ['\"]com\.android\.application['\"])", r"\1\napply plugin: 'kotlin-android'", s, count=1)
 if 'kotlinOptions' not in s:
-    s=re.sub(r"(android\s*\{)", r"\1\n    kotlinOptions { jvmTarget = '17' }\n    packagingOptions { jniLibs { useLegacyPackaging = true; pickFirsts.add('**/libonnxruntime.so') } }", s, count=1)
+    s=re.sub(r"(android\s*\{)", r"\1\n    kotlinOptions { jvmTarget = '17' }\n    packagingOptions { jniLibs { useLegacyPackaging = true; pickFirsts.add('**/libonnxruntime.so'); pickFirsts.add('**/libc++_shared.so') } }", s, count=1)
 if 'signingConfigs' not in s:
     s=re.sub(r"(android\s*\{)", r"\1\n    signingConfigs {\n        debug {\n            storeFile file('debug.keystore')\n            storePassword 'android'\n            keyAlias 'androiddebugkey'\n            keyPassword 'android'\n        }\n    }", s, count=1)
 if 'commons-compress' not in s:
