@@ -268,4 +268,26 @@ if 'documentfile' not in s:
     s=re.sub(r"(dependencies\s*\{)", r"\1\n    implementation 'androidx.documentfile:documentfile:1.0.1'", s, count=1)
 open(p,'w').write(s)
 PY
+# 6) r184: onnxruntime-android:1.28.x در مانیفست خودش minSdk 24 اعلام می‌کند، ولی پروژهٔ Capacitor با 22 ساخته می‌شد
+#    (خطای manifest merger). minSdk را به 24 می‌بریم؛ یعنی Android 5.x و 6.0 دیگر پشتیبانی نمی‌شوند.
+python3 - <<'PY'
+import re, os, sys
+REQ = 24
+changed = False
+for p in ('android/variables.gradle', 'android/app/build.gradle'):
+    if not os.path.exists(p): continue
+    s = open(p, encoding='utf-8').read()
+    def fix(m):
+        global changed
+        v = int(m.group(2))
+        if v >= REQ: return m.group(0)
+        changed = True
+        return m.group(1) + str(REQ)
+    n = re.sub(r'(\bminSdk(?:Version)?\s*=?\s*)(\d+)', fix, s)
+    if n != s: open(p, 'w', encoding='utf-8').write(n)
+    for line in n.splitlines():
+        if re.search(r'\bminSdk(?:Version)?\b', line): print(p + ': ' + line.strip())
+if not changed:
+    print('WARN: مقدار عددی minSdk کمتر از %d پیدا/اصلاح نشد؛ خطوط بالا را ببینید' % REQ)
+PY
 echo "inject-native: تمام شد"
