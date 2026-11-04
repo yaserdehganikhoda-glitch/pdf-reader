@@ -22,9 +22,9 @@ jobs:
           path: |
             ~/.offline-cache
             ~/.npm
-          key: offline-v1-${{ hashFiles('native/checksums.txt', 'native/inject-native.sh', 'native/fetch-offline.sh') }}
+          key: offline-v2-${{ hashFiles('native/checksums.txt', 'native/inject-native.sh', 'native/fetch-offline.sh', 'native/build-phonemizer.sh', 'native/piperphon_jni.c', 'native/Phonemizer.java') }}
           restore-keys: |
-            offline-v1-
+            offline-v2-
       - name: Prepare web files
         run: |
           mkdir -p www
@@ -59,8 +59,24 @@ jobs:
           fi
       - name: Add Android platform
         run: npx cap add android
-      - name: Inject native Piper
+      - name: Inject native Piper (sherpa-onnx 2.x + external phonemizer)
+        env:
+          SHERPA_VER: "2.0.1"
+          PP_VER: "v1.8.5"
         run: bash native/inject-native.sh
+      - name: Verify native engine libs (before the long Gradle build)
+        run: |
+          J=android/app/src/main/jniLibs
+          for abi in arm64-v8a armeabi-v7a; do
+            for so in libsherpa-onnx-jni.so libonnxruntime.so libpiper_phonemize.so libpiperphon_jni.so; do
+              test -s "$J/$abi/$so" || { echo "::error::$abi/$so در jniLibs نیست"; exit 1; }
+            done
+            strings "$J/$abi/libsherpa-onnx-jni.so" | grep -q phonemeCodepoints || { echo "::error::libsherpa-onnx-jni.so ($abi) نام phonemeCodepoints را ندارد؛ نسخهٔ sherpa با پلاگین نمی‌خواند"; exit 1; }
+            strings "$J/$abi/libpiperphon_jni.so" | grep -q Java_com_pdfvoice_phon_Phonemizer_nativePhonemize || { echo "::error::نمادهای JNI آوانگار در $abi نیست"; exit 1; }
+          done
+          test -s android/app/src/main/java/com/pdfvoice/phon/Phonemizer.java
+          if [ -s android/app/src/main/assets/phonemizer/espeak-ng-data/phondata ]; then echo "espeak-ng-data هم‌نسخه داخل assets است"; else echo "::warning::espeak-ng-data هم‌نسخه ساخته نشد؛ دادهٔ espeak از اولین صدای نصب‌شده کپی می‌شود"; fi
+          grep -n "__SHERPA_VER__" android/app/src/main/java -r && { echo "::error::برچسب نسخه در پلاگین جایگزین نشد"; exit 1; } || true
       - name: Apply app icon
         run: bash native/apply-icon.sh
       - name: Check native back handler (BackApp)
@@ -101,6 +117,14 @@ jobs:
           exit 1
       - name: Copy APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk PdfVoiceReader.apk
+      - name: Verify native engine inside the APK
+        run: |
+          for abi in arm64-v8a armeabi-v7a; do
+            for so in libsherpa-onnx-jni.so libonnxruntime.so libpiper_phonemize.so libpiperphon_jni.so; do
+              unzip -l PdfVoiceReader.apk | grep -q "lib/$abi/$so" || { echo "::error::$abi/$so داخل APK نیست"; exit 1; }
+            done
+          done
+          unzip -l PdfVoiceReader.apk | grep -q "assets/phonemizer/espeak-ng-data/phondata" && echo "espeak-ng-data هم‌نسخه داخل APK است" || echo "::warning::espeak-ng-data هم‌نسخه داخل APK نیست"
       - name: Verify OCR files inside the APK
         run: |
           unzip -l PdfVoiceReader.apk | grep -E "assets/public/ocr/" || true
