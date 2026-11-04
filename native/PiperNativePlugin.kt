@@ -55,6 +55,7 @@ import com.pdfvoice.phon.Phonemizer
  * ذخیرهٔ فایل دودویی (r165، صدای ضبط‌شده): saveBinaryOpen({name,uri?}) → {sid,name}، saveBinaryWrite({sid,data:base64})، saveBinaryClose({sid,abort?}) — تکه‌تکه، بدون نگه‌داشتن کل فایل در حافظه
  * پوشهٔ دلخواه کاربر: pickFolder, folder, exportVoices({ids?}), importVoices({ids?, overwrite?})
  * رویداد: "progress" {loaded, total}
+ * r17: clean=۲ ← حذف‌نویز عصبی DPDFNet ۸۵٪ + کلاسیک، clean=۳ ← عصبی ۱۰۰٪ + کلاسیک (مدل: assets/denoise/dpdfnet2_48khz_hr.onnx؛ وضعیت: diag().nd)
  * کیفیت صدا: synthesize({..., clean?: 0..3, clarity?: 0..3}) → حذف نویز و ارتقای شفافیت/رسایی؛ ۰ خاموش، ۲ متعادل (پیش‌فرض)؛ جزئیات در SpeechClean (انتهای فایل)
  * مسترینگ: synthesize({..., master?: Boolean, fxPk?: dB, fxHs?: dB, fxLp?: Hz}) → EQ + کمپرسور + لیمیتر روی خروجی نهایی؛ جزئیات در MasterFx
  * اکولایزر کاربر (r14): synthesize({..., eq?: {pre: dB, lc: Hz, hc: Hz, q, limiter: 0|1, bands: [[Hz, dB] × ۱۰]}}) → تمام ۱۰ باند + تقویت کلی + قطع بم/زیر + محافظ برش؛ مستقل از master، پس از مسترینگ؛ MasterFx.eq
@@ -258,7 +259,7 @@ class PiperNativePlugin : Plugin() {
     @PluginMethod
     fun diag(call: PluginCall) {
         call.resolve(JSObject().put("underruns", underruns).put("sampleRate", sampleRate).put("sdk", android.os.Build.VERSION.SDK_INT).put("bufMs", bufMs).put("bufGrow", bufGrow)
-            .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL))
+            .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL).put("nd", NeuralDenoise.status(context)))
     }
     private val cpu = Executors.newSingleThreadExecutor()    // ساخت صدا (پشت‌سرهم)
     private var tts: OfflineTts? = null
@@ -424,7 +425,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r15-dsp · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r17-nd · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true))
     }
 
     @PluginMethod
@@ -1491,6 +1492,10 @@ class PiperNativePlugin : Plugin() {
                         itemGaps.add(o.optDouble("g", gap.toDouble()).toFloat().coerceIn(0f, 1.5f))
                     }
                 } else { items.add(Pair(text, sp)); itemGaps.add(gap) }
+                // r17: حذف‌نویز عصبی (DPDFNet 48kHz) پیش از فیلتر کلاسیک: سطح ۲ ← ۸۵٪، سطح ۳ ← کامل؛ سطح ۰/۱ بی‌اثر. اگر مدل/کتابخانه نبود ndMix=0 و فقط فیلتر کلاسیک اجرا می‌شود.
+                val ndWant = if (lvlClean >= 3) 1.0f else if (lvlClean == 2) 0.85f else 0f
+                val ndMix = if (ndWant > 0f && NeuralDenoise.ready(context)) ndWant else 0f
+                val ndTag = if (ndMix > 0f) "|nd" + (ndMix * 100f).toInt() else ""
                 val pieces = ArrayList<FloatArray>()
                 val rawKeep: ArrayList<FloatArray>? = if (probe) ArrayList() else null   // r15: نسخهٔ خام هر جمله (فقط در probe)
                 val pieceGaps = ArrayList<Int>()   // نمونه‌های سکوت پس از هر تکه
@@ -1504,7 +1509,7 @@ class PiperNativePlugin : Plugin() {
                     val key = hashKey("v2|$id|$ns|$nw|" + psq + "|" + pt)
                     // کش دولایه، هر دو جمله‌به‌جمله و مستقل از مرز تکه‌ها: ۱) خروجی پردازش‌شده (پرش از مدل و پاک‌سازی)  ۲) نسخهٔ خام (با تغییر سطح پاک‌سازی مدل دوباره اجرا نمی‌شود)
                     val procOn = lvlClean > 0 || lvlClarity > 0
-                    val key2 = if (procOn) hashKey("v6|$id|$ns|$nw|" + psq + "|$lvlClean|$lvlClarity|$strong|$grad|" + pt) else key
+                    val key2 = if (procOn) hashKey("v6|$id|$ns|$nw|" + psq + "|$lvlClean|$lvlClarity|$strong|$grad$ndTag|" + pt) else key
                     val done = if (procOn && !probe) cacheGet(key2, sr) else null
                     if (done != null) {
                         hit++
@@ -1520,7 +1525,8 @@ class PiperNativePlugin : Plugin() {
                             g
                         }
                         rawKeep?.add(s)
-                        val pr = SpeechClean.process(s, sr, lvlClean, lvlClarity, strong, grad)   // روی نسخهٔ خام کش؛ خودِ کش دست‌نخورده می‌ماند
+                        val sn = if (ndMix > 0f) NeuralDenoise.run(s, sr, ndMix) else s   // r17: عصبی ← سپس کلاسیک
+                        val pr = SpeechClean.process(sn, sr, lvlClean, lvlClarity, strong, grad)   // روی نسخهٔ خام کش؛ خودِ کش دست‌نخورده می‌ماند
                         if (procOn && pr !== s) cachePut(key2, sr, pr)
                         pieces.add(pr)
                     }
@@ -1693,23 +1699,30 @@ class PiperNativePlugin : Plugin() {
     /** r13: آمار نهایی {pk قله، rms، dc میانگین، cl بریدگی خام، nan نامعتبر} برای JS؛ مقدارهای غیرمحدود هرگز در JSON نمی‌روند */
     /** r143: کف نویز زنده — همان تعریف nsMetrics در JS (فریم ۲۰ms، نمونه‌ها به int16 گرد می‌شوند؛ فریم مرده r ≤ 1e-9؛ ۱۵٪ کم‌انرژی‌ترین فریم‌ها نسبت به ۴۰٪ پرانرژی‌ترین‌ها)؛ NaN = داده کافی نیست */
     private fun liveFloor(f: FloatArray, sr: Int): Double {
+        // r180/kt-r16: همان تعریف nsMetrics جدید — فریم‌های مردهٔ میان گفتار (گیت/حذف نویز) کفِ r=1e-10 دارند و حذف نمی‌شوند؛
+        // پلاتوی کف (۱۵٪ در برابر ۳٪ کم‌انرژی‌ترین فریم‌ها ≤ ۳dB) نباشد سکوت مرجعی در جمله نیست ⇒ NaN (عدد نویز نیست)
         val n = Math.round(sr * 0.02f)
         if (n < 8) return Double.NaN
         val cnt = f.size / n
         val r = DoubleArray(cnt)
-        val idx = ArrayList<Int>()
+        var f1 = -1; var f2 = -1
         for (i in 0 until cnt) {
             var e = 0.0
             for (j in i * n until i * n + n) { val q = Math.round(f[j].coerceIn(-1f, 1f) * 32767f) / 32768.0; e += q * q }
             r[i] = e / n
-            if (r[i] > 1e-9) idx.add(i)
+            if (r[i] > 1e-9) { if (f1 < 0) f1 = i; f2 = i }
         }
-        if (idx.size < 20) return Double.NaN
+        if (f1 < 0 || f2 - f1 + 1 < 20) return Double.NaN
+        val idx = ArrayList<Int>()
+        for (i in f1..f2) idx.add(i)
         idx.sortBy { r[it] }
         val qn = Math.max(3, (idx.size * 0.15).toInt()); val qs = Math.max(5, (idx.size * 0.4).toInt())
-        var eN = 0.0; for (i in 0 until qn) eN += r[idx[i]]
+        val rm = 1e-10
+        var eN = 0.0; for (i in 0 until qn) eN += Math.max(r[idx[i]], rm)
         var eS = 0.0; for (i in idx.size - qs until idx.size) eS += r[idx[i]]
         eN /= qn; eS /= qs
+        val p3 = Math.max(r[idx[(idx.size * 0.03).toInt()]], rm); val p15 = Math.max(r[idx[qn - 1]], rm)
+        if (10.0 * kotlin.math.log10(p15 / p3) > 3.0) return Double.NaN
         return 10.0 * kotlin.math.log10(eN / eS + 1e-10)
     }
     private fun activeDb(f: FloatArray): Double {
@@ -2150,7 +2163,7 @@ class PiperNativePlugin : Plugin() {
         afLostT = false; afAbandon()
         PlayerService.stopSafe(context)
         try { if (wl?.isHeld == true) wl?.release() } catch (e: Throwable) {}
-        cpu.execute { try { tts?.release() } catch (e: Throwable) {}; tts = null; ttsId = null; ttsKey = null }
+        cpu.execute { try { tts?.release() } catch (e: Throwable) {}; tts = null; ttsId = null; ttsKey = null; try { NeuralDenoise.release() } catch (e: Throwable) {} }
         try { bins.keys.toList().forEach { try { binDrop(it, false) } catch (e: Exception) {} } } catch (e: Throwable) {}
         cpu.shutdown(); io.shutdown(); bio.shutdown()
     }
@@ -3107,5 +3120,224 @@ class PlayerService : android.app.Service() {
         try { ms?.isActive = false; ms?.release() } catch (e: Throwable) {}
         ms = null
         super.onDestroy()
+    }
+}
+
+/**
+ * r17: حذف‌نویز عصبی DPDFNet (مدل dpdfnet2_48khz_hr.onnx از کتابخانهٔ همین sherpa-onnx)؛ کاملاً آفلاین: مدل داخل APK در assets/denoise/ است
+ * و یک‌بار به filesDir/denoise/ کپی می‌شود. پیش از فیلتر کلاسیک (SpeechClean) روی خروجی خام هر جمله اجرا می‌شود:
+ *   خروجی خام (۲۲٫۰۵kHz) → بالانمونه‌برداری به ۴۸kHz → DPDFNet → پایین‌نمونه‌برداری → هم‌ترازی تأخیر → ترکیب (سطح ۲: ۸۵٪ عصبی، سطح ۳: ۱۰۰٪).
+ * هر خطا (نبودن مدل/کلاس، خروجی نامعتبر، پاک‌شدن گفتار) ⇒ همان ورودی برمی‌گردد و فقط فیلتر کلاسیک اجرا می‌شود؛ پخش هرگز قطع نمی‌شود.
+ * کلاس‌های کاتلین sherpa با بازتاب ساخته می‌شوند تا اگر نام/فیلدی در نسخهٔ sherpa فرق داشت بیلد نشکند؛ وضعیت در ping/diag زیر کلید nd گزارش می‌شود.
+ * فقط روی رشتهٔ ساخت صدا (cpu) صدا زده می‌شود.
+ */
+private object NeuralDenoise {
+    private const val PKG = "com.k2fsa.sherpa.onnx."
+    private const val NAME = "dpdfnet2_48khz_hr.onnx"
+    @Volatile private var eng: Any? = null
+    private var runM: java.lang.reflect.Method? = null
+    private var engSr = 48000
+    @Volatile private var err: String? = null
+    @Volatile private var tried = false
+    private var fails = 0
+    @Volatile private var lastMs = 0L
+
+    private fun why(e: Throwable): String {
+        val c = (e as? java.lang.reflect.InvocationTargetException)?.targetException ?: e
+        return (c.javaClass.simpleName + ": " + (c.message ?: "")).take(160)
+    }
+
+    private fun setF(o: Any, name: String, v: Any?, must: Boolean = true) {
+        try { val f = o.javaClass.getDeclaredField(name); f.isAccessible = true; f.set(o, v) }
+        catch (e: Throwable) { if (must) throw IllegalStateException("فیلد $name در " + o.javaClass.simpleName + " نیست") }
+    }
+
+    private fun newObj(n: String): Any {
+        val c = Class.forName(PKG + n)
+        val k = c.getDeclaredConstructor(); k.isAccessible = true
+        return k.newInstance()
+    }
+
+    /** وضعیت برای diag/ping: ok | idle (هنوز بارگذاری نشده) | no-model | off:<علت> */
+    fun status(ctx: Context): String {
+        if (eng != null) return "ok" + (if (lastMs > 0) " " + lastMs + "ms" else "")
+        val e = err
+        if (e != null) return "off:$e"
+        val has = try { ctx.assets.list("denoise")?.contains(NAME) == true } catch (x: Throwable) { false }
+        return if (has) "idle" else "no-model"
+    }
+
+    @Synchronized
+    fun ready(ctx: Context): Boolean {
+        if (eng != null) return true
+        if (tried) return false
+        tried = true
+        return try { init(ctx); err = null; true } catch (e: Throwable) { eng = null; runM = null; err = why(e); false }
+    }
+
+    private fun init(ctx: Context) {
+        val dir = File(ctx.filesDir, "denoise"); dir.mkdirs()
+        val f = File(dir, NAME)
+        if (!f.isFile || f.length() < 1_000_000L) {
+            val has = try { ctx.assets.list("denoise")?.contains(NAME) == true } catch (x: Throwable) { false }
+            if (!has) throw IllegalStateException("مدل در APK نیست (assets/denoise/$NAME)")
+            val tmp = File(dir, "$NAME.tmp")
+            ctx.assets.open("denoise/$NAME").use { i -> FileOutputStream(tmp).use { o -> i.copyTo(o, 64 * 1024) } }
+            if (tmp.length() < 1_000_000L || !tmp.renameTo(f)) { tmp.delete(); throw IllegalStateException("کپی مدل ناقص بود") }
+        }
+        val dp = newObj("OfflineSpeechDenoiserDpdfNetModelConfig"); setF(dp, "model", f.absolutePath)
+        val mc = newObj("OfflineSpeechDenoiserModelConfig")
+        setF(mc, "dpdfnet", dp)
+        setF(mc, "numThreads", Runtime.getRuntime().availableProcessors().coerceIn(1, 2), false)
+        setF(mc, "debug", false, false)
+        setF(mc, "provider", "cpu", false)
+        val cfg = newObj("OfflineSpeechDenoiserConfig"); setF(cfg, "model", mc)
+        val cd = Class.forName(PKG + "OfflineSpeechDenoiser")
+        val am = android.content.res.AssetManager::class.java
+        val ct = cd.constructors.firstOrNull { !it.isSynthetic && it.parameterTypes.size == 2 && it.parameterTypes[0] == am && it.parameterTypes[1] == cfg.javaClass }
+            ?: cd.constructors.firstOrNull { !it.isSynthetic && it.parameterTypes.size == 1 && it.parameterTypes[0] == cfg.javaClass }
+            ?: throw IllegalStateException("سازندهٔ OfflineSpeechDenoiser پیدا نشد")
+        val o = if (ct.parameterTypes.size == 2) ct.newInstance(null, cfg) else ct.newInstance(cfg)
+        val rm = cd.methods.firstOrNull { it.name == "run" && it.parameterTypes.size == 2 && it.parameterTypes[0] == FloatArray::class.java }
+            ?: throw IllegalStateException("متد run پیدا نشد")
+        var sr = 48000
+        for (nm in arrayOf("sampleRate", "getSampleRate")) {
+            try { val v = cd.getMethod(nm).invoke(o); if (v is Int && v in 8000..96000) { sr = v; break } } catch (e: Throwable) {}
+        }
+        engSr = sr; runM = rm; eng = o
+    }
+
+    fun release() {
+        try { eng?.let { it.javaClass.getMethod("release").invoke(it) } } catch (e: Throwable) {}
+        eng = null; runM = null
+    }
+
+    private fun samplesOf(r: Any): FloatArray? {
+        try { val f = r.javaClass.getDeclaredField("samples"); f.isAccessible = true; (f.get(r) as? FloatArray)?.let { return it } } catch (e: Throwable) {}
+        try { return r.javaClass.getMethod("getSamples").invoke(r) as? FloatArray } catch (e: Throwable) {}
+        return null
+    }
+
+    private fun rateOf(r: Any): Int? {
+        try { val f = r.javaClass.getDeclaredField("sampleRate"); f.isAccessible = true; (f.get(r) as? Int)?.let { return it } } catch (e: Throwable) {}
+        try { return r.javaClass.getMethod("getSampleRate").invoke(r) as? Int } catch (e: Throwable) {}
+        return null
+    }
+
+    /** ورودی خام جمله → خروجی با نویز کمتر (هم‌طول و هم‌نرخ با ورودی)؛ mix سهم عصبی ۰…۱. هر مشکلی ⇒ خود x */
+    @Synchronized
+    fun run(x: FloatArray, sr: Int, mix: Float): FloatArray {
+        val o = eng ?: return x
+        val m = runM ?: return x
+        if (x.size < sr / 5 || mix <= 0f) return x
+        try {
+            val t0 = System.nanoTime()
+            val up = resample(x, sr, engSr)
+            val r = m.invoke(o, up, engSr) ?: return x
+            val ys = samplesOf(r) ?: return x
+            val ysr = rateOf(r) ?: engSr
+            if (ys.size < 64) return x
+            val w = if (ysr == sr) ys else resample(ys, ysr, sr)
+            val lag = bestLag(x, w, sr)
+            val wa = FloatArray(x.size)
+            var eI = 0.0; var eO = 0.0
+            for (i in x.indices) {
+                val j = i + lag
+                val v = if (j >= 0 && j < w.size) w[j] else 0f
+                if (v.isNaN() || v.isInfinite()) throw IllegalStateException("خروجی نامعتبر (NaN)")
+                wa[i] = v
+                eI += x[i].toDouble() * x[i]; eO += v.toDouble() * v
+            }
+            // ایمنی: اگر مدل گفتار را پاک کرده یا بلندی را منفجر کرده، دست‌نخورده برگرد
+            if (eI > 1e-9 && (eO < eI * 0.02 || eO > eI * 8.0)) { err = null; return x }
+            val a = mix.coerceIn(0f, 1f)
+            val out = FloatArray(x.size)
+            for (i in x.indices) out[i] = (a * wa[i] + (1f - a) * x[i]).coerceIn(-1f, 1f)
+            fails = 0
+            lastMs = (System.nanoTime() - t0) / 1_000_000L
+            return out
+        } catch (e: Throwable) {
+            err = why(e); fails++
+            if (fails >= 3) { eng = null; runM = null }   // سه شکست پیاپی: دیگر تلاش نمی‌شود (تا اجرای بعدی برنامه)
+            return x
+        }
+    }
+
+    /** تأخیر (نمونه) که wet[i+lag] بهترین هم‌ترازی با dry[i] را دارد؛ جست‌وجوی درشت روی نسخهٔ ۴ برابر کم‌نمونه، سپس ریز؛ تا ±۳۰ms */
+    private fun bestLag(dry: FloatArray, wet: FloatArray, sr: Int): Int {
+        val n = minOf(dry.size, wet.size, sr * 8)
+        if (n < sr / 4) return 0
+        val d = 4
+        val dn = n / d
+        val dx = FloatArray(dn); val dw = FloatArray(dn)
+        for (i in 0 until dn) { var a = 0f; var b = 0f; for (k in 0 until d) { a += dry[i * d + k]; b += wet[i * d + k] }; dx[i] = a; dw[i] = b }
+        val maxL = (sr * 0.03).toInt() / d
+        var best = 0; var bs = Double.NEGATIVE_INFINITY
+        for (l in -maxL..maxL) {
+            var s = 0.0; var e = 1e-9
+            val i0 = maxOf(0, -l); val i1 = minOf(dn, dn - l)
+            for (i in i0 until i1) { val v = dw[i + l]; s += dx[i] * v; e += v * v }
+            val sc = s / Math.sqrt(e)
+            if (sc > bs) { bs = sc; best = l }
+        }
+        val c = best * d
+        var bl = c; var b2 = Double.NEGATIVE_INFINITY
+        for (l in c - d..c + d) {
+            var s = 0.0; var e = 1e-9
+            val i0 = maxOf(0, -l); val i1 = minOf(n, n - l)
+            for (i in i0 until i1) { val v = wet[i + l]; s += dry[i] * v; e += v * v }
+            val sc = s / Math.sqrt(e)
+            if (sc > b2) { b2 = sc; bl = l }
+        }
+        return bl
+    }
+
+    // ---- بازنمونه‌برداری چندفازی (سینک با پنجرهٔ Kaiser، β=۸) برای نسبت‌های گویا مثل ۲۲٫۰۵k ⇄ ۴۸k = ۳۲۰/۱۴۷ ----
+    private val banks = HashMap<String, Array<FloatArray>>()
+
+    private fun gcd(a: Int, b: Int): Int = if (b == 0) a else gcd(b, a % b)
+
+    private fun bessel(x: Double): Double { var s = 1.0; var t = 1.0; val q = x * x / 4.0; var k = 1; while (k < 60) { t *= q / (k.toDouble() * k); s += t; if (t < 1e-12 * s) break; k++ }; return s }
+
+    private fun bank(L: Int, M: Int, fc: Double, half: Int): Array<FloatArray> {
+        val key = "$L/$M"
+        banks[key]?.let { return it }
+        val b0 = bessel(8.0)
+        val tb = Array(L) { ph ->
+            val h = DoubleArray(2 * half)
+            var sum = 0.0
+            for (j in 0 until 2 * half) {
+                val dd = (j - half + 1) - ph.toDouble() / L
+                val r = dd / half
+                val w = if (Math.abs(r) >= 1.0) 0.0 else bessel(8.0 * Math.sqrt(1.0 - r * r)) / b0
+                val a = Math.PI * fc * dd
+                val sc = if (Math.abs(a) < 1e-9) 1.0 else Math.sin(a) / a
+                h[j] = fc * sc * w; sum += h[j]
+            }
+            FloatArray(2 * half) { (h[it] / (if (Math.abs(sum) > 1e-9) sum else 1.0)).toFloat() }
+        }
+        banks[key] = tb
+        return tb
+    }
+
+    fun resample(x: FloatArray, from: Int, to: Int): FloatArray {
+        if (from == to || x.isEmpty()) return x
+        val g = gcd(from, to); val L = to / g; val M = from / g
+        val fc = Math.min(1.0, L.toDouble() / M)
+        val half = Math.ceil(16.0 / fc).toInt()
+        val tb = bank(L, M, fc, half)
+        val outN = ((x.size.toLong() * L) / M).toInt()
+        val y = FloatArray(outN)
+        val nt = 2 * half
+        for (n in 0 until outN) {
+            val num = n.toLong() * M
+            val ix = (num / L).toInt(); val h = tb[(num % L).toInt()]
+            val st = ix - half + 1
+            var acc = 0.0
+            if (st >= 0 && st + nt <= x.size) { for (j in 0 until nt) acc += x[st + j] * h[j] }
+            else { for (j in 0 until nt) { val k = st + j; if (k >= 0 && k < x.size) acc += x[k] * h[j] } }
+            y[n] = acc.toFloat()
+        }
+        return y
     }
 }
