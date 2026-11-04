@@ -259,7 +259,7 @@ class PiperNativePlugin : Plugin() {
     @PluginMethod
     fun diag(call: PluginCall) {
         call.resolve(JSObject().put("underruns", underruns).put("sampleRate", sampleRate).put("sdk", android.os.Build.VERSION.SDK_INT).put("bufMs", bufMs).put("bufGrow", bufGrow)
-            .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL).put("nd", NeuralDenoise.status(context)))
+            .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL).put("nd", NeuralDenoise.status(context)).put("ndm", NeuralDenoise.available(context)))
     }
     private val cpu = Executors.newSingleThreadExecutor()    // ساخت صدا (پشت‌سرهم)
     private var tts: OfflineTts? = null
@@ -425,7 +425,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r17-nd · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r17-nd · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
     }
 
     @PluginMethod
@@ -1459,6 +1459,7 @@ class PiperNativePlugin : Plugin() {
         val gap = (call.getFloat("gap") ?: 0.12f).coerceIn(0f, 0.6f)      // ثانیه، سکوت بین جمله‌ها
         val partsArr = call.getArray("parts")
         val lvlClean = (call.getInt("clean") ?: 2).coerceIn(0, 3)       // حذف نویز و صداهای اضافه
+        val ndSel = call.getString("nd") ?: "baseline"                  // مدل DPDFNet: baseline | dpdfnet2 | dpdfnet4 | dpdfnet8 | dpdfnet2_48khz_hr | off
         val lvlClarity = (call.getInt("clarity") ?: 2).coerceIn(0, 3)   // شفافیت و رسایی
         val lvlPause = (call.getInt("pause") ?: 2).coerceIn(0, 3)       // حذف وزوز مکث‌ها (فقط مانا): ۰ خاموش … ۳ قوی
         val keep = call.getBoolean("keep") ?: false                      // true: PCM در حافظهٔ بومی می‌ماند و فقط handle برمی‌گردد (پخش بومی)
@@ -1493,9 +1494,10 @@ class PiperNativePlugin : Plugin() {
                     }
                 } else { items.add(Pair(text, sp)); itemGaps.add(gap) }
                 // r17: حذف‌نویز عصبی (DPDFNet 48kHz) پیش از فیلتر کلاسیک: سطح ۲ ← ۸۵٪، سطح ۳ ← کامل؛ سطح ۰/۱ بی‌اثر. اگر مدل/کتابخانه نبود ndMix=0 و فقط فیلتر کلاسیک اجرا می‌شود.
-                val ndWant = if (lvlClean >= 3) 1.0f else if (lvlClean == 2) 0.85f else 0f
-                val ndMix = if (ndWant > 0f && NeuralDenoise.ready(context)) ndWant else 0f
-                val ndTag = if (ndMix > 0f) "|nd2_" + (ndMix * 100f).toInt() else ""
+                val ndWant = if (ndSel == "off") 0f else if (lvlClean >= 3) 1.0f else if (lvlClean == 2) 0.85f else 0f
+                val ndMix = if (ndWant > 0f && NeuralDenoise.ready(context, ndSel)) ndWant else 0f
+                val ndName = NeuralDenoise.norm(ndSel)
+                val ndTag = if (ndMix > 0f) "|nd2_" + (ndMix * 100f).toInt() + (if (ndName == "baseline") "" else "_$ndName") else ""
                 val pieces = ArrayList<FloatArray>()
                 val rawKeep: ArrayList<FloatArray>? = if (probe) ArrayList() else null   // r15: نسخهٔ خام هر جمله (فقط در probe)
                 val pieceGaps = ArrayList<Int>()   // نمونه‌های سکوت پس از هر تکه
@@ -3133,7 +3135,15 @@ class PlayerService : android.app.Service() {
  */
 private object NeuralDenoise {
     private const val PKG = "com.k2fsa.sherpa.onnx."
-    private const val NAME = "dpdfnet_baseline.onnx"
+    /** مدل‌های DPDFNet قابل انتخاب (کلید رابط ← فایل داخل assets/denoise/) */
+    private val MODELS = linkedMapOf("baseline" to "dpdfnet_baseline.onnx", "dpdfnet2" to "dpdfnet2.onnx", "dpdfnet4" to "dpdfnet4.onnx", "dpdfnet8" to "dpdfnet8.onnx", "dpdfnet2_48khz_hr" to "dpdfnet2_48khz_hr.onnx")
+    @Volatile private var cur = "baseline"
+    fun norm(m: String?): String = if (m != null && MODELS.containsKey(m)) m else "baseline"
+    /** کلیدهای مدل‌هایی که واقعاً داخل APK هستند، با کاما جدا */
+    fun available(ctx: Context): String {
+        val l = try { ctx.assets.list("denoise")?.toSet() ?: emptySet() } catch (x: Throwable) { emptySet<String>() }
+        return MODELS.filter { l.contains(it.value) }.keys.joinToString(",")
+    }
     @Volatile private var eng: Any? = null
     private var runM: java.lang.reflect.Method? = null
     private var engSr = 16000
@@ -3162,15 +3172,17 @@ private object NeuralDenoise {
 
     /** وضعیت برای diag/ping: ok | idle (هنوز بارگذاری نشده) | no-model | off:<علت> */
     fun status(ctx: Context): String {
-        if (eng != null) return "ok " + (engSr / 1000) + "k" + (if (lastMs > 0) " " + lastMs + "ms" else "")
+        if (eng != null) return "ok " + cur + " " + (engSr / 1000) + "k" + (if (lastMs > 0) " " + lastMs + "ms" else "")
         val e = err
-        if (e != null) return "off:$e"
-        val has = try { ctx.assets.list("denoise")?.contains(NAME) == true } catch (x: Throwable) { false }
+        if (e != null) return "off:$cur: $e"
+        val has = try { ctx.assets.list("denoise")?.contains(MODELS[cur] ?: "") == true } catch (x: Throwable) { false }
         return if (has) "idle" else "no-model"
     }
 
     @Synchronized
-    fun ready(ctx: Context): Boolean {
+    fun ready(ctx: Context, model: String): Boolean {
+        val m = norm(model)
+        if (m != cur) { release(); cur = m; tried = false; err = null; fails = 0; slow = 0; lastMs = 0L }   // تغییر مدل: بارگذاری دوباره و پاک‌شدن وضعیت خطا
         if (eng != null) return true
         if (tried) return false
         tried = true
@@ -3179,7 +3191,7 @@ private object NeuralDenoise {
 
     private fun init(ctx: Context) {
         val dir = File(ctx.filesDir, "denoise"); dir.mkdirs()
-        try { File(dir, "dpdfnet2_48khz_hr.onnx").delete() } catch (e: Throwable) {}   // مدل سنگین قبلی
+        val NAME = MODELS[cur] ?: MODELS["baseline"]!!
         val f = File(dir, NAME)
         if (!f.isFile || f.length() < 1_000_000L) {
             val has = try { ctx.assets.list("denoise")?.contains(NAME) == true } catch (x: Throwable) { false }

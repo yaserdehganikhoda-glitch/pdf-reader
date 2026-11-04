@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# r17: بعد از «Inject native Piper» اجرا شود. مدل حذف‌نویز عصبی DPDFNet سبک (۱۶kHz) را داخل APK می‌گذارد: android/app/src/main/assets/denoise/
+# r17: بعد از «Inject native Piper» اجرا شود. مدل‌های حذف‌نویز عصبی DPDFNet (baseline، dpdfnet2/4/8 با ۱۶kHz و dpdfnet2_48khz_hr) را داخل APK می‌گذارد: android/app/src/main/assets/denoise/
 # دانلودِ ناموفق بیلد را نمی‌شکند (فقط هشدار)؛ برنامه در این حالت فقط فیلتر کلاسیک را اجرا می‌کند.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -20,16 +20,25 @@ dl() {   # همان dl در inject-native.sh: حافظهٔ نهان + بررسی
   [ -n "$want" ] || echo "$have  $name" >> "$CACHE/sums-seen.txt"
   echo "$f"
 }
-M="dpdfnet_baseline.onnx"
-URL="https://github.com/k2-fsa/sherpa-onnx/releases/download/speech-enhancement-models/$M"
+BASE="https://github.com/k2-fsa/sherpa-onnx/releases/download/speech-enhancement-models"
 DST="android/app/src/main/assets/denoise"
+# مدل‌های قابل انتخاب در برنامه؛ با DENOISE_MODELS می‌شود کم کرد (مثلاً DENOISE_MODELS="dpdfnet_baseline dpdfnet2" برای APK سبک‌تر)
+MODELS="${DENOISE_MODELS:-dpdfnet_baseline dpdfnet2 dpdfnet4 dpdfnet8 dpdfnet2_48khz_hr}"
 [ -d android/app/src/main ] || { echo "پوشهٔ android نیست (اول cap add android)"; exit 1; }
-if P="$(dl "$URL" "$M")" && [ "$(stat -c %s "$P")" -gt 1000000 ]; then
-  mkdir -p "$DST"; cp "$P" "$DST/$M"
-  echo "denoise model ok: $(stat -c %s "$P") bytes"
-else
-  rm -f "$CACHE/$M"
-  echo "::warning::مدل DPDFNet دانلود نشد؛ حذف‌نویز عصبی غیرفعال می‌ماند (فقط فیلتر کلاسیک)"
+mkdir -p "$DST"
+OK=0
+for N in $MODELS; do
+  M="$N.onnx"
+  if P="$(dl "$BASE/$M" "$M")" && [ "$(stat -c %s "$P")" -gt 1000000 ]; then
+    cp "$P" "$DST/$M"; OK=$((OK+1))
+    echo "denoise model ok: $M $(stat -c %s "$P") bytes"
+  else
+    rm -f "$CACHE/$M"
+    echo "::warning::مدل $M دانلود نشد؛ این مدل در برنامه قابل انتخاب نخواهد بود"
+  fi
+done
+if [ "$OK" -eq 0 ]; then
+  echo "::warning::هیچ مدل DPDFNet دانلود نشد؛ حذف‌نویز عصبی غیرفعال می‌ماند (فقط فیلتر کلاسیک)"
   exit 0
 fi
 # آیا API کاتلین همین نسخهٔ sherpa از DPDFNet پشتیبانی می‌کند؟
