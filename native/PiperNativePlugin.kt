@@ -55,7 +55,7 @@ import com.pdfvoice.phon.Phonemizer
  * ذخیرهٔ فایل دودویی (r165، صدای ضبط‌شده): saveBinaryOpen({name,uri?}) → {sid,name}، saveBinaryWrite({sid,data:base64})، saveBinaryClose({sid,abort?}) — تکه‌تکه، بدون نگه‌داشتن کل فایل در حافظه
  * پوشهٔ دلخواه کاربر: pickFolder, folder, exportVoices({ids?}), importVoices({ids?, overwrite?})
  * رویداد: "progress" {loaded, total}
- * r17: clean=۲ ← حذف‌نویز عصبی DPDFNet ۸۵٪ + کلاسیک، clean=۳ ← عصبی ۱۰۰٪ + کلاسیک (مدل: assets/denoise/dpdfnet2_48khz_hr.onnx؛ وضعیت: diag().nd)
+ * r17: clean=۲ ← حذف‌نویز عصبی DPDFNet ۸۵٪ + کلاسیک، clean=۳ ← عصبی ۱۰۰٪ + کلاسیک (مدل: assets/denoise/dpdfnet_baseline.onnx؛ وضعیت: diag().nd)
  * کیفیت صدا: synthesize({..., clean?: 0..3, clarity?: 0..3}) → حذف نویز و ارتقای شفافیت/رسایی؛ ۰ خاموش، ۲ متعادل (پیش‌فرض)؛ جزئیات در SpeechClean (انتهای فایل)
  * مسترینگ: synthesize({..., master?: Boolean, fxPk?: dB, fxHs?: dB, fxLp?: Hz}) → EQ + کمپرسور + لیمیتر روی خروجی نهایی؛ جزئیات در MasterFx
  * اکولایزر کاربر (r14): synthesize({..., eq?: {pre: dB, lc: Hz, hc: Hz, q, limiter: 0|1, bands: [[Hz, dB] × ۱۰]}}) → تمام ۱۰ باند + تقویت کلی + قطع بم/زیر + محافظ برش؛ مستقل از master، پس از مسترینگ؛ MasterFx.eq
@@ -1495,7 +1495,7 @@ class PiperNativePlugin : Plugin() {
                 // r17: حذف‌نویز عصبی (DPDFNet 48kHz) پیش از فیلتر کلاسیک: سطح ۲ ← ۸۵٪، سطح ۳ ← کامل؛ سطح ۰/۱ بی‌اثر. اگر مدل/کتابخانه نبود ndMix=0 و فقط فیلتر کلاسیک اجرا می‌شود.
                 val ndWant = if (lvlClean >= 3) 1.0f else if (lvlClean == 2) 0.85f else 0f
                 val ndMix = if (ndWant > 0f && NeuralDenoise.ready(context)) ndWant else 0f
-                val ndTag = if (ndMix > 0f) "|nd" + (ndMix * 100f).toInt() else ""
+                val ndTag = if (ndMix > 0f) "|nd2_" + (ndMix * 100f).toInt() else ""
                 val pieces = ArrayList<FloatArray>()
                 val rawKeep: ArrayList<FloatArray>? = if (probe) ArrayList() else null   // r15: نسخهٔ خام هر جمله (فقط در probe)
                 val pieceGaps = ArrayList<Int>()   // نمونه‌های سکوت پس از هر تکه
@@ -3124,22 +3124,24 @@ class PlayerService : android.app.Service() {
 }
 
 /**
- * r17: حذف‌نویز عصبی DPDFNet (مدل dpdfnet2_48khz_hr.onnx از کتابخانهٔ همین sherpa-onnx)؛ کاملاً آفلاین: مدل داخل APK در assets/denoise/ است
+ * r17: حذف‌نویز عصبی DPDFNet (مدل سبک dpdfnet_baseline.onnx ‏۱۶kHz از کتابخانهٔ همین sherpa-onnx)؛ کاملاً آفلاین: مدل داخل APK در assets/denoise/ است
  * و یک‌بار به filesDir/denoise/ کپی می‌شود. پیش از فیلتر کلاسیک (SpeechClean) روی خروجی خام هر جمله اجرا می‌شود:
- *   خروجی خام (۲۲٫۰۵kHz) → بالانمونه‌برداری به ۴۸kHz → DPDFNet → پایین‌نمونه‌برداری → هم‌ترازی تأخیر → ترکیب (سطح ۲: ۸۵٪ عصبی، سطح ۳: ۱۰۰٪).
+ *   خروجی خام (۲۲٫۰۵kHz) → کم‌نمونه‌برداری به ۱۶kHz → DPDFNet (با attenuationLimitDb) → برگشت → هم‌ترازی تأخیر → ترکیب (سطح ۲: ۸۵٪ عصبی، سطح ۳: ۱۰۰٪).
  * هر خطا (نبودن مدل/کلاس، خروجی نامعتبر، پاک‌شدن گفتار) ⇒ همان ورودی برمی‌گردد و فقط فیلتر کلاسیک اجرا می‌شود؛ پخش هرگز قطع نمی‌شود.
  * کلاس‌های کاتلین sherpa با بازتاب ساخته می‌شوند تا اگر نام/فیلدی در نسخهٔ sherpa فرق داشت بیلد نشکند؛ وضعیت در ping/diag زیر کلید nd گزارش می‌شود.
  * فقط روی رشتهٔ ساخت صدا (cpu) صدا زده می‌شود.
  */
 private object NeuralDenoise {
     private const val PKG = "com.k2fsa.sherpa.onnx."
-    private const val NAME = "dpdfnet2_48khz_hr.onnx"
+    private const val NAME = "dpdfnet_baseline.onnx"
     @Volatile private var eng: Any? = null
     private var runM: java.lang.reflect.Method? = null
-    private var engSr = 48000
+    private var engSr = 16000
     @Volatile private var err: String? = null
     @Volatile private var tried = false
+    private const val ATT_DB = 15f
     private var fails = 0
+    private var slow = 0
     @Volatile private var lastMs = 0L
 
     private fun why(e: Throwable): String {
@@ -3160,7 +3162,7 @@ private object NeuralDenoise {
 
     /** وضعیت برای diag/ping: ok | idle (هنوز بارگذاری نشده) | no-model | off:<علت> */
     fun status(ctx: Context): String {
-        if (eng != null) return "ok" + (if (lastMs > 0) " " + lastMs + "ms" else "")
+        if (eng != null) return "ok " + (engSr / 1000) + "k" + (if (lastMs > 0) " " + lastMs + "ms" else "")
         val e = err
         if (e != null) return "off:$e"
         val has = try { ctx.assets.list("denoise")?.contains(NAME) == true } catch (x: Throwable) { false }
@@ -3177,6 +3179,7 @@ private object NeuralDenoise {
 
     private fun init(ctx: Context) {
         val dir = File(ctx.filesDir, "denoise"); dir.mkdirs()
+        try { File(dir, "dpdfnet2_48khz_hr.onnx").delete() } catch (e: Throwable) {}   // مدل سنگین قبلی
         val f = File(dir, NAME)
         if (!f.isFile || f.length() < 1_000_000L) {
             val has = try { ctx.assets.list("denoise")?.contains(NAME) == true } catch (x: Throwable) { false }
@@ -3186,9 +3189,10 @@ private object NeuralDenoise {
             if (tmp.length() < 1_000_000L || !tmp.renameTo(f)) { tmp.delete(); throw IllegalStateException("کپی مدل ناقص بود") }
         }
         val dp = newObj("OfflineSpeechDenoiserDpdfNetModelConfig"); setF(dp, "model", f.absolutePath)
+        setF(dp, "attenuationLimitDb", ATT_DB, false)   // بخشی از طیف نویزی را برمی‌گرداند تا انتهای جمله‌ها و مکث‌ها «بریده» نشود
         val mc = newObj("OfflineSpeechDenoiserModelConfig")
         setF(mc, "dpdfnet", dp)
-        setF(mc, "numThreads", Runtime.getRuntime().availableProcessors().coerceIn(1, 2), false)
+        setF(mc, "numThreads", 1, false)
         setF(mc, "debug", false, false)
         setF(mc, "provider", "cpu", false)
         val cfg = newObj("OfflineSpeechDenoiserConfig"); setF(cfg, "model", mc)
@@ -3200,7 +3204,7 @@ private object NeuralDenoise {
         val o = if (ct.parameterTypes.size == 2) ct.newInstance(null, cfg) else ct.newInstance(cfg)
         val rm = cd.methods.firstOrNull { it.name == "run" && it.parameterTypes.size == 2 && it.parameterTypes[0] == FloatArray::class.java }
             ?: throw IllegalStateException("متد run پیدا نشد")
-        var sr = 48000
+        var sr = 16000
         for (nm in arrayOf("sampleRate", "getSampleRate")) {
             try { val v = cd.getMethod(nm).invoke(o); if (v is Int && v in 8000..96000) { sr = v; break } } catch (e: Throwable) {}
         }
@@ -3224,7 +3228,8 @@ private object NeuralDenoise {
         return null
     }
 
-    /** ورودی خام جمله → خروجی با نویز کمتر (هم‌طول و هم‌نرخ با ورودی)؛ mix سهم عصبی ۰…۱. هر مشکلی ⇒ خود x */
+    /** ورودی خام جمله → خروجی با نویز کمتر (هم‌طول و هم‌نرخ با ورودی)؛ mix سهم عصبی ۰…۱. هر مشکلی ⇒ خود x
+     *  مدل ۱۶kHz فقط باند پایین (تا ۸kHz) را پردازش می‌کند؛ باند بالای ورودی (۸kHz…) دست‌نخورده می‌ماند و به فیلتر کلاسیک می‌رسد. */
     @Synchronized
     fun run(x: FloatArray, sr: Int, mix: Float): FloatArray {
         val o = eng ?: return x
@@ -3232,35 +3237,84 @@ private object NeuralDenoise {
         if (x.size < sr / 5 || mix <= 0f) return x
         try {
             val t0 = System.nanoTime()
-            val up = resample(x, sr, engSr)
-            val r = m.invoke(o, up, engSr) ?: return x
+            val dn = engSr
+            val up = resample(x, sr, dn)
+            val inp = up.copyOf(up.size + dn / 5)          // ۲۰۰ms سکوت انتهایی: دُم جمله پیش از بستن خروجی مدل بریده نشود
+            val r = m.invoke(o, inp, dn) ?: return x
             val ys = samplesOf(r) ?: return x
-            val ysr = rateOf(r) ?: engSr
+            val ysr = rateOf(r) ?: dn
             if (ys.size < 64) return x
             val w = if (ysr == sr) ys else resample(ys, ysr, sr)
-            val lag = bestLag(x, w, sr)
+            // جداسازی باند: dryLow = باند پایین ورودی (هم‌پهنای مدل)، high = بقیه
+            val dryLow: FloatArray
+            val high: FloatArray?
+            if (ysr < sr) {
+                val dl = resample(up, dn, sr)
+                dryLow = FloatArray(x.size) { if (it < dl.size) dl[it] else 0f }
+                high = FloatArray(x.size) { x[it] - dryLow[it] }
+            } else { dryLow = x; high = null }
+            val lag = bestLag(dryLow, w, sr)
             val wa = FloatArray(x.size)
             var eI = 0.0; var eO = 0.0
             for (i in x.indices) {
                 val j = i + lag
-                val v = if (j >= 0 && j < w.size) w[j] else 0f
+                val v = if (j >= 0 && j < w.size) w[j] else dryLow[i]   // بیرون از خروجی مدل: همان ورودی (نه صفر)
                 if (v.isNaN() || v.isInfinite()) throw IllegalStateException("خروجی نامعتبر (NaN)")
                 wa[i] = v
-                eI += x[i].toDouble() * x[i]; eO += v.toDouble() * v
+                eI += dryLow[i].toDouble() * dryLow[i]; eO += v.toDouble() * v
             }
             // ایمنی: اگر مدل گفتار را پاک کرده یا بلندی را منفجر کرده، دست‌نخورده برگرد
-            if (eI > 1e-9 && (eO < eI * 0.02 || eO > eI * 8.0)) { err = null; return x }
-            val a = mix.coerceIn(0f, 1f)
+            if (eI > 1e-9 && (eO < eI * 0.05 || eO > eI * 8.0)) return x
+            val g = frameMix(dryLow, wa, sr, mix.coerceIn(0f, 1f))
+            val hop = maxOf(1, sr / 100); val nf = g.size
             val out = FloatArray(x.size)
-            for (i in x.indices) out[i] = (a * wa[i] + (1f - a) * x[i]).coerceIn(-1f, 1f)
+            for (i in x.indices) {
+                val fi = minOf(nf - 1, i / hop)
+                val u = (i - fi * hop).toFloat() / hop
+                val a = g[fi] * (1f - u) + g[minOf(nf - 1, fi + 1)] * u
+                out[i] = (dryLow[i] * (1f - a) + wa[i] * a + (if (high != null) high[i] else 0f)).coerceIn(-1f, 1f)
+            }
             fails = 0
-            lastMs = (System.nanoTime() - t0) / 1_000_000L
+            val ms = (System.nanoTime() - t0) / 1_000_000L
+            lastMs = ms
+            // نگهبان گرما/کندی: اگر مدل بیش از نیمِ زمان واقعیِ صدا خرج کند، سه بار پیاپی ⇒ غیرفعال (ساخت صدا از پخش عقب نماند)
+            if (ms > 0.5 * x.size * 1000.0 / sr) slow++ else slow = 0
+            if (slow >= 3) { err = "کند: " + ms + "ms برای " + (x.size * 1000L / sr) + "ms صدا"; eng = null; runM = null }
             return out
         } catch (e: Throwable) {
             err = why(e); fails++
             if (fails >= 3) { eng = null; runM = null }   // سه شکست پیاپی: دیگر تلاش نمی‌شود (تا اجرای بعدی برنامه)
             return x
         }
+    }
+
+    /** سهم عصبی هر فریم ۱۰ms: جایی که مدل از فریمِ «گفتارمانند» (انرژی ≥ ۲٫۵× کف نویز) بیش از ~۶dB کم کرده، سهم عصبی کم می‌شود
+     *  (انتهای جمله و مکث‌ها بریده نمی‌شوند). کاهش سهم فوری، برگشت آرام. */
+    private fun frameMix(d: FloatArray, w: FloatArray, sr: Int, a: Float): FloatArray {
+        val hop = maxOf(1, sr / 100); val nf = (d.size + hop - 1) / hop
+        val rd = FloatArray(nf); val rw = FloatArray(nf)
+        for (f in 0 until nf) {
+            val s0 = f * hop; val s1 = minOf(d.size, s0 + hop)
+            var ed = 0.0; var ew = 0.0
+            for (i in s0 until s1) { ed += d[i].toDouble() * d[i]; ew += w[i].toDouble() * w[i] }
+            val n = maxOf(1, s1 - s0)
+            rd[f] = Math.sqrt(ed / n).toFloat(); rw[f] = Math.sqrt(ew / n).toFloat()
+        }
+        val sorted = rd.copyOf(); sorted.sort()
+        val floor = maxOf(1e-5f, sorted[(nf * 0.15).toInt().coerceIn(0, nf - 1)])
+        val g = FloatArray(nf)
+        var prev = a
+        for (f in 0 until nf) {
+            var t = a
+            if (rd[f] > 2.5f * floor) {
+                val r = rw[f] / (rd[f] + 1e-9f)
+                val p = ((0.5f - r) / 0.3f).coerceIn(0f, 1f)
+                t = a * (1f - p)
+            }
+            prev = if (t < prev) t else prev + 0.3f * (t - prev)
+            g[f] = prev
+        }
+        return g
     }
 
     /** تأخیر (نمونه) که wet[i+lag] بهترین هم‌ترازی با dry[i] را دارد؛ جست‌وجوی درشت روی نسخهٔ ۴ برابر کم‌نمونه، سپس ریز؛ تا ±۳۰ms */

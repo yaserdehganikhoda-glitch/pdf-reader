@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# r17: بعد از «Inject native Piper» اجرا شود. مدل حذف‌نویز عصبی DPDFNet (۴۸kHz) را داخل APK می‌گذارد: android/app/src/main/assets/denoise/
+# r17: بعد از «Inject native Piper» اجرا شود. مدل حذف‌نویز عصبی DPDFNet سبک (۱۶kHz) را داخل APK می‌گذارد: android/app/src/main/assets/denoise/
 # دانلودِ ناموفق بیلد را نمی‌شکند (فقط هشدار)؛ برنامه در این حالت فقط فیلتر کلاسیک را اجرا می‌کند.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -20,7 +20,7 @@ dl() {   # همان dl در inject-native.sh: حافظهٔ نهان + بررسی
   [ -n "$want" ] || echo "$have  $name" >> "$CACHE/sums-seen.txt"
   echo "$f"
 }
-M="dpdfnet2_48khz_hr.onnx"
+M="dpdfnet_baseline.onnx"
 URL="https://github.com/k2-fsa/sherpa-onnx/releases/download/speech-enhancement-models/$M"
 DST="android/app/src/main/assets/denoise"
 [ -d android/app/src/main ] || { echo "پوشهٔ android نیست (اول cap add android)"; exit 1; }
