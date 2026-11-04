@@ -121,7 +121,7 @@ jobs:
         run: cp android/app/build/outputs/apk/debug/app-debug.apk PdfVoiceReader.apk
       - name: Verify native engine inside the APK
         run: |
-          unzip -l PdfVoiceReader.apk | grep -q "assets/denoise/dpdfnet2_48khz_hr.onnx" && echo "denoise model داخل APK است" || echo "::warning::مدل حذف‌نویز عصبی داخل APK نیست؛ فقط فیلتر کلاسیک اجرا می‌شود"
+          unzip -l PdfVoiceReader.apk | grep -q "assets/denoise/dpdfnet_baseline.onnx" && echo "denoise model داخل APK است" || echo "::warning::مدل حذف‌نویز عصبی داخل APK نیست؛ فقط فیلتر کلاسیک اجرا می‌شود"
           for abi in arm64-v8a armeabi-v7a; do
             for so in libsherpa-onnx-jni.so libonnxruntime.so libpiper_phonemize_core.so libpiperphon_jni.so; do
               unzip -l PdfVoiceReader.apk | grep -q "lib/$abi/$so" || { echo "::error::$abi/$so داخل APK نیست"; exit 1; }
