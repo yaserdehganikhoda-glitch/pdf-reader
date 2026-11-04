@@ -4625,6 +4625,8 @@ var ocrSpell = (function(){
     s.hidden = false; s.style.left = (c.left - p.left + r.x0 * c.width) + 'px'; s.style.top = (c.top - p.top + r.y0 * c.height) + 'px';
     s.style.width = ((r.x1 - r.x0) * c.width) + 'px'; s.style.height = ((r.y1 - r.y0) * c.height) + 'px';
   }
+  var _msQ = 0;   /* r166: pointermove تا ۱۲۰ بار در ثانیه می‌آید؛ هر بار دو getBoundingClientRect + چهار نوشتن استایل ⇒ یک‌بار در هر فریم */
+  function manSelQ(){ if (_msQ) return; _msQ = requestAnimationFrame(function(){ _msQ = 0; manSel(); }); }
   
   
   
@@ -4720,7 +4722,7 @@ var ocrSpell = (function(){
     });
     pv.addEventListener('pointermove', function(e){
       if (!st) return; var q = pt(e);
-      man.rect = { x0: Math.min(st.x, q.x), y0: Math.min(st.y, q.y), x1: Math.max(st.x, q.x), y1: Math.max(st.y, q.y) }; manSel();
+      man.rect = { x0: Math.min(st.x, q.x), y0: Math.min(st.y, q.y), x1: Math.max(st.x, q.x), y1: Math.max(st.y, q.y) }; manSelQ();
     });
     function up(){ if (!st) return; st = null; if (man.rect && (man.rect.x1 - man.rect.x0 < 0.03 || man.rect.y1 - man.rect.y0 < 0.01)) { man.rect = null; manSel(); manSt('ناحیه خیلی کوچک بود؛ دوباره انتخاب کنید.'); } }
     pv.addEventListener('pointerup', up); pv.addEventListener('pointercancel', up);
@@ -11853,6 +11855,12 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
       o.cf = pk.mg >= 0.6 ? 'h' : pk.mg >= 0.35 ? 'm' : 'l'; if (nsMid(v.id)) o.m = nsMid(v.id);
       if (o.fl >= -32 && !o.np) svLog('noise', 'گوینده «' + v.id + '»: حتی در بهترین سطح (' + o.lv + ') کف نویز ' + nf.format(o.fl) + ' dB است (≥ ‎−۳۲)؛ نویز این مدل با حذف نویز کامل پاک نمی‌شود، سبک گفتار آرام‌تر یا گوینده‌ٔ دیگر را امتحان کنید');
       NS[key] = o; sset('nsv:' + key, JSON.stringify(o)); delete NSR[key];
+      /* r166: داده‌ی تشخیصی نویز در «گزارش خطا» (fl کف نویز، hs کف بالای ۵kHz، np بدون سکوت مرجع، dz فریم مرده؛ هر کدام برای سطح ۰/۱/۲/۳) + وضعیت مدل عصبی؛ svLog به ۲۰۰ نویسه محدود است پس مستقیم ثبت می‌شود */
+      try {
+        var nsLogTxt = 'سنجش «' + v.id + '» مدل ' + ndMdl() + ' انتخاب ' + o.lv + ' | fl ' + o.rows.map(function(q){ return q.fl; }).join('/') + ' | hs ' + o.rows.map(function(q){ return q.hs; }).join('/') + ' | np ' + o.rows.map(function(q){ return q.np; }).join('/') + ' | dz ' + o.rows.map(function(q){ return q.dz; }).join('/') + ' | جمله ' + o.n;
+        var nsLogAdd = function(t2){ try { if (window.__elog) window.__elog.add('noise', nsLogTxt + t2); } catch (e2) {} };
+        if (NP && NP.diag) Promise.resolve(NP.diag()).then(function(d){ nsLogAdd(' | nd ' + (d && d.nd) + ' ndm ' + (d && d.ndm)); }).catch(function(){ nsLogAdd(''); }); else nsLogAdd('');
+      } catch (e) {}
       try { nsAdapt(v.id, o); } catch (e) {}
       try { var hq = R[pk.lv].map(function(q){ return q.hp; }).filter(Boolean), hw = '', hk; hq.forEach(function(q){ hk = hsPcmWhy(q); if (hk && !hw) hw = hk; }); HS.vp[v.id] = hw ? 'سنجش صدای این گوینده: ' + hw + ' در سطح انتخابی.' : 'سنجش صدای این گوینده: بدون بریدگی و بی‌صدایی.'; hsShow(); } catch (e) {}
       if (o.lv !== prev && !playing && nsAuto()) changed();
