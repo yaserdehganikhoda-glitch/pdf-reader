@@ -104,7 +104,7 @@ if [ "$NEED_PHON" = 1 ]; then
   cp "$HERE/Phonemizer.java" android/app/src/main/java/com/pdfvoice/phon/Phonemizer.java
   OFFLINE_CACHE="$CACHE" bash "$HERE/build-phonemizer.sh" android/app/src/main/jniLibs android/app/src/main/assets
   for abi in arm64-v8a armeabi-v7a; do
-    for so in libpiper_phonemize.so libpiperphon_jni.so libsherpa-onnx-jni.so libonnxruntime.so; do
+    for so in libpiper_phonemize_core.so libpiperphon_jni.so libsherpa-onnx-jni.so libonnxruntime.so; do
       [ -s "android/app/src/main/jniLibs/$abi/$so" ] || { echo "ERROR: $abi/$so در jniLibs نیست"; exit 1; }
     done
   done

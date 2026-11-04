@@ -4,7 +4,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * آوانگار بیرونی برای sherpa-onnx ≥ 2.0 (که espeak-ng را از خودش حذف کرده).
- * زیر پوشش: piper-phonemize + espeak-ng (کتابخانهٔ بومی libpiper_phonemize.so) از طریق پل libpiperphon_jni.so.
+ * زیر پوشش: piper-phonemize + espeak-ng (کتابخانهٔ بومی libpiper_phonemize_core.so) از طریق پل libpiperphon_jni.so.
  * خروجی همان چیزی است که sherpa-onnx 2.x به‌عنوان phonemeCodepoints می‌گیرد: برای هر جمله، آرایهٔ کدپوینت‌های یونیکدِ آواها.
  * espeak رشتهٔ سراسری دارد و چندنخی امن نیست؛ پس همهٔ فراخوانی‌ها synchronized هستند.
  */
