@@ -3596,7 +3596,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
     var rows = [], out = [];
     a.slice().sort(function(p, q){ return q.transform[5] - p.transform[5]; }).forEach(function(it){
       var fs = fsOf(it), r = rows[rows.length - 1];
-      if (r && Math.abs(r.y - it.transform[5]) < fs * 0.5) r.a.push(it); else rows.push({ y: it.transform[5], a: [it] });
+      if (r && Math.abs(r.y - it.transform[5]) < fs * 0.7) r.a.push(it); else rows.push({ y: it.transform[5], a: [it] });   /* r182: ۰٫۵←۰٫۷ (واژهٔ جابه‌جاشدهٔ عمودی ردیف جدا نشود) */
     });
     rows.forEach(function(r){
       var rt = r.a.filter(function(it){ return RTLCH.test(it.str); }).length * 2 >= r.a.length;
@@ -3611,7 +3611,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
     var rtl = a.filter(function(it){ return RTLCH.test(it.str); }).length * 2 >= a.length;
     a.slice().sort(function(p, q){ return q.transform[5] - p.transform[5]; }).forEach(function(it){
       var r = rows[rows.length - 1];
-      if (r && Math.abs(r.y - it.transform[5]) < fsOf(it) * 0.5) r.a.push(it); else rows.push({ y: it.transform[5], a: [it] });
+      if (r && Math.abs(r.y - it.transform[5]) < fsOf(it) * 0.7) r.a.push(it); else rows.push({ y: it.transform[5], a: [it] });
     });
     rows.forEach(function(r){                                       /* هر ردیف در فاصله‌های بزرگ افقی (شیار ستون‌ها) به پاره‌سطر شکسته می‌شود */
       var cur = null;
@@ -3759,12 +3759,13 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
   var splitSuffix = (function(){
     var Z = '\u200c', CONN = /[بپتثجچحخسشصضطظعغفقکگلمنهیئ]$/,
         PL = /^(\p{L}{2,}?)(ها|های|هایی)(?:مان|تان|شان|م|ت|ش)?$/u, PR = /^(\p{L}{3,})(مان|تان|شان|ش)$/u,
-        KEEP = new Set('تنها تنهای تنهایی انتها انتهای انتهایی منتها منتهای منتهایی گرانبها گرانبهای کمبها بیبها'.split(' ')),
+        KEEP = new Set('تنها تنهای تنهایی انتها انتهای انتهایی منتها منتهای منتهایی گرانبها گرانبهای کمبها بیبها ایهام شبهات متشابهات'.split(' ')),
         DENY_W = new Set('ایمان آسمان زمان مهمان پیمان گمان کمان فرمان درمان سامان پریشان درخشان نشان دبستان بوستان گلستان ارمغان'.split(' ')),
         DENY_SH = /(?:ایش|اهش|امش|وشش|سش|ینش|نش|ردش|ودش)$/;
     return function(w){
       if (w.length < 4 || KEEP.has(w)) return w;
       var m = PL.exec(w);
+      if (m && /(?:مان|تان|شان|م|ت|ش)$/.test(w) && !/(?:ها|های|هایی)$/.test(w) && !ocrSpell.known(m[1])) return w;   /* r182: ابهام/الهام/استفهام ← بدون نیم‌فاصلهٔ اضافی */
       if (m) return CONN.test(m[1]) ? m[1] + Z + w.slice(m[1].length) : w;                  /* پس از حرف نچسب (کارها) نیازی به نیم‌فاصله نیست */
       m = PR.exec(w);
       if (m && !DENY_W.has(w) && CONN.test(m[1]) && (m[2] !== 'ش' || !DENY_SH.test(w)) && ocrSpell.has(m[1]) && !ocrSpell.has(w)) return m[1] + Z + m[2];   /* ضمیر: فقط وقتی ریشه در فرهنگ‌واژه باشد */
@@ -3908,6 +3909,7 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
         .replace(RK, '$1 $2').replace(RV, 'و $1').replace(RP, '$1 $2')
         .replace(R2, ' $1').replace(R2c, function(m, a, off, str){   /* r166 (ناظر پاک‌سازی): «‌ه‌ای» پس از ...دِه/تِه فقط وقتی نیم‌فاصله می‌گیرد که جمع نباشد؛ ریشهٔ کوتاه‌تر شناخته (رویداد) و شکل «ه»دار ناشناخته (رویداده) = جمع «رویدادهای» (همان محافظ K(w.slice(0,-3)) شاخهٔ CL) */
       if (a === 'ای') { var s0 = off, w3; while (s0 > 0 && /\p{L}/u.test(str.charAt(s0 - 1))) s0--; w3 = str.slice(s0, off); if (w3.length >= 4 && ocrSpell.known(w3.slice(0, -1)) && !ocrSpell.known(w3)) return m; }
+      if (a === 'ام' && (function(){ var s1 = off, w4; while (s1 > 0 && /\p{L}/u.test(str.charAt(s1 - 1))) s1--; w4 = str.slice(s1, off) + a; return w4 === 'اتهام' || w4 === 'ازدهام'; })()) return m;   /* r183: واژهٔ مستقل (نه «اته‌ام»/«ازده‌ام») */
       return Z + a; })
         .replace(RPL, function(m, r){ return r + (/[دذرزژو]$/.test(r) ? '' : Z) + 'های'; })
         .replace(R4a, Z).replace(R4b, '').replace(R4c, Z).replace(R4d, cmpSp).replace(RBI, biSp).replace(RUJ, unkJoin)
@@ -5656,7 +5658,7 @@ function jbWrapW(ls, old){
   var VG_AUX = vgSet('است نیست هست هستند هستم هستی هستیم هستید نیستند نیستم نیستی نیستیم نیستید بود بودند بودم بودی بودیم بودید نبود نبودند نبودم باشد باشند باشم باشی باشیم باشید نباشد نباشند نباشم نباشی شد شدند شدم شدی شدیم نشد نشدند شود شوند شوم شوی شویم شوید نشود نشوند خواهد خواهند خواهم خواهی خواهیم خواهید نخواهد نخواهند نخواهم باید نباید می‌توان نمی‌توان کنم کنی کنیم کنید نکنم نکنی نکنیم نکنید شوم شوی شویم گیرم گیری گیریم گیرید آیم آیی آییم آیید');
   var VG_IMP = vgSet('کن کنید شو بیا بیایید نیا نیایید بگو بگویید نگو نگویید بده بدهید نده ندهید برو بروید نرو نروید ببین ببینید نبین نبینید بکن بکنید نکن نکنید بشو بشوید نشو نشوید باش باشید بخور بخورید نخور بزن بزنید نزن بنویس بنویسید ننویس بخوان بخوانید نخوان ببر ببرید نبر بگیر بگیرید نگیر بایست بایستید بمان بمانید نمان ببخش ببخشید نبخش بپذیر بپذیرید بدان بدانید ندان بپرس بپرسید بیاور بیاورید بیفت بیفتید برگرد برگردید بشنو بشنوید بنشین بنشینید نترس نترسید');
   var VG_NOTV = vgSet('شدید');
-  var VG_AMB = vgSet('سوخت شکست رسید برد داد دید بست گشت آمد گذشت ساخت خواست نشست پخت آموخت');   /* هم فعل هم اسم: «شکست بخوریم»، «نشست برگزار شد» */
+  var VG_AMB = vgSet('شناخت پرداخت ساخت بافت خرید یافت سوخت شکست رسید برد داد دید بست گشت آمد گذشت ساخت خواست نشست پخت آموخت');   /* هم فعل هم اسم: «شکست بخوریم»، «نشست برگزار شد» */
   var VG_PAST2 = 'افزود|کاست|گریست|نگریست|لرزید|انجامید|پیوست|رویید|رمید|ستود|سرود|ربود|کوبید|چرخید|نامید|بالید|ستاند|جنبید|نشاند|راند|دمید|برخاست|درگذشت|گذراند|رساند|رسانید|سنجید|آراست|آزمود|آمیخت|انگیخت|ایستاد|بخشید|برگشت|برگزید|بازگشت|پنداشت|تابید|چشید|خزید|خفت|خندید|درخشید|دوید|رفتند|ریخت|زیست|ستیزید|سوخت|شمرد|شناخت|فرمود|فروخت|گفتند|لغزید|نواخت|ورزید|هراسید|ماند|پرداخت|بود';
   var VG_VB = null, VG_VM = {};
   function vgVerb(c){
@@ -5808,7 +5810,7 @@ function jbWrapW(ls, old){
       for (k = 0; k < n - 4; k++) {
         if (brk(k) || ins[k]) { lb = k + 1; continue; }
         if (!V(k) || T[k].op) continue;
-        if (VG_AMB[Z(k)] && V(k + 1)) continue;
+        if (VG_AMB[Z(k)] && (V(k + 1) || !VG_PRON[Z(k + 1)])) continue;   /* r182: همنویسهٔ اسم/فعل فقط پیش از ضمیر فاعلی */
         if (/خواه|توان/.test(T[k].c) && (V(k + 1) || /^ب/.test(T[k + 1].c))) continue;
         e = k; while (e + 1 < n - 4 && VG_AUX[Z(e + 1)] && !brk(e)) e++;
         k = e; if (brk(k) || ins[k]) { lb = k + 1; continue; }
@@ -7475,7 +7477,7 @@ function jbWrapW(ls, old){
       shortL = t.length < 20 || wc < 5;
       if (shortL && !((q && wc >= 3) || (wc >= 3 && t.length >= 14 && mfVerb(lw)))) return l;   /* سطر کوتاه: فقط پرسش یا جملهٔ فعل‌دار */
       endB = nx === undefined || !nx.trim();
-      return endB || (!shortL && t.length < mx * 0.6 && wc >= 6) ? t + mfMark(t) : l;
+      return (endB ? ((q && wc >= 3) || mfVerb(lw)) : (!shortL && t.length < mx * 0.6 && wc >= 6)) ? t + mfMark(t) : l;   /* r182: پایان صفحه فقط با فعل/پرسش نقطه بگیرد (ادامهٔ جمله در صفحهٔ بعد) */
     }).join('\n');
   }
   function manTypeset(s){                                           /* تدوین صفحه: شمارهٔ صفحهٔ بالا/پایین، خط‌های جداکننده، سطر خالی اضافی */
@@ -8254,10 +8256,12 @@ function jbWrapW(ls, old){
     try { d = new Uint8Array(await crypto.subtle.digest('SHA-256', b)); for (i = 0; i < 16; i++) h += (d[i] < 16 ? '0' : '') + d[i].toString(16); return h; }
     catch (e) { d = new Uint8Array(b); for (i = 0; i < d.length; i++) { x ^= d[i]; x = Math.imul(x, 16777619) >>> 0; } return 'f' + x.toString(16) + d.length.toString(16); }
   }
-  function txTrack(h, c){
+  function txTrack(h, c, b){
     return kvGet('tx2:index').then(function(a){
-      a = (a || []).filter(function(x){ return x.h !== h; }); a.unshift({ h: h, c: c });
-      var ks = []; a.splice(6).forEach(function(x){ ks.push('tx2:' + x.h); for (var i = 0; i < x.c; i++) ks.push('tx2:' + x.h + '#' + i); });
+      var ob = ((a || []).filter(function(x){ return x.h === h; })[0] || {}).b || 0, sum = 0, keep = [], i;
+      a = (a || []).filter(function(x){ return x.h !== h; }); a.unshift({ h: h, c: c, b: b > 0 ? b : ob });
+      for (i = 0; i < a.length; i++) { sum += a[i].b || 0; keep.push(a[i]); if (i >= 5 || (sum > 167772160 && i > 0)) break; }   /* r181: سقف ۶ سند و ≈۱۶۰MB (برآورد ۱۵۰ بایت/آیتم)؛ حداقل یک سند می‌ماند */
+      var ks = []; a.splice(keep.length).forEach(function(x){ ks.push('tx2:' + x.h); for (var i = 0; i < x.c; i++) ks.push('tx2:' + x.h + '#' + i); });
       return kvDelMany(ks).then(function(){ return kvSet('tx2:index', a); });
     }).catch(function(){});
   }
@@ -8293,9 +8297,9 @@ function jbWrapW(ls, old){
   }
   var loadTok = 0, loadTask = null;
   async function loadFile(file){
-    var lt = ++loadTok; posFlush();
-    if (!window.pdfjsLib) { status('کتابخانهٔ PDF داخل برنامه پیدا نشد (پوشهٔ lib را با fetch-offline.sh بسازید).'); return; }
-    if (ocrBusy) { ocrStop = true; while (ocrBusy) await new Promise(function(r){ setTimeout(r, 60); }); }
+    var lt = ++loadTok; posFlush(); var tL0 = performance.now(), pName = docName, pDict = dictP, dead = false;   /* r181: وضعیت پیشین برای بازگشت امن هنگام شکست */
+    if (!window.pdfjsLib) { status('کتابخانهٔ PDF داخل برنامه پیدا نشد (پوشهٔ lib را با fetch-offline.sh بسازید).'); return false; }
+    if (ocrBusy) { status('در حال توقف OCR…'); ocrStop = true; while (ocrBusy) await new Promise(function(r){ setTimeout(r, 60); }); }
     curKey = ''; ocrAll = false; ocrNoteOff = false;
     stopAll();
     status('در حال باز کردن فایل…'); setDocTitle(file.name); closeMenu();
@@ -8303,16 +8307,17 @@ function jbWrapW(ls, old){
     try {
       var buf = await file.arrayBuffer();
       if (lt !== loadTok) return;
+      dead = true; try { pvSuspend(); } catch (e) {}   /* r181: بوم‌های سند قبلی همین‌جا آزاد می‌شوند */
       if (pdfDoc) { try { pdfDoc.destroy(); } catch (e) {} }
       if (loadTask) { try { loadTask.destroy(); } catch (e) {} }
       pdfDoc = null;
       loadTask = pdfjsLib.getDocument({ data: buf, cMapUrl: new URL('lib/cmaps/', location.href).href, cMapPacked: true, standardFontDataUrl: new URL('lib/standard_fonts/', location.href).href });
       var doc = await loadTask.promise; buf = null;
       if (lt !== loadTok) { try { doc.destroy(); } catch (e) {} return; }
-      pdfDoc = doc; document.body.classList.add('has-doc'); hideHome();
+      pdfDoc = doc; document.body.classList.add('has-doc'); hideHome(); try { if (typeof hMsg === 'function') hMsg(''); } catch (e) {}   /* r181: پیام خطای قدیمیِ کتابخانه پاک شود */
       var pdf = pdfDoc; rawItems = []; rawImg = [];
-      var fh = await fileHash(file), TXK = 'tx2:' + fh, np0 = pdf.numPages, txc = null, txB = { p: [], g: [] }, txI = 0, tm, c0, ch, j0;
-      try { tm = await kvGet(TXK); if (tm && tm.v === 1 && tm.n === np0) { txc = []; for (c0 = 0; c0 < tm.c; c0++) { ch = await kvGet(TXK + '#' + c0); if (!ch) { txc = null; break; } txc.push(ch); } } } catch (e) { txc = null; }
+      var fh = await fileHash(file), fmid = await fileMid(file), PJV = String((window.pdfjsLib && pdfjsLib.version) || ''), TXK = 'tx2:' + fh, np0 = pdf.numPages, txc = null, txB = { p: [], g: [] }, txI = 0, txBy = 0, txDone = false, imgRun = 0, tm, c0, ch, j0;
+      try { tm = await kvGet(TXK); if (tm && tm.v === 2 && tm.n === np0 && tm.pj === PJV && tm.mid === fmid) { txc = []; for (c0 = 0; c0 < tm.c; c0++) { ch = await kvGet(TXK + '#' + c0); if (!ch) { txc = null; break; } txc.push(ch); } } } catch (e) { txc = null; }
       var W0 = txwGet(); if (W0) W0.post('doc');
       if (txc) {   /* کش متن استخراجی: بدون خواندن دوبارهٔ صفحه‌ها */
         txc.forEach(function(ch){ for (j0 = 0; j0 < ch.p.length; j0++) { rawItems.push(ch.p[j0]); if (ch.g[j0]) rawImg[rawItems.length] = true; if (W0 && W0.alive()) W0.post('items', { p: rawItems.length, its: ch.p[j0], img: !!ch.g[j0] }); } });
@@ -8321,14 +8326,14 @@ function jbWrapW(ls, old){
       for (var p = 1; !txc && p <= np0; p++) {
         status('استخراج متن: صفحهٔ ' + nf.format(p) + ' از ' + nf.format(pdf.numPages));
         var page = await pdf.getPage(p);
-        if (lt !== loadTok) { try { page.cleanup(); } catch (e) {} return; }
+        if (lt !== loadTok) { try { page.cleanup(); } catch (e) {} txDropPartial(TXK, txI); return; }
         var its = (await page.getTextContent()).items;
-        if (lt !== loadTok) { try { page.cleanup(); } catch (e) {} return; }
+        if (lt !== loadTok) { try { page.cleanup(); } catch (e) {} txDropPartial(TXK, txI); return; }
         var sl = slimItems(its); rawItems.push(sl);
-        if (!its.some(function(x){ return x.str && x.str.trim(); })) rawImg[p] = await hasImg(page);
+        if (!its.some(function(x){ return x.str && x.str.trim(); })) { if (imgRun >= 8) rawImg[p] = true; else { rawImg[p] = await hasImg(page); imgRun = rawImg[p] ? imgRun + 1 : 0; } } else imgRun = 0;   /* r181: پس از ۸ صفحهٔ خالیِ تصویری پشت‌سرهم، بقیه بدون op-list تصویری فرض می‌شوند */
         if (W0 && W0.alive()) W0.post('items', { p: p, its: sl, img: !!rawImg[p] });
-        txB.p.push(sl); txB.g.push(rawImg[p] ? 1 : 0);
-        if (txB.p.length === 16 || p === np0) { kvSet(TXK + '#' + txI++, txB).catch(function(){}); txB = { p: [], g: [] }; if (p === np0) kvSet(TXK, { v: 1, n: np0, c: txI }).then(function(){ txTrack(fh, txI); }).catch(function(){}); }
+        txB.p.push(sl); txB.g.push(rawImg[p] ? 1 : 0); txBy += sl.length * 150;
+        if (txB.p.length === 16 || p === np0) { kvSet(TXK + '#' + txI++, txB).catch(function(){}); txB = { p: [], g: [] }; if (p === np0) { txDone = true; kvSet(TXK, { v: 2, n: np0, c: txI, pj: PJV, mid: fmid }).then(function(){ txTrack(fh, txI, txBy); }).catch(function(){}); } }
         page.cleanup();
         if (p % 8 === 0) await new Promise(function(r){ setTimeout(r, 0); });
       }
@@ -8355,13 +8360,47 @@ function jbWrapW(ls, old){
       libSave(file, pdf.numPages, sents.length); recAdd(file);
       mnName = file.name; try { if (navigator.mediaSession) navigator.mediaSession.metadata = new MediaMetadata({ title: file.name }); } catch (e) {}
       if (!sents.length) status(ocrHint().replace(/^ — /, '')); else status(file.name + ' — ' + nf.format(pdf.numPages) + ' صفحه، ' + nf.format(sents.length) + ' جمله' + (idx ? ' — ادامه از جملهٔ ' + nf.format(idx + 1) : '') + ocrHint());
+      try { window.__elog.add('load', 'open ' + Math.round(performance.now() - tL0) + 'ms pages=' + np0 + ' cache=' + (txc ? 1 : 0) + ' sents=' + sents.length + ' heapMB=' + (performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : 0)); } catch (x) {}   /* r181: زمان بازشدن اول/دوم */
       if (O.ocr !== 'off' && ocrTodo().length) runOcr();
+      return true;
     } catch (e) {
       if (lt !== loadTok) return;
       try { window.__elog.add('read', e && e.stack ? e.stack : (e && e.message) || e); } catch (x) {}
-      status('خواندن فایل ناموفق بود: ' + (e && e.message ? e.message : e));
+      try { if (!txc && !txDone) txDropPartial(TXK, txI); } catch (x) {}
+      var fm = loadErrMsg(e);
+      try { if (dead) loadReset(); else { docName = pName; dictP = pDict; parseDict(); dictShow(); setDocTitle(pName); } } catch (x) {}   /* r181: بازگشت به وضعیت سالم */
+      status(fm); try { if (typeof hMsg === 'function') hMsg(fm); } catch (x) {}
+      return false;
     }
   }
+  async function fileMid(f){                                       /* r181: چک‌سام ۳ برش ۶۴KB از میانهٔ فایل؛ فقط برای اعتبارسنجی کش (فایل ≤۲MB کامل هش می‌شود) */
+    try {
+      if (!f || f.size <= 2097152) return '';
+      var K = 65536, qs = [0.25, 0.5, 0.75], h = 2166136261, i, j, d, o;
+      for (i = 0; i < qs.length; i++) { o = Math.floor(f.size * qs[i]); d = new Uint8Array(await f.slice(o, o + K).arrayBuffer()); for (j = 0; j < d.length; j++) { h ^= d[j]; h = Math.imul(h, 16777619) >>> 0; } }
+      return 'm' + h.toString(16);
+    } catch (e) { return ''; }
+  }
+  function txDropPartial(k, n){ if (!k || !(n > 0)) return; var ks = [], i; for (i = 0; i < n; i++) ks.push(k + '#' + i); try { kvDelMany(ks).catch(function(){}); } catch (e) {} }   /* r181: قطعه‌های یتیمِ بارِ لغوشده */
+  function loadErrMsg(e){
+    var n = (e && e.name) || '';
+    if (n === 'PasswordException') return 'این فایل رمزدار است؛ باز کردن PDF رمزدار هنوز پشتیبانی نمی‌شود.';
+    if (n === 'InvalidPDFException') return 'فایل PDF خراب یا ناقص است و باز نشد.';
+    if (n === 'MissingPDFException') return 'فایل PDF پیدا نشد.';
+    return 'خواندن فایل ناموفق بود: ' + (e && e.message ? e.message : e);
+  }
+  function loadReset(){                                            /* r181: حالت «بدون سند» پس از شکست؛ سند قبلی پیش‌تر نابود شده است */
+    try { if (pdfDoc) pdfDoc.destroy(); } catch (e) {}
+    try { if (loadTask) loadTask.destroy(); } catch (e) {}
+    pdfDoc = null; rawItems = []; rawImg = []; ocrPages = {}; ocrGeo = {}; ocrMeta = {}; ocrKey = ''; curKey = ''; need = [];
+    try { var W = txwGet(); if (W) W.post('doc'); } catch (e) {}
+    docName = ''; dictP = ''; try { parseDict(); dictShow(); } catch (e) {}
+    try { setDocTitle(''); } catch (e) {}
+    try { build([], [], 0); } catch (e) {}
+    try { $('#reader').textContent = ''; } catch (e) {}
+    try { showHome(); } catch (e) {}
+  }
+
   var pageParas = {}, pgEls = {}, pgObs = null, pgObsU = null, unrT = 0, unrList = {}, curKey = '';
   function unrQ(q){
     unrList[q] = 1; clearTimeout(unrT);
@@ -9736,7 +9775,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r180 · 2026-11-04 · spell-v3 · errbox-v1', npBuild = '';
+  var APP_BUILD = 'html-r183 · 2026-11-05 · spell-v3 · errbox-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -11368,8 +11407,8 @@ function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مک
     }
     return Math.round(w * pvZf) + '|' + rot + '|' + (dk ? 'd' : 'n');
   }
-  function pvDrop(q){ var e = pvCv[q]; if (!e) return; delete pvCv[q]; try { if (e.rt) e.rt.cancel(); } catch (x) {} if (e.res) { try { e.res.c.width = 0; } catch (x) {} } }
-  function pvClear(){ if (!pvCv) return; Object.keys(pvCv).forEach(pvDrop); var U = $('#pvU'), D = $('#pvD'); if (U) U.textContent = ''; if (D) D.textContent = ''; }
+  function pvDrop(q, keep){ var e = pvCv[q]; if (!e) return; delete pvCv[q]; try { if (e.rt) e.rt.cancel(); } catch (x) {} if (e.res) { try { e.res.c.width = 0; } catch (x) {} } if (!keep && e.pg) { try { e.pg.cleanup(); } catch (x) {} } }   /* r181: آزادسازی operatorList صفحه‌های خارج از پنجره */
+  function pvClear(){ if (!pvCv) return; Object.keys(pvCv).forEach(function(k){ pvDrop(k); }); var U = $('#pvU'), D = $('#pvD'); if (U) U.textContent = ''; if (D) D.textContent = ''; }
   /* حالت شب: وارونگی بلوکی (۱۶×۱۶) فقط برای بلوک‌های متن/زمینه؛ بلوک‌های رنگی یا نیم‌تُن (عکس) دست‌نخورده می‌مانند */
   async function pvDark(c){
     var w = c.width, h = c.height, cx = c.getContext('2d'), B = 16, y, bx, i, j, X, id, d, x1, n, sat, mid, r, g, b, mx, mn, L, dl, ph, keep = [], q = 0;
@@ -11399,10 +11438,11 @@ function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مک
   function pvRender(p){                                            /* رندر صفحه در بومِ کش‌شده؛ همسایه‌ها هم با همین کش آماده می‌شوند */
     var kk = pvKey(p), e = pvCv[p], doc = pdfDoc, ent, R = pvRot, D = pvPt === 'dark';
     if (e && e.k === kk && e.doc === doc) return e.pr;
-    pvDrop(p);
+    pvDrop(p, 1);
     ent = pvCv[p] = { k: kk, doc: doc, rt: null, res: null, pr: null };
     ent.pr = (async function(){
       var page = await doc.getPage(p), v0 = page.getViewport({ scale: 1 }), tot = (page.rotate + R) % 360, v1, k, ratio, sc, big, dpr, cap, c, cw, ch, vp;
+      if (pvCv[p] !== ent) { try { page.cleanup(); } catch (x) {} throw new Error('pv-dropped'); } ent.pg = page;   /* r181: ورودی در حین getPage حذف شده ← رندر یتیم نساز */
       pvAsp[p] = v0.width / v0.height;
       ent.k = kk = pvKey(p, R, D); k = parseInt(kk, 10);
       v1 = page.getViewport({ scale: 1, rotation: tot }); ratio = v1.height / v1.width; sc = k / v1.width; big = pvZf > 1.3;
@@ -11424,7 +11464,7 @@ function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مک
   function pvKeep(fn){ var m = $('#pvp'), st = $('#stage'), b = m.getBoundingClientRect().top, d; fn(); d = m.getBoundingClientRect().top - b; if (d) st.scrollTop += d; }
   function pvPut(w, c){ c.id = ''; w.style.width = ''; w.style.height = ''; w.appendChild(c); }
   function pvFill(p){                                              /* صفحهٔ قبل (۱) و بعدها (۱ تا ۲) زیر/بالای صفحهٔ اصلی چیده می‌شوند */
-    var doc = pdfDoc, n = doc ? doc.numPages : 0, U = $('#pvU'), D = $('#pvD'), mc = $('#pvc'), mw = mc.style.width || '60%', mh = mc.style.height || '300px', tok = pvTok, ah = pvZf >= 2 ? 1 : 2, pend = [], order = [], j;
+    var doc = pdfDoc, n = doc ? doc.numPages : 0, U = $('#pvU'), D = $('#pvD'), mc = $('#pvc'), mw = mc.style.width || '60%', mh = mc.style.height || '300px', tok = pvTok, ah = pvZf >= 2 ? 1 : ((navigator.deviceMemory || 8) <= 4 ? 1 : 2), pend = [], order = [], j;
     Object.keys(pvCv).forEach(function(k){ if (+k < p - 1 || +k > p + ah) pvDrop(k); });
     U.textContent = ''; D.textContent = '';
     order.push(p + 1); order.push(p - 1); if (ah > 1) order.push(p + 2);
@@ -11437,12 +11477,13 @@ function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مک
     (async function(){
       for (j = 0; j < pend.length; j++) {
         if (tok !== pvTok || doc !== pdfDoc) return;
-        try { var r = await pvRender(pend[j][0]); if (tok !== pvTok || doc !== pdfDoc) return; (function(w, c){ pvKeep(function(){ pvPut(w, c); }); })(pend[j][1], r.c); } catch (e) { window.__elogR && window.__elogR('c6894', 'var r  await pvRender(pendj0) if ( : ' + String((e && e.message) || e).slice(0, 80));}
+        try { var r = await pvRender(pend[j][0]); if (tok !== pvTok || doc !== pdfDoc) return; (function(w, c){ pvKeep(function(){ pvPut(w, c); }); })(pend[j][1], r.c); } catch (e) { if (!(e && e.message === 'pv-dropped')) window.__elogR && window.__elogR('c6894', 'var r  await pvRender(pendj0) if ( : ' + String((e && e.message) || e).slice(0, 80));}
       }
     })();
   }
   async function pvShow(p, scroll, keep, anc){
     var tok = ++pvTok, doc = pdfDoc, wrap = $('#pv'), st = $('#stage'), r, old, nc, at = null, bf = 0;
+    Object.keys(pvCv).forEach(function(k){ var e0 = pvCv[k]; if (e0 && !e0.res && (+k < p - 1 || +k > p + 2)) pvDrop(k); });   /* r181: رندر نیمه‌کارهٔ صفحه‌های دور لغو می‌شود */
     pvPage = p; pvVp = null; pvRC = {}; $('#pvh').textContent = ''; $('#pvn').hidden = true; clearTimeout(pvTLt); $('#pvt').textContent = '';
     Object.keys(pvStr).forEach(function(k){ if (Math.abs(+k - p) > 2) delete pvStr[k]; });
     try {
@@ -11470,7 +11511,7 @@ function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مک
     pvSw = 1; pvShow(q, false, true).then(function(){ pvSw = 0; }, function(){ pvSw = 0; });
   }
   function pvMark(scroll){
-    if (!pvOn() || !pdfDoc || !sents[idx] || pvPin || pvBusy) return;
+    if (!pvOn() || !pdfDoc || !sents[idx] || pvPin || pvBusy || document.body.classList.contains('home-on')) return;   /* r181: در کتابخانه صفحه‌نما رندر نمی‌شود */
     var p = sents[idx].page;
     if (p === pvPage && pvVp) pvHL(scroll);
     else if (pvPage && playing && Date.now() - pvUserT < 6000) return;      /* کاربر دارد اسکرول می‌کند؛ نمای او را به صفحهٔ خوانش برنمی‌گردانیم */
@@ -11487,6 +11528,7 @@ function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مک
   }
   /* ----- لایهٔ جزئیات: ناحیهٔ دیده‌شده با وضوح بومی نمایشگر رسم می‌شود (متن در هر زوم تیز می‌ماند، حافظه محدود) ----- */
   var pvDtok = 0, pvDrt = null, pvDarea = null, pvDT = 0, pvPin = null, pvBusy = 0;
+  function pvSuspend(){ pvTok++; pvClear(); pvDClear(); }   /* r181: آزادسازی همهٔ بوم‌های صفحه‌نما (نمای متن/کتابخانه/سند جدید) */
   function pvDClear(){ pvDtok++; clearTimeout(pvDT); if (pvDrt) { try { pvDrt.cancel(); } catch (e) {} pvDrt = null; } var d = $('#pvd'); if (d) { d.width = 0; d.remove(); } pvDarea = null; }
   function pvDSched(ms){ clearTimeout(pvDT); if (pvZf <= 1.3 || !pvOn()) return; pvDT = setTimeout(pvDetail, ms || 200); }
   function pvDetail(){
@@ -12055,7 +12097,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
       if (!e) throw new Error('none');
       return kvGet('lib:f:' + id).then(function(b){
         if (!b) throw new Error('none');
-        return loadFile(new File([b], e.name, { type: 'application/pdf', lastModified: e.added || Date.now() }));
+        return loadFile(new File([b], e.name, { type: 'application/pdf', lastModified: e.added || Date.now() })).then(function(ok){ if (ok === false) libMsg('این فایل باز نشد؛ ممکن است خراب یا رمزدار باشد.'); });
       });
     }).catch(function(){ libMsg('این فایل در حافظه پیدا نشد؛ دوباره آن را انتخاب کنید.'); });
   }
@@ -13615,7 +13657,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
     closeTools();
     if (act === 'file') { fin.click(); return; }
     if (act === 'home') { showHome(); return; }
-    if (act === 'resume') { if ($('#play').disabled) showHome(); else { hideHome(); setAppTab('read'); } return; }
+    if (act === 'resume') { if ($('#play').disabled) showHome(); else { hideHome(); setAppTab('read'); try { if (pvOn()) pvRedo(); } catch (e) {} } return; }
     if (go) {
       if (only) { tg = pagesEl.querySelectorAll(only); if (tg.length && Array.prototype.every.call(tg, function(x){ return x.hidden; })) { setAppTab('read'); status('ابتدا یک PDF باز کنید.'); return; } }
       bt = b.querySelector('b'); sm = b.querySelector('small'); pt = b.querySelector('svg path');
@@ -14102,7 +14144,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
     hPendFold = ''; hMsg('در حال باز کردن…');
     var fail = function(){ hMsg('این فایل پیدا نشد؛ ممکن است جابه‌جا یا حذف شده باشد.'); };
     var nm = e.orig || e.name, al = e.name !== nm ? e.name : '';
-    var shown = function(){ if (al) { try { setDocTitle(al); } catch (x) {} } };   /* نام تغییریافته فقط نمایشی است؛ شناسهٔ فایل (نام اصلی + حجم) ثابت می‌ماند */
+    var shown = function(ok){ if (ok === false) return; if (al) { try { setDocTitle(al); } catch (x) {} } };   /* نام تغییریافته فقط نمایشی است؛ شناسهٔ فایل (نام اصلی + حجم) ثابت می‌ماند */
     if (!e.path) return hFromLib(e).then(shown).catch(fail);
     return hFetch(e.path).then(function(b){ return loadFile(new File([b], nm, { type: 'application/pdf' })); }).catch(function(){ return hFromLib(e); }).then(shown).catch(fail);
   }
@@ -14248,13 +14290,14 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
   function thGet(e){
     return kvGet('th:' + e.id).then(function(c){
       if (c === 'x') return null;
+      if (typeof c === 'string' && c.indexOf('t:') === 0 && Date.now() - +c.slice(2) < 864e5) return null;   /* r181: خطای گذرا فقط یک روز ثبت می‌شود */
       if (c && c.size) return c;
       var src = e.path ? hFetch(e.path).catch(function(){ return thLibBlob(e); }) : thLibBlob(e);
       return src.then(function(f){
         if (!f) return null;
         if (f.size > 41943040) { kvSet('th:' + e.id, 'x'); return null; }
-        return f.arrayBuffer().then(thRender).then(function(b){ if (b) kvSet('th:' + e.id, b); else kvSet('th:' + e.id, 'x'); return b; },
-          function(){ kvSet('th:' + e.id, 'x'); return null; });
+        return f.arrayBuffer().then(thRender).then(function(b){ if (b) kvSet('th:' + e.id, b); else kvSet('th:' + e.id, 't:' + Date.now()); return b; },
+          function(er){ kvSet('th:' + e.id, /InvalidPDF|Password|MissingPDF|FormatError/.test((er && er.name) || '') ? 'x' : 't:' + Date.now()); return null; });
       });
     });
   }
@@ -14435,7 +14478,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
       if (q) list = list.filter(function(e){ return norm(e.name).indexOf(q) >= 0; });
       list.sort(hCmp(s)); folders.sort(hCmp(s));
       var cnt = fo ? list.length : (hTab === 'all' && !q ? total : list.length);
-      $('#hTitle').textContent = (fo ? fo.name : HTITLE[hTab]) + ' (' + nf.format(cnt) + ')';
+      $('#hTitle').textContent = ((fo && q) ? 'نتایج جست‌وجو' : (fo ? fo.name : HTITLE[hTab])) + ' (' + nf.format(cnt) + ')';
       var hasAny = r.all.length > 0 || fdAll().length > 0;   /* ابزارهای فهرست فقط وقتی فایلی در برنامه هست */
       $('#hSearchB').hidden = $('#hLay').hidden = $('#hSortB').hidden = !hasAny;
       if (!hasAny) { $('#hSearchRow').hidden = true; $('#hSortP').hidden = true; }
@@ -14490,6 +14533,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
   }
   function showHome(){
     closeTools(); setAppTab('read'); BK.drop('rd');
+    try { pvSuspend(); } catch (e) {}
     document.body.classList.add('home-on');
     hRender(); hScanRun();
   }
@@ -14608,7 +14652,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
     if (!g || g.hidden) { setAppTab('read'); status('ابتدا یک PDF باز کنید.'); return; }
     setAppTab('view', { only: '#navGrp', title: 'جستجو در متن', sub: 'و رفتن به صفحه', icon: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4' });
   };
-  $('#rdMode').onclick = function(){ pvMode = pvOn() ? 'text' : 'page'; sset('rdMode', pvMode); pvApply(); if (pvOn()) pvRedo(); else if (curEl) follow(curEl, 1); };
+  $('#rdMode').onclick = function(){ pvMode = pvOn() ? 'text' : 'page'; sset('rdMode', pvMode); pvApply(); if (pvOn()) pvRedo(); else { pvSuspend(); if (curEl) follow(curEl, 1); } };
   /* ---- نشانهٔ صفحه + یادداشت (IndexedDB: bm:<id>)؛ در ZIP پشتیبان هم می‌آید ---- */
   var bmEl = null, bmSc = null, bmRec = null, vaEl = null, vaUrl = '';
   function vaStop(){ if (vaEl) { vaEl.onended = vaEl.onerror = null; try { vaEl.pause(); } catch (x) {} vaEl = null; } if (vaUrl) { try { URL.revokeObjectURL(vaUrl); } catch (x) {} vaUrl = ''; } }
