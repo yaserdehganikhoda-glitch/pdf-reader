@@ -1,6 +1,8 @@
 name: Build APK
 on:
   push:
+    paths-ignore:
+      - '**.md'
   workflow_dispatch:
 permissions:
   contents: write
@@ -28,12 +30,23 @@ jobs:
       - name: Prepare web files
         run: |
           mkdir -p www
-          if [ ! -s www/index.html ]; then cp index.html www/index.html; fi
+          # فایل‌های ریشهٔ مخزن مرجع‌اند؛ اگر www/ نسخهٔ متفاوتی داشت هشدار می‌دهیم و با نسخهٔ ریشه جایگزین می‌کنیم
+          if [ -s index.html ]; then
+            if [ -s www/index.html ] && ! cmp -s index.html www/index.html; then echo "::warning::www/index.html با index.html ریشه فرق داشت؛ نسخهٔ ریشه جایگزین شد"; fi
+            cp -f index.html www/index.html
+          fi
           test -s www/index.html
           for f in fa_lexicon.js fa_words.js; do
-            if [ -s "$f" ] && [ ! -s "www/$f" ]; then cp "$f" "www/$f"; fi
+            if [ -s "$f" ]; then
+              if [ -s "www/$f" ] && ! cmp -s "$f" "www/$f"; then echo "::warning::www/$f با نسخهٔ ریشه فرق داشت؛ نسخهٔ ریشه جایگزین شد"; fi
+              cp -f "$f" "www/$f"
+            fi
           done
           test -s www/fa_lexicon.js || echo "::warning::fa_lexicon.js نه در ریشهٔ مخزن است نه در www؛ واژه‌نامهٔ املایی داخل APK نخواهد بود"
+      - name: Verify (TXW، نحو، Golden، رگرسیون) روی فایل ارسالی به APK
+        run: |
+          test -s tools/verify.sh || { echo "::error::tools/verify.sh در مخزن نیست"; exit 1; }
+          sh tools/verify.sh www/index.html
       - name: Install dependencies
         run: npm install --legacy-peer-deps
       - name: Bundle offline web assets (fonts, pdf.js, OCR)
