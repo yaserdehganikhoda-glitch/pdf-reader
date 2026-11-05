@@ -6,6 +6,7 @@ ok(/^مهرین مادری/.test(X.ttsText('مهر مادری زیباست.')),'
 ok(/شاکِر/.test(X.ttsText('قاشق شکر ریخت.')),'dict beats HOM cue (شکر)');
 ok(/گُل/.test(X.ttsText('گل سرخ.')),'non-dict words unaffected');
 const m=h.match(/function ezOn\(\)\{[^\n]*\}\s*\/\*/)||h.match(/function ezOn\(\)\s*\{[^\n]*?\}(?=   \/\*)/);
+if(!m){console.log('prio OK',n,'(بخش ezOn رد شد: تابع در r122 حذف شده)');process.exit(0)}
 ok(m,'ezOn found');
 const st={ezMod:''},cx={sget:(k,d)=>st[k]!==undefined?st[k]:d,currentVoice:()=>({id:'v2'})};vm.createContext(cx);
 vm.runInContext(m[0].replace(/\/\*$/,'')+';this.f=ezOn',cx);

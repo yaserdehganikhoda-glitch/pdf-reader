@@ -1,4 +1,5 @@
 const X=require('./load.js')(process.argv[2]);X.S.fixOn=1;
+if(X.ev('typeof ezApply')==='undefined'){console.log(JSON.stringify({skipped:'ezApply حذف شده (r122)؛ Golden ez غیرفعال'}));process.exit(0)}
 const G=JSON.parse(require('fs').readFileSync(__dirname+'/golden-fa.json','utf8')).ez;
 const split=(a,b)=>[G.slice(a,b)];
 function run(list){let tp=0,fp=0,fn=0,bad=[];

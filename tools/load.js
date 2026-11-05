@@ -13,5 +13,6 @@ module.exports=function(file){
   ctx.self=ctx;ctx.navigator={};ctx.location={};ctx.__SETTINGS=1;ctx.postMessage=()=>{};ctx.addEventListener=()=>{};
   vm.createContext(ctx);
   vm.runInContext(src,ctx,{filename:'txw'});
+  if(ctx.__X&&ctx.__X.S&&process.env.HAR!=='0')ctx.__X.S.harOn=1;   /* r184: Worker واقعی harOn را از S می‌گیرد؛ Golden hom به صدای اعرابی نیاز دارد (HAR=0 برای خاموش) */
   return ctx.__X;
 };

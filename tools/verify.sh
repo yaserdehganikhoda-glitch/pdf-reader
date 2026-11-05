@@ -24,12 +24,13 @@ if(bad)process.exit(1);console.log("OK پاک‌سازی")
 node "$D/g2p.js" "$F" | tee /tmp/g2p.out; node -e '
 const r=JSON.parse(require("fs").readFileSync("/tmp/g2p.out","utf8").split("\n")[0]);
 if(r.hom.acc<0.9||r.num.acc<0.9||r.msPerSentence_node>5){console.log("FAIL آستانهٔ Golden/زمان");process.exit(1)}console.log("OK Golden")' || E=1
-node "$D/evalez.js" "$F" | head -1
-node "$D/evalemo.js" "$F" > /tmp/emo.out; head -1 /tmp/emo.out; node -e '
+node "$D/evalez.js" "$F" > /tmp/ez.out 2>&1 || E=1; head -1 /tmp/ez.out
+node "$D/evalemo.js" "$F" > /tmp/emo.out || E=1; head -1 /tmp/emo.out; node -e '
 const r=JSON.parse(require("fs").readFileSync("/tmp/emo.out","utf8").split("\n")[0]);
 if(r.macroF1_5<0.7||r.ms_per_sentence_node>5){console.log("FAIL آستانهٔ احساس");process.exit(1)}console.log("OK احساس")' || E=1
-node "$D/evalemo.js" "$F" --holdout | head -1
-node "$D/emopar.js" "$F" | tail -1
-node "$D/emph.js" "$F" | tail -2 || E=1
+node "$D/evalemo.js" "$F" --holdout > /tmp/emoh.out 2>&1 || E=1; head -1 /tmp/emoh.out
+node "$D/emopar.js" "$F" > /tmp/emopar.out 2>&1 || E=1; tail -1 /tmp/emopar.out
+node "$D/emph.js" "$F" > /tmp/emph.out 2>&1 || E=1; tail -2 /tmp/emph.out
 node "$D/prio.js" "$F" || E=1
+node "$D/regress.js" "$F" || E=1
 exit $E
