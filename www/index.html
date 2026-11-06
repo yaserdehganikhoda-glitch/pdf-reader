@@ -11725,7 +11725,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
       try {
         var nsLogTxt = 'سنجش «' + v.id + '» مدل ' + ndMdl() + ' انتخاب ' + o.lv + ' | fl ' + o.rows.map(function(q){ return q.fl; }).join('/') + ' | hs ' + o.rows.map(function(q){ return q.hs; }).join('/') + ' | np ' + o.rows.map(function(q){ return q.np; }).join('/') + ' | dz ' + o.rows.map(function(q){ return q.dz; }).join('/') + ' | جمله ' + o.n;
         var nsLogAdd = function(t2){ try { if (window.__elog) window.__elog.add('noise', nsLogTxt + t2); } catch (e2) {} };
-        if (NP && NP.diag) Promise.resolve(NP.diag()).then(function(d){ nsLogAdd(' | nd ' + (d && d.nd) + ' ndm ' + (d && d.ndm)); }).catch(function(){ nsLogAdd(''); }); else nsLogAdd('');
+        if (NP && NP.diag) Promise.resolve(NP.diag()).then(function(d){ nsLogAdd(' | nd ' + (d && d.nd) + ' ndm ' + (d && d.ndm) + (d && d.mph ? ' mph ' + d.mph : '')); }).catch(function(){ nsLogAdd(''); }); else nsLogAdd('');
       } catch (e) {}
       try { nsAdapt(v.id, o); } catch (e) {}
       try { var hq = R[pk.lv].map(function(q){ return q.hp; }).filter(Boolean), hw = '', hk; hq.forEach(function(q){ hk = hsPcmWhy(q); if (hk && !hw) hw = hk; }); HS.vp[v.id] = hw ? 'سنجش صدای این گوینده: ' + hw + ' در سطح انتخابی.' : 'سنجش صدای این گوینده: بدون بریدگی و بی‌صدایی.'; hsShow(); } catch (e) {}
