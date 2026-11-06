@@ -3659,7 +3659,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
   window.ocrBin = function(on){ sset('ocrBin', on ? '1' : '0'); return on ? 'دودویی‌سازی صفحه‌های کم‌اطمینان روشن (از OCR بعدی)' : 'دودویی‌سازی خاموش'; };
   window.ocrLm = function(p, n){ sset('ocrLmP', p == null ? '' : String(p)); sset('ocrLmN', n == null ? '' : String(n)); return p == null ? 'وزن مدل زبانی = پیش‌فرض (+۱٫۰ / −۰٫۷)' : 'وزن مدل زبانی: شناخته +' + p + ' / ناشناخته ' + n + ' (از OCR بعدی؛ Worker گرم ≤۹۰ثانیه ممکن است مقدار قبلی را نگه دارد)'; };
   window.ocrRecH = function(h){ sset('ocrRecH', String(+h || 48)); return 'ارتفاع rec = ' + (+h || 48) + ' (از OCR بعدی؛ Worker گرم ≤۹۰ثانیه ممکن است مقدار قبلی را نگه دارد)'; };
-  /* r19: سرویس rec بومی برای Workerها (ترد اصلی پل Capacitor را دارد) — پیش‌فرض خاموش: ocrNative(1) */
+  /* r19: سرویس rec بومی برای Workerها (ترد اصلی پل Capacitor را دارد) — پیش‌فرض روشن (خاموش‌کردن: ocrNative(0)؛ با خطای بارگذاری ORT بومی خودکار خاموش می‌شود) */
   function natU8(u){ if (typeof u.toBase64 === 'function') { try { return u.toBase64(); } catch (e) {} } var s = '', i, c = 0x8000; for (i = 0; i < u.length; i += c) s += String.fromCharCode.apply(null, u.subarray(i, i + c)); return btoa(s); }
   
   /* ===== r84: INT8 برای rec — فایل اختیاری ocr/paddle/..._rec_int8.onnx؛ فقط پس از «گیت INT8» (ΔCER ≤ +۰٫۳٪ و ΔWER ≤ +۱٪) فعال می‌شود ===== */
@@ -5980,7 +5980,7 @@ function jbWrapW(ls, old){
       r.ppmClean = o.n > 1 && o.t1 > o.t0 && (o.t1 - o.t0) > ex2 + 1000 ? +(((o.n - 1) * 60000) / (o.t1 - o.t0 - ex2)).toFixed(2) : r.ppm;
     } catch (e) {}
     r.dev = { hc: navigator.hardwareConcurrency, dm: navigator.deviceMemory, ua: (navigator.userAgent || '').slice(0, 120) };
-    r.cool = o.cool || 0; r.tuned = sget('ocrNatTuned', ''); r.stalls = o.stalls || []; r.vis = o.vis || []; r.recH = +sget('ocrRecH', '48') || 48; r.gov = o.gov || []; r.dx = o.dx || null; r.i8 = { on: i8on() ? 1 : 0, have: i8Have, nrm: o.nrm || '', nrmw: o.nrmw || '', nc: o.nc | 0 }; r.gpuWhy = sget('ocrGpuWhy', ''); r.lanesEnd = (ocrLanes || []).filter(function(x){ return !x.dead; }).length; r.hpMain = mainHeap(); r.renderTop = o.rtop || []; r.thermNow = thermal(); r.thermMax = o.thMax; r.nat = { on: sget('ocrNat', '') !== '0', calls: o.nc || 0, msAvg: o.nc ? Math.round(o.nms / o.nc) : 0, detCalls: o.ndc || 0, detMsAvg: o.ndc ? Math.round(o.ndms / o.ndc) : 0, infAvg: o.nc ? Math.round((o.nin || 0) / o.nc) : 0, detInfAvg: o.ndc ? Math.round((o.ndin || 0) / o.ndc) : 0, cfg: natCfg(), ov: { rEnc: o.nc ? Math.round((o.rEnc || 0) / o.nc) : 0, rDec: o.nc ? Math.round((o.rDec || 0) / o.nc) : 0, rBr: o.nc ? Math.round((o.nms - (o.nin || 0) - (o.rEnc || 0) - (o.rDec || 0)) / o.nc) : 0, dEnc: o.ndc ? Math.round((o.dEnc || 0) / o.ndc) : 0, dDec: o.ndc ? Math.round((o.dDec || 0) / o.ndc) : 0, dBr: o.ndc ? Math.round((o.ndms - (o.ndin || 0) - (o.dEnc || 0) - (o.dDec || 0)) / o.ndc) : 0 }, bad: sget('ocrNatBad', '') }; r.epEff = (r.nat.on && r.nat.calls) ? 'native:' + ((r.nat.cfg && r.nat.cfg.ep) || 'default') : r.ep; r.ort = !!(o.dx && o.dx.ort); r.hrNow = headroom(); r.hrMax = o.hrMax; r.bigCores = bigCores(); r.lt = o.lt || []; r.pxs = o.t1 > o.t0 ? Math.round((o.wd || 0) * 1000 / (o.t1 - o.t0)) : null;
+    r.cool = o.cool || 0; r.tuned = sget('ocrNatTuned', ''); r.stalls = o.stalls || []; r.vis = o.vis || []; r.recH = +sget('ocrRecH', '48') || 48; r.gov = o.gov || []; r.dx = o.dx || null; r.i8 = { on: i8on() ? 1 : 0, have: i8Have, nrm: o.nrm || '', nrmw: o.nrmw || '', nc: o.nc | 0 }; r.gpuWhy = sget('ocrGpuWhy', ''); r.lanesEnd = (ocrLanes || []).filter(function(x){ return !x.dead; }).length; r.hpMain = mainHeap(); r.renderTop = o.rtop || []; r.thermNow = thermal(); r.thermMax = o.thMax; r.nat = { on: sget('ocrNat', '') !== '0' && !natBadNow() && !!(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.OcrNative), req: sget('ocrNat', '') !== '0', calls: o.nc || 0, msAvg: o.nc ? Math.round(o.nms / o.nc) : 0, detCalls: o.ndc || 0, detMsAvg: o.ndc ? Math.round(o.ndms / o.ndc) : 0, infAvg: o.nc ? Math.round((o.nin || 0) / o.nc) : 0, detInfAvg: o.ndc ? Math.round((o.ndin || 0) / o.ndc) : 0, cfg: natCfg(), ov: { rEnc: o.nc ? Math.round((o.rEnc || 0) / o.nc) : 0, rDec: o.nc ? Math.round((o.rDec || 0) / o.nc) : 0, rBr: o.nc ? Math.round((o.nms - (o.nin || 0) - (o.rEnc || 0) - (o.rDec || 0)) / o.nc) : 0, dEnc: o.ndc ? Math.round((o.dEnc || 0) / o.ndc) : 0, dDec: o.ndc ? Math.round((o.dDec || 0) / o.ndc) : 0, dBr: o.ndc ? Math.round((o.ndms - (o.ndin || 0) - (o.dEnc || 0) - (o.dDec || 0)) / o.ndc) : 0 }, bad: sget('ocrNatBad', '') }; r.epEff = (r.nat.on && r.nat.calls) ? 'native:' + ((r.nat.cfg && r.nat.cfg.ep) || 'default') : r.ep; r.ort = !!(o.dx && Object.keys(o.dx).some(function(k){ return o.dx[k] && o.dx[k].ort; })); r.hrNow = headroom(); r.hrMax = o.hrMax; r.bigCores = bigCores(); r.lt = o.lt || []; r.pxs = o.t1 > o.t0 ? Math.round((o.wd || 0) * 1000 / (o.t1 - o.t0)) : null;
     r.gpuDx = { wgpu: !!navigator.gpu, coi: !!window.crossOriginIsolated, sab: typeof SharedArrayBuffer !== 'undefined', gpuBox: !!($('#ocrGpu') || {}).checked, gpuBad: !!sget('ocrGpuBad') };
     return JSON.stringify(r, null, 1);
   }
@@ -6001,11 +6001,11 @@ function jbWrapW(ls, old){
     async function getBuf(u, want){                                  /* Cache API + اعتبارسنجی sha256؛ نسخهٔ نامعتبرِ کش حذف و دوباره گرفته می‌شود */
       var nm = u.split('/').slice(-2).join('/'), c = null, r, b, h;
       try { c = (self.caches && !(self.location && u.indexOf(self.location.origin) === 0)) ? await self.caches.open('ocr-models-v1') : null; } catch (e) { c = null; }   /* فایل‌های داخل برنامه (APK) دوباره در Cache API کپی نمی‌شوند */
-      if (c) { try { r = await c.match(u); if (r) { b = await r.arrayBuffer(); h = await sha(b); if (!want || !h || h === want) return b; b = null; await c.delete(u); } } catch (e) { window.__elogR && window.__elogR('c1234', 'r  await c.match(u) if (r)  b  awa : ' + String((e && e.message) || e).slice(0, 80));} }
+      if (c) { try { r = await c.match(u); if (r) { b = await r.arrayBuffer(); h = await sha(b); if (!want || !h || h === want) return b; b = null; await c.delete(u); } } catch (e) { self.__elogR && self.__elogR('c1234', 'r  await c.match(u) if (r)  b  awa : ' + String((e && e.message) || e).slice(0, 80));} }
       r = await fetch(u); if (!r.ok) throw new Error('فایل PaddleOCR پیدا نشد: ' + nm);
       b = await r.arrayBuffer(); h = (self.location && u.indexOf(self.location.origin) === 0) ? '' : await sha(b);   /* فایل APK امضاشده: بدون SHA */
       if (want && h && h !== want) throw new Error('checksum فایل ' + nm + ' نادرست است (فایل خراب یا نسخهٔ دیگر)');
-      if (c) { try { await c.put(u, new Response(b, { headers: { 'x-sha256': h } })); } catch (e) { window.__elogR && window.__elogR('c1238', 'await c.put(u new Response(b  head : ' + String((e && e.message) || e).slice(0, 80));} }
+      if (c) { try { await c.put(u, new Response(b, { headers: { 'x-sha256': h } })); } catch (e) { self.__elogR && self.__elogR('c1238', 'await c.put(u new Response(b  head : ' + String((e && e.message) || e).slice(0, 80));} }
       return b;
     }
     async function getTxt(u, want){ return new TextDecoder().decode(await getBuf(u, want)); }
@@ -6934,7 +6934,7 @@ function jbWrapW(ls, old){
             if (pbL && pbL.length >= 3) {                            /* r83: کاوش ارزان — فقط rec روی ۸ خط چرخیده؛ ocrPage کامل فقط برای برندهٔ کاوش */
               pbB = sc({ lines: pbL });
               for (ci = 0; ci < cd.length; ci++) {
-                try { pq = await rotProbe(pg.g, oW0, oH0, pbL, cd[ci], pr); oN++; if (pq.s > pbB * 1.25 + 50 && pq.s > pbS) { pbS = pq.s; pbC = [cd[ci]]; if (pq.a >= 70) break; } } catch (e) { window.__elogR && window.__elogR('c2167', 'pq  await rotProbe(pg.g oW0 oH0 pb : ' + String((e && e.message) || e).slice(0, 80));}
+                try { pq = await rotProbe(pg.g, oW0, oH0, pbL, cd[ci], pr); oN++; if (pq.s > pbB * 1.25 + 50 && pq.s > pbS) { pbS = pq.s; pbC = [cd[ci]]; if (pq.a >= 70) break; } } catch (e) { self.__elogR && self.__elogR('c2167', 'pq  await rotProbe(pg.g oW0 oH0 pb : ' + String((e && e.message) || e).slice(0, 80));}
               }
               cd = pbC;
             }
@@ -6959,7 +6959,7 @@ function jbWrapW(ls, old){
           try {
             bwin = await binWeak(pg.g, pg.w, pg.h, r, wk, pr); P.bt = (P.bt || 0) + 1; if (TM) TM.binN = 1;
             if (bwin > 0) { av = sc(r) / Math.max(1, r.lines.reduce(function(t, l){ return t + (l.text || '').length; }, 0)); P.bw = (P.bw || 0) + 1; if (TM) TM.binW = bwin; }
-          } catch (e) { window.__elogR && window.__elogR('c2189', 'bwin  await binWeak(pg.g pg.w pg.h : ' + String((e && e.message) || e).slice(0, 80));}
+          } catch (e) { self.__elogR && self.__elogR('c2189', 'bwin  await binWeak(pg.g pg.w pg.h : ' + String((e && e.message) || e).slice(0, 80));}
           tkn('bin', tb1);
         }
         P.o0 = rot ? 0 : (av >= 60 ? (P.o0 || 0) + 1 : P.o0 || 0);
@@ -8615,7 +8615,7 @@ function jbWrapW(ls, old){
     }
     userTok = new Map(); userTokI = new Map(); userCx = [];
     userDict.forEach(function(d, k){
-      if (d.tok) { if (!userTok.has(d.src)) userTok.set(d.src, k); if (/^[\x20-\x7e]+$/.test(d.src) && !userTokI.has(d.src.toLowerCase())) userTokI.set(d.src.toLowerCase(), k); }
+      if (d.tok) { if (!userTok.has(d.src)) userTok.set(d.src, k); try { ADV_N.lastIndex = 0; if (/ا$/.test(d.src) && ADV_N.test(d.src) && !userTok.has(d.src.slice(0, -1) + 'ن')) userTok.set(d.src.slice(0, -1) + 'ن', k); ADV_N.lastIndex = 0; } catch (e) {} if (/^[\x20-\x7e]+$/.test(d.src) && !userTokI.has(d.src.toLowerCase())) userTokI.set(d.src.toLowerCase(), k); }
       else userCx.push(k);
     });
   }
@@ -8630,6 +8630,7 @@ function jbWrapW(ls, old){
   }
   function dictIn(t){
     var i, k, d, fn;
+    t = t.replace(/[\uE100-\uF8FF]/g, ' ');
     for (i = 0; i < userCx.length; i++) {
       k = userCx[i]; d = userDict[k];
       if (d.rx) t = t.replace(d.re, function(){ var m = arguments; return ' ' + d.to.replace(/\$(\d)/g, function(x, i){ return typeof m[+i] === 'string' ? m[+i] : ''; }) + ' '; });
@@ -8639,9 +8640,10 @@ function jbWrapW(ls, old){
     return t;
   }
   function dictOut(t, num){
-    return t.replace(/([\uE100-\uF8FF])(\u200c?)/g, function(m, c, z){
+    return t.replace(/([\uE100-\uF8FF])(\u200c?)(\u0650?)/g, function(m, c, z, k){
       var d = userDict[c.charCodeAt(0) - 0xE100]; if (!d) return ' ';
-      return ' ' + (num ? faNums(digitsAscii(d.to)) : d.to) + (z || ' ');
+      var o = (num ? faNums(digitsAscii(d.to)) : d.to).trim();
+      return ' ' + o + (k && o && !/[\u064B-\u0652]$/.test(o) ? k : '') + (z || ' ');
     });
   }
   function endMark(t, cont){ return /[.!?;:,]$/.test(t) ? t : t + (cont ? ',' : '.'); }
@@ -8697,30 +8699,11 @@ function jbWrapW(ls, old){
      فارسی بدون اعراب نوشته می‌شود و موتور آوایی کوتاه‌مصوت‌ها را برای واژه‌های پرکاربرد گاهی اشتباه حدس می‌زند.
      این‌جا برای همین واژه‌ها شکل اعرابدار می‌گذاریم. نشانه‌ها (بعد از حرف): a = فتحه ، e = کسره ، o = ضمه.
      واژه‌نامهٔ کاربر همیشه اولویت دارد (چون پیش از این مرحله با نشانگر جایگزین شده). برای افزودن واژه، فقط به LEX_SRC اضافه کنید. */
-  /* ---------- کسرهٔ اضافهٔ قاعده‌محور (C-1، پیش‌فرض خاموش) ----------
-     برچسب‌گذاری سبک: واژهٔ چپ باید «اسم/صفت» محتمل باشد (نه حرف/فعل/عدد/قید فهرست‌شده) و واژهٔ راست اسم/صفت/ضمیر ملکی؛ بدون فاصلهٔ سجاوندی.
-     درج پس از lexApply و پیش از پاک‌سازی نهایی؛ واژه‌های دارای اعرابِ پایانی دست نمی‌خورند. فهرست‌های EZ_STOP/EZ_STOP2/EZ_V/EZ_VBX مصرف می‌شوند. */
-  var EZ_PRON = {}, EZ_NOL = {}, EZ_NOR = {}, EZ_HC = {};
-  var EZ_NAME = {};   /* نام‌های کوچک پرکاربرد: «علی کتاب را خواند» ← بدون کسره (نام‌های هم‌املای واژهٔ عام مثل امید/سحر/بهار عمداً نیستند) */
-  'علی محمد احمد محمود حسن حسین رضا مهدی مجتبی مرتضی مصطفی ابوالفضل مریم فاطمه زهرا زینب سارا نرگس لیلا سمیرا مینا نازنین پریسا حمید سعید مجید وحید جواد کاظم هادی هاشم قاسم عباس جعفر اکبر اصغر ناصر ابراهیم اسماعیل یوسف موسی عیسی داود سلیمان یعقوب امیر امین آرش بهرام کامران پیمان پویا پارسا نیما ساسان بابک فرهاد فرزاد فرشاد شهرام سیامک کیان آرمان آرین سجاد ساجد میلاد مهران مسعود منصور ایمان'.split(' ').forEach(function(w){ EZ_NAME[w] = 1; });
-  'من تو او ما شما ایشان آنها آنان اینها'.split(' ').forEach(function(w){ EZ_PRON[w] = 1; });
-  'بله خیر آری سلام متاسفانه خوشبختانه البته لطفا لطفاً آقا خانم دکتر مهندس اولین دومین سومین آخرین همین چنین همچنین آخر نخست نخستین اول دوم سوم کس'.split(' ').forEach(function(w){ EZ_NOL[w] = 1; });
-  'قرار صورت آموز آموزان'.split(' ').forEach(function(w){ EZ_NOR[w] = 1; });   /* «دانش آموز» ترکیب است، نه مضاف و مضاف‌الیه */
-  'توجه وجه فقه شبه تنبیه مواجهه تفقه نزه'.split(' ').forEach(function(w){ EZ_HC[w] = 1; });
-  var EZ_PUNC = /[,.;:!?]+$/, EZ_FAL = /^[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC\u06C0\u0622\u200c\u064B-\u0652]+$/;
-  var EZ_DET = {}, EZ_COPS = {};
-  'این آن همین همان هر'.split(' ').forEach(function(w){ EZ_DET[w] = 1; });
-  'است نیست بود نبود هست نبودند بودند باشد نباشد شد شدند'.split(' ').forEach(function(w){ EZ_COPS[w] = 1; });
-  var EZ_PADJ = {};
-  'شلوغ آبی زیبا سرد گرم مهم بزرگ کوچک طولانی مثبت منفی جالب شور مهربان خوب بد قدیمی جدید ساده سخت آسان زیاد کم مفید لازم ضروری ممکن درست غلط تمیز کثیف تازه قشنگ زشت پیر جوان سبز قرمز سفید سیاه زرد شیرین تلخ غم‌انگیز شاد ارزان گران خطرناک مناسب مشهور معروف عالی فارسی ایرانی'.split(' ').forEach(function(w){ EZ_PADJ[w] = 1; });
-  var EZ_LVB = {};
-  'کرد کردند کند کنند کرده شد شدند شود شوند شده داد دادند دهد دهند زد زدند گرفت گرفتند کشید کشیدند داشت دارد دارند'.split(' ').forEach(function(w){ EZ_LVB[w] = 1; });
+  /* r186: کسرهٔ اضافهٔ خودکار (قاعده‌محور و ALBERT) حذف شده؛ فقط فهرست‌های EZ_STOP/EZ_STOP2/EZ_V/EZ_VBX برای تشخیص فعل (ezVerb/ezBad) مانده‌اند. */
   /* r-fix: ezVerb داخل بلوک TXW:B تا ابزار تست (load.js) آن را ببیند؛ در دامنهٔ IIFE اصلی hoist می‌شود و رفتار برنامه تغییر نمی‌کند */
   function ezVerb(k){ return EZ_COP.test(k) || PZ_VERB.test(k) || !!EZ_V[k] || !!EZ_VBX[k] || !!MF_P3[k]; }
-  function ezIsV(w){ return !!(EZ_V[w] || EZ_VBX[w] || EZ_STOP[w] || /^ن?می\u200c/.test(w) || /\u200c(?:ام|ای|ایم|اید|اند)$/.test(w) || EZ_COPS[w]); }
-  function ezBase(w){ return w.replace(/[\u064B-\u0652]/g, ''); }
   function phLexOn(){ var e = document.getElementById('phLex'); return !e || e.checked; }
-  var LEX_SRC = 'کeتاب کeشوaر مaدرeسه دانeشگاه دانeش مaردoم زaمان زaمین جaهان اeنسان اeجتeماع اeقتeصاد سیاسaت حoکومaت دaولaت قoدرaت عaدالaت حoقوق حaق مaسئaله مoشکeل رaوeش هaفته ساعaت دaقیقه قaرن نaتیجه دaلیل عeلaت هaدaف بaرنامه سیستeم اeطلاعات تaحقیق پoژوهeش مoطالeعه آموزeش دانeشجو مoعaلeم اoستاد دانeشمaند نویسaنده شاعeر کeتابخانه خانeواده پeدaر مادaر فaرزaند بaرادaر دoشمaن عeشق زeندگی مaرگ زaن کoدaک جaوان بoزoرگ کوچaک سaخت مoهeم لازeم مoمکeن دoرoست غaلaط اeشتeباه واقeعی حaقیقaت واقeعیaت مaفهوم کaلeمه جoمله صaفحه مaتن فaصل بaخش قeسمaت نaوع شaکل رaنگ صeدا صaوت گویaنده نeگاه چaشم دaست قaلب دeل جeسم بaدaن مaغز آتaش دaریا جaنگaل دaرaخت گoل غaذا قaهوه رeستوران فaلافeل تeهران اeصفaهان مaشهaد تaبریز خoراسان زaبان اaدaبیات شeعر رoمان هoنaر نaقاشی عeلم پeزeشک پeزeشکی بیمارeستان دaرمان سaلامaت بaهداشت وaرزeش موسابeقه شoغل شeرکaت مoدیر مoدیریaت تaولید فoروش خaرید قeیمaت هaزینه دaرآمaد تeجارaت صaنعaت کeشاوaرزی لeباس نaخ چaرخ مaسیر سaفaر موسافeر هoتل قeطار هaواپeیما بeسیار هaمه چaند چaندین بaعضی بaرخی دیگaر هaمین هaمان چaنین چaنان مeثل مانaند مeثال نaمونه هaمیشه هaنوز اaکنون هaرگز هaمواره بaعد قaبل بaین طaبaق عeلاوه کaمتaر بeهتaر بaدتaر تaمام کامeل چeطور چeگونه چaقدر کoجا کoدام هaر هیچکaس هaمگی وaقت دaفعه مaرتaبه کoل پoر پoل پoشت خoد خoدaم خoدeت خoدeش خoدeمان خoدeتان خoدeشان شoکر عoذر ذeکر فeکر ذeهن صaبر عoمر عaصر شoهرaت ثaروaت گaرم سaرد سaبز سoرخ زaرد سeفید قeرمeز نارaنجی بaنaفش بoلند کوشeش تaند سaریع نeشان نeشانه نaقش نoقطه نaظaر نeظام مeللaت مeللی مaذهaب خoدا خoداوaند پیامبaر قoرآن اoمید غaم خaشم تaرس مeهرaبان مeهر اaصل اaساس اeرتeباط اeجازه اeستeفاده اaهaمیaت اeمکان اeحتeمال اeطلاع اeعتeماد اeقدام اeنتeخاب اeنتeظار اaرزeش اaثaر اeدامه اeبتeدا اeنتeها اaکثaر اaکثaریaت اeجرا اeصلاح اeضافه اaفزایeش رoشد توسeعه تaوaجoه تaفاوoت تaغییر تaصمیم تaجرoبه تeعداد تaلاش تaرکیب تaرجoمه جeهaت جaدید قaدیمی موختaلeف موشابeه موستaقیم موناسeب مaجموعه مoحیط مaحصول مaنبaع مaوقeعیaت مaسئول مaسئولیaت موشارeکaت مaعمولی مaعرeفی مeعیار مaنطeق مaنطeقه نaسل نeسبaت نeظارaت وaضع وaضعیaت وoجود وaظیفه هaدaف هaمکاری هaمراه مoحaمaد عaلی حaسaن حoسeین رeضا مaهدی اaحمaد اaمیر مaحمود اeبراهیم اeسماعیل یوسoف جaعفaر کاظeم باقeر تaقی هادی صادeق سaعید حaمید مaجید فaرهاد بaهرام کامران پaرویز شaهرام فاطeمه زaهرا مaریaم زaینaب';
+  var LEX_SRC = 'کeتاب کeشوaر مaدرeسه دانeشگاه دانeش مaردoم زaمان زaمین جaهان اeنسان اeجتeماع اeقتeصاد سیاسaت حoکومaت دaولaت قoدرaت عaدالaت حoقوق حaق مaسئaله مoشکeل رaوeش هaفته ساعaت دaقیقه قaرن نaتیجه دaلیل عeلaت هaدaف بaرنامه سیستeم اeطلاعات تaحقیق پoژوهeش مoطالeعه آموزeش دانeشجو مoعaلeم اoستاد دانeشمaند نویسaنده شاعeر کeتابخانه خانeواده پeدaر مادaر فaرزaند بaرادaر دoشمaن عeشق زeندگی مaرگ زaن کoدaک جaوان بoزoرگ کوچaک سaخت مoهeم لازeم مoمکeن دoرoست غaلaط اeشتeباه واقeعی حaقیقaت واقeعیaت مaفهوم کaلeمه جoمله صaفحه مaتن فaصل بaخش قeسمaت نaوع شaکل رaنگ صeدا صaوت گویaنده نeگاه چaشم دaست قaلب دeل جeسم بaدaن مaغز آتaش دaریا جaنگaل دaرaخت گoل غaذا قaهوه رeستوران فaلافeل تeهران اeصفaهان مaشهaد تaبریز خoراسان زaبان اaدaبیات شeعر رoمان هoنaر نaقاشی عeلم پeزeشک پeزeشکی بیمارeستان دaرمان سaلامaت بaهداشت وaرزeش مoسابeقه شoغل شeرکaت مoدیر مoدیریaت تaولید فoروش خaرید قeیمaت هaزینه دaرآمaد تeجارaت صaنعaت کeشاوaرزی لeباس نaخ چaرخ مaسیر سaفaر مoسافeر هoتل قeطار هaواپeیما بeسیار هaمه چaند چaندین بaعضی بaرخی دیگaر هaمین هaمان چaنین چaنان مeثل مانaند مeثال نaمونه هaمیشه هaنوز اaکنون هaرگز هaمواره بaعد قaبل بaین طaبaق عeلاوه کaمتaر بeهتaر بaدتaر تaمام کامeل چeطور چeگونه چaقدر کoجا کoدام هaر هیچکaس هaمگی وaقت دaفعه مaرتaبه کoل پoر پoل پoشت خoد خoدaم خoدeت خoدeش خoدeمان خoدeتان خoدeشان شoکر عoذر ذeکر فeکر ذeهن صaبر عoمر عaصر شoهرaت ثaروaت گaرم سaرد سaبز سoرخ زaرد سeفید قeرمeز نارaنجی بaنaفش بoلند کوشeش تaند سaریع نeشان نeشانه نaقش نoقطه نaظaر نeظام مeللaت مeللی مaذهaب خoدا خoداوaند پیامبaر قoرآن اoمید غaم خaشم تaرس مeهرaبان مeهر اaصل اaساس اeرتeباط اeجازه اeستeفاده اaهaمیaت اeمکان اeحتeمال اeطلاع اeعتeماد اeقدام اeنتeخاب اeنتeظار اaرزeش اaثaر اeدامه اeبتeدا اeنتeها اaکثaر اaکثaریaت اeجرا اeصلاح اeضافه اaفزایeش رoشد توسeعه تaوaجoه تaفاوoت تaغییر تaصمیم تaجرoبه تeعداد تaلاش تaرکیب تaرجoمه جeهaت جaدید قaدیمی مoختaلeف مoشابeه مoستaقیم مoناسeب مaجموعه مoحیط مaحصول مaنبaع مaوقeعیaت مaسئول مaسئولیaت مoشارeکaت مaعمولی مaعرeفی مeعیار مaنطeق مaنطeقه نaسل نeسبaت نeظارaت وaضع وaضعیaت وoجود وaظیفه هaدaف هaمکاری هaمراه مoحaمaد عaلی حaسaن حoسeین رeضا مaهدی اaحمaد اaمیر مaحمود اeبراهیم اeسماعیل یوسoف جaعفaر کاظeم باقeر تaقی هادی صادeق سaعید حaمید مaجید فaرهاد بaهرام کامران پaرویز شaهرام فاطeمه زaهرا مaریaم زaینaب';
   var LEX = null, LEX_SUF = {};
   'ها های هایی هایم هایت هایش هایمان هایتان هایشان ام ات اش مان تان شان ای ایم اید اند تر ترین'.split(' ').forEach(function(w){ LEX_SUF[w] = 1; });
   var LEX_RUN = /[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC\u06C0\u0622\u200c]+/g;
@@ -8873,7 +8856,7 @@ function jbWrapW(ls, old){
     if (!harOn()) return t.replace(/[\u0640\u064B-\u065F\u0670]/g, '');
     var n = (t.match(/[\u064B-\u065F\u0670]/g) || []).length, l = (t.match(/[\u0621-\u064A\u0671-\u06D3]/g) || []).length;
     if (!n) return t.replace(/\u0640/g, '');
-    t = t.replace(/[\u0640\u064B-\u064D\u0653-\u065F\u0670]/g, '').replace(/(?<![\u0621-\u06D3\u064E-\u0652])[\u064E-\u0652]/g, '');
+    t = t.replace(/[\u0640\u064B-\u064D\u0653-\u065F\u0670]/g, '').replace(/(?<![\u0621-\u06D3\u064E-\u0652\uE100-\uF8FF])[\u064E-\u0652]/g, '');
     if (n / Math.max(1, l) > 0.15) return t;
     return t.replace(/[\u064E\u064F\u0651\u0652]/g, '').replace(/\u0650(?![\s\u200c]|$)/g, '');
   }
@@ -8888,6 +8871,7 @@ function jbWrapW(ls, old){
     t = digitsAscii(t).replace(/(?:https?:\/\/|www\.)\S+|[^\s@]{1,64}@[^\s@]{1,64}\.[^\s@]{1,64}/g, ' ')
       .replace(/(?:\[\s*\d+(?:\s*[,،\-–]\s*\d+)*\s*\]|\(\s*\d{1,3}\s*\))(?:\s*(?:[,،]|و)?\s*(?:\[\s*\d+(?:\s*[,،\-–]\s*\d+)*\s*\]|\(\s*\d{1,3}\s*\)))*/g, ' ');
     t = t.replace(NEG_RE, ' منفی ').replace(/(\d)\s*[%٪]/g, '$1 درصد ').replace(/(\d)\/(\d+)(?=\s*درصد)/g, '$1.$2')
+      .replace(/(?<![\d\/.])(\d{1,3})\/(\d{1,2})(?![\d\/])/g, function(m, a, b, off, str){ var A = +a, B = +b; if ((b.length >= 2 && !(A < B && B === 10)) || A >= B || A === 0) return a + '.' + b; return /^\s*(?:%|درصد|کیلو|گرم|متر|سانتی|میلی|لیتر|میلیون|هزار|میلیارد|برابر|درجه|تومان|ریال|دلار|ساعت|دقیقه|km|cm|mm|kg|mg|ml)/.test(str.slice(off + m.length)) ? a + '.' + b : m; })
       .replace(/(?<![\d\/.])(\d{1,2})\/(\d{1,2})(?![\d\/])/g, function(m, a, b){ a = +a; b = +b; return (a >= 1 && b >= 2 && b <= 10 && a < b) ? ' ' + numFa(String(a)) + ' ' + ordFa(b) + ' ' : m; })
       .replace(/(?<!\d)(1[34]\d\d)\s*[\/\-.]\s*(0?[1-9]|1[0-2])\s*[\/\-.]\s*(0?[1-9]|[12]\d|3[01])(?!\d)/g, function(_, y, m, d){ return dmy(d, m, y, MON_FA); })
       .replace(/(?<!\d)(0?[1-9]|[12]\d|3[01])\s*[\/\-.]\s*(0?[1-9]|1[0-2])\s*[\/\-.]\s*(1[34]\d\d)(?!\d)/g, function(_, d, m, y){ return dmy(d, m, y, MON_FA); })
@@ -8959,7 +8943,7 @@ function jbWrapW(ls, old){
   }
   function ordFa(n){
     var w = numFa(String(n));
-    return n === 1 ? 'اول' : /سه$/.test(w) ? w.slice(0, -2) + 'سوم' : /ی$/.test(w) ? w + ' ام' : w + 'م';
+    return n === 1 ? 'اول' : /سه$/.test(w) ? w.slice(0, -2) + 'سوم' : /ی$/.test(w) ? w + '\u200cام' : w + 'م';
   }
   var SPELL = [
     [/ان[\s\u200c]?شاء[\s\u200c]?الله/g, 'ان شا اللاه'], [/(?<!ا)خوا(?!(?:تین|ص(?![\p{L}])|رج|رق|نین|طر))/gu, 'خا'], [/خویش/g, 'خیش'], [/الله/g, 'اللاه'], [/[أإ]/g, 'ا'], [/ؤ/g, 'و'],
@@ -8976,7 +8960,8 @@ function jbWrapW(ls, old){
   var ACL = /^(?:pdf|url|html|css|api|sql|usb|cpu|gpu|ram|ssd|gpt|dna|rna|mri|vpn|gps|pc|tv|ai|ml|atm|ocr|seo|ui|ux|ceo|http|https|nlp|llm|gdp|tts|jpg|jpeg|png|gif|mp3|mp4|sdk|cdn|dns|ip|php|xml|js|ts|py)$/;
   var EN = {};
   ('internet:اینترنت,online:آنلاین,offline:آفلاین,google:گوگل,youtube:یوتیوب,facebook:فیسبوک,instagram:اینستاگرام,telegram:تلگرام,whatsapp:واتساپ,twitter:توییتر,linkedin:لینکدین,microsoft:مایکروسافت,windows:ویندوز,android:اندروید,iphone:آیفون,apple:اپل,samsung:سامسونگ,amazon:آمازون,python:پایتون,java:جاوا,javascript:جاوا اسکریپت,linux:لینوکس,github:گیت هاب,git:گیت,code:کد,data:دیتا,database:دیتابیس,software:سافت ویر,hardware:هارد ویر,server:سرور,client:کلاینت,user:یوزر,email:ایمیل,website:وب سایت,web:وب,app:اپ,application:اپلیکیشن,mobile:موبایل,computer:کامپیوتر,laptop:لپ تاپ,file:فایل,folder:فولدر,link:لینک,click:کلیک,download:دانلود,upload:آپلود,update:آپدیت,login:لاگین,password:پسورد,account:اکانت,video:ویدئو,audio:آدیو,chat:چت,ok:اوکی,wifi:وای فای,bluetooth:بلوتوث,the:د,and:اند,of:آو,to:تو,in:این,is:ایز,for:فور,with:ویت,by:بای,or:اور,on:آن,be:بی,are:آر,was:واز,this:دیس,that:دت,from:فروم,not:نات,all:آل,new:نیو,one:وان,two:تو,you:یو,we:وی,he:هی,she:شی,they:دی,my:مای,your:یور,his:هیز,her:هر,what:وات,how:هاو,why:وای,who:هو,when:ون,where:ور,which:ویچ,type:تایپ,test:تست,text:تکست,system:سیستم,model:مدل,digital:دیجیتال,design:دیزاین,project:پروژه,team:تیم,business:بیزنس,science:ساینس,technology:تکنولوژی,health:هلث,life:لایف,world:ورلد,time:تایم,home:هوم,page:پیج,book:بوک,note:نوت,list:لیست,menu:منو,button:باتن,screen:اسکرین,image:ایمیج,photo:فوتو,music:میوزیک,game:گیم,play:پلی,stop:استاپ,start:استارت,pause:پاز,next:نکست,back:بک,share:شیر,like:لایک,follow:فالو,post:پست,story:استوری,live:لایو,no:نو,yes:یس,hello:هلو,hi:های,thanks:تنکس,please:پلیز,sorry:سوری').split(',').forEach(function(x){ var k = x.indexOf(':'); EN[x.slice(0, k)] = x.slice(k + 1); });
-  ('chatgpt:چت جی پی تی,openai:اوپن ای آی,gmail:جیمیل,yahoo:یاهو,outlook:اوت لوک,excel:اکسل,powerpoint:پاورپوینت,zoom:زوم,skype:اسکایپ,tiktok:تیک تاک,netflix:نتفلیکس,uber:اوبر,tesla:تسلا,bitcoin:بیت کوین,blockchain:بلاک چین,wikipedia:ویکی پدیا,wiki:ویکی,ios:آی او اس,mac:مک,cloud:کلود,network:نتورک,machine:ماشین,learning:لرنینگ,deep:دیپ,neural:نورال,algorithm:الگوریتم,framework:فریم ورک,browser:براوزر,software:سافت ویر,smartphone:اسمارت فون,tablet:تبلت,script:اسکریپت,api:ای پی آی,cookie:کوکی,cache:کش,bug:باگ,debug:دیباگ,open:اوپن,source:سورس,free:فری,pro:پرو,plus:پلاس,max:مکس,mini:مینی,smart:اسمارت,super:سوپر,center:سنتر,market:مارکت,shop:شاپ,store:استور,brand:برند,level:لول,mode:مود,off:آف,low:لو,high:های,full:فول,lite:لایت,version:ورژن,edition:ادیشن,report:ریپورت,case:کیس,study:استادی,review:ریویو,feedback:فیدبک,marketing:مارکتینگ,management:منجمنت,manager:منیجر,leader:لیدر,startup:استارتاپ,online:آنلاین,node:نود,react:ری اکت,vue:ویو,tehran:تهران,isfahan:اصفهان,shiraz:شیراز,tabriz:تبریز,mashhad:مشهد,iran:ایران,persian:پارسی,ahvaz:اهواز,qom:قم,kerman:کرمان').split(',').forEach(function(x){ var k = x.indexOf(':'); if (!EN[x.slice(0, k)]) EN[x.slice(0, k)] = x.slice(k + 1); });
+  ('newton:نیوتن,freud:فروید,nietzsche:نیچه,descartes:دکارت,photoshop:فوتوشاپ,harvard:هاروارد,drive:درایو,jung:یونگ,einstein:اینشتین,kant:کانت,hegel:هگل,plato:افلاطون,aristotle:ارسطو,darwin:داروین,marx:مارکس,'+
+   'chatgpt:چت جی پی تی,openai:اوپن ای آی,gmail:جیمیل,yahoo:یاهو,outlook:اوت لوک,excel:اکسل,powerpoint:پاورپوینت,zoom:زوم,skype:اسکایپ,tiktok:تیک تاک,netflix:نتفلیکس,uber:اوبر,tesla:تسلا,bitcoin:بیت کوین,blockchain:بلاک چین,wikipedia:ویکی پدیا,wiki:ویکی,ios:آی او اس,mac:مک,cloud:کلود,network:نتورک,machine:ماشین,learning:لرنینگ,deep:دیپ,neural:نورال,algorithm:الگوریتم,framework:فریم ورک,browser:براوزر,software:سافت ویر,smartphone:اسمارت فون,tablet:تبلت,script:اسکریپت,api:ای پی آی,cookie:کوکی,cache:کش,bug:باگ,debug:دیباگ,open:اوپن,source:سورس,free:فری,pro:پرو,plus:پلاس,max:مکس,mini:مینی,smart:اسمارت,super:سوپر,center:سنتر,market:مارکت,shop:شاپ,store:استور,brand:برند,level:لول,mode:مود,off:آف,low:لو,high:های,full:فول,lite:لایت,version:ورژن,edition:ادیشن,report:ریپورت,case:کیس,study:استادی,review:ریویو,feedback:فیدبک,marketing:مارکتینگ,management:منجمنت,manager:منیجر,leader:لیدر,startup:استارتاپ,online:آنلاین,node:نود,react:ری اکت,vue:ویو,tehran:تهران,isfahan:اصفهان,shiraz:شیراز,tabriz:تبریز,mashhad:مشهد,iran:ایران,persian:پارسی,ahvaz:اهواز,qom:قم,kerman:کرمان').split(',').forEach(function(x){ var k = x.indexOf(':'); if (!EN[x.slice(0, k)]) EN[x.slice(0, k)] = x.slice(k + 1); });
   var TL = [['tion','شن'],['sion','ژن'],['ture','چر'],['tch','چ'],['igh','آی'],['ind','ایند'],['ild','ایلد'],['ing','ینگ'],['ee','ی'],['ea','ی'],['oo','و'],['ou','او'],['ow','او'],['oi','ویی'],['oy','ویی'],['ai','ی'],['ay','ی'],['ey','ی'],['ie','ی'],['oa','و'],['au','ا'],['aw','ا'],['ew','یو'],['ch','چ'],['sh','ش'],['th','ث'],['ph','ف'],['wh','و'],['ck','ک'],['qu','کو'],['kn','ن'],['wr','ر'],['gh','گ'],['ng','نگ'],['ss','س'],['ll','ل'],['tt','ت'],['pp','پ'],['ff','ف'],['dd','د'],['bb','ب'],['mm','م'],['nn','ن'],['rr','ر'],['zz','ز'],['cc','ک'],['gg','گ']];
   var CS = { b: 'ب', d: 'د', f: 'ف', h: 'ه', j: 'ج', k: 'ک', l: 'ل', m: 'م', n: 'ن', p: 'پ', q: 'ک', r: 'ر', t: 'ت', v: 'و', w: 'و', x: 'کس', z: 'ز' };
   function translit(w){
@@ -9113,7 +9098,7 @@ function jbWrapW(ls, old){
     });
   }
   /* عبارت دوتکراری مثل «سازمان ملل, سازمان ملل» (توضیح داخل پرانتز) را یکی کن */
-  function dedupe(t){ return t.replace(/(\S+(?:\s+\S+){1,7}),\s+\1(?=[,.;:!?]|\s|$)/g, '$1'); }
+  function dedupe(t){ return t.replace(/(\S{1,60}(?:\s+\S{1,60}){1,7}),\s+\1(?=[,.;:!?]|\s|$)/g, '$1'); }
   function ttsText(t, eng, rep, cont){
     eng = eng || engine();
     if (!fixOn()) return ttsBase(t, eng, cont);
@@ -9507,178 +9492,6 @@ function jbWrapW(ls, old){
   function mRate(){ return npPlay ? Math.max(0.5, Math.min(1.5, Math.round((+$('#rate').value || 1) * 20) / 20)) : 1; }   /* r115: سقف ۱٫۵ = سقف speed ساخت صدا (نه ۲، که مازاد گم می‌شد؛ نه ۱٫۳۵، که کشش اضافه و آرتیفکت می‌ساخت)؛ مازاد بالای ۱٫۵ با playerRate */   /* سرعت کاربر با گام ۰٫۰۵ داخل خود مدل (length_scale)؛ باقی‌مانده با playerRate */
   function paceSpeed(t){ return Math.round(paceBase(t) * mRate() * 100) / 100; }
   function paceBase(t){ return 1; }   /* r119: سرعت ثابت — بدون ضریب سبک/جملهٔ سنگین/گوینده؛ سرعت واقعی = سرعت انتخابی */
-  /* ===== r124: واج‌نگاری مانا — کسرهٔ اضافهٔ هوشمند با مدل ALBERT (abreza/persian-ezafe-albert، نسخهٔ quantized؛ برچسب‌گذاری هر واژه) =====
-     فقط وقتی کاربر روشنش کند، صدای انتخابی «مانا» باشد، مدل دانلود شده باشد و خودآزمایی موفق باشد. هر خطایی ⇒ متن بدون تغییر خوانده می‌شود. */
-  var EZM = { base: 'https://huggingface.co/abreza/persian-ezafe-albert/resolve/main/quantized/', cache: 'ezm-v1', tok: null, sess: null, ld: null, ok: null, why: '', q: Promise.resolve(), memo: {}, nm: 0, bad: 0 };
-  function ezmWant(id){ return false; }   /* تنظیمات مانا (واج‌نگاری ALBERT) از رابط حذف شد */
-  function ezmTokInit(j){
-    var m = (j && j.model) || {}, vc = m.vocab || [], T = { map: Object.create(null), sc: [], unk: m.unk_id != null ? m.unk_id : 1, norm: (j && j.normalizer) || null, mx: 1, cls: -1, sep: -1 }, i, k;
-    if (!vc.length) throw new Error('واژگان tokenizer.json خالی است');
-    for (i = 0; i < vc.length; i++) { T.map[vc[i][0]] = i; T.sc[i] = vc[i][1]; if (vc[i][0].length > T.mx) T.mx = vc[i][0].length; }
-    ((j && j.added_tokens) || []).forEach(function(a){ if (a.content === '[CLS]') T.cls = a.id; if (a.content === '[SEP]') T.sep = a.id; });
-    if (T.cls < 0 && T.map['[CLS]'] !== undefined) T.cls = T.map['[CLS]'];
-    if (T.sep < 0 && T.map['[SEP]'] !== undefined) T.sep = T.map['[SEP]'];
-    if (T.cls < 0 || T.sep < 0) throw new Error('نشانهٔ [CLS]/[SEP] پیدا نشد');
-    return T;
-  }
-  function ezmNorm(n, s){   /* مفسّر ساده برای normalizer در tokenizer.json (HuggingFace) */
-    var t = n && n.type, p;
-    if (!t) return s;
-    if (t === 'Sequence') { (n.normalizers || []).forEach(function(x){ s = ezmNorm(x, s); }); return s; }
-    if (t === 'Replace') { p = n.pattern || {}; try { return p.Regex != null ? s.replace(new RegExp(p.Regex, 'gu'), n.content) : (p.String != null ? s.split(p.String).join(n.content) : s); } catch (e) { return s; } }
-    if (t === 'NFC' || t === 'NFD' || t === 'NFKC' || t === 'NFKD') return s.normalize(t);
-    if (t === 'Lowercase') return s.toLowerCase();
-    if (t === 'StripAccents') return s.replace(/\p{M}/gu, '');
-    if (t === 'Strip') return s.trim();
-    if (t === 'Precompiled') return s.normalize('NFKC');   /* تقریب نگاشت charsmap */
-    return s;
-  }
-  function ezmUni(T, w){   /* Unigram (Viterbi) روی یک واژهٔ ▁دار */
-    var n = w.length, best = [0], prev = [], i, j, id, sc, ok, o = [], k;
-    for (i = 1; i <= n; i++) best[i] = -Infinity;
-    for (i = 0; i < n; i++) {
-      if (best[i] === -Infinity) continue;
-      ok = false;
-      for (j = i + 1; j <= n && j <= i + T.mx; j++) {
-        id = T.map[w.slice(i, j)];
-        if (id === undefined) continue;
-        if (j === i + 1) ok = true;
-        sc = best[i] + T.sc[id];
-        if (sc > best[j]) { best[j] = sc; prev[j] = [i, id]; }
-      }
-      if (!ok) { sc = best[i] - 20; if (sc > best[i + 1]) { best[i + 1] = sc; prev[i + 1] = [i, T.unk]; } }
-    }
-    for (k = n; k > 0; k = prev[k][0]) o.unshift(prev[k][1]);
-    return o;
-  }
-  function ezmEnc(T, words){
-    var ids = [T.cls], wi = [-1];
-    words.forEach(function(w, k){
-      var s = ezmNorm(T.norm, w).replace(/\s+/g, '');
-      if (!s) return;
-      ezmUni(T, '\u2581' + s).forEach(function(id){ ids.push(id); wi.push(k); });
-    });
-    ids.push(T.sep); wi.push(-1);
-    return ids.length > 400 ? null : { ids: ids, wi: wi };
-  }
-  function ezmOrt(){
-    return new Promise(function(res, rej){
-      if (window.ort) return res(window.ort);
-      var s = document.createElement('script');
-      s.src = 'ocr/ort/ort.min.js'; s.onload = function(){ window.ort ? res(window.ort) : rej(new Error('ort بارگذاری نشد')); }; s.onerror = function(){ rej(new Error('ocr/ort/ort.min.js پیدا نشد (پوشهٔ ocr کنار برنامه لازم است)')); };
-      document.head.appendChild(s);
-    }).then(function(o){ o.env.wasm.wasmPaths = new URL('ocr/ort/', location.href).href; o.env.wasm.numThreads = 1; o.env.wasm.proxy = false; return o; });
-  }
-  function ezmRun(ids){   /* برچسب ۰/۱ برای هر نشانه؛ اجرای پشت‌سرهم (ORT-web همزمانی ندارد) */
-    var job = EZM.q.then(function(){
-      var S = EZM.sess, n = ids.length, ort = window.ort, feeds = {};
-      S.inputNames.forEach(function(nm){
-        var a = new BigInt64Array(n), i;
-        for (i = 0; i < n; i++) a[i] = BigInt(/mask/i.test(nm) ? 1 : /type/i.test(nm) ? 0 : ids[i]);
-        feeds[nm] = new ort.Tensor('int64', a, [1, n]);
-      });
-      return S.run(feeds).then(function(o){
-        var lg = o[S.outputNames[0]], d = lg.data, k = lg.dims[lg.dims.length - 1], r = [], i;
-        for (i = 0; i < n; i++) r.push(d[i * k + 1] > d[i * k] ? 1 : 0);
-        return r;
-      });
-    });
-    EZM.q = job.catch(function(){});
-    return job;
-  }
-  function ezmFlags(words){   /* [true/undefined] برای هر واژه */
-    var e = ezmEnc(EZM.tok, words);
-    if (!e) return Promise.resolve(null);
-    return ezmRun(e.ids).then(function(lab){ var f = [], i; for (i = 0; i < lab.length; i++) if (lab[i] === 1 && e.wi[i] >= 0) f[e.wi[i]] = true; return f; });
-  }
-  function ezmMark(s){   /* جمله ← جمله با کسرهٔ اضافه روی واژه‌های برچسب‌خورده */
-    if (EZM.memo[s] !== undefined) return Promise.resolve(EZM.memo[s]);
-    var words = s.split(' ');
-    return ezmFlags(words).then(function(f){
-      var out = words.map(function(w, i){ return f && f[i] && i < words.length - 1 && /^[\p{L}\u200c]{2,}$/u.test(w) && !EZ_HAS.test(w) ? ezMark(w) : w; }).join(' ');
-      if (++EZM.nm > 800) { EZM.memo = {}; EZM.nm = 0; }
-      return (EZM.memo[s] = out);
-    });
-  }
-  function ezmSelfTest(){   /* خودآزمایی: اگر مدل/توکنایزر ناسازگار باشد ماژول خودکار غیرفعال می‌ماند */
-    var w = 'کتابخانه مرکزی دانشگاه شریف، فضای وسیع و چشم‌نوازی دارد.'.split(' ');
-    return ezmFlags(w).then(function(f){
-      f = f || [];
-      var hit = [0, 1, 2, 4].filter(function(i){ return f[i]; }).length, fp = [3, 6, 7, 8].filter(function(i){ return f[i]; }).length;
-      EZM.why = 'برچسب‌ها: ' + w.map(function(x, i){ return x + (f[i] ? '‹ِ›' : ''); }).join(' ');
-      return hit >= 3 && fp === 0;
-    });
-  }
-  function ezmLoad(){
-    if (!window.caches) return Promise.reject(new Error('ذخیره‌سازی (Cache) در این محیط موجود نیست'));
-    return caches.open(EZM.cache).then(function(ch){ return Promise.all([ch.match(EZM.base + 'tokenizer.json'), ch.match(EZM.base + 'model_quantized.onnx')]); }).then(function(r){
-      if (!r[0] || !r[1]) return null;
-      return Promise.all([r[0].json(), r[1].arrayBuffer(), ezmOrt()]).then(function(a){
-        EZM.tok = ezmTokInit(a[0]);
-        return a[2].InferenceSession.create(new Uint8Array(a[1]), { executionProviders: ['wasm'], graphOptimizationLevel: 'all' });
-      }).then(function(sess){ EZM.sess = sess; return ezmSelfTest(); }).then(function(ok){ EZM.ok = ok; return ok ? true : null; });
-    });
-  }
-  function ezmReady(){
-    if (EZM.ok === false) return Promise.resolve(null);
-    if (EZM.sess && EZM.ok) return Promise.resolve(true);
-    if (EZM.na && Date.now() - EZM.na < 5000) return Promise.resolve(null);
-    if (!EZM.ld) EZM.ld = ezmLoad().then(function(r){ if (!r) { EZM.ld = null; EZM.na = Date.now(); } return r; }, function(e){ EZM.ld = null; EZM.why = String((e && e.message) || e); if (++EZM.bad >= 3) EZM.ok = false; return null; });
-    return EZM.ld;
-  }
-  function ezmApply(text, parts){   /* → { text, parts } یا null (بدون تغییر) */
-    return withTimeout(ezmReady(), 20000, 'ezm').then(function(r){
-      if (!r) return null;
-      var src = parts && parts.length ? parts.map(function(p){ return p.t; }) : [text], res = [], k = Promise.resolve();
-      src.forEach(function(s, i){ k = k.then(function(){ return /[\p{L}]/u.test(s) ? ezmMark(s) : s; }).then(function(m){ res[i] = m; }); });
-      return k.then(function(){
-        if (!parts || !parts.length) return { text: res[0], parts: parts };
-        return { text: res.join(' '), parts: parts.map(function(p, i){ return Object.assign({}, p, { t: res[i] }); }) };
-      });
-    }).catch(function(){ return null; });
-  }
-  async function ezmDownload(cb){
-    var ch = await caches.open(EZM.cache), fs = ['tokenizer.json', 'model_quantized.onnx'], i, r, rd, tot, got, parts, x, url;
-    for (i = 0; i < fs.length; i++) {
-      url = EZM.base + fs[i];
-      r = await fetch(url);
-      if (!r.ok) throw new Error('دانلود ' + fs[i] + ' ناموفق بود (' + r.status + ')');
-      tot = +r.headers.get('content-length') || 0; got = 0; parts = [];
-      rd = r.body && r.body.getReader();
-      if (rd) { for (;;) { x = await rd.read(); if (x.done) break; parts.push(x.value); got += x.value.length; cb && cb(fs[i], got, tot); } }
-      else { parts.push(new Uint8Array(await r.arrayBuffer())); }
-      await ch.put(url, new Response(new Blob(parts)));
-    }
-  }
-  function ezmInit(){
-    var on = $('#ezmOn'), dl = $('#ezmDl'), rm = $('#ezmRm'), st = $('#ezmSt');
-    if (!on || !dl || !rm || !st) return;
-    function say(m){ st.textContent = m; }
-    function refresh(){
-      if (!window.caches) { say('ذخیره‌سازی (Cache) در این محیط موجود نیست.'); return Promise.resolve(); }
-      return caches.open(EZM.cache).then(function(ch){ return ch.match(EZM.base + 'model_quantized.onnx'); }).then(function(r){
-        var m = r ? 'مدل دانلود شده است.' : 'مدل هنوز دانلود نشده است.';
-        if (EZM.ok === true) m += ' خودآزمایی موفق بود؛ آمادهٔ استفاده.';
-        else if (EZM.ok === false) m += ' خودآزمایی ناموفق بود؛ غیرفعال ماند. ' + (EZM.why || '');
-        if (on.checked && !/mana/i.test((currentVoice() || {}).id || '')) m += ' (فقط با صدای مانا اعمال می‌شود.)';
-        say(m);
-      });
-    }
-    on.checked = sget('ezmOn', '0') === '1';
-    on.addEventListener('change', function(){ sset('ezmOn', on.checked ? '1' : '0'); if (on.checked) { EZM.ok = null; EZM.bad = 0; ezmReady().then(refresh); } refresh(); });
-    dl.addEventListener('click', function(){
-      dl.disabled = true; say('در حال دانلود…');
-      ezmDownload(function(f, g, t){ say('دانلود ' + f + ' … ' + (t ? Math.round(g * 100 / t) + '٪' : Math.round(g / 1048576) + ' MB')); })
-        .then(function(){ EZM.ok = null; EZM.ld = null; EZM.sess = null; EZM.memo = {}; EZM.bad = 0; say('دانلود تمام شد؛ در حال آزمایش…'); return ezmReady(); })
-        .then(refresh, function(e){ say('خطا: ' + ((e && e.message) || e)); })
-        .then(function(){ dl.disabled = false; });
-    });
-    rm.addEventListener('click', function(){
-      caches.delete(EZM.cache).then(function(){ EZM.sess = null; EZM.tok = null; EZM.ld = null; EZM.ok = null; EZM.memo = {}; return refresh(); });
-    });
-    refresh();
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ezmInit); else ezmInit();
   function piperPredict(text, id, l, parts, jit, rec){
     if (npOK) {
       var nat = function(tx, pts){ return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: tx, voiceId: id, st: jit ? hsSt(styleParams(id)) : styleParams(id), sp: paceSpeed(tx), parts: pts, rec: rec })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.'); };
@@ -9690,8 +9503,7 @@ function jbWrapW(ls, old){
         if (!/[\p{L}\p{N}]/u.test(simple)) throw e;
         return nat(simple, null);
       };
-      if (!ezmWant(id)) return nat(text, parts).catch(plain);
-      return ezmApply(text, parts).then(function(r){ return r ? nat(r.text, r.parts) : nat(text, parts); }, function(){ return nat(text, parts); }).catch(plain);
+      return nat(text, parts).catch(plain);
     }
     return Promise.reject(new Error('موتور صدای بومی آماده نشده است؛ برنامه را از روی APK اجرا کنید.'));
   }
@@ -9788,7 +9600,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r184 · 2026-11-05 · spell-v3 · errbox-v1', npBuild = '';
+  var APP_BUILD = 'html-r187 · 2026-11-06 · spell-v3 · errbox-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10487,7 +10299,6 @@ function svOcq(risky, N, uns){   /* ناظر کیفیت متن: سهم جمله�
 }
 function svLighten(){   /* سبک‌سازی مشترک: memo اصلاح‌گر، کش جمله‌های قدیمی، صفحه‌های دور از دید؛ شمار صفحه‌های آزادشده */
   var n = 0, vh;
-  try { EZM.memo = {}; EZM.nm = 0; } catch (e) {}
   try { if (playing) trimCache(idx); } catch (e) {}
   try {
     vh = window.innerHeight || 800;
@@ -10760,7 +10571,7 @@ var rawBlob = {}, sTab = {}, markMap = {};   /* markMap: مرز واقعی شر�
     var h = 5381, z = c.text + '|' + (c.parts || []).map(function(x){ return x.s + ':' + x.g + (x.n != null || x.w != null ? ':e' + EMO_V + ':' + x.n + ':' + x.w : ''); }).join(','), i = z.length, st = '';
     while (i) h = (h * 33) ^ z.charCodeAt(--i);
     try { st = styleParams(v.id).join(','); } catch (e) {}
-    return ['piper', v.id, c.start, (h >>> 0).toString(36) + st + (/mana/i.test(v.id) ? '~p' + pauseLevel() : '') + (ezmWant(v.id) ? '~ezm' : ''), c.end].join('|');
+    return ['piper', v.id, c.start, (h >>> 0).toString(36) + st + (/mana/i.test(v.id) ? '~p' + pauseLevel() : ''), c.end].join('|');
   }
   function piperFetchRaw(c){
     var v = currentVoice();
@@ -12965,6 +12776,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
   document.addEventListener('selectionchange', function(){ clearTimeout(selT); selT = setTimeout(selUpdate, 180); });
   function dqSuggest(w){
     try {
+      if (!HOM) homInit(); if (HOM[homNorm(w)]) return '';   /* r186: همنگاشت بی‌بافت پیشنهاد/قفل نشود (P06-03) */
       var r = { uns: {} }, out = ttsText(w, engine(), r, false), ks = Object.keys(r.uns);
       if (ks.length && r.uns[ks[0]] && r.uns[ks[0]].s) return r.uns[ks[0]].s;
       out = String(out || '').replace(/^[\s.,،؛:!?؟…]+|[\s.,،؛:!?؟…]+$/g, '').trim();
