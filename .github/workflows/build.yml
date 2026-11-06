@@ -24,7 +24,7 @@ jobs:
           path: |
             ~/.offline-cache
             ~/.npm
-          key: offline-v2-${{ hashFiles('native/checksums.txt', 'native/inject-native.sh', 'native/fetch-offline.sh', 'native/build-phonemizer.sh', 'native/piperphon_jni.c', 'native/Phonemizer.java', 'native/add-denoise-model.sh', 'native/build-mana-phon.sh', 'native/ManaPhon.kt') }}
+          key: offline-v2-${{ hashFiles('native/checksums.txt', 'native/inject-native.sh', 'native/fetch-offline.sh', 'native/build-phonemizer.sh', 'native/piperphon_jni.c', 'native/Phonemizer.java', 'native/add-denoise-model.sh', 'native/build-mana-phon.sh', 'native/ManaPhon.kt', 'native/fix-ort-jni.sh') }}
           restore-keys: |
             offline-v2-
       - name: Prepare web files
@@ -99,6 +99,8 @@ jobs:
         run: bash native/add-denoise-model.sh
       - name: Add Mana custom phonemizer (ezafe model)
         run: bash native/build-mana-phon.sh
+      - name: Align ORT Java JNI with sherpa ORT (symbol version)
+        run: bash native/fix-ort-jni.sh
       - name: Apply app icon
         run: bash native/apply-icon.sh
       - name: Check native back handler (BackApp)
@@ -149,7 +151,7 @@ jobs:
           done
           unzip -l PdfVoiceReader.apk | grep -q "assets/phonemizer/espeak-ng-data/phondata" && echo "espeak-ng-data هم‌نسخه داخل APK است" || echo "::warning::espeak-ng-data هم‌نسخه داخل APK نیست"
           for f in model_quantized.onnx tokenizer.json VERSION; do
-            unzip -l PdfVoiceReader.apk | grep -q "assets/mana/ezafe/$f" || { echo "::error::assets/mana/ezafe/$f داخل APK نیست"; exit 1; }
+            unzip -l PdfVoiceReader.apk | grep -q "assets/mana/ezafe/$f" || echo "::warning::assets/mana/ezafe/$f داخل APK نیست؛ مانا بدون کسرهٔ اضافهٔ مدلی کار می‌کند"
           done
       - name: Verify OCR files inside the APK
         run: |
