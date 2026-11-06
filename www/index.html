@@ -1772,8 +1772,8 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <p class="hint"><b>ناظر کیفیت صدا</b> شفافیت، بهبود کیفیت و تنظیم دقیق نویز را برای هر گوینده خودش تعیین می‌کند؛ تنظیم دستی ندارد. ناظر نویز و مدل حذف نویز عصبی را می‌توانید اینجا تغییر دهید.</p>
 <div class="slist"><label class="chk"><input type="checkbox" id="nzOn" checked><span class="st"><b>ناظر نویز (خودکار)</b><small>برای هر گوینده، سطح حذف نویز را از روی اندازه‌گیری واقعی خروجی انتخاب می‌کند. خاموش: اندازه‌گیری انجام نمی‌شود و سطح ثابت زیر برای همهٔ گوینده‌ها اجرا می‌شود.</small></span></label></div>
 <div class="field" id="nzFixRow" hidden><label for="nzFix"><span>سطح ثابت حذف نویز</span></label><select id="nzFix" aria-label="سطح ثابت حذف نویز"><option value="0">خاموش</option><option value="1">ملایم</option><option value="2">متعادل (پیشنهادی)</option><option value="3">قوی</option></select></div>
-<div class="field"><label for="nzMdl"><span>مدل حذف نویز عصبی (DPDFNet)</span></label><select id="nzMdl" aria-label="مدل حذف نویز عصبی DPDFNet"><option value="baseline">پایه — سبک و سریع (۱۶ کیلوهرتز)</option><option value="dpdfnet2">DPDFNet-2 — متعادل (۱۶ کیلوهرتز)</option><option value="dpdfnet4">DPDFNet-4 — کیفیت بالاتر (۱۶ کیلوهرتز)</option><option value="dpdfnet8">DPDFNet-8 — بهترین کیفیت، کندتر (۱۶ کیلوهرتز)</option><option value="dpdfnet2_48khz_hr">DPDFNet-2 — وضوح بالا (۴۸ کیلوهرتز)</option><option value="off">خاموش (فقط فیلتر کلاسیک)</option></select></div>
-<p class="hint">فقط در اندروید و در سطح‌های متعادل و قوی اثر دارد. مدل سنگین‌تر کیفیت بهتر ولی ساخت کندتر دارد؛ اگر ساخت صدا از پخش عقب بماند، خودکار غیرفعال می‌شود.</p>
+<div class="field"><label for="nzMdl"><span>مدل حذف نویز عصبی (DPDFNet)</span></label><select id="nzMdl" aria-label="مدل حذف نویز عصبی DPDFNet"><option value="baseline">روشن — مدل پایه (سبک و سریع)</option><option value="off">خاموش (فقط فیلتر کلاسیک)</option></select></div>
+<p class="hint">فقط مدل پایهٔ سبک نگه داشته شده است. فقط در اندروید و در سطح‌های متعادل و قوی اثر دارد؛ با «خاموش» فقط فیلتر کلاسیک اجرا می‌شود. اگر ساخت صدا از پخش عقب بماند، خودکار غیرفعال می‌شود.</p>
 <p class="hint" id="nzMdlSt" aria-live="polite" hidden></p>
 <p class="hint" id="nsSt" aria-live="polite" hidden></p>
 <div class="btnrow" id="nsRow" hidden><button class="btn sm" id="nsRe" type="button">اندازه‌گیری دوبارهٔ ناظر نویز</button></div>
@@ -9483,7 +9483,7 @@ function jbWrapW(ls, old){
   function pauseLevel(){ return 2; }   /* حذف وزوز مکث‌ها (مانا): ۰ خاموش … ۳ قوی */
   function lvl03(id){ var v = +$(id).value; return v >= 0 && v <= 3 ? v : 2; }
   function nzOn(){ return sget('nzOn', '1') !== '0'; }   /* ناظر نویز روشن؟ */
-  function ndMdl(){ var v = sget('nzMdl', 'baseline'); return ['baseline', 'dpdfnet2', 'dpdfnet4', 'dpdfnet8', 'dpdfnet2_48khz_hr', 'off'].indexOf(v) >= 0 ? v : 'baseline'; }   /* مدل DPDFNet */
+  function ndMdl(){ var v = sget('nzMdl', 'baseline'); return ['baseline', 'off'].indexOf(v) >= 0 ? v : 'baseline'; }   /* DPDFNet: فقط مدل پایه (سبک) یا خاموش؛ مقدار قدیمی مدل‌های سنگین → پایه */
   function nzFix(){ var v = parseInt(sget('nzFix', '2'), 10); return v >= 0 && v <= 3 ? v : 2; }   /* سطح ثابت وقتی ناظر خاموش است */
   function nsAuto(){ return nzOn() && $('#vclean').value === 'a'; }
   function cleanLevel(id){ if (!nzOn()) return nzFix(); return $('#vclean').value === 'a' ? nsLevel(id) : lvl03('#vclean'); }     /* حذف نویز و صداهای اضافه در موتور بومی: ۰ خاموش … ۳ قوی */
