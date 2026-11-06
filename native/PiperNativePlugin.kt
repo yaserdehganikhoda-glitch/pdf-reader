@@ -45,6 +45,7 @@ import java.nio.ByteOrder
 import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.Executors
+import com.pdfvoice.phon.ManaPhon
 import com.pdfvoice.phon.Phonemizer
 
 /**
@@ -260,7 +261,7 @@ class PiperNativePlugin : Plugin() {
     @PluginMethod
     fun diag(call: PluginCall) {
         call.resolve(JSObject().put("underruns", underruns).put("sampleRate", sampleRate).put("sdk", android.os.Build.VERSION.SDK_INT).put("bufMs", bufMs).put("bufGrow", bufGrow)
-            .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL).put("nd", NeuralDenoise.status(context)).put("ndm", NeuralDenoise.available(context)))
+            .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL).put("nd", NeuralDenoise.status(context)).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
     }
     private val cpu = Executors.newSingleThreadExecutor()    // ساخت صدا (پشت‌سرهم)
     private var tts: OfflineTts? = null
@@ -426,7 +427,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r17-nd · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r17-nd · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
     }
 
     @PluginMethod
@@ -1231,6 +1232,7 @@ class PiperNativePlugin : Plugin() {
         val t = OfflineTts(assetManager = null, config = cfg)
         tts = t; ttsId = id; ttsKey = key; sampleRate = t.sampleRate()
         ttsPhon = needPhon; ttsVoice = if (needPhon) onnxVoice(onnx) else "fa"
+        ttsMana = needPhon && id.contains("mana", ignoreCase = true)
         return t
     }
 
@@ -1241,6 +1243,7 @@ class PiperNativePlugin : Plugin() {
     private val phonLock = Any()
     @Volatile private var ttsPhon = false       // آیا متن این موتور باید قبل از sherpa آوانگاری شود
     @Volatile private var ttsVoice = "fa"       // نام صدای espeak (از متادیتای مدل؛ پیش‌فرض fa)
+    @Volatile private var ttsMana = false       // r187: صدای مانا؟ (واج‌آرایی اختصاصی: کسرهٔ اضافه با ALBERT پیش از espeak)
     private val voiceCache = HashMap<String, String>()
 
     private fun phonTag(): String = try {
@@ -1375,7 +1378,7 @@ class PiperNativePlugin : Plugin() {
     }
 
     /** ساخت یک جمله با تولید جریانی (callback): با لغو، همان لحظه‌ای که تکهٔ جاری برسد ساخت قطع می‌شود */
-    private fun genPart(eng: OfflineTts, text: String, sp: Float, ep: Int): FloatArray {
+    private fun genPart(eng: OfflineTts, text: String, sp: Float, ep: Int, manaPh: Boolean): FloatArray {
         val acc = ArrayList<FloatArray>()
         val cb: (FloatArray) -> Int = { s ->
             acc.add(s.copyOf())
@@ -1383,7 +1386,9 @@ class PiperNativePlugin : Plugin() {
         }
         val a = if (ttsPhon) {
             // r181: آوانگاری بیرونی؛ جمله‌های خالی حذف می‌شوند (برای هر جمله یک آرایهٔ کدپوینت)
-            val ph = Phonemizer.phonemize(text, ttsVoice).filter { it.isNotEmpty() }.toTypedArray()
+            // r187: مانا ← واج‌آرایی اختصاصی (کسرهٔ اضافهٔ مدلی روی متن)؛ هر خطا ← همان متن
+            val src = if (ttsMana && manaPh) ManaPhon.prepare(context, text) else text
+            val ph = Phonemizer.phonemize(src, ttsVoice).filter { it.isNotEmpty() }.toTypedArray()
             if (ph.isEmpty()) throw IllegalStateException("آوانگاری espeak برای این متن چیزی نداد")
             if (ep != epoch.get()) throw IllegalStateException("NATIVE_CANCELLED")
             val gc = GenerationConfig(silenceScale = 0.2f, speed = sp, sid = 0)
@@ -1474,6 +1479,7 @@ class PiperNativePlugin : Plugin() {
         val hdAmt = ((call.getFloat("hdAmt") ?: 65f).coerceIn(0f, 100f) / 100f).toDouble()   // شدت بازسازی بالاهای HD
         val hdOn = call.getBoolean("hd") ?: false   // HD: بالانمونه‌برداری ۲× + بازسازی بالاها (۴۴٫۱kHz برای مدل‌های ۲۲٫۰۵kHz)
         val probe = call.getBoolean("probe") ?: false   // r15: اندازه‌گیری DSP (خام در برابر خروجی)؛ کش پردازش‌شده را دور می‌زند تا نسخهٔ خام همیشه در دسترس باشد؛ صدای خروجی تغییری نمی‌کند
+        val manaPh = call.getBoolean("manaPh") ?: true   // r187: واج‌آرایی اختصاصی مانا (کسرهٔ اضافه)؛ فقط برای صدای مانا اثر دارد
         val strong = id.contains("mana", ignoreCase = true)   // مانا: خروجی خام SNR پایین دارد؛ بدون این حالت شرط ۲۵dB باعث می‌شد حذف نویز اصلاً اجرا نشود (اعتماد تدریجی ۱۲–۲۵dB + کاهش خش بالای ۴kHz در واکه‌ها). کلید کش شامل strong است
         // r176: gyro — کف نویز خام ≈ ‎−۱۷dB (SNR مرجع < ۲۵dB) بود و شرط سخت‌گیرانهٔ ۲۵dB حذف نویز را اصلاً اجرا نمی‌کرد؛ اعتماد تدریجی (۸ تا ۲۰dB) مثل مانا، ولی بدون سایر ویژگی‌های اختصاصی مانا (گیت/کاهش بالای ۴kHz/۱٫۱۵×)
         val grad = true   // r178: همهٔ صداها (gyro، ganji، …): SNR مرجع < ۲۵dB قبلاً حذف نویز را کاملاً خاموش می‌کرد؛ برای SNR ≥ ۲۰dB رفتار پیشین است
@@ -1484,6 +1490,8 @@ class PiperNativePlugin : Plugin() {
                 if (!okMark(id).exists()) throw IllegalStateException("این صدا هنوز نصب نشده است؛ چند لحظه صبر کنید تا نصب تمام شود")
                 val eng = engineFor(id, ns, nw)
                 val sr = eng.sampleRate()
+                if (ttsMana && manaPh) ManaPhon.ensure(context)   // یک‌بار؛ برچسب کش پایین باید ثابت بماند
+                val mTag = if (ttsMana) "|" + ManaPhon.tag(manaPh) else ""   // r187: کش صدای مانا برای هر حالت واج‌آرایی جدا
                 // هر جمله جدا (برای کش)؛ بدون parts کل متن یک جمله حساب می‌شود
                 val items = ArrayList<Pair<String, Float>>()
                 val itemGaps = ArrayList<Float>()   // مکث (ثانیه) پس از هر جمله؛ بدون g همان gap سراسری
@@ -1509,10 +1517,10 @@ class PiperNativePlugin : Plugin() {
                     val pt = itp.first; val ps = itp.second
                     if (pt.isBlank() || pt.none { it.isLetterOrDigit() }) continue
                     val psq = String.format(java.util.Locale.US, "%.2f", ps)
-                    val key = hashKey("v2|$id|$ns|$nw|" + psq + "|" + pt)
+                    val key = hashKey("v2|$id|$ns|$nw|" + psq + "|" + pt + mTag)
                     // کش دولایه، هر دو جمله‌به‌جمله و مستقل از مرز تکه‌ها: ۱) خروجی پردازش‌شده (پرش از مدل و پاک‌سازی)  ۲) نسخهٔ خام (با تغییر سطح پاک‌سازی مدل دوباره اجرا نمی‌شود)
                     val procOn = lvlClean > 0 || lvlClarity > 0
-                    val key2 = if (procOn) hashKey("v6|$id|$ns|$nw|" + psq + "|$lvlClean|$lvlClarity|$strong|$grad$ndTag|" + pt) else key
+                    val key2 = if (procOn) hashKey("v6|$id|$ns|$nw|" + psq + "|$lvlClean|$lvlClarity|$strong|$grad$ndTag$mTag|" + pt) else key
                     val done = if (procOn && !probe) cacheGet(key2, sr) else null
                     if (done != null) {
                         hit++
@@ -1521,7 +1529,7 @@ class PiperNativePlugin : Plugin() {
                         val cached = cacheGet(key, sr)
                         val s = if (cached != null) { hit++; cached } else {
                             val t0 = System.nanoTime()
-                            val g0 = genPart(eng, pt, ps, ep)
+                            val g0 = genPart(eng, pt, ps, ep, manaPh)
                             val g = if (id.endsWith("-coqui")) trimEdges(g0, sr) else g0   // Coqui: سکوت ابتدا/انتهای هر جمله بلند است
                             genMs += (System.nanoTime() - t0) / 1_000_000L   // زمان خالص مدل (بدون صیقل و انتقال)
                             cachePut(key, sr, g)
