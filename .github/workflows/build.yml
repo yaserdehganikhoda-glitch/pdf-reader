@@ -24,7 +24,7 @@ jobs:
           path: |
             ~/.offline-cache
             ~/.npm
-          key: offline-v2-${{ hashFiles('native/checksums.txt', 'native/inject-native.sh', 'native/fetch-offline.sh', 'native/build-phonemizer.sh', 'native/piperphon_jni.c', 'native/Phonemizer.java', 'native/add-denoise-model.sh') }}
+          key: offline-v2-${{ hashFiles('native/checksums.txt', 'native/inject-native.sh', 'native/fetch-offline.sh', 'native/build-phonemizer.sh', 'native/piperphon_jni.c', 'native/Phonemizer.java', 'native/add-denoise-model.sh', 'native/build-mana-phon.sh', 'native/ManaPhon.kt') }}
           restore-keys: |
             offline-v2-
       - name: Prepare web files
@@ -97,6 +97,8 @@ jobs:
           grep -n "__SHERPA_VER__" android/app/src/main/java -r && { echo "::error::برچسب نسخه در پلاگین جایگزین نشد"; exit 1; } || true
       - name: Add neural denoise model (DPDFNet)
         run: bash native/add-denoise-model.sh
+      - name: Add Mana custom phonemizer (ezafe model)
+        run: bash native/build-mana-phon.sh
       - name: Apply app icon
         run: bash native/apply-icon.sh
       - name: Check native back handler (BackApp)
@@ -146,6 +148,9 @@ jobs:
             done
           done
           unzip -l PdfVoiceReader.apk | grep -q "assets/phonemizer/espeak-ng-data/phondata" && echo "espeak-ng-data هم‌نسخه داخل APK است" || echo "::warning::espeak-ng-data هم‌نسخه داخل APK نیست"
+          for f in model_quantized.onnx tokenizer.json VERSION; do
+            unzip -l PdfVoiceReader.apk | grep -q "assets/mana/ezafe/$f" || { echo "::error::assets/mana/ezafe/$f داخل APK نیست"; exit 1; }
+          done
       - name: Verify OCR files inside the APK
         run: |
           unzip -l PdfVoiceReader.apk | grep -E "assets/public/ocr/" || true
