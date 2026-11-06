@@ -47,6 +47,11 @@ jobs:
         run: |
           test -s tools/verify.sh || { echo "::error::tools/verify.sh در مخزن نیست"; exit 1; }
           sh tools/verify.sh www/index.html
+      - name: Guard OCR Worker (شناسهٔ تعریف‌نشده؛ مثل «LX is not defined»)
+        run: |
+          test -s tools/check-ocr-undef.js || { echo "::error::tools/check-ocr-undef.js در مخزن نیست"; exit 1; }
+          npm install --prefix /tmp/chk acorn --no-audit --no-fund
+          NODE_PATH=/tmp/chk/node_modules node tools/check-ocr-undef.js www/index.html
       - name: Install dependencies
         run: npm install --legacy-peer-deps
       - name: Bundle offline web assets (fonts, pdf.js, OCR)
@@ -158,6 +163,38 @@ jobs:
           for f in ort/ort.min.js ort/ort-wasm-simd.wasm paddle/PP-OCRv5_mobile_det.onnx paddle/arabic_PP-OCRv5_mobile_rec.onnx paddle/arabic_PP-OCRv5_mobile_rec_dict.txt; do
             unzip -l PdfVoiceReader.apk | grep -q "assets/public/ocr/$f" || { echo "OCR file missing from APK: $f"; exit 1; }
           done
+      - name: Diagnose native ORT libs (گزارش F-11؛ بیلد را نمی‌شکند)
+        continue-on-error: true
+        run: |
+          sym() { readelf -Ws --dyn-syms "$1" 2>/dev/null | grep OrtGetApiBase | head -2 | sed 's/^ */    /' || true; }
+          need() { readelf -d "$1" 2>/dev/null | grep -E 'SONAME|NEEDED' | sed 's/^ */    /' || true; }
+          ver() { strings "$1" | grep -E '^1\.[0-9]+\.[0-9]+$' | sort -V | tail -1; }
+          {
+            echo "### ORT بومی: کدام libonnxruntime.so داخل APK مانده؟"
+            echo '```'
+            unzip -lv PdfVoiceReader.apk | grep -E 'lib/(arm64-v8a|armeabi-v7a)/lib(onnxruntime|sherpa|piper)' || true
+            rm -rf /tmp/apkso /tmp/aar && mkdir -p /tmp/apkso /tmp/aar
+            unzip -o -q PdfVoiceReader.apk 'lib/arm64-v8a/*.so' -d /tmp/apkso || true
+            APK_ORT=/tmp/apkso/lib/arm64-v8a/libonnxruntime.so
+            SH_ORT=android/app/src/main/jniLibs/arm64-v8a/libonnxruntime.so
+            AAR=$(find "$HOME/.gradle" -name 'onnxruntime-android-*.aar' 2>/dev/null | head -1)
+            echo "AAR: ${AAR:-NOT FOUND}"
+            [ -n "$AAR" ] && unzip -o -q "$AAR" 'jni/arm64-v8a/*' -d /tmp/aar || true
+            for f in "$SH_ORT" /tmp/aar/jni/arm64-v8a/libonnxruntime.so "$APK_ORT"; do
+              [ -f "$f" ] || { echo "== $f : MISSING"; continue; }
+              echo "== $f : $(stat -c %s "$f") bytes · sha256 $(sha256sum "$f" | cut -c1-16) · ver $(ver "$f")"
+              echo "  OrtGetApiBase:"; sym "$f"; [ -n "$(sym "$f")" ] || echo "    NOT FOUND"
+              echo "  elf:"; need "$f"
+            done
+            echo "== (نتیجه) نسخهٔ مانده در APK = $( [ -f "$APK_ORT" ] && { cmp -s "$APK_ORT" "$SH_ORT" && echo 'sherpa' || { cmp -s "$APK_ORT" /tmp/aar/jni/arm64-v8a/libonnxruntime.so && echo 'AAR' || echo 'نامشخص'; }; } )"
+            for j in /tmp/aar/jni/arm64-v8a/libonnxruntime4j_jni.so /tmp/apkso/lib/arm64-v8a/libonnxruntime4j_jni.so /tmp/apkso/lib/arm64-v8a/libsherpa-onnx-jni.so; do
+              [ -f "$j" ] || { echo "== $j : MISSING"; continue; }
+              echo "== $j"; echo "  OrtGetApiBase:"; sym "$j"; echo "  elf:"; need "$j"
+            done
+            echo "--- gradle (app):"
+            grep -n "onnxruntime\|pickFirst\|packagingOptions\|useLegacyPackaging" android/app/build.gradle || echo "(none)"
+            echo '```'
+          } 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Upload APK (run page)
         uses: actions/upload-artifact@v4
         with:
