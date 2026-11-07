@@ -57,6 +57,7 @@ import com.pdfvoice.phon.Phonemizer
  * پوشهٔ دلخواه کاربر: pickFolder, folder, exportVoices({ids?}), importVoices({ids?, overwrite?})
  * رویداد: "progress" {loaded, total}
  * r17: clean=۲ ← حذف‌نویز عصبی DPDFNet ۸۵٪ + کلاسیک، clean=۳ ← عصبی ۱۰۰٪ + کلاسیک (مدل: assets/denoise/dpdfnet_baseline.onnx؛ وضعیت: diag().nd)
+ * r24 (رنگ هر جمله): با col=true، هر جمله (part) پیش از چسباندن و پیش از HD سنجیده و به میانهٔ ۱۴ جملهٔ اخیر همان گوینده نزدیک می‌شود؛ ۷ باند اصلی با پیک ملایم (حداکثر ±۲٫۵dB) و بالاها (۶٫۵–۱۰٫۵kHz، «خش/هوا») با شلف ۶٫۵kHz (کاهش تا ۶dB، افزایش تا ۴dB)؛ ColorSv.measure، PieceColor و MasterFx.hfShelf. بدون پارامتر تازه؛ نتیجهٔ کش دست‌نخورده می‌ماند
  * r23 (EQ پویای ناظر رنگ): synthesize({..., cbT?: [۷ عدد]}) → اگر cbT (میانهٔ شکل طیف ۷ باند، ۱۵ تکهٔ اخیر از سمت JS) برسد، هر باند با انحراف بیش از ۰٫۵dB با پیک ملایم (حداکثر ±۳dB) اصلاح می‌شود (به‌جای شلف شیب)؛ hs.bd شکل ۷ باند و hs.bg گین‌ها؛ ColorSv.shape/slope و MasterFx.bandEq
  * r19 (ناظر رنگ): synthesize({..., col?: Boolean, clT?: dB/oct}) → شیب طیف واک‌دار تکه (hs.ct) را می‌سنجد؛ اگر clT (میانهٔ ۱۵ تکهٔ اخیر از سمت JS) برسد و انحراف > ۰٫۳ dB/oct باشد، شلف بالای ملایم (حداکثر ±۲٫۵ dB، hs.cg) رنگ را به میانه نزدیک می‌کند؛ ColorSv و MasterFx.tiltShelf
  * کیفیت صدا: synthesize({..., clean?: 0..3, clarity?: 0..3}) → حذف نویز و ارتقای شفافیت/رسایی؛ ۰ خاموش، ۲ متعادل (پیش‌فرض)؛ جزئیات در SpeechClean (انتهای فایل)
@@ -432,7 +433,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r23 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r24 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
     }
 
     @PluginMethod
@@ -1543,6 +1544,8 @@ class PiperNativePlugin : Plugin() {
                         pzN++
                     }
                 }
+                // r24 (رنگ هر جمله): هر جمله پیش از چسباندن و پیش از HD به میانهٔ اخیر نزدیک می‌شود (۷ باند + خش/هوای ۶٫۵–۱۰٫۵kHz)؛ فقط با col (مانا)؛ خطا ⇒ بدون اصلاح
+                if (colOn && sr >= 20000 && pieces.isNotEmpty()) { try { PieceColor.match(id, pieces, sr) } catch (e: Throwable) { } }
                 cHit.addAndGet(hit.toLong()); cMiss.addAndGet((pieces.size - hit).toLong())
                 var total = 0
                 for (x in pieces) total += x.size
@@ -2609,6 +2612,12 @@ private object ColorSv {
 
     /** r23: شکل طیف نسبی ۷ باند (dB، میانگین صفر) فریم‌های واک‌دار؛ null = فریم واک‌دار کافی نیست. */
     fun shape(x: FloatArray, sr: Int): DoubleArray? {
+        val m = measure(x, sr) ?: return null
+        return m.copyOf(EDGE.size - 1)
+    }
+
+    /** r24: ۷ عدد شکل طیف (مثل shape) + عدد هشتم = سطح باند ۶٫۵–۱۰٫۵kHz («خش/هوا») نسبت به میانگین ۷ باند (dB)؛ minV = دست‌کم فریم واک‌دار لازم. */
+    fun measure(x: FloatArray, sr: Int, minV: Int = 12): DoubleArray? {
         var n = 1
         while (n < sr * 0.046) n = n shl 1
         val h = n shr 1
@@ -2625,11 +2634,12 @@ private object ColorSv {
         val ke0 = bin(80.0); val ke1 = bin(8000.0)
         val kv0 = bin(100.0); val kv1 = bin(900.0)
         val kh0 = bin(2000.0); val kh1 = bin(8000.0)
+        val khl = bin(6500.0); val khh = Math.max(khl + 1, bin(Math.min(10500.0, sr * 0.5 * 0.95)))   // r24: باند خش/هوا
         val cnt = (nfAll + step - 1) / step
         val fe = DoubleArray(cnt)
         val el = DoubleArray(cnt)
         val eh = DoubleArray(cnt)
-        val bands = Array(cnt) { DoubleArray(nb) }
+        val bands = Array(cnt) { DoubleArray(nb + 1) }
         val re = DoubleArray(n)
         val im = DoubleArray(n)
         val pw = DoubleArray(h + 1)
@@ -2646,25 +2656,27 @@ private object ColorSv {
             for (k in kh0..kh1) hh += pw[k]
             fe[q] = e; el[q] = l; eh[q] = hh
             for (i in 0 until nb) { var b = 0.0; for (k in kl[i] until kh[i]) b += pw[k]; bands[q][i] = b }
+            run { var hb = 0.0; for (k in khl until khh) hb += pw[k]; bands[q][nb] = hb }
             q++
             f += step
         }
         val srt = fe.copyOf(q)
         srt.sort()
         val thr = srt[((q - 1) * 0.9).toInt()] * 0.00316   // فریم فعال: ≤ ۲۵− dB زیر صدک ۹۰
-        val bm = DoubleArray(nb)
+        val bm = DoubleArray(nb + 1)
         var nv = 0
         for (i in 0 until q) {
             if (fe[i] <= thr) continue
             if (el[i] < 2.0 * eh[i]) continue   // واک‌دار
             nv++
-            for (b in 0 until nb) bm[b] += bands[i][b]
+            for (b in 0..nb) bm[b] += bands[i][b]
         }
-        if (nv < 12) return null
+        if (nv < minV) return null
         var ref = 0.0
-        for (b in 0 until nb) { bm[b] = 10.0 * Math.log10(bm[b] / nv + 1e-20); ref += bm[b] }
+        for (b in 0..nb) bm[b] = 10.0 * Math.log10(bm[b] / nv + 1e-20)
+        for (b in 0 until nb) ref += bm[b]
         ref /= nb
-        return DoubleArray(nb) { bm[it] - ref }
+        return DoubleArray(nb + 1) { bm[it] - ref }
     }
 
     /** شیب طیف (dB/اکتاو) از شکل ۷ باندی. */
@@ -2681,6 +2693,63 @@ private object ColorSv {
     }
 
     fun tilt(x: FloatArray, sr: Int): Double { val s = shape(x, sr) ?: return Double.NaN; return slope(s) }
+}
+
+/**
+ * r24 (رنگ هر جمله): ناظر رنگ r19/r23 کل تکه را یکجا می‌سنجد، ولی جمله‌های مانا جدا ساخته می‌شوند و رنگشان از جمله‌ای به جمله‌ای می‌پرد، به‌ویژه بالاها:
+ * در WAV واقعی (۶ جمله) باند ۶٫۵–۱۰٫۵kHz تا ≈۱۱dB (σ≈۳٫۹dB) فرق داشت و «هوای» HD هم از همین باند ساخته می‌شود؛ ۷ باند اصلی فقط σ≈۱٫۱dB.
+ * اینجا هر جمله پیش از چسباندن (و پیش از HD) سنجیده و به میانهٔ ۱۴ جملهٔ اخیر همان گوینده (به‌علاوهٔ جمله‌های همین درخواست) نزدیک می‌شود.
+ * باندهای اصلی: آستانه ۰٫۸dB، ۰٫۷× انحراف، حداکثر ±۲٫۵dB. بالاها: آستانه ۰٫۵dB، ۱٫۰× انحراف، کاهش تا ۶dB و افزایش تا ۴dB (شلف ۶٫۵kHz؛ افزایش کمتر تا خشِ جمله‌های تیره زیاد نشود).
+ * جمله‌ای با فریم واک‌دار کم (< ۲۵) نه اصلاح می‌شود نه در تاریخچه می‌رود. خروجی کش دست‌نخورده می‌ماند (اصلاح پس از کش است).
+ */
+private object PieceColor {
+    private const val KEEP = 14
+    private val hist = HashMap<String, ArrayList<DoubleArray>>()
+
+    private fun median(v: DoubleArray): Double {
+        v.sort()
+        val n = v.size
+        return if (n % 2 == 1) v[n / 2] else 0.5 * (v[n / 2 - 1] + v[n / 2])
+    }
+
+    fun match(id: String, pieces: ArrayList<FloatArray>, sr: Int) {
+        val ms = ArrayList<DoubleArray?>()
+        for (x in pieces) ms.add(ColorSv.measure(x, sr, 25))
+        var tg: DoubleArray? = null
+        synchronized(this) {
+            val h = hist.getOrPut(id) { ArrayList() }
+            val all = ArrayList<DoubleArray>(h)
+            for (m in ms) if (m != null) all.add(m)
+            if (all.size >= 3) {
+                val t = DoubleArray(8)
+                for (b in 0 until 8) t[b] = median(DoubleArray(all.size) { all[it][b] })
+                tg = t
+            }
+            for (m in ms) if (m != null) { h.add(m); while (h.size > KEEP) h.removeAt(0) }
+        }
+        val t = tg ?: return
+        for (k in pieces.indices) {
+            val m = ms[k] ?: continue
+            var x = pieces[k]
+            val gs = DoubleArray(7)
+            var any = false
+            for (b in 0 until 7) {
+                val d = m[b] - t[b]
+                if (d.isNaN() || d.isInfinite()) continue
+                if (Math.abs(d) > 0.8) {
+                    val g = (-Math.signum(d) * (Math.abs(d) - 0.8) * 0.7).coerceIn(-2.5, 2.5)
+                    if (Math.abs(g) >= 0.1) { gs[b] = g; any = true }
+                }
+            }
+            if (any) x = MasterFx.bandEq(x, sr, gs)
+            val dh = m[7] - t[7]
+            if (!dh.isNaN() && !dh.isInfinite() && Math.abs(dh) > 0.5) {
+                val g = (-Math.signum(dh) * (Math.abs(dh) - 0.5)).coerceIn(-6.0, 4.0)
+                if (Math.abs(g) >= 0.1) x = MasterFx.hfShelf(x, sr, g)
+            }
+            if (x !== pieces[k]) pieces[k] = x
+        }
+    }
 }
 
 private object MasterFx {
@@ -2983,6 +3052,14 @@ private object MasterFx {
             if (b >= CB_FC.size || Math.abs(gains[b]) < 0.05) continue
             peaking(CB_FC[b], 1.6, gains[b], sr).run(x)
         }
+        return FloatArray(x.size) { x[it].toFloat() }
+    }
+
+    /** r24: شلف بالای ۶٫۵kHz (سطح «خش/هوا»)؛ db منفی = بالاها کمتر. */
+    fun hfShelf(src: FloatArray, sr: Int, db: Double): FloatArray {
+        if (src.isEmpty() || Math.abs(db) < 0.05) return src
+        val x = DoubleArray(src.size) { src[it].toDouble() }
+        highShelf(6500.0, db, sr).run(x)
         return FloatArray(x.size) { x[it].toFloat() }
     }
 
