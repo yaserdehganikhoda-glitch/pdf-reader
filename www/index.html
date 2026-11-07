@@ -2927,9 +2927,9 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       /* ضریب پایه برای همهٔ گوینده‌ها یکسان است (۱ = سرعت اصلی مدل) */
       var tempo = VOICE_TEMPOS[o.voiceId] || VOICE_TEMPO, fxp = (window.EQM || { nat: function(b){ return b; } }).nat($('#enh').checked ? fxProf(o.voiceId) : null);
       var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo), g: p.g, n: p.n, w: p.w }; }) : undefined;
-      var cln = cleanLevel(o.voiceId), eqp = npPlay && window.EQM && EQM.on() ? EQM.payload() : undefined, sg = '', hq = function(h){ if (h) h._sg = sg; return h; };
+      var fb = o.fb | 0, rw = fb >= 2, cln = cleanLevel(o.voiceId), eqp = npPlay && window.EQM && EQM.on() ? EQM.payload() : undefined, sg = '', hq = function(h){ if (h) h._sg = sg; return h; };
       try { sg = [o.st && o.st[0], o.st && o.st[1], cln, clarityLevel(), fxp ? 1 : 0, fxp ? fxp.pk : 0, fxp ? fxp.hs : 0, fxp ? fxp.lp : 0, eqp ? JSON.stringify(eqp) : '', (window.EQM && EQM.hd && EQM.hd(o.voiceId)) ? 'hd' + EQM.hdAmt() : ''].join('|') + (ndMdl() === 'baseline' ? '' : '|' + ndMdl()); } catch (e) {}   /* r159: امضای تنظیماتی که a0 بومی (پس از مسترینگ/EQ/OUT_TRIM) را جابه‌جا می‌کنند؛ تاریخچهٔ بلندی فقط در همان امضا معتبر است */
-      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: cln, nd: ndMdl(), manaPh: mphOn(), clarity: clarityLevel(), pause: pauseLevel(), keep: o.rec ? false : npPlay, master: !!fxp, probe: !!(window.DSP && DSP.on), eq: eqp, hd: !!(window.EQM && EQM.hd && EQM.hd(o.voiceId)), hdAmt: window.EQM && EQM.hdAmt ? EQM.hdAmt() : 65, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, lvT: svLvT(o.voiceId, sg), pz: svOn('svPz'), speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ try { if (r.dsp && window.dspPush) dspPush(r.dsp); } catch (e) {} if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null, hp: hq(r.hs) || null, pz: r.pz || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; b.hp = hq(r.hs) || null; return b; });
+      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: rw ? 0 : cln, nd: rw ? 'off' : ndMdl(), manaPh: fb ? false : mphOn(), clarity: rw ? 0 : clarityLevel(), pause: rw ? 0 : pauseLevel(), keep: o.rec ? false : npPlay, master: rw ? false : !!fxp, probe: !!(window.DSP && DSP.on), eq: rw ? undefined : eqp, hd: rw ? false : !!(window.EQM && EQM.hd && EQM.hd(o.voiceId)), hdAmt: window.EQM && EQM.hdAmt ? EQM.hdAmt() : 65, fxPk: rw ? 0 : (fxp ? fxp.pk : 0), fxHs: rw ? 0 : (fxp ? fxp.hs : 0), fxLp: rw ? 20000 : (fxp ? fxp.lp : 20000), lvT: rw ? undefined : svLvT(o.voiceId, sg), pz: rw ? false : svOn('svPz'), speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ try { if (r.dsp && window.dspPush) dspPush(r.dsp); } catch (e) {} if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null, hp: hq(r.hs) || null, pz: r.pz || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; b.hp = hq(r.hs) || null; return b; });
     }
   };
 
@@ -9505,9 +9505,9 @@ function jbWrapW(ls, old){
   function mRate(){ return npPlay ? Math.max(0.5, Math.min(1.5, Math.round((+$('#rate').value || 1) * 20) / 20)) : 1; }   /* r115: سقف ۱٫۵ = سقف speed ساخت صدا (نه ۲، که مازاد گم می‌شد؛ نه ۱٫۳۵، که کشش اضافه و آرتیفکت می‌ساخت)؛ مازاد بالای ۱٫۵ با playerRate */   /* سرعت کاربر با گام ۰٫۰۵ داخل خود مدل (length_scale)؛ باقی‌مانده با playerRate */
   function paceSpeed(t){ return Math.round(paceBase(t) * mRate() * 100) / 100; }
   function paceBase(t){ return 1; }   /* r119: سرعت ثابت — بدون ضریب سبک/جملهٔ سنگین/گوینده؛ سرعت واقعی = سرعت انتخابی */
-  function piperPredict(text, id, l, parts, jit, rec){
+  function piperPredict(text, id, l, parts, jit, rec, fb){   /* r192: fb = پلهٔ ساخت مجدد برای تکهٔ خالی (۱: بدون واج‌آرایی مانا · ۲: خام بدون پردازش · ۳: خام با متن ساده‌شده) */
     if (npOK) {
-      var nat = function(tx, pts){ return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: tx, voiceId: id, st: jit ? hsSt(styleParams(id)) : styleParams(id), sp: paceSpeed(tx), parts: pts, rec: rec })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.'); };
+      var nat = function(tx, pts){ return withTimeout(Promise.resolve(NATIVE_PIPER.predict({ text: tx, voiceId: id, st: fb ? hsFbSt(styleParams(id), fb) : jit ? hsSt(styleParams(id)) : styleParams(id), sp: paceSpeed(tx), parts: pts, rec: rec, fb: fb })), 120000, 'ساخت صدا در موتور بومی بیش از حد طول کشید.'); };
       /* خطای گذرا یا نویسهٔ عجیب در یک جمله کل خواندن را متوقف نکند: یک بار دیگر با متن ساده‌شده (فقط حرف، عدد و نشانه‌های رایج) */
       var plain = function(e){
         var m = String((e && e.message) || e);
@@ -9516,6 +9516,7 @@ function jbWrapW(ls, old){
         if (!/[\p{L}\p{N}]/u.test(simple)) throw e;
         return nat(simple, null);
       };
+      if (fb >= 3) { var s3 = text.replace(/:+/g, '،').replace(/[^\p{L}\p{N}\s.,;!?'\-،؛؟]/gu, ' ').replace(/\s+/g, ' ').trim(); if (/[\p{L}\p{N}]/u.test(s3)) return nat(s3, null).catch(plain); }   /* r192: آخرین پله — متن ساده‌شده بدون تکه‌بندی */
       return nat(text, parts).catch(plain);
     }
     return Promise.reject(new Error('موتور صدای بومی آماده نشده است؛ برنامه را از روی APK اجرا کنید.'));
@@ -9613,7 +9614,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r191 · 2026-11-07 · spell-v3 · errbox-v1 · mncolor-v1', npBuild = '';
+  var APP_BUILD = 'html-r192 · 2026-11-07 · spell-v3 · errbox-v1 · mncolor-v1 · hsfb-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10158,6 +10159,25 @@ function hsSt(s){   /* کلید کش بومی شامل noiseScale/noiseScaleW ا
   var a = Math.max(0.2, Math.round((s[0] - 0.05) * 100) / 100), b = Math.max(0, Math.round((s[1] - 0.05) * 100) / 100);   /* r191: کف noise_w صفر (با کف ۰٫۲، ساخت مجدد noise_w را از ۰٫۰۱ به ۰٫۲ می‌پراند و ریتم/رنگ آن جمله با بقیه فرق می‌کرد) */
   return (a === s[0] && b === s[1]) ? [Math.round((a + 0.05) * 100) / 100, Math.round((b + 0.05) * 100) / 100] : [a, b];
 }
+function hsFbSt(s, fb){   /* r192: noise هر پلهٔ ساخت مجدد متفاوت است تا کلید کش بومی تازه باشد (نه نتیجهٔ خالیِ کش‌شده) */
+  var r = function(x){ return Math.round(x * 100) / 100; };
+  return fb === 1 ? hsSt(s) : fb === 2 ? [Math.min(0.6, r(s[0] + 0.07)), Math.min(0.2, r(s[1] + 0.02))] : [Math.min(0.66, r(s[0] + 0.12)), Math.min(0.2, r(s[1] + 0.04))];
+}
+function hsTx(c){ return String((c && c.text) || '').slice(0, 30).replace(/\s+/g, ' '); }
+function hsLadder(c, v, why, chk, orig){   /* r192: ساخت مجدد پله‌ای — تکهٔ خالی/بی‌صدا با همان متن و همان پردازش دوباره خالی درمی‌آمد (مثلاً ۲۸۲۰، ۲۹۹۵، ۳۰۶۰). هر پله یک چیز را ساده می‌کند و اولین نتیجهٔ سالم برگزیده می‌شود؛ مشکلات دیگر (طول/بریدگی) مثل قبل فقط یک پلهٔ نویز دارند */
+  var empty = /خالی|بی.?صدا|NaN/.test(why || ''), rungs = empty ? (/mana/i.test(v.id) ? [0, 1, 2, 3] : [0, 2, 3]) : [0], t0 = Date.now(), lw = '', last = null;
+  function step(i){
+    if (i >= rungs.length || (i > 0 && Date.now() - t0 > 30000)) return Promise.resolve({ b: null, w: lw, last: last });
+    return piperPredict(c.text, v.id, 0, c.parts, 1, undefined, rungs[i]).then(function(b2){
+      var w2 = chk(b2);
+      if (!w2) return { b: b2, w: '', fb: rungs[i] };
+      lw = w2; last = b2;
+      if (b2 && b2.nh && !(orig && orig.nh === b2.nh)) hsRelease(b2);
+      return step(i + 1);
+    }, function(e){ lw = String((e && e.message) || e).slice(0, 60); return step(i + 1); });
+  }
+  return step(0);
+}
 function hsLog(m){ try { if (window.__elog) window.__elog.add('audio-health', m); } catch (e) {} }
 function hsShow(){
   var e = $('#hsSt'), v, t;
@@ -10508,7 +10528,7 @@ function hsRbOk(){   /* r158: سقف ساخت مجدد نگهبان — حداک
   if (HS.rb.length >= 4) return false;
   HS.rb.push(now); return true;
 }
-function hsGuard(c, v, b){
+function hsGuard(c, v, b, ak){
   var why, qs = null;
   svTx(c);
   if (!b || c.start < 0 || !hsOn()) return b;
@@ -10519,11 +10539,10 @@ function hsGuard(c, v, b){
       if (!w) return b;
       HS.bad++;
       if (!hsRbOk()) { HS.kept++; hsLog('تکهٔ ' + c.start + ': ' + w + ' ← ساخت مجدد انجام نشد (سقف ۴ بار در دقیقه)'); hsEv(c, b, 'b', w, 'cap', qs); hsShow(); return b; }
-      hsLog('تکهٔ ' + c.start + ': ' + w + ' ← ساخت مجدد'); hsShow();
-      return piperPredict(c.text, v.id, 0, c.parts, 1).then(function(b2){
-        var w2; hsDev = null; w2 = b2 && !b2.nh ? hsWhy(c, b2) : 'نتیجهٔ ساخت مجدد نامعتبر';
-        if (b2 && !b2.nh && !w2) { HS.fixed++; hsEv(c, b, 'b', w, 'fixed', qs, b2, ''); hsShow(); return b2; }
-        HS.kept++; hsEv(c, b, 'b', w, 'kept', qs, b2, w2); hsShow(); return b;
+      hsLog('تکهٔ ' + c.start + ': ' + w + ' ← ساخت مجدد «' + hsTx(c) + '»'); hsShow();
+      return hsLadder(c, v, w, function(b2){ if (!b2 || b2.nh) return 'نتیجهٔ ساخت مجدد نامعتبر'; hsDev = null; return hsWhy(c, b2); }, b).then(function(r){
+        if (r.b) { HS.fixed++; hsEv(c, b, 'b', w, 'fixed' + (r.fb ? '@' + r.fb : ''), qs, r.b, ''); if (r.fb) hsLog('تکهٔ ' + c.start + ': با پلهٔ ' + r.fb + ' درست شد'); try { if (ak) achPut(ak, r.b, { v: v.id, sr: r.b.sr, np: r.b.np }); } catch (x) {} hsShow(); return r.b; }   /* r192: نسخهٔ سالم جای نسخهٔ خالیِ کش‌شده می‌نشیند */
+        HS.kept++; hsEv(c, b, 'b', w, 'kept', qs, r.last, r.w); hsShow(); return b;
       });
     }).catch(function(e){ hsEv(c, b, 'b', '', 'err', qs, null, String((e && e.message) || e).slice(0, 80)); return b; });
   }
@@ -10531,18 +10550,13 @@ function hsGuard(c, v, b){
   if (!why) { svLoud(v.id, c, b.hp); return b; }   /* r158: تکهٔ مشکوکِ در آستانهٔ جایگزینی وارد تاریخچهٔ بلندی/کف نویز نمی‌شود */
   HS.bad++;
   if (!hsRbOk()) { HS.kept++; hsLog('تکهٔ ' + c.start + ': ' + why + ' ← ساخت مجدد انجام نشد (سقف ۴ بار در دقیقه)'); hsEv(c, b, 'n', why, 'cap', b.hp); hsShow(); return b; }
-  hsLog('تکهٔ ' + c.start + ': ' + why + ' ← ساخت مجدد'); hsShow();
-  return piperPredict(c.text, v.id, 0, c.parts, 1).then(function(b2){
-    var w2, keep2;
-    if (!b2 || !b2.nh) { hsEv(c, b, 'n', why, 'kept', b.hp, null, 'ساخت مجدد نتیجه نداد'); return b; }
-    b2._gv = gvFactor(c, b2, v.id); b2._dev = hsDev; w2 = hsWhy(c, b2) || hsHpWhy(b2.hp);
-    keep2 = !w2 || (b._dev != null && b2._dev != null && Math.abs(b2._dev) < Math.abs(b._dev));
-    if (w2) { HS.kept++; hsLog('تکهٔ ' + c.start + ': پس از ساخت مجدد هم مشکوک (' + w2 + ')'); } else HS.fixed++;
-    hsEv(c, b, 'n', why, keep2 ? (w2 ? 'improved' : 'fixed') : 'kept', b.hp, b2, w2);
-    hsShow();
-    if (keep2) { if (b2.nh !== b.nh) hsRelease(b); if (!w2) svLoud(v.id, c, b2.hp); return b2; }
-    if (b2.nh !== b.nh) hsRelease(b2);
-    return b;
+  hsLog('تکهٔ ' + c.start + ': ' + why + ' ← ساخت مجدد «' + hsTx(c) + '»'); hsShow();
+  return hsLadder(c, v, why, function(b2){ if (!b2 || !b2.nh) return 'نتیجهٔ ساخت مجدد نامعتبر'; b2._gv = gvFactor(c, b2, v.id); b2._dev = hsDev; return hsWhy(c, b2) || hsHpWhy(b2.hp); }, b).then(function(r){
+    if (!r.b) { HS.kept++; hsLog('تکهٔ ' + c.start + ': پس از همهٔ پله‌های ساخت مجدد هم مشکوک (' + r.w + ')'); hsEv(c, b, 'n', why, 'kept', b.hp, r.last, r.w); hsShow(); return b; }
+    HS.fixed++; hsEv(c, b, 'n', why, 'fixed' + (r.fb ? '@' + r.fb : ''), b.hp, r.b, ''); if (r.fb) hsLog('تکهٔ ' + c.start + ': با پلهٔ ' + r.fb + ' درست شد'); hsShow();
+    if (r.b.nh !== b.nh) hsRelease(b);
+    if (r.fb < 2) svLoud(v.id, c, r.b.hp);   /* پلهٔ خام امضای پردازش دیگری دارد و تاریخچهٔ بلندی را به‌هم نمی‌زند */
+    return r.b;
   }).catch(function(e){ hsEv(c, b, 'n', why, 'err', b.hp, null, String((e && e.message) || e).slice(0, 80)); return b; });
 }
 function hsAllow(){ var now = Date.now(); HS.errs = HS.errs.filter(function(t){ return now - t < 60000; }); if (HS.errs.length >= 2) return false; HS.errs.push(now); return true; }
@@ -10621,7 +10635,7 @@ var rawBlob = {}, sTab = {}, markMap = {};   /* markMap: مرز واقعی شر�
         perf();
         return b;
       });
-    }).then(function(b){ return typeof b.gen === 'number' ? b : polish(b, c.mid).catch(function(e){ dgLog('tts-polish', 'جمله ' + c.start + ': ' + em(e)); return b; }); }).then(function(b){ if (ak && !b.nh) achPut(ak, b, { v: v.id, sr: b.sr, np: b.np }); return b; }).then(function(b){ return hsGuard(c, v, b); });
+    }).then(function(b){ return typeof b.gen === 'number' ? b : polish(b, c.mid).catch(function(e){ dgLog('tts-polish', 'جمله ' + c.start + ': ' + em(e)); return b; }); }).then(function(b){ if (ak && !b.nh) achPut(ak, b, { v: v.id, sr: b.sr, np: b.np }); return b; }).then(function(b){ return hsGuard(c, v, b, ak); });
     }).then(function(b){ if (b.nh) { if (b.marks) markMap['np:' + b.nh] = b.marks; gvMap['np:' + b.nh] = c.start >= 0 ? (b._gv !== undefined ? b._gv : gvFactor(c, b, v.id)) : 1; return 'np:' + b.nh; } var u = URL.createObjectURL(b); rawBlob[u] = b; if (b.marks) markMap[u] = b.marks; return u; });
     L.q = pr.catch(function(){});
     pr.then(function(){ L.b--; }, function(){ L.b--; });
