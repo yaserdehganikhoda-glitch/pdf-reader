@@ -1786,6 +1786,13 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <div class="field"><label for="nzNs"><span>noise scale (رنگ و زیر و بمی)</span><span id="nzNsV"></span></label><input type="range" class="rng" id="nzNs" min="0.2" max="1" step="0.01" value="0.33" aria-label="noise scale"></div>
 <div class="field"><label for="nzNw"><span>noise w (طول واج‌ها و ریتم)</span><span id="nzNwV"></span></label><input type="range" class="rng" id="nzNw" min="0" max="1" step="0.01" value="0.01" aria-label="noise w"></div>
 </div></details>
+<details class="sub" id="pitManBox"><summary>تنظیم دستی زیر و بمی صدا (مانا)</summary><div class="in">
+<p class="hint"><b>جابه‌جایی گام</b> همهٔ تکه‌ها را یکجا بم‌تر (منفی) یا زیرتر (مثبت) می‌کند؛ مدت و هایلایت عوض نمی‌شود. <b>هدف ناظر گام</b> را پایین‌تر از میانه بگذارید تا تکه‌های زیر بیشتر پایین بیایند، و <b>سقف</b> حداکثر پایین‌آوردن خودکار هر تکه است. فقط برای صدای مانا؛ تغییر روی جمله‌های بعدی اعمال می‌شود. نیاز به بیلد بومی kt-r21.</p>
+<div class="field"><label for="pitMan"><span>جابه‌جایی گام (نیم‌پرده؛ منفی = بم‌تر)</span><span id="pitManV"></span></label><input type="range" class="rng" id="pitMan" min="-8" max="4" step="0.5" value="0" aria-label="جابه‌جایی گام"></div>
+<div class="field"><label for="pitOff"><span>هدف ناظر گام، پایین‌تر از میانه</span><span id="pitOffV"></span></label><input type="range" class="rng" id="pitOff" min="-3" max="0" step="0.5" value="0" aria-label="هدف ناظر گام"></div>
+<div class="field"><label for="pitCap"><span>سقف پایین‌آوردن خودکار هر تکه</span><span id="pitCapV"></span></label><input type="range" class="rng" id="pitCap" min="1" max="6" step="0.5" value="3.5" aria-label="سقف پایین‌آوردن خودکار"></div>
+<div class="btnrow"><button class="btn sm" id="pitRst" type="button">بازگشت به پیش‌فرض</button></div>
+</div></details>
 <div class="slist"><label class="chk"><input type="checkbox" id="hsOn" checked><span class="st"><b>ناظر سلامت صدا (خودکار)</b><small>طول و سلامت هر تکهٔ ساخته‌شده را می‌سنجد و تکهٔ مشکوک (بریده، کشیده، خالی) را یک بار با نویز کمتر دوباره می‌سازد؛ خطای پخش را هم خودکار بازیابی می‌کند.</small></span></label></div>
 <p class="hint" id="hsSt" aria-live="polite" hidden></p>
 <div class="slist"><button class="btn sm" id="hsRep" type="button">گزارش ناظر سلامت صدا</button></div>
@@ -2931,7 +2938,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       var parts = o.parts && o.parts.length ? o.parts.map(function(p){ return { t: p.t, s: Math.min(1.5, (p.s || 1) * tempo), g: p.g, n: p.n, w: p.w }; }) : undefined;
       var fb = o.fb | 0, rw = fb >= 2, cOn = fb < 2 && svOn('svCol') && /mana/i.test(o.voiceId || ''), pOn = fb < 2 && svOn('svPit') && /mana/i.test(o.voiceId || ''), cln = cleanLevel(o.voiceId), eqp = npPlay && window.EQM && EQM.on() ? EQM.payload() : undefined, sg = '', hq = function(h){ if (h) h._sg = sg; return h; };
       try { sg = [o.st && o.st[0], o.st && o.st[1], cln, clarityLevel(), fxp ? 1 : 0, fxp ? fxp.pk : 0, fxp ? fxp.hs : 0, fxp ? fxp.lp : 0, eqp ? JSON.stringify(eqp) : '', (window.EQM && EQM.hd && EQM.hd(o.voiceId)) ? 'hd' + EQM.hdAmt() : ''].join('|') + (ndMdl() === 'baseline' ? '' : '|' + ndMdl()); } catch (e) {}   /* r159: امضای تنظیماتی که a0 بومی (پس از مسترینگ/EQ/OUT_TRIM) را جابه‌جا می‌کنند؛ تاریخچهٔ بلندی فقط در همان امضا معتبر است */
-      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: rw ? 0 : cln, nd: rw ? 'off' : ndMdl(), manaPh: fb ? false : mphOn(), clarity: rw ? 0 : clarityLevel(), pause: rw ? 0 : pauseLevel(), keep: o.rec ? false : npPlay, master: rw ? false : !!fxp, probe: !!(window.DSP && DSP.on), eq: rw ? undefined : eqp, hd: rw ? false : !!(window.EQM && EQM.hd && EQM.hd(o.voiceId)), hdAmt: window.EQM && EQM.hdAmt ? EQM.hdAmt() : 65, fxPk: rw ? 0 : (fxp ? fxp.pk : 0), fxHs: rw ? 0 : (fxp ? fxp.hs : 0), fxLp: rw ? 20000 : (fxp ? fxp.lp : 20000), lvT: rw ? undefined : svLvT(o.voiceId, sg), col: cOn, clT: cOn ? svClT(o.voiceId, sg) : undefined, pit: pOn, pT: pOn ? svPT(o.voiceId, sg) : undefined, pz: rw ? false : svOn('svPz'), speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ try { if (r.dsp && window.dspPush) dspPush(r.dsp); } catch (e) {} if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null, hp: hq(r.hs) || null, pz: r.pz || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; b.hp = hq(r.hs) || null; return b; });
+      return NP.synthesize({ id: o.voiceId, text: o.text, noiseScale: o.st && o.st[0], noiseScaleW: o.st && o.st[1], clean: rw ? 0 : cln, nd: rw ? 'off' : ndMdl(), manaPh: fb ? false : mphOn(), clarity: rw ? 0 : clarityLevel(), pause: rw ? 0 : pauseLevel(), keep: o.rec ? false : npPlay, master: rw ? false : !!fxp, probe: !!(window.DSP && DSP.on), eq: rw ? undefined : eqp, hd: rw ? false : !!(window.EQM && EQM.hd && EQM.hd(o.voiceId)), hdAmt: window.EQM && EQM.hdAmt ? EQM.hdAmt() : 65, fxPk: rw ? 0 : (fxp ? fxp.pk : 0), fxHs: rw ? 0 : (fxp ? fxp.hs : 0), fxLp: rw ? 20000 : (fxp ? fxp.lp : 20000), lvT: rw ? undefined : svLvT(o.voiceId, sg), col: cOn, clT: cOn ? svClT(o.voiceId, sg) : undefined, pit: pOn, pT: pOn ? svPT(o.voiceId, sg) : undefined, pitMan: /mana/i.test(o.voiceId || '') ? pitManGet() : 0, pitCap: pitCapGet(), pz: rw ? false : svOn('svPz'), speed: Math.min(1.5, (o.sp || 1) * tempo), parts: parts, gap: PART_GAP }).then(function(r){ try { if (r.dsp && window.dspPush) dspPush(r.dsp); } catch (e) {} if (r.handle) { var q = { nh: r.handle, sr: r.sampleRate || 22050, gen: (r.genMs || 0) / 1000, hit: r.hit || 0, np: r.parts || 0, marks: r.marks || null, hp: hq(r.hs) || null, pz: r.pz || null }; q.size = Math.round((r.durationMs || 0) / 1000 * q.sr * 2) + 44; return q; } var b = b64Blob(r.wav, 'audio/wav'); b.sr = r.sampleRate || 22050; b.gen = (r.genMs || 0) / 1000; b.hit = r.hit || 0; b.np = r.parts || 0; b.marks = r.marks || null; b.hp = hq(r.hs) || null; return b; });
     }
   };
 
@@ -5252,7 +5259,7 @@ var ocrSpell = (function(){
   /* امضای کامل پارامترهای ساخت صدا؛ هر تغییری در آن‌ها کلید دیگری می‌سازد */
   function achSig(c, v){
     var tempo = VOICE_TEMPOS[v.id] || VOICE_TEMPO, fxp = (window.EQM || { nat: function(b){ return b; } }).nat($('#enh').checked ? fxProf(v.id) : null), st = styleParams(v.id);
-    return [ACH_VER, v.id, st[0], st[1], cleanLevel(v.id) + (ndMdl() === 'baseline' ? '' : '/' + ndMdl()), clarityLevel() + (/mana/i.test(v.id) ? 'p' + pauseLevel() + (mphOn() ? 'm1' : 'm0') + (svOn('svCol') ? 'k1' : '') + (svOn('svPit') ? 'f1' : '') : ''), fxp ? fxp.pk + ',' + fxp.hs + ',' + fxp.lp : 0, tempo, PART_GAP, c.mid ? 1 : 0, paceSpeed(c.text) + (window.EQM ? EQM.sig() : ''),
+    return [ACH_VER, v.id, st[0], st[1], cleanLevel(v.id) + (ndMdl() === 'baseline' ? '' : '/' + ndMdl()), clarityLevel() + (/mana/i.test(v.id) ? 'p' + pauseLevel() + (mphOn() ? 'm1' : 'm0') + (svOn('svCol') ? 'k1' : '') + pitSig() : ''), fxp ? fxp.pk + ',' + fxp.hs + ',' + fxp.lp : 0, tempo, PART_GAP, c.mid ? 1 : 0, paceSpeed(c.text) + (window.EQM ? EQM.sig() : ''),
       (c.parts || []).map(function(q){ return q.s + ':' + (q.g || 0) + (q.n != null || q.w != null ? ':e' + EMO_V + ':' + q.n + ':' + q.w : '') + ':' + q.t; }).join('\u0001'), c.text].join('|');
   }
   function achHash(str){
@@ -9616,7 +9623,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r194 · 2026-11-07 · spell-v3 · errbox-v1 · mncolor-v1 · hsfb-v1 · col-v1 · pit-v1', npBuild = '';
+  var APP_BUILD = 'html-r195 · 2026-11-07 · spell-v3 · errbox-v1 · mncolor-v1 · hsfb-v1 · col-v1 · pit-v2', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10253,11 +10260,15 @@ function svPit(id, q){   /* r194 (ناظر گام): F0 میانهٔ هر تکه�
   if (isFinite(q.pg) && q.pg !== 0) HS.pC++;
   a.push(v); if (a.length > 15) a.shift();
 }
+function pitManGet(){ var v = parseFloat(sget('pitMan', '0')); return isFinite(v) ? Math.max(-8, Math.min(4, v)) : 0; }   /* r195: گام دستی (نیم‌پرده؛ منفی = بم‌تر) */
+function pitOffGet(){ var v = parseFloat(sget('pitOff', '0')); return isFinite(v) ? Math.max(-3, Math.min(0, v)) : 0; }   /* هدف ناظر گام پایین‌تر از میانهٔ اخیر */
+function pitCapGet(){ var v = parseFloat(sget('pitCap', '3.5')); return isFinite(v) ? Math.max(0.5, Math.min(6, v)) : 3.5; }   /* سقف پایین‌آوردن خودکار هر تکه */
+function pitSig(){ var m = pitManGet(), o = pitOffGet(), c = pitCapGet(); return (svOn('svPit') ? 'f1' + (o ? 'o' + o : '') + (c !== 3.5 ? 'c' + c : '') : '') + (m ? 'y' + m : ''); }   /* کلید کش */
 function svPT(id, sg){   /* هدف ناظر گام: میانهٔ F0 ۱۵ تکهٔ اخیر مانا (حداقل ۶ تکه)؛ undefined = فقط اندازه‌گیری، بدون اصلاح. تکهٔ بالاتر از آن پایین می‌آید، پایین‌تر دست نمی‌خورد */
   var a = HS.pfh[id], s;
   if (!a || a.length < 6 || !svOn('svPit') || !hsOn() || !/mana/i.test(id || '') || (sg !== undefined && HS.pfk[id] !== sg)) return undefined;
   s = a.slice().sort(function(p, r){ return p - r; });
-  return Math.round((s[(s.length - 1) >> 1] + s[s.length >> 1]) * 5) / 10;
+  return Math.round((s[(s.length - 1) >> 1] + s[s.length >> 1]) * 5 * Math.pow(2, pitOffGet() / 12)) / 10;
 }
 function svClT(id, sg){   /* هدف ناظر رنگ: میانهٔ شیب ۱۵ تکهٔ اخیر مانا (حداقل ۶ تکه)؛ undefined = فقط اندازه‌گیری، بدون اصلاح */
   var a = HS.cl[id], s;
@@ -10528,7 +10539,7 @@ function hsReport(force){   /* r160: گزارش کامل ناظر سلامت و 
   } catch (e) {}
   try {
     a = (HS.pfh[id] || []).slice(); s = a.slice().sort(function(p, r){ return p - r; }); m = s.length ? (s[(s.length - 1) >> 1] + s[s.length >> 1]) / 2 : null;
-    o.push('ناظر گام(مانا)=' + (svOn('svPit') ? 1 : 0) + ' | تکهٔ سنجیده=' + HS.pN + ' پایین‌آمده=' + HS.pC + ' | F0 Hz (' + a.length + '/۱۵)=[' + a.map(function(x){ return hsR(x, 10); }).join(', ') + '] میانه=' + hsR(m, 10) + ' pT=' + (svPT(id, HS.pfk[id]) === undefined ? '—' : svPT(id, HS.pfk[id])));
+    o.push('ناظر گام(مانا)=' + (svOn('svPit') ? 1 : 0) + ' | تکهٔ سنجیده=' + HS.pN + ' پایین‌آمده=' + HS.pC + ' | F0 Hz (' + a.length + '/۱۵)=[' + a.map(function(x){ return hsR(x, 10); }).join(', ') + '] میانه=' + hsR(m, 10) + ' pT=' + (svPT(id, HS.pfk[id]) === undefined ? '—' : svPT(id, HS.pfk[id])) + ' | دستی: گام=' + pitManGet() + ' هدف=' + pitOffGet() + ' سقف=' + pitCapGet());
   } catch (e) {}
   try { nz = id ? nsGet(nsKey(id)) : null; o.push('کف نویز: زنده(میانه)=' + hsR(HS.nm[id], 10) + ' نمونهٔ زنده=' + (HS.nl[id] || []).length + ' | کالیبره=' + (nz ? hsR(nz.fl, 10) + ' سطح=' + nz.lv + ' جبران=' + (nz.off || 0) : 'ندارد')); } catch (e) {}
   o.push('رویدادهای اخیر (' + HS.rp.length + '/۱۲):');
@@ -10644,7 +10655,7 @@ var rawBlob = {}, sTab = {}, markMap = {};   /* markMap: مرز واقعی شر�
     var h = 5381, z = c.text + '|' + (c.parts || []).map(function(x){ return x.s + ':' + x.g + (x.n != null || x.w != null ? ':e' + EMO_V + ':' + x.n + ':' + x.w : ''); }).join(','), i = z.length, st = '';
     while (i) h = (h * 33) ^ z.charCodeAt(--i);
     try { st = styleParams(v.id).join(','); } catch (e) {}
-    return ['piper', v.id, c.start, (h >>> 0).toString(36) + st + (/mana/i.test(v.id) ? '~p' + pauseLevel() + (mphOn() ? 'm1' : 'm0') + (svOn('svCol') ? 'k1' : '') + (svOn('svPit') ? 'f1' : '') : ''), c.end].join('|');
+    return ['piper', v.id, c.start, (h >>> 0).toString(36) + st + (/mana/i.test(v.id) ? '~p' + pauseLevel() + (mphOn() ? 'm1' : 'm0') + (svOn('svCol') ? 'k1' : '') + pitSig() : ''), c.end].join('|');
   }
   function piperFetchRaw(c){
     var v = currentVoice();
@@ -11993,7 +12004,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     one = async function(text, ns, nw, raw, phon, k, probe, ct, pt){
       var sp = Math.min(1.5, paceSpeed(text) * tempo * (1 + 0.002 * (k || 0))), o, rr, xx, ft;
       o = raw ? { id: id, text: text, noiseScale: ns, noiseScaleW: nw, clean: 0, nd: 'off', manaPh: phon, clarity: 0, pause: 0, keep: false, master: false, probe: false, pz: false, hd: false, fxPk: 0, fxHs: 0, fxLp: 20000, speed: sp, gap: PART_GAP }
-              : { id: id, text: text, noiseScale: ns, noiseScaleW: nw, clean: cleanLevel(id), nd: ndMdl(), manaPh: phon, clarity: clarityLevel(), pause: pauseLevel(), keep: false, master: !!fxp, probe: !!probe, eq: (npPlay && window.EQM && EQM.on()) ? EQM.payload() : undefined, hd: !!(window.EQM && EQM.hd && EQM.hd(id)), hdAmt: window.EQM && EQM.hdAmt ? EQM.hdAmt() : 65, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, pz: svOn('svPz'), col: isFinite(ct), clT: isFinite(ct) ? ct : undefined, pit: isFinite(pt), pT: isFinite(pt) ? pt : undefined, speed: sp, gap: PART_GAP };
+              : { id: id, text: text, noiseScale: ns, noiseScaleW: nw, clean: cleanLevel(id), nd: ndMdl(), manaPh: phon, clarity: clarityLevel(), pause: pauseLevel(), keep: false, master: !!fxp, probe: !!probe, eq: (npPlay && window.EQM && EQM.on()) ? EQM.payload() : undefined, hd: !!(window.EQM && EQM.hd && EQM.hd(id)), hdAmt: window.EQM && EQM.hdAmt ? EQM.hdAmt() : 65, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, pz: svOn('svPz'), col: isFinite(ct), clT: isFinite(ct) ? ct : undefined, pit: isFinite(pt), pT: isFinite(pt) ? pt : undefined, pitMan: pitManGet(), pitCap: pitCapGet(), speed: sp, gap: PART_GAP };
       rr = await NP.synthesize(o);
       if (!rr || !rr.wav) throw new Error('خروجی wav برنگشت');
       xx = cbPcm(rr.wav); ft = mnFeat(xx, rr.sampleRate || 22050);
@@ -12012,7 +12023,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
       return R[key];
     };
     put('[آزمون رنگ صدا] ' + APP_BUILD + (npBuild ? ' / ' + npBuild : '') + ' — صدا=' + id);
-    put('تنظیمات: ns/nw فعلی=' + st.join('/') + ' | حالت نویز=' + sget('nzMode', 'auto') + ' | پاک‌سازی=' + cleanLevel(id) + ' | مدل=' + ndMdl() + ' | شفافیت=' + clarityLevel() + ' | مکث=' + pauseLevel() + ' | HD=' + ((window.EQM && EQM.hd && EQM.hd(id)) ? EQM.hdAmt() : 0) + ' | EQ=' + (window.EQM && EQM.on() ? 1 : 0) + ' | افزایش کیفیت=' + (fxp ? 1 : 0) + ' | واج‌آرایی=' + (ph ? 1 : 0) + ' | سرعت=' + paceSpeed(S[0]));
+    put('تنظیمات: ns/nw فعلی=' + st.join('/') + ' | حالت نویز=' + sget('nzMode', 'auto') + ' | پاک‌سازی=' + cleanLevel(id) + ' | مدل=' + ndMdl() + ' | شفافیت=' + clarityLevel() + ' | مکث=' + pauseLevel() + ' | HD=' + ((window.EQM && EQM.hd && EQM.hd(id)) ? EQM.hdAmt() : 0) + ' | EQ=' + (window.EQM && EQM.on() ? 1 : 0) + ' | افزایش کیفیت=' + (fxp ? 1 : 0) + ' | واج‌آرایی=' + (ph ? 1 : 0) + ' | سرعت=' + paceSpeed(S[0]) + ' | گام دستی=' + pitManGet() + ' هدف=' + pitOffGet() + ' سقف=' + pitCapGet());
     try {
       await run('REP20', 'تکرار یک جمله، خام، ns≈0.20', [0, 1, 2, 3].map(function(k){ return [S[0], Math.round((0.2 + 0.01 * k) * 100) / 100, 0.01, true, ph, k]; }));
       await run('REP55', 'تکرار یک جمله، خام، ns≈0.55', [0, 1, 2, 3].map(function(k){ return [S[0], Math.round((0.55 + 0.01 * k) * 100) / 100, 0.01, true, ph, k]; }));
@@ -12812,6 +12823,17 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
       }
       sset('nzMode', this.value); ui(); changed(); warmPiper();
     };
+    ui();
+  })();
+  (function(){   /* r195: تنظیم دستی زیر و بمی صدا (مانا) */
+    var m = $('#pitMan'), o = $('#pitOff'), c = $('#pitCap'), r = $('#pitRst'); if (!m || !o || !c) return;
+    function ui(){ [[m, 'pitManV'], [o, 'pitOffV'], [c, 'pitCapV']].forEach(function(q){ var e = $('#' + q[1]), v = +q[0].value; if (e) e.textContent = (q[0] === m && v > 0 ? '+' : '') + nf.format(v) + ' نیم‌پرده'; fillRng(q[0]); }); }
+    m.value = pitManGet(); o.value = pitOffGet(); c.value = pitCapGet();
+    m.oninput = function(){ sset('pitMan', this.value); ui(); };
+    o.oninput = function(){ sset('pitOff', this.value); ui(); };
+    c.oninput = function(){ sset('pitCap', this.value); ui(); };
+    m.onchange = o.onchange = c.onchange = function(){ changed(); warmPiper(); };
+    if (r) r.onclick = function(){ m.value = 0; o.value = 0; c.value = 3.5; sset('pitMan', '0'); sset('pitOff', '0'); sset('pitCap', '3.5'); ui(); changed(); warmPiper(); };
     ui();
   })();
   if (sget('smartV', '') !== '1') { sset('smartV', '1'); sset('smartPace', '0'); }   /* سرعت صدا دقیقاً مثل حالت اولیه؛ فقط با تیک‌زدن دستی فعال می‌شود */
