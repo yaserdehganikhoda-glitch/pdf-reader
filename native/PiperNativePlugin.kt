@@ -58,7 +58,8 @@ import com.pdfvoice.phon.Phonemizer
  * رویداد: "progress" {loaded, total}
  * r17: clean=۲ ← حذف‌نویز عصبی DPDFNet ۸۵٪ + کلاسیک، clean=۳ ← عصبی ۱۰۰٪ + کلاسیک (مدل: assets/denoise/dpdfnet_baseline.onnx؛ وضعیت: diag().nd)
  * r19 (ناظر رنگ): synthesize({..., col?: Boolean, clT?: dB/oct}) → شیب طیف واک‌دار تکه (hs.ct) را می‌سنجد؛ اگر clT (میانهٔ ۱۵ تکهٔ اخیر از سمت JS) برسد و انحراف > ۰٫۳ dB/oct باشد، شلف بالای ملایم (حداکثر ±۲٫۵ dB، hs.cg) رنگ را به میانه نزدیک می‌کند؛ ColorSv و MasterFx.tiltShelf
- * r20 (ناظر گام): synthesize({..., pit?: Boolean, pT?: Hz}) → F0 میانهٔ تکه (hs.pf، پیش از اصلاح) را می‌سنجد؛ اگر pT (میانهٔ ۱۵ تکهٔ اخیر از سمت JS) برسد و F0 بیش از ۰٫۴ نیم‌پرده بالاتر باشد، گام را تا ۳٫۵ نیم‌پرده پایین می‌آورد و مدت را نگه می‌دارد (hs.pg؛ فقط رو به پایین، «بم بماند»)؛ PitchSv و Stretch.pitchDown
+ * r20 (ناظر گام): synthesize({..., pit?: Boolean, pT?: Hz}) → F0 میانهٔ تکه (hs.pf، پیش از اصلاح) را می‌سنجد؛ اگر pT (میانهٔ ۱۵ تکهٔ اخیر از سمت JS) برسد و F0 بیش از ۰٫۴ نیم‌پرده بالاتر باشد، گام را تا ۳٫۵ نیم‌پرده پایین می‌آورد و مدت را نگه می‌دارد (hs.pg؛ فقط رو به پایین، «بم بماند»)؛ PitchSv و Stretch.pitchShift
+ * r21 (گام دستی): synthesize({..., pitMan?: نیم‌پرده −۸..+۴ (پیش‌فرض ۰؛ منفی = بم‌تر)، pitCap?: نیم‌پرده ۰٫۵..۸ (پیش‌فرض ۳٫۵)}) → جابه‌جایی گام همهٔ تکه‌ها (مستقل از pit، با ناظر گام در یک گذر ترکیب می‌شود) + سقف پایین‌آوردن ناظر گام؛ Stretch.pitchShift
  * کیفیت صدا: synthesize({..., clean?: 0..3, clarity?: 0..3}) → حذف نویز و ارتقای شفافیت/رسایی؛ ۰ خاموش، ۲ متعادل (پیش‌فرض)؛ جزئیات در SpeechClean (انتهای فایل)
  * مسترینگ: synthesize({..., master?: Boolean, fxPk?: dB, fxHs?: dB, fxLp?: Hz}) → EQ + کمپرسور + لیمیتر روی خروجی نهایی؛ جزئیات در MasterFx
  * اکولایزر کاربر (r14): synthesize({..., eq?: {pre: dB, lc: Hz, hc: Hz, q, limiter: 0|1, bands: [[Hz, dB] × ۱۰]}}) → تمام ۱۰ باند + تقویت کلی + قطع بم/زیر + محافظ برش؛ مستقل از master، پس از مسترینگ؛ MasterFx.eq
@@ -432,7 +433,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r20-pit · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r21-pit · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
     }
 
     @PluginMethod
@@ -1416,6 +1417,8 @@ class PiperNativePlugin : Plugin() {
         val pzOn = call.getBoolean("pz") ?: false   // r145 (ناظر مکث): نرمال‌سازی سکوت مرز جمله‌ها و کوتاه‌کردن سکوت‌های داخلیِ طولانی
         val colOn = call.getBoolean("col") ?: false   // r19: ناظر رنگ (فقط مانا؛ JS تعیین می‌کند)
         val pitOn = call.getBoolean("pit") ?: false   // r20: ناظر گام (فقط مانا؛ JS تعیین می‌کند)
+        val pitMan = (call.getDouble("pitMan") ?: 0.0).coerceIn(-8.0, 4.0)   // r21: گام دستی (نیم‌پرده)
+        val pitCap = (call.getDouble("pitCap") ?: 3.5).coerceIn(0.5, 8.0)   // r21: سقف پایین‌آوردن خودکار هر تکه (نیم‌پرده)
         val pT: Double? = call.getDouble("pT")   // r20: هدف F0 (Hz، میانهٔ اخیر)؛ بدون آن فقط اندازه‌گیری می‌شود
         val clT: Double? = call.getDouble("clT")   // r19: هدف شیب طیف (dB/oct، میانهٔ اخیر)؛ بدون آن فقط اندازه‌گیری می‌شود
         val lvT: Double? = call.getDouble("lvT")   // r141: هدف بلندی (dBFS، میانهٔ اخیر همان گوینده)؛ بدون آن تراز نمی‌شود
@@ -1575,7 +1578,8 @@ class PiperNativePlugin : Plugin() {
                     for (ix in items.size - 1 downTo 0) { if (m[ix] < 0.0) m[ix] = nx else nx = m[ix] }   // جملهٔ بدون تکه: مرزش شروع جملهٔ بعدی
                     JSArray().also { a -> for (v in m) a.put(v) }
                 } else null
-                // r20 (ناظر گام): F0 میانهٔ تکه پیش از اصلاح (pf، برای تاریخچهٔ JS)؛ اگر هدف pT رسیده و F0 بیش از ۰٫۴ نیم‌پرده بالاتر باشد، گام به‌اندازهٔ اضافه (حداکثر ۳٫۵ نیم‌پرده) پایین می‌آید و مدت دقیقاً حفظ می‌شود (مرزهای جمله و هایلایت دست‌نخورده). فقط رو به پایین: صدای بم‌تر دست نمی‌خورد. نسبت > ۶ نیم‌پرده = خطای اکتاو F0 ⇒ بدون اصلاح. پیش از رنگ و تراز بلندی
+                // r20 (ناظر گام): F0 میانهٔ تکه پیش از اصلاح (pf، برای تاریخچهٔ JS)؛ اگر هدف pT رسیده و F0 بیش از ۰٫۴ نیم‌پرده بالاتر باشد، گام به‌اندازهٔ اضافه (حداکثر pitCap نیم‌پرده) پایین می‌آید. فقط رو به پایین: صدای بم‌تر دست نمی‌خورد. نسبت > pitCap+۲٫۵ نیم‌پرده = خطای اکتاو F0 ⇒ بدون اصلاح.
+                // r21 (گام دستی): pitMan روی همهٔ تکه‌ها، با اصلاح ناظر در یک گذر ترکیب می‌شود (یک WSOLA، نه دو)؛ مدت دقیقاً حفظ می‌شود (مرزهای جمله و هایلایت دست‌نخورده). پیش از رنگ و تراز بلندی
                 var pfV = Double.NaN
                 var pgV = 0.0
                 if (pitOn && fin.isNotEmpty()) {
@@ -1583,13 +1587,13 @@ class PiperNativePlugin : Plugin() {
                     if (pT != null && !pfV.isNaN() && !pT.isNaN() && pT > 40.0 && pT < 500.0) {
                         val pst = 12.0 * Math.log(pfV / pT) / Math.log(2.0)
                         val pex = pst - 0.4
-                        if (pex > 0.0 && pst <= 6.0) {
-                            val psh = Math.min(pex, 3.5)
-                            val pout = Stretch.pitchDown(fin, sro, Math.pow(2.0, -psh / 12.0))
-                            System.arraycopy(pout, 0, fin, 0, fin.size)
-                            pgV = -psh
-                        }
+                        if (pex > 0.0 && pst <= pitCap + 2.5) pgV = -Math.min(pex, pitCap)
                     }
+                }
+                val pTot = (pgV + pitMan).coerceIn(-12.0, 6.0)
+                if (fin.isNotEmpty() && Math.abs(pTot) >= 0.05) {
+                    val pout = Stretch.pitchShift(fin, sro, Math.pow(2.0, pTot / 12.0))
+                    System.arraycopy(pout, 0, fin, 0, fin.size)
                 }
                 // r19 (ناظر رنگ): شیب طیف واک‌دار پیش از اصلاح (ct) برای تاریخچهٔ JS؛ اگر هدف رسیده و انحراف > ۰٫۳ dB/oct باشد، شلف بالای ۱٫۸kHz ملایم (نصف انحراف، حداکثر ±۲٫۵dB). پیش از تراز بلندی ⇒ تراز اثر شلف را هم حساب می‌کند؛ پس از کش ⇒ کش دست‌نخورده
                 var ctV = Double.NaN
@@ -1622,6 +1626,7 @@ class PiperNativePlugin : Plugin() {
                     if (cgV != 0.0) o.put("cg", Math.round(cgV * 100.0) / 100.0)
                     if (!pfV.isNaN() && !pfV.isInfinite()) o.put("pf", Math.round(pfV * 10.0) / 10.0)
                     if (pgV != 0.0) o.put("pg", Math.round(pgV * 100.0) / 100.0)
+                    if (pitMan != 0.0) o.put("pm", pitMan)
                 }
                 val dsp: JSObject? = if (rawKeep != null && rawKeep.isNotEmpty()) {   // r15: آمار خام↔خروجی برای گزارش ناظر
                     var rn = 0; for (x in rawKeep) rn += x.size
@@ -3062,11 +3067,11 @@ private object Stretch {
         }
     }
 
-    /** r20 (ناظر گام): پایین‌آوردن گام با نسبت ratio (۰٫۵ ≤ ratio < ۱) و حفظ مدت؛ ابتدا بازنمونه‌گیری خطی با قدم ratio (گام×ratio، مدت÷ratio)
-     *  سپس WSOLA با سرعت ۱/ratio (مدت×ratio). طول خروجی دقیقاً برابر ورودی است تا مرز جمله‌ها (marks) جابه‌جا نشود. فورمنت‌ها هم کمی پایین می‌آیند (تا ۳٫۵ نیم‌پرده قابل‌قبول). */
-    fun pitchDown(x: FloatArray, sr: Int, ratio: Double): FloatArray {
+    /** r20/r21 (ناظر گام + گام دستی): جابه‌جایی گام با نسبت ratio (۰٫۵ ≤ ratio ≤ ۱٫۵؛ <۱ بم‌تر، >۱ زیرتر) و حفظ مدت؛ ابتدا بازنمونه‌گیری خطی با قدم ratio (گام×ratio، مدت÷ratio)
+     *  سپس WSOLA با سرعت ۱/ratio (مدت×ratio). طول خروجی دقیقاً برابر ورودی است تا مرز جمله‌ها (marks) جابه‌جا نشود. فورمنت‌ها هم همراه گام جابه‌جا می‌شوند (تا ≈۴ نیم‌پرده قابل‌قبول). */
+    fun pitchShift(x: FloatArray, sr: Int, ratio: Double): FloatArray {
         val n = x.size
-        if (n < 64 || ratio >= 0.999 || ratio < 0.5) return x
+        if (n < 64 || Math.abs(ratio - 1.0) < 0.001 || ratio < 0.5 || ratio > 1.5) return x
         val m = Math.floor((n - 1) / ratio).toInt() + 1
         val y = FloatArray(m)
         for (i in 0 until m) {
