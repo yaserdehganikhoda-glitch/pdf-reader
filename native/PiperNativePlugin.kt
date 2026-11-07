@@ -111,6 +111,9 @@ class PiperNativePlugin : Plugin() {
                 prev?.uncaughtException(th, ex)
             }
         } catch (e: Throwable) {}
+        io.execute {   // صداهای Coqui حذف شده‌اند؛ مدل‌های نصب‌شدهٔ قبلی (صدها مگابایت) پاک می‌شوند
+            try { for (cid in listOf("fa_IR-negin-coqui", "fa_IR-sahar-coqui")) { voiceDir(cid).deleteRecursively(); File(root(), "$cid.dl").delete(); File(root(), "$cid.tok.dl").delete() } } catch (e: Throwable) {}
+        }
     }
 
     @PluginMethod
@@ -427,7 +430,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r17-nd · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r18-nd · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
     }
 
     @PluginMethod
@@ -817,78 +820,7 @@ class PiperNativePlugin : Plugin() {
 
     private val VOICE_BASE = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models"
 
-    // ---------- صداهای زنانهٔ دانلودی (Coqui VITS فارسی؛ model.onnx + tokens.txt آمادهٔ sherpa) ----------
-    // بعد از نصب برنامه دانلود می‌شوند (نه داخل APK). آوانگاری با espeak است، پس espeak-ng-data از صدای gyro کپی می‌شود.
-    private class Dl(val folder: String)
-    // آینهٔ دوم برای شبکه‌هایی که huggingface.co در آن‌ها کند یا مسدود است؛ فایل ناقص از همان نقطه ادامه می‌یابد
-    private val DL_BASES = listOf(
-        "https://huggingface.co/karim23657/persian-tts-vits/resolve/main/",
-        "https://hf-mirror.com/karim23657/persian-tts-vits/resolve/main/"
-    )
-    private val DOWNLOADABLE = mapOf(
-        "fa_IR-negin-coqui" to Dl("female-GPTInformal-coqui-vits"),
-        "fa_IR-sahar-coqui" to Dl("female-female-coqui-vits")
-    )
-    private val ESPEAK_DONOR = "fa_IR-gyro-medium"   // فقط برای کپی espeak-ng-data (مدل‌های Coqui خودشان espeak ندارند)
-
-    private fun fetchMirrors(path: String, part: File, emit: (Long, Long) -> Unit) {
-        var last: Throwable? = null
-        for (b in DL_BASES) {
-            try { fetchResumable(b + path, part, emit); return } catch (e: IllegalStateException) { last = e }
-        }
-        throw last ?: IllegalStateException("دانلود ناموفق")
-    }
-
-    private fun downloadPair(call: PluginCall, id: String, dl: Dl) {
-        io.execute {
-            if (okMark(id).exists() && findOnnx(voiceDir(id)) != null) { call.resolve(); return@execute }
-            val partOnnx = File(root(), "$id.dl")
-            val partTok = File(root(), "$id.tok.dl")
-            try {
-                if (ttsId == id) releaseEngine(id)
-                // فضای خالی: دانلود + کپی نهایی + espeak (حدود ۴۵۰ مگابایت در بدترین حالت)
-                if (root().usableSpace < 450_000_000L) throw IllegalStateException("فضای خالی گوشی کافی نیست (حداقل ۴۵۰ مگابایت)")
-                val emit = { l: Long, t: Long -> notifyListeners("progress", JSObject().put("loaded", l).put("total", t)) }
-                // ۱) espeak-ng-data: از صدای gyro (اگر نصب نیست، یک‌بار دانلود می‌شود)
-                var donorBytes = 0L
-                var espeakSrc: File? = sharedEspeak(id)
-                if (espeakSrc == null && !phonAsset()) {   // r181: با دادهٔ espeak داخل APK دیگر دانلود صدای gyro فقط برای espeak لازم نیست
-                    val dpart = File(root(), "$ESPEAK_DONOR.dl")
-                    fetchResumable("$VOICE_BASE/vits-piper-$ESPEAK_DONOR.tar.bz2", dpart) { l, t -> emit(l, t + 114_000_000L) }
-                    donorBytes = dpart.length()
-                    val dd = voiceDir(ESPEAK_DONOR)
-                    dd.deleteRecursively(); dd.mkdirs()
-                    java.io.FileInputStream(dpart).use { extract(it, dd) }
-                    if (findOnnx(dd) == null || !File(findRoot(dd), "tokens.txt").exists())
-                        throw IllegalStateException("فایل‌های espeak کامل نیست")
-                    okMark(ESPEAK_DONOR).writeText("1")
-                    dpart.delete()
-                    espeakSrc = File(findRoot(dd), "espeak-ng-data").takeIf { it.isDirectory }
-                }
-                if (espeakSrc == null && !phonAsset()) throw IllegalStateException("espeak-ng-data پیدا نشد")
-                // ۲) توکن‌ها و مدل (با ادامه پس از قطع شبکه)
-                fetchMirrors(dl.folder + "/tokens.txt", partTok) { _, _ -> }
-                fetchMirrors(dl.folder + "/model.onnx", partOnnx) { l, t -> emit(donorBytes + l, donorBytes + t) }
-                if (partOnnx.length() < 20_000_000L) { partOnnx.delete(); throw IllegalStateException("فایل مدل ناقص یا نامعتبر است؛ دوباره امتحان کنید") }
-                if (partTok.length() < 20L) { partTok.delete(); throw IllegalStateException("فایل توکن‌ها ناقص است؛ دوباره امتحان کنید") }
-                // ۳) چیدن فایل‌ها: onnx + tokens.txt + espeak-ng-data
-                val dst = voiceDir(id)
-                dst.deleteRecursively(); dst.mkdirs()
-                partOnnx.copyTo(File(dst, "$id.onnx"), overwrite = true)
-                partTok.copyTo(File(dst, "tokens.txt"), overwrite = true)
-                espeakSrc?.copyRecursively(File(dst, "espeak-ng-data"), overwrite = true)
-                if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists())
-                    throw IllegalStateException("فایل‌های مدل کامل نیست")
-                okMark(id).writeText("1")
-                partOnnx.delete(); partTok.delete()
-                emit(1, 1)
-                call.resolve()
-            } catch (e: Throwable) {
-                voiceDir(id).deleteRecursively()   // فایل‌های ناقص دانلود (.dl) برای ادامه می‌مانند
-                call.reject("نصب ناموفق: ${e.message}")
-            }
-        }
-    }
+    private val ESPEAK_DONOR = "fa_IR-gyro-medium"   // فقط برای کپی espeak-ng-data (مانا و gyro)
 
     // ---------- صدای مانا (Piper فارسی MahtaFetrat؛ MIT): onnx خام + json ⇒ تبدیل به قالب sherpa ----------
     // مدل خام Piper متادیتای sherpa و tokens.txt ندارد؛ بعد از دانلود، tokens.txt از phoneme_id_map ساخته و متادیتا به انتهای onnx افزوده می‌شود.
@@ -1013,7 +945,6 @@ class PiperNativePlugin : Plugin() {
     fun download(call: PluginCall) {
         val id = call.getString("id") ?: return call.reject("id")
         if (!Regex("[A-Za-z0-9_-]+").matches(id)) return call.reject("شناسهٔ صدا نامعتبر است")
-        DOWNLOADABLE[id]?.let { downloadPair(call, id, it); return }
         if (id == MANA_ID) { downloadMana(call, id); return }
         io.execute {
             val part = File(root(), "$id.dl")
@@ -1238,6 +1169,7 @@ class PiperNativePlugin : Plugin() {
 
     // ---------- r181: آوانگار بیرونی (piper-phonemize + espeak-ng) ----------
     private val ENGINE_VER = "__SHERPA_VER__"   // inject-native.sh جایگزین می‌کند
+    private val DSP_VER = 1   // با هر تغییر الگوریتم SpeechClean/peakGuard/ND بالا ببر؛ وارد کلید کش پردازش‌شده می‌شود
     /** آیا دادهٔ espeak هم‌نسخهٔ کتابخانه داخل APK هست (پس برای نصب صدا لازم نیست espeak از جای دیگر بیاید) */
     private fun phonAsset(): Boolean = try { (context.assets.list("phonemizer/espeak-ng-data")?.size ?: 0) > 0 } catch (e: Throwable) { false }
     private val phonLock = Any()
@@ -1357,14 +1289,19 @@ class PiperNativePlugin : Plugin() {
             val dst = cacheFile(key)
             val tmp = File(dst.path + ".tmp")
             tmp.writeBytes(bb.array())
+            val oldLen = if (dst.isFile) dst.length() else 0L
             if (!tmp.renameTo(dst)) { tmp.delete(); return }
-            synchronized(cacheLock) { if (cacheBytes >= 0) cacheBytes += dst.length(); trimCache() }
+            synchronized(cacheLock) { if (cacheBytes >= 0) cacheBytes += dst.length() - oldLen; trimCache() }
         } catch (e: Throwable) { /* نبود جا یا خطای دیسک نباید خواندن را متوقف کند */ }
     }
 
     /** باید زیر cacheLock صدا زده شود: وقتی از سقف گذشت، قدیمی‌ترین فایل‌ها تا ۸۵٪ سقف حذف می‌شوند */
     private fun trimCache() {
-        if (cacheBytes < 0) cacheBytes = cacheFiles().sumOf { it.length() }
+        if (cacheBytes < 0) {
+            val now = System.currentTimeMillis()
+            cacheRoot().listFiles()?.forEach { if (it.name.endsWith(".pcm.tmp") && now - it.lastModified() > 10 * 60 * 1000L) it.delete() }   // یتیم‌های نوشتن نیمه‌کاره
+            cacheBytes = cacheFiles().sumOf { it.length() }
+        }
         val max = cacheMax()
         if (cacheBytes <= max) return
         var total = cacheBytes
@@ -1486,12 +1423,14 @@ class PiperNativePlugin : Plugin() {
         val ep = epoch.get()   // لحظهٔ رسیدن درخواست؛ اگر بعدش cancel بیاید این کار رها می‌شود
         cpu.execute {
             try {
+                val tot0 = System.nanoTime()
                 if (ep != epoch.get()) throw IllegalStateException("NATIVE_CANCELLED")
                 if (!okMark(id).exists()) throw IllegalStateException("این صدا هنوز نصب نشده است؛ چند لحظه صبر کنید تا نصب تمام شود")
                 val eng = engineFor(id, ns, nw)
                 val sr = eng.sampleRate()
                 if (ttsMana && manaPh) ManaPhon.ensure(context)   // یک‌بار؛ برچسب کش پایین باید ثابت بماند
                 val mTag = if (ttsMana) "|" + ManaPhon.tag(manaPh) else ""   // r187: کش صدای مانا برای هر حالت واج‌آرایی جدا
+                val eTag = ENGINE_VER + (if (ttsPhon) "|" + phonTag() else "")   // P07-05: نسخهٔ موتور/آوانگار در کلید؛ ارتقا ⇒ کش کهنه سرو نمی‌شود
                 // هر جمله جدا (برای کش)؛ بدون parts کل متن یک جمله حساب می‌شود
                 val items = ArrayList<Pair<String, Float>>()
                 val itemGaps = ArrayList<Float>()   // مکث (ثانیه) پس از هر جمله؛ بدون g همان gap سراسری
@@ -1512,15 +1451,17 @@ class PiperNativePlugin : Plugin() {
                 val pieceGaps = ArrayList<Int>()   // نمونه‌های سکوت پس از هر تکه
                 val pieceItem = ArrayList<Int>()   // اندیس جملهٔ (part) هر تکه؛ جمله‌های خالی تکه ندارند
                 var genMs = 0L
+                var ndMs = 0L; var scMs = 0L
                 var hit = 0
                 for ((ix, itp) in items.withIndex()) {
                     val pt = itp.first; val ps = itp.second
                     if (pt.isBlank() || pt.none { it.isLetterOrDigit() }) continue
                     val psq = String.format(java.util.Locale.US, "%.2f", ps)
-                    val key = hashKey("v2|$id|$ns|$nw|" + psq + "|" + pt + mTag)
+                    val key = hashKey("v2|$eTag|$id|$ns|$nw|" + psq + "|" + pt + mTag)
                     // کش دولایه، هر دو جمله‌به‌جمله و مستقل از مرز تکه‌ها: ۱) خروجی پردازش‌شده (پرش از مدل و پاک‌سازی)  ۲) نسخهٔ خام (با تغییر سطح پاک‌سازی مدل دوباره اجرا نمی‌شود)
                     val procOn = lvlClean > 0 || lvlClarity > 0
-                    val key2 = if (procOn) hashKey("v6|$id|$ns|$nw|" + psq + "|$lvlClean|$lvlClarity|$strong|$grad$ndTag$mTag|" + pt) else key
+                    fun k2(tag: String) = hashKey("v6|$DSP_VER|$eTag|$id|$ns|$nw|" + psq + "|$lvlClean|$lvlClarity|$strong|$grad$tag$mTag|" + pt)
+                    val key2 = if (procOn) k2(ndTag) else key
                     val done = if (procOn && !probe) cacheGet(key2, sr) else null
                     if (done != null) {
                         hit++
@@ -1530,15 +1471,20 @@ class PiperNativePlugin : Plugin() {
                         val s = if (cached != null) { hit++; cached } else {
                             val t0 = System.nanoTime()
                             val g0 = genPart(eng, pt, ps, ep, manaPh)
-                            val g = if (id.endsWith("-coqui")) trimEdges(g0, sr) else g0   // Coqui: سکوت ابتدا/انتهای هر جمله بلند است
+                            val g = g0
                             genMs += (System.nanoTime() - t0) / 1_000_000L   // زمان خالص مدل (بدون صیقل و انتقال)
                             cachePut(key, sr, g)
                             g
                         }
                         rawKeep?.add(s)
+                        val nd0 = System.nanoTime()
                         val sn = if (ndMix > 0f) NeuralDenoise.run(s, sr, ndMix) else s   // r17: عصبی ← سپس کلاسیک
+                        ndMs += (System.nanoTime() - nd0) / 1_000_000L
+                        val ndApplied = ndMix > 0f && sn !== s   // P07-06: run در خطا/ایمنی همان ورودی را برمی‌گرداند
+                        val sc0 = System.nanoTime()
                         val pr = SpeechClean.process(sn, sr, lvlClean, lvlClarity, strong, grad)   // روی نسخهٔ خام کش؛ خودِ کش دست‌نخورده می‌ماند
-                        if (procOn && pr !== s) cachePut(key2, sr, pr)
+                        scMs += (System.nanoTime() - sc0) / 1_000_000L
+                        if (procOn && pr !== s) cachePut(if (ndMix > 0f && !ndApplied) k2("") else key2, sr, pr)   // ND اعمال نشده ⇒ کلید «فقط کلاسیک»
                         pieces.add(pr)
                     }
                     pieceGaps.add((itemGaps[ix] * sr).toInt())
@@ -1609,8 +1555,10 @@ class PiperNativePlugin : Plugin() {
                 val pol = polish(all, sr, trim)
                 val polH = if (hdOn && sr <= 24000) MasterFx.hdUp(pol, sr, hdAmt) else pol
                 val sro = if (polH !== pol) sr * 2 else sr   // نرخ نمونهٔ خروجی (HD: ۲×)
+                val fx0 = System.nanoTime()
                 val fin0 = if (fxOn) MasterFx.process(polH, sro, fxPk, fxHs, if (sro != sr) Math.max(fxLp, 18000f) else fxLp, strong, lvlPause) else polH
                 val fin = if (eqCfg != null) MasterFx.eq(fin0, sro, eqCfg) else fin0   // r14: اکولایزر کاربر بعد از مسترینگ
+                val fxMs = (System.nanoTime() - fx0) / 1_000_000L
                 for (i in fin.indices) fin[i] *= OUT_TRIM   // r120: ۳dB headroom (پیک ≈ −۳ dBFS)؛ بعد از کش و مسترینگ، پس کش بی‌اثر می‌ماند
                 // مرز واقعی شروع هر جمله (کسری از ۰ تا ۱ از کل خروجی)؛ برای هم‌گام‌سازی هایلایت به‌جای تخمین از نسبت نویسه‌ها (T-14)
                 // playerPos بومی هم کسری از همین بافر است (مستقل از سرعت پخش)؛ در وب نسبت زمان به مدت صداست
@@ -1638,13 +1586,13 @@ class PiperNativePlugin : Plugin() {
                 } else null
                 if (keep) {
                     val h = pcmPut(fin, sro)
-                    val res = JSObject().put("hs", hs).also { if (dsp != null) it.put("dsp", dsp) }.put("handle", h).put("sampleRate", sro).put("durationMs", fin.size * 1000L / sro).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
+                    val res = JSObject().put("hs", hs).also { if (dsp != null) it.put("dsp", dsp) }.put("handle", h).put("sampleRate", sro).put("durationMs", fin.size * 1000L / sro).put("genMs", genMs).put("hit", hit).put("parts", pieces.size).put("ndMs", ndMs).put("scMs", scMs).put("fxMs", fxMs).put("totMs", (System.nanoTime() - tot0) / 1_000_000L).put("sr", sr).put("ttsPhon", ttsPhon).put("ttsKey", ttsKey ?: "")
                     if (marks != null) res.put("marks", marks)
                     if (pzOn) res.put("pz", JSObject().put("n", pzN).put("hid", pzHid * 1000L / sr).put("cut", pzCut * 1000L / sr).put("ni", pzInt).put("nic", pzIntCut * 1000L / sr))
                     call.resolve(res)
                 } else {
                     val wav = toWav(fin, sro)
-                    val res = JSObject().put("hs", hs).also { if (dsp != null) it.put("dsp", dsp) }.put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", sro).put("genMs", genMs).put("hit", hit).put("parts", pieces.size)
+                    val res = JSObject().put("hs", hs).also { if (dsp != null) it.put("dsp", dsp) }.put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", sro).put("genMs", genMs).put("hit", hit).put("parts", pieces.size).put("ndMs", ndMs).put("scMs", scMs).put("fxMs", fxMs).put("totMs", (System.nanoTime() - tot0) / 1_000_000L).put("sr", sr).put("ttsPhon", ttsPhon).put("ttsKey", ttsKey ?: "")
                     if (marks != null) res.put("marks", marks)
                     if (pzOn) res.put("pz", JSObject().put("n", pzN).put("hid", pzHid * 1000L / sr).put("cut", pzCut * 1000L / sr).put("ni", pzInt).put("nic", pzIntCut * 1000L / sr))
                     call.resolve(res)
@@ -1750,26 +1698,9 @@ class PiperNativePlugin : Plugin() {
             .put("ar", if (an > 0) 10.0 * kotlin.math.log10(aq / an + 1e-12) else -99.0).put("a0", a0).put("g", g).also { o -> val fl = liveFloor(f, sr); if (!fl.isNaN() && !fl.isInfinite()) o.put("fl", fl) }
     }
 
-    /** صیقل خروجی هر تکه: حذف سکوت اضافهٔ ابتدا/انتها، محوشدن کوتاه (جلوگیری از «تق» بین جمله‌ها)، یکنواخت‌کردن بلندی صدا با محدودکنندهٔ نرم */
-    /** Coqui: هر جمله با سکوت طولانی ابتدا/انتها ساخته می‌شود (فاصلهٔ زیاد بین جمله‌ها)؛ اینجا به ۳۰ms ابتدا و ۶۰ms انتها کوتاه می‌شود. مکث بین جمله‌ها را خود برنامه می‌گذارد. */
-    private fun trimEdges(f: FloatArray, sr: Int): FloatArray {
-        if (f.size < sr / 4) return f
-        var peak = 0f
-        for (x in f) { val a = kotlin.math.abs(x); if (a > peak) peak = a }
-        if (peak < 1e-3f) return f
-        val thr = kotlin.math.max(peak * 0.012f, 0.0015f)   // آستانهٔ پایین تا واج‌های سایشی بریده نشوند
-        var s = 0
-        while (s < f.size && kotlin.math.abs(f[s]) < thr) s++
-        var e = f.size - 1
-        while (e > s && kotlin.math.abs(f[e]) < thr) e--
-        if (e - s < sr / 10) return f
-        s = kotlin.math.max(0, s - (sr * 0.03).toInt())
-        e = kotlin.math.min(f.size - 1, e + (sr * 0.06).toInt())
-        return f.copyOfRange(s, e + 1)
-    }
-
     private val OUT_TRIM = 0.462f   // r179: −6.7 dB؛ بلندی کل ≈ −۲۳٫۸ LUFS مطابق نمونهٔ فرید (پیش‌تر −۳dB ≈ −۲۰٫۱ LUFS)
 
+    /** صیقل خروجی هر تکه: حذف سکوت اضافهٔ ابتدا/انتها، محوشدن کوتاه (جلوگیری از «تق» بین جمله‌ها)، یکنواخت‌کردن بلندی صدا با محدودکنندهٔ نرم */
     private fun polish(f: FloatArray, sr: Int, trim: IntArray? = null): FloatArray {
         if (f.size < sr / 5) return f
         var peak = 0f
@@ -1998,18 +1929,18 @@ class PiperNativePlugin : Plugin() {
         try {
             try { android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO) } catch (e: Throwable) {}
             if (gen != plGen) return
-            val sr = first.pcm.sr
-            val t = makeTrack(sr)
+            var sr = first.pcm.sr
+            var t = makeTrack(sr)
             track = t
             synchronized(plLock) { if (gen == plGen) plTrack = t }
             if (afDuck) try { t.setVolume(0.3f) } catch (e: Throwable) {}
             if (gen != plGen) return
             t.play()
-            val base = t.playbackHeadPosition
+            var base = t.playbackHeadPosition
             var written = 0L
             var lastU = 0
-            val step = Math.max(256, sr / 50)
-            val zeros = ShortArray(step)
+            var step = Math.max(256, sr / 50)
+            var zeros = ShortArray(step)
             var item = first
             while (true) {
                 cur = item
@@ -2121,7 +2052,30 @@ class PiperNativePlugin : Plugin() {
                     }
                     if (nx != null) { try { t.play() } catch (e: Throwable) {} }
                 }
-                item = nx ?: return
+                val nn = nx ?: return
+                if (nn.pcm.sr != sr) {   // P07-09: نرخ نمونه عوض شد (مثلاً HD) ⇒ پس از تخلیهٔ بافر، ترک تازه با نرخ جدید
+                    var dh = t.playbackHeadPosition; var da = android.os.SystemClock.elapsedRealtime()
+                    while (t.playbackHeadPosition - base < written) {
+                        if (gen != plGen) return
+                        val tn = android.os.SystemClock.elapsedRealtime()
+                        val hp = t.playbackHeadPosition
+                        if (hp != dh) { dh = hp; da = tn }
+                        else if (tn - da > 3000 && t.playState == AudioTrack.PLAYSTATE_PLAYING) throw IllegalStateException("stall")
+                        Thread.sleep(8)
+                    }
+                    val oldT = t
+                    sr = nn.pcm.sr
+                    t = makeTrack(sr)
+                    track = t
+                    synchronized(plLock) { if (gen == plGen) plTrack = t }
+                    try { oldT.pause(); oldT.flush(); oldT.release() } catch (e: Throwable) {}
+                    if (afDuck) try { t.setVolume(0.3f) } catch (e: Throwable) {}
+                    if (gen != plGen) return
+                    t.play()
+                    base = t.playbackHeadPosition; written = 0L; lastU = 0
+                    step = Math.max(256, sr / 50); zeros = ShortArray(step)
+                }
+                item = nn
             }
         } catch (e: Throwable) {
             if (gen == plGen) {
