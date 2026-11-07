@@ -98,7 +98,9 @@ jobs:
       - name: Add neural denoise model (DPDFNet)
         run: bash native/add-denoise-model.sh
       - name: Add Mana custom phonemizer (ezafe model)
-        run: bash native/build-mana-phon.sh
+        run: |
+          mkdir -p android/app/src/main/assets
+          bash native/build-mana-phon.sh android/app/src/main/assets
       - name: Align ORT Java JNI with sherpa ORT (symbol version)
         run: bash native/fix-ort-jni.sh
       - name: Apply app icon
