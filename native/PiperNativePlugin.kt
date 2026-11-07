@@ -58,6 +58,7 @@ import com.pdfvoice.phon.Phonemizer
  * رویداد: "progress" {loaded, total}
  * r17: clean=۲ ← حذف‌نویز عصبی DPDFNet ۸۵٪ + کلاسیک، clean=۳ ← عصبی ۱۰۰٪ + کلاسیک (مدل: assets/denoise/dpdfnet_baseline.onnx؛ وضعیت: diag().nd)
  * r19 (ناظر رنگ): synthesize({..., col?: Boolean, clT?: dB/oct}) → شیب طیف واک‌دار تکه (hs.ct) را می‌سنجد؛ اگر clT (میانهٔ ۱۵ تکهٔ اخیر از سمت JS) برسد و انحراف > ۰٫۳ dB/oct باشد، شلف بالای ملایم (حداکثر ±۲٫۵ dB، hs.cg) رنگ را به میانه نزدیک می‌کند؛ ColorSv و MasterFx.tiltShelf
+ * r20 (ناظر گام): synthesize({..., pit?: Boolean, pT?: Hz}) → F0 میانهٔ تکه (hs.pf، پیش از اصلاح) را می‌سنجد؛ اگر pT (میانهٔ ۱۵ تکهٔ اخیر از سمت JS) برسد و F0 بیش از ۰٫۴ نیم‌پرده بالاتر باشد، گام را تا ۳٫۵ نیم‌پرده پایین می‌آورد و مدت را نگه می‌دارد (hs.pg؛ فقط رو به پایین، «بم بماند»)؛ PitchSv و Stretch.pitchDown
  * کیفیت صدا: synthesize({..., clean?: 0..3, clarity?: 0..3}) → حذف نویز و ارتقای شفافیت/رسایی؛ ۰ خاموش، ۲ متعادل (پیش‌فرض)؛ جزئیات در SpeechClean (انتهای فایل)
  * مسترینگ: synthesize({..., master?: Boolean, fxPk?: dB, fxHs?: dB, fxLp?: Hz}) → EQ + کمپرسور + لیمیتر روی خروجی نهایی؛ جزئیات در MasterFx
  * اکولایزر کاربر (r14): synthesize({..., eq?: {pre: dB, lc: Hz, hc: Hz, q, limiter: 0|1, bands: [[Hz, dB] × ۱۰]}}) → تمام ۱۰ باند + تقویت کلی + قطع بم/زیر + محافظ برش؛ مستقل از master، پس از مسترینگ؛ MasterFx.eq
@@ -431,7 +432,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r19-col · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r20-pit · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
     }
 
     @PluginMethod
@@ -1414,6 +1415,8 @@ class PiperNativePlugin : Plugin() {
         val eqCfg = MasterFx.EqCfg.from(call.getObject("eq"))   // r14: اکولایزر کامل ۱۰ باندی (null = خاموش یا تخت)
         val pzOn = call.getBoolean("pz") ?: false   // r145 (ناظر مکث): نرمال‌سازی سکوت مرز جمله‌ها و کوتاه‌کردن سکوت‌های داخلیِ طولانی
         val colOn = call.getBoolean("col") ?: false   // r19: ناظر رنگ (فقط مانا؛ JS تعیین می‌کند)
+        val pitOn = call.getBoolean("pit") ?: false   // r20: ناظر گام (فقط مانا؛ JS تعیین می‌کند)
+        val pT: Double? = call.getDouble("pT")   // r20: هدف F0 (Hz، میانهٔ اخیر)؛ بدون آن فقط اندازه‌گیری می‌شود
         val clT: Double? = call.getDouble("clT")   // r19: هدف شیب طیف (dB/oct، میانهٔ اخیر)؛ بدون آن فقط اندازه‌گیری می‌شود
         val lvT: Double? = call.getDouble("lvT")   // r141: هدف بلندی (dBFS، میانهٔ اخیر همان گوینده)؛ بدون آن تراز نمی‌شود
         val hdAmt = ((call.getFloat("hdAmt") ?: 65f).coerceIn(0f, 100f) / 100f).toDouble()   // شدت بازسازی بالاهای HD
@@ -1572,6 +1575,22 @@ class PiperNativePlugin : Plugin() {
                     for (ix in items.size - 1 downTo 0) { if (m[ix] < 0.0) m[ix] = nx else nx = m[ix] }   // جملهٔ بدون تکه: مرزش شروع جملهٔ بعدی
                     JSArray().also { a -> for (v in m) a.put(v) }
                 } else null
+                // r20 (ناظر گام): F0 میانهٔ تکه پیش از اصلاح (pf، برای تاریخچهٔ JS)؛ اگر هدف pT رسیده و F0 بیش از ۰٫۴ نیم‌پرده بالاتر باشد، گام به‌اندازهٔ اضافه (حداکثر ۳٫۵ نیم‌پرده) پایین می‌آید و مدت دقیقاً حفظ می‌شود (مرزهای جمله و هایلایت دست‌نخورده). فقط رو به پایین: صدای بم‌تر دست نمی‌خورد. نسبت > ۶ نیم‌پرده = خطای اکتاو F0 ⇒ بدون اصلاح. پیش از رنگ و تراز بلندی
+                var pfV = Double.NaN
+                var pgV = 0.0
+                if (pitOn && fin.isNotEmpty()) {
+                    pfV = PitchSv.f0(fin, sro)
+                    if (pT != null && !pfV.isNaN() && !pT.isNaN() && pT > 40.0 && pT < 500.0) {
+                        val pst = 12.0 * Math.log(pfV / pT) / Math.log(2.0)
+                        val pex = pst - 0.4
+                        if (pex > 0.0 && pst <= 6.0) {
+                            val psh = Math.min(pex, 3.5)
+                            val pout = Stretch.pitchDown(fin, sro, Math.pow(2.0, -psh / 12.0))
+                            System.arraycopy(pout, 0, fin, 0, fin.size)
+                            pgV = -psh
+                        }
+                    }
+                }
                 // r19 (ناظر رنگ): شیب طیف واک‌دار پیش از اصلاح (ct) برای تاریخچهٔ JS؛ اگر هدف رسیده و انحراف > ۰٫۳ dB/oct باشد، شلف بالای ۱٫۸kHz ملایم (نصف انحراف، حداکثر ±۲٫۵dB). پیش از تراز بلندی ⇒ تراز اثر شلف را هم حساب می‌کند؛ پس از کش ⇒ کش دست‌نخورده
                 var ctV = Double.NaN
                 var cgV = 0.0
@@ -1601,6 +1620,8 @@ class PiperNativePlugin : Plugin() {
                 val hs = finHealth(fin, rawHs, lvA0, lvG, sro).also { o ->
                     if (!ctV.isNaN() && !ctV.isInfinite()) o.put("ct", Math.round(ctV * 100.0) / 100.0)
                     if (cgV != 0.0) o.put("cg", Math.round(cgV * 100.0) / 100.0)
+                    if (!pfV.isNaN() && !pfV.isInfinite()) o.put("pf", Math.round(pfV * 10.0) / 10.0)
+                    if (pgV != 0.0) o.put("pg", Math.round(pgV * 100.0) / 100.0)
                 }
                 val dsp: JSObject? = if (rawKeep != null && rawKeep.isNotEmpty()) {   // r15: آمار خام↔خروجی برای گزارش ناظر
                     var rn = 0; for (x in rawKeep) rn += x.size
@@ -2540,6 +2561,49 @@ private object SpeechClean {
  * → کمپرسور (−۲۲dB، ۳:۱) → ×۱٫۱ → لیمیتر (−۲dB، ۲۰:۱، پیش‌نگر ۳ms) → نرم‌برش ایمنی.
  * روی خروجی صیقل‌شدهٔ هر تکه اجرا می‌شود؛ پس کش جمله‌ها دست‌نخورده می‌ماند.
  */
+/** r20 (ناظر گام): میانهٔ F0 (Hz) فریم‌های واک‌دار؛ همان الگوریتم mnF0 در index.html (خودهمبستگی روی ≈۱۱kHz، پنجره ۴۰ms، گام ۲۰ms، ۷۰–۴۰۰Hz). NaN = فریم واک‌دار کافی نیست. */
+private object PitchSv {
+    fun f0(x: FloatArray, sr: Int): Double {
+        val dec = Math.max(1, Math.round(sr / 11025.0).toInt())
+        val n = x.size / dec
+        if (n < 2000) return Double.NaN
+        val d = FloatArray(n)
+        for (i in 0 until n) { var v = 0f; for (j in 0 until dec) v += x[i * dec + j]; d[i] = v / dec }
+        val s2 = sr.toDouble() / dec
+        val fl = Math.round(s2 * 0.04).toInt()
+        val hop = Math.round(s2 * 0.02).toInt()
+        val lo = Math.floor(s2 / 400.0).toInt()
+        val hi = Math.ceil(s2 / 70.0).toInt()
+        val ac = DoubleArray(hi + 3)
+        val nfr = (n - fl - hi - 2) / hop + 1
+        if (nfr < 8) return Double.NaN
+        val step = Math.max(1, nfr / 500)   // سقف ≈۵۰۰ فریم؛ هزینهٔ اندازه‌گیری برای تکهٔ بلند محدود می‌ماند
+        val f0 = ArrayList<Double>()
+        var fi = 0
+        while (fi < nfr) {
+            val p = fi * hop
+            var r0 = 0.0
+            for (j in 0 until fl) r0 += d[p + j].toDouble() * d[p + j]
+            if (r0 >= 1e-6 * fl) {
+                var bR = 0.0
+                for (l in (lo - 1)..(hi + 1)) {
+                    var rr = 0.0
+                    for (j in 0 until fl) rr += d[p + j].toDouble() * d[p + j + l]
+                    ac[l] = rr
+                    if (l >= lo && l <= hi && rr > bR) bR = rr
+                }
+                var bL = 0
+                for (l in lo..hi) { if (ac[l] >= 0.9 * bR && ac[l] >= ac[l - 1] && ac[l] >= ac[l + 1]) { bL = l; break } }
+                if (bL > 0 && ac[bL] / r0 > 0.5) f0.add(s2 / bL)
+            }
+            fi += step
+        }
+        if (f0.size < 12) return Double.NaN
+        f0.sort()
+        return f0[f0.size shr 1]
+    }
+}
+
 /** r19 (ناظر رنگ): شیب طیف فریم‌های واک‌دار (dB/اکتاو) روی ۷ باند ۱۵۰–۶۵۰۰Hz؛ همان تعریف «آزمون رنگ صدا» (mnFeat) در index.html.
  *  فریم فعال: انرژی ۸۰–۸۰۰۰Hz بالاتر از ۲۵− dB زیر صدک ۹۰؛ واک‌دار: انرژی ۱۰۰–۹۰۰Hz دست‌کم دو برابر ۲–۸kHz. NaN = فریم واک‌دار کافی نیست. */
 private object ColorSv {
@@ -2996,6 +3060,27 @@ private object Stretch {
             val v = Math.round(y[it] * 32768f)
             (if (v > 32767) 32767 else if (v < -32768) -32768 else v).toShort()
         }
+    }
+
+    /** r20 (ناظر گام): پایین‌آوردن گام با نسبت ratio (۰٫۵ ≤ ratio < ۱) و حفظ مدت؛ ابتدا بازنمونه‌گیری خطی با قدم ratio (گام×ratio، مدت÷ratio)
+     *  سپس WSOLA با سرعت ۱/ratio (مدت×ratio). طول خروجی دقیقاً برابر ورودی است تا مرز جمله‌ها (marks) جابه‌جا نشود. فورمنت‌ها هم کمی پایین می‌آیند (تا ۳٫۵ نیم‌پرده قابل‌قبول). */
+    fun pitchDown(x: FloatArray, sr: Int, ratio: Double): FloatArray {
+        val n = x.size
+        if (n < 64 || ratio >= 0.999 || ratio < 0.5) return x
+        val m = Math.floor((n - 1) / ratio).toInt() + 1
+        val y = FloatArray(m)
+        for (i in 0 until m) {
+            val pos = i * ratio
+            val i0 = pos.toInt()
+            val fr = (pos - i0).toFloat()
+            val a = x[Math.min(i0, n - 1)]
+            val b = if (i0 + 1 < n) x[i0 + 1] else a
+            y[i] = a + (b - a) * fr
+        }
+        val z = wsola(y, sr, 1.0 / ratio)
+        val out = FloatArray(n)
+        System.arraycopy(z, 0, out, 0, Math.min(n, z.size))
+        return out
     }
 
     /**
