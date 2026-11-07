@@ -103,6 +103,9 @@ if [ "$NEED_PHON" = 1 ]; then
   mkdir -p android/app/src/main/java/com/pdfvoice/phon android/app/src/main/assets
   cp "$HERE/Phonemizer.java" android/app/src/main/java/com/pdfvoice/phon/Phonemizer.java
   OFFLINE_CACHE="$CACHE" bash "$HERE/build-phonemizer.sh" android/app/src/main/jniLibs android/app/src/main/assets
+  # r187: واج‌آرایی اختصاصی مانا (کسرهٔ اضافه با ALBERT/ONNX): کد کاتلین + دادهٔ مدل که هنگام بیلد دانلود می‌شود (≈ ۴۰ مگابایت به APK اضافه می‌کند)
+  cp "$HERE/ManaPhon.kt" android/app/src/main/java/com/pdfvoice/phon/ManaPhon.kt
+  OFFLINE_CACHE="$CACHE" bash "$HERE/build-mana-phon.sh" android/app/src/main/assets || echo "WARN: build-mana-phon.sh ناموفق؛ مانا بدون لایهٔ اختصاصی کار می‌کند"
   for abi in arm64-v8a armeabi-v7a; do
     for so in libpiper_phonemize_core.so libpiperphon_jni.so libsherpa-onnx-jni.so libonnxruntime.so; do
       [ -s "android/app/src/main/jniLibs/$abi/$so" ] || { echo "ERROR: $abi/$so در jniLibs نیست"; exit 1; }
@@ -116,6 +119,22 @@ fi
 sed -e "s/^package .*/package $APP_ID/" -e "s/__SHERPA_VER__/$VER/" "$HERE/PiperNativePlugin.kt" > "$PKG_PATH/PiperNativePlugin.kt"
 sed "s/^package .*/package $APP_ID;/" "$HERE/MainActivity.java"   > "$PKG_PATH/MainActivity.java"
 sed "s/^package .*/package $APP_ID;/" "$HERE/OcrNativePlugin.java" > "$PKG_PATH/OcrNativePlugin.java"   # r23: OCR بومی (ORT)
+
+# 3a) r188: مدل حذف‌نویز عصبی فقط «پایه» (dpdfnet_baseline.onnx، ۱۶kHz، سبک) و مستقیم از release رسمی sherpa-onnx؛ دیگر add-denoise-model.sh لازم نیست.
+# برای نگذاشتن آن داخل APK: NO_DENOISE=1 (برنامه فقط با فیلتر کلاسیک کار می‌کند).
+if [ "${NO_DENOISE:-0}" != 1 ]; then
+  NDF="dpdfnet_baseline.onnx"
+  NDU="https://github.com/k2-fsa/sherpa-onnx/releases/download/speech-enhancement-models/$NDF"
+  mkdir -p android/app/src/main/assets/denoise
+  rm -f android/app/src/main/assets/denoise/dpdfnet2.onnx android/app/src/main/assets/denoise/dpdfnet4.onnx android/app/src/main/assets/denoise/dpdfnet8.onnx android/app/src/main/assets/denoise/dpdfnet2_48khz_hr.onnx
+  if NDP="$(dl "$NDU" "$NDF")" && [ -s "$NDP" ]; then
+    cp "$NDP" "android/app/src/main/assets/denoise/$NDF"; echo "denoise: $NDF ($(du -h "$NDP" | cut -f1))"
+  else
+    echo "WARN: $NDF دانلود نشد؛ حذف‌نویز عصبی غیرفعال می‌ماند (فقط فیلتر کلاسیک)"
+  fi
+else
+  echo "denoise: داخل APK گذاشته نشد (NO_DENOISE=1)"
+fi
 
 # 3b) صداهای فارسی: به‌طور پیش‌فرض داخل APK نیستند و بعد از نصب از داخل برنامه دانلود می‌شوند.
 # برای همراه‌کردن (اختیاری): VOICES="fa_IR-gyro-medium ..." bash native/inject-native.sh

@@ -256,11 +256,11 @@ object ManaPhon {
     fun prepare(ctx: Context, text: String): String {
         if (!ensure(ctx)) return text
         return try {
-            synchronized(lock) { apply(text) }
+            synchronized(lock) { applyEzafe(text) }
         } catch (e: Throwable) { text }
     }
 
-    private fun apply(text: String): String {
+    private fun applyEzafe(text: String): String {
         val ms = Regex("\\S+").findAll(text).toList()
         if (ms.size < 2) return text
         val words = ms.map { it.value }

@@ -261,7 +261,7 @@ class PiperNativePlugin : Plugin() {
     @PluginMethod
     fun diag(call: PluginCall) {
         call.resolve(JSObject().put("underruns", underruns).put("sampleRate", sampleRate).put("sdk", android.os.Build.VERSION.SDK_INT).put("bufMs", bufMs).put("bufGrow", bufGrow)
-            .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL).put("nd", NeuralDenoise.status(context)).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
+            .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL).put("nd", NeuralDenoise.status(context)).put("ndm", NeuralDenoise.available(context)))
     }
     private val cpu = Executors.newSingleThreadExecutor()    // ساخت صدا (پشت‌سرهم)
     private var tts: OfflineTts? = null
@@ -1465,7 +1465,7 @@ class PiperNativePlugin : Plugin() {
         val gap = (call.getFloat("gap") ?: 0.12f).coerceIn(0f, 0.6f)      // ثانیه، سکوت بین جمله‌ها
         val partsArr = call.getArray("parts")
         val lvlClean = (call.getInt("clean") ?: 2).coerceIn(0, 3)       // حذف نویز و صداهای اضافه
-        val ndSel = call.getString("nd") ?: "baseline"                  // مدل DPDFNet: baseline | dpdfnet2 | dpdfnet4 | dpdfnet8 | dpdfnet2_48khz_hr | off
+        val ndSel = call.getString("nd") ?: "baseline"                  // مدل DPDFNet: baseline | off (مدل‌های سنگین‌تر حذف شدند)
         val lvlClarity = (call.getInt("clarity") ?: 2).coerceIn(0, 3)   // شفافیت و رسایی
         val lvlPause = (call.getInt("pause") ?: 2).coerceIn(0, 3)       // حذف وزوز مکث‌ها (فقط مانا): ۰ خاموش … ۳ قوی
         val keep = call.getBoolean("keep") ?: false                      // true: PCM در حافظهٔ بومی می‌ماند و فقط handle برمی‌گردد (پخش بومی)
@@ -2878,6 +2878,9 @@ private object MasterFx {
         lowShelf(180.0, 1.3, sr).run(x)
         peaking(2800.0, 0.9, pk.toDouble(), sr).run(x)
         peaking(7000.0, 1.3, -1.8, sr).run(x)
+        // r189 (عیب‌یابی خروجی مانا، ۱۷۰ ثانیه): طیف بلندمدت گفتار بین ۴٫۵ تا ۹kHz موج‌دار بود — سوراخ ≈ −۸dB در ۵٫۵–۶٫۵kHz، قله ≈ +۶dB در ۷–۷٫۵kHz و قلهٔ +۵dB در ۴٫۵–۵kHz (نسبت به ۵–۵٫۸kHz)؛
+        // این سه فیلتر نرم، موج را پر/هموار می‌کنند (ایمن: حداکثر +۴dB؛ فقط مانا). اگر خش بالا زیاد شد، ۶۰۰۰←+۲٫۵ یا حذف کنید
+        if (strong) { peaking(6000.0, 2.2, 4.0, sr).run(x); peaking(7250.0, 2.5, -3.0, sr).run(x); peaking(4750.0, 2.5, -2.0, sr).run(x) }
         highShelf(6000.0, hs.toDouble(), sr).run(x)
         lowpass(lp.toDouble(), 1.085, sr).run(x)
         comp(x, sr, -22.0, 24.0, 3.0, 0.005, 0.15, 0.006)
@@ -3163,7 +3166,7 @@ class PlayerService : android.app.Service() {
 private object NeuralDenoise {
     private const val PKG = "com.k2fsa.sherpa.onnx."
     /** مدل‌های DPDFNet قابل انتخاب (کلید رابط ← فایل داخل assets/denoise/) */
-    private val MODELS = linkedMapOf("baseline" to "dpdfnet_baseline.onnx", "dpdfnet2" to "dpdfnet2.onnx", "dpdfnet4" to "dpdfnet4.onnx", "dpdfnet8" to "dpdfnet8.onnx", "dpdfnet2_48khz_hr" to "dpdfnet2_48khz_hr.onnx")
+    private val MODELS = linkedMapOf("baseline" to "dpdfnet_baseline.onnx")   // فقط مدل پایهٔ سبک؛ بقیه حذف شدند (کلیدهای قدیمی ← baseline)
     @Volatile private var cur = "baseline"
     fun norm(m: String?): String = if (m != null && MODELS.containsKey(m)) m else "baseline"
     /** کلیدهای مدل‌هایی که واقعاً داخل APK هستند، با کاما جدا */

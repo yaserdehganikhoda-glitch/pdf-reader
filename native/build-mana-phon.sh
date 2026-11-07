@@ -1,36 +1,32 @@
 #!/usr/bin/env bash
-# واج‌آرایی اختصاصی مانا: ManaPhon.kt + مدل کسرهٔ اضافه (abreza/persian-ezafe-albert، نسخهٔ quantized) → assets/mana/ezafe
-# نبودِ مدل بیلد را نمی‌شکند (هشدار؛ برنامه بدون کسرهٔ اضافهٔ مدلی کار می‌کند)، ولی ManaPhon.kt همیشه باید در پروژه باشد (PiperNativePlugin آن را import می‌کند).
+# r187: دادهٔ واج‌آرایی اختصاصی مانا را هنگام بیلد می‌گیرد (مدل ONNX کوانتیزهٔ تشخیص کسرهٔ اضافه + توکنایزر).
+# استفاده: build-mana-phon.sh <پوشهٔ assets>      → <assets>/mana/ezafe/{model_quantized.onnx,tokenizer.json,VERSION}
+# منبع: https://huggingface.co/abreza/persian-ezafe-albert (همان مدل مقالهٔ Piper+LCA؛ روی یک commit ثابت قفل شده است)
+# اگر دانلود ناموفق باشد، بیلد ادامه می‌یابد و مانا بدون این لایه (مثل قبل) کار می‌کند؛ با MANA_PHON_STRICT=1 بیلد می‌شکند.
 set -uo pipefail
-A=android/app/src/main/assets/mana/ezafe
-J=android/app/src/main/java/com/pdfvoice/phon
-C="$HOME/.offline-cache/mana-ezafe"
-REPO=abreza/persian-ezafe-albert
-BASES="https://huggingface.co https://hf-mirror.com"
-mkdir -p "$A" "$C" "$J"
+ASSETS="${1:?usage: build-mana-phon.sh <assets-dir>}"
+CACHE="${OFFLINE_CACHE:-$HOME/.offline-cache}"; mkdir -p "$CACHE"
+REV="${MANA_EZAFE_REV:-e6614371c6cd93fca2ad2e192a978613a14d92d6}"
+BASE="https://huggingface.co/abreza/persian-ezafe-albert/resolve/$REV/quantized"
+OUT="$ASSETS/mana/ezafe"
+fail() { echo "WARN(mana-phon): $1" >&2; rm -rf "$OUT"; [ "${MANA_PHON_STRICT:-0}" = 1 ] && exit 1; exit 0; }
 
-if [ ! -s "$J/ManaPhon.kt" ]; then
-  if [ -s native/ManaPhon.kt ]; then cp -f native/ManaPhon.kt "$J/ManaPhon.kt"; else echo "::error::native/ManaPhon.kt در مخزن نیست"; exit 1; fi
-fi
-grep -q "onnxruntime-android" android/app/build.gradle || { echo "::error::وابستگی onnxruntime-android در android/app/build.gradle نیست؛ ManaPhon کامپایل نمی‌شود"; exit 1; }
-
-get() { # get <نام مقصد> <مسیرهای نامزد در مخزن...>
-  local out="$C/$1"; shift
-  [ -s "$out" ] && return 0
-  local b p
-  for p in "$@"; do for b in $BASES; do
-    if curl -fsSL --retry 3 --max-time 300 -o "$out.part" "$b/$REPO/resolve/main/$p"; then mv "$out.part" "$out"; echo "fetched $p ← $b"; return 0; fi
-  done; done
-  rm -f "$out.part"; return 1
+get() {   # get <نام> <کمینهٔ حجم بایت>
+  local name="$1" min="$2" f="$CACHE/mana-ezafe-$REV-$1"
+  if [ -s "$f" ] && [ "$(stat -c %s "$f")" -ge "$min" ]; then echo "cache: $name" >&2; echo "$f"; return 0; fi
+  rm -f "$f" "$f.part"
+  curl -fL --retry 4 --retry-delay 3 -o "$f.part" "$BASE/$name?download=true" >&2 || { rm -f "$f.part"; return 1; }
+  [ "$(stat -c %s "$f.part")" -ge "$min" ] || { rm -f "$f.part"; return 1; }
+  mv "$f.part" "$f"; echo "$f"
 }
-skip() { echo "::warning::مدل کسرهٔ اضافهٔ مانا گذاشته نشد ($1)؛ مانا بدون کسرهٔ اضافهٔ مدلی کار می‌کند"; rm -rf "$A"; exit 0; }
 
-get model_quantized.onnx quantized/model_quantized.onnx onnx/model_quantized.onnx model_quantized.onnx || skip "model_quantized.onnx دریافت نشد"
-get tokenizer.json quantized/tokenizer.json tokenizer.json || skip "tokenizer.json دریافت نشد"
-[ "$(stat -c %s "$C/model_quantized.onnx")" -gt 5000000 ] || { rm -f "$C/model_quantized.onnx"; skip "model_quantized.onnx بسیار کوچک است"; }
-grep -q '"Unigram"' "$C/tokenizer.json" || { rm -f "$C/tokenizer.json"; skip "tokenizer.json از نوع Unigram نیست"; }
-grep -q '\[CLS\]' "$C/tokenizer.json" && grep -q '\[SEP\]' "$C/tokenizer.json" || { rm -f "$C/tokenizer.json"; skip "[CLS]/[SEP] در tokenizer.json نیست"; }
-
-cp -f "$C/model_quantized.onnx" "$C/tokenizer.json" "$A/"
-sha256sum "$A/model_quantized.onnx" | cut -c1-12 > "$A/VERSION"
-echo "mana ezafe assets: $(ls "$A" | tr '\n' ' ')"
+M="$(get model_quantized.onnx 5000000)" || fail "دانلود model_quantized.onnx ناموفق"
+T="$(get tokenizer.json 1000000)"      || fail "دانلود tokenizer.json ناموفق"
+python3 - "$T" <<'PY' || fail "tokenizer.json معتبر نیست (باید Unigram باشد)"
+import json, sys
+j = json.load(open(sys.argv[1], encoding="utf-8"))
+assert j["model"]["type"] == "Unigram" and len(j["model"]["vocab"]) > 1000
+PY
+mkdir -p "$OUT"
+cp "$M" "$OUT/model_quantized.onnx"; cp "$T" "$OUT/tokenizer.json"; echo "$REV" > "$OUT/VERSION"
+echo "mana-phon: $(du -h "$OUT/model_quantized.onnx" | cut -f1) مدل + $(du -h "$OUT/tokenizer.json" | cut -f1) توکنایزر → $OUT"
