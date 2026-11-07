@@ -1789,7 +1789,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <div class="slist"><label class="chk"><input type="checkbox" id="hsOn" checked><span class="st"><b>ناظر سلامت صدا (خودکار)</b><small>طول و سلامت هر تکهٔ ساخته‌شده را می‌سنجد و تکهٔ مشکوک (بریده، کشیده، خالی) را یک بار با نویز کمتر دوباره می‌سازد؛ خطای پخش را هم خودکار بازیابی می‌کند.</small></span></label></div>
 <p class="hint" id="hsSt" aria-live="polite" hidden></p>
 <div class="slist"><button class="btn sm" id="hsRep" type="button">گزارش ناظر سلامت صدا</button></div>
-<div id="hsRepBox" hidden><textarea id="hsRepText" readonly rows="9" style="width:100%;direction:ltr;font:11px monospace" aria-label="گزارش ناظر سلامت صدا"></textarea><div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="hsRepCopy">کپی</button><button type="button" class="btn sm" id="hsDsp">اندازه‌گیری DSP</button></div></div>
+<div id="hsRepBox" hidden><textarea id="hsRepText" readonly rows="9" style="width:100%;direction:ltr;font:11px monospace" aria-label="گزارش ناظر سلامت صدا"></textarea><div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="hsRepCopy">کپی</button><button type="button" class="btn sm" id="hsDsp">اندازه‌گیری DSP</button><button type="button" class="btn sm" id="hsCol">آزمون رنگ صدا (مانا)</button></div></div>
           <div class="slist"><label class="chk"><input type="checkbox" id="gvOn" checked><span class="st"><b>ناظر سرعت هوشمند</b><small>سرعت واقعی هر تکه را اندازه می‌گیرد و اگر تصادفاً تندتر یا کندتر از سرعت انتخابی شما ساخته شده باشد، هنگام پخش جبرانش می‌کند؛ با تغییر پایدار صدا سریع‌تر هم‌گام می‌شود و برای سبک تازه از یادگیری همان گوینده شروع می‌کند.</small></span></label></div>
           <p class="hint" id="gvSt" aria-live="polite" hidden></p>
           <div class="slist"><button class="btn sm" id="gvRst" type="button">بازنشانی یادگیری ناظر سرعت</button></div>
@@ -9613,7 +9613,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r187 · 2026-11-06 · spell-v3 · errbox-v1', npBuild = '';
+  var APP_BUILD = 'html-r191 · 2026-11-07 · spell-v3 · errbox-v1 · mncolor-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10155,7 +10155,7 @@ function chunkAt(i, lim){
 var HS = { bad: 0, fixed: 0, kept: 0, rec: 0, errs: [], vp: {}, ld: {}, lk: {}, lN: 0, lO: 0, lG: 0, nl: {}, nm: {}, nk: {}, nT: {}, nA: {}, rb: [], rp: [], pzS: { c: 0, n: 0, hid: 0, cut: 0, ni: 0, nic: 0 } }, hsDev = null;
 function hsOn(){ return sget('hsOn', '1') !== '0'; }
 function hsSt(s){   /* کلید کش بومی شامل noiseScale/noiseScaleW است (کف بومی ۰٫۲)؛ اگر کاهش اثری نداشت، برای نمونهٔ تازه کمی بالا می‌رود */
-  var a = Math.max(0.2, Math.round((s[0] - 0.05) * 100) / 100), b = Math.max(0.2, Math.round((s[1] - 0.05) * 100) / 100);
+  var a = Math.max(0.2, Math.round((s[0] - 0.05) * 100) / 100), b = Math.max(0, Math.round((s[1] - 0.05) * 100) / 100);   /* r191: کف noise_w صفر (با کف ۰٫۲، ساخت مجدد noise_w را از ۰٫۰۱ به ۰٫۲ می‌پراند و ریتم/رنگ آن جمله با بقیه فرق می‌کرد) */
   return (a === s[0] && b === s[1]) ? [Math.round((a + 0.05) * 100) / 100, Math.round((b + 0.05) * 100) / 100] : [a, b];
 }
 function hsLog(m){ try { if (window.__elog) window.__elog.add('audio-health', m); } catch (e) {} }
@@ -10476,6 +10476,7 @@ function hsReport(force){   /* r160: گزارش کامل ناظر سلامت و 
   o.push('رویدادهای اخیر (' + HS.rp.length + '/۱۲):');
   HS.rp.forEach(function(e){ o.push('  ' + hsFmt(e)); });
   try { t = ((window.__elog && window.__elog.items) || []).filter(function(x){ return /\] (audio-health|noise-live): /.test(x); }).slice(-10); if (t.length) { o.push('لاگ‌های اخیر:'); t.forEach(function(x){ o.push('  ' + x.slice(0, 220)); }); } } catch (e) {}
+  try { if (window.__mnColor && window.__mnColor.lines) { o.push('---'); window.__mnColor.lines.forEach(function(l){ o.push(l); }); } } catch (e) {}
   return o.join('\n');
 }
 (function(){
@@ -10494,6 +10495,13 @@ function hsReport(force){   /* r160: گزارش کامل ناظر سلامت و 
     lab();
     dp.onclick = function(){ DSP.on = !DSP.on; DSP.rows = []; sset('dspProbe', DSP.on ? '1' : '0'); lab(); if (ta) ta.value = hsReport(true); try { changed(); } catch (e) {} };
   }
+  var cl = $('#hsCol');
+  if (cl) cl.onclick = function(){
+    var t0 = cl.textContent;
+    if (cl.disabled) return;
+    cl.disabled = true; cl.textContent = 'در حال آزمون…';
+    Promise.resolve().then(function(){ return window.mnColor(); }).catch(function(e){ if (ta) ta.value += '\nخطا: ' + String((e && e.message) || e); }).then(function(){ cl.disabled = false; cl.textContent = t0; });
+  };
 })();
 function hsRbOk(){   /* r158: سقف ساخت مجدد نگهبان — حداکثر ۴ بار در ۶۰ ثانیه (آستانهٔ آزمایشی)؛ رشتهٔ تکه‌های مشکوک با علت سیستماتیک هزینهٔ ساخت را دوبرابر نکند؛ شناسایی و ثبت دست‌نخورده می‌ماند */
   var now = Date.now(); HS.rb = HS.rb.filter(function(t){ return now - t < 60000; });
@@ -11832,6 +11840,165 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     window.__calmBench = { voice: v.id, build: APP_BUILD, ms: Math.round(performance.now() - t0), rows: rows };
     try { console.table(rows); } catch (e) {}
     return window.__calmBench;
+  };
+  /* r191: «آزمون رنگ صدا (مانا)» — منبع تغییر رنگ صدا میان جمله‌ها را اندازه می‌گیرد: نمونه‌برداری z (تکرار همان جمله)، متن/واج‌آرایی (جمله‌های مختلف، خام)، زنجیرهٔ پردازش (تنظیمات فعلی). خروجی در «گزارش ناظر سلامت صدا». فقط روی فریم‌های واک‌دار (مصوت‌ها) سنجیده می‌شود تا تفاوت واج‌ها به‌حساب رنگ نیاید */
+  var MN_E = [150, 400, 800, 1500, 2500, 3500, 5000, 6500, 8000, 10500], MN_NM = 7;   /* ۷ باند اصلی ۱۵۰–۶۵۰۰Hz + دو باند بالا (هیس/هوا) جدا گزارش می‌شود */
+  function mnFft(re, im, tc, ts){
+    var n = re.length, i, j = 0, k, m, h, st, a, b, tr, ti, wr, wi;
+    for (i = 1; i < n; i++) { k = n >> 1; while (j & k) { j ^= k; k >>= 1; } j ^= k; if (i < j) { tr = re[i]; re[i] = re[j]; re[j] = tr; tr = im[i]; im[i] = im[j]; im[j] = tr; } }
+    for (m = 2; m <= n; m <<= 1) {
+      h = m >> 1; st = n / m;
+      for (i = 0; i < n; i += m) for (k = 0; k < h; k++) {
+        a = i + k; b = a + h; wr = tc[k * st]; wi = ts[k * st];
+        tr = re[b] * wr - im[b] * wi; ti = re[b] * wi + im[b] * wr;
+        re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti;
+      }
+    }
+  }
+  function mnF0(x, sr){
+    var dec = Math.max(1, Math.round(sr / 11025)), n = Math.floor(x.length / dec), d = new Float32Array(n), s2 = sr / dec, F = Math.round(s2 * 0.04), Hh = Math.round(s2 * 0.02), lo = Math.floor(s2 / 400), hi = Math.ceil(s2 / 70), ac = new Float32Array(hi + 3), f0 = [], i, j, p, l, r0, rr, bR, bL, v;
+    for (i = 0; i < n; i++) { v = 0; for (j = 0; j < dec; j++) v += x[i * dec + j]; d[i] = v / dec; }
+    for (p = 0; p + F + hi + 2 < n; p += Hh) {
+      r0 = 0; for (j = 0; j < F; j++) r0 += d[p + j] * d[p + j];
+      if (r0 < 1e-6 * F) continue;
+      bR = 0; bL = 0;
+      for (l = lo - 1; l <= hi + 1; l++) { rr = 0; for (j = 0; j < F; j++) rr += d[p + j] * d[p + j + l]; ac[l] = rr; if (l >= lo && l <= hi && rr > bR) bR = rr; }
+      for (l = lo; l <= hi; l++) if (ac[l] >= 0.9 * bR && ac[l] >= ac[l - 1] && ac[l] >= ac[l + 1]) { bL = l; break; }
+      if (bL && ac[bL] / r0 > 0.5) f0.push(s2 / bL);
+    }
+    if (f0.length < 8) return NaN;
+    f0.sort(function(a, b){ return a - b; });
+    return f0[f0.length >> 1];
+  }
+  function mnFeat(x, sr){
+    var N = 1, H, nf, re, im, win, tc, ts, i, j, f, k, nb = 0, kl = [], kh = [], cc = [], hz, PP, fe, s, thr, vo = [], na = 0, bm, rel = [], ref = 0, avg, sw = 0, sc = 0, tx = 0, ty = 0, txx = 0, txy = 0, c, e, a, el, eh, ke0, ke1, kv0, kv1, kh0, kh1, nyq = sr / 2, cen, tilt, air = NaN, W;
+    while (N < sr * 0.046) N <<= 1;
+    H = N >> 1; W = H + 1; nf = Math.floor((x.length - N) / H) + 1;
+    if (nf < 16) return null;
+    re = new Float64Array(N); im = new Float64Array(N); win = new Float64Array(N); tc = new Float64Array(H); ts = new Float64Array(H);
+    for (i = 0; i < N; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / N);
+    for (i = 0; i < H; i++) { tc[i] = Math.cos(2 * Math.PI * i / N); ts[i] = -Math.sin(2 * Math.PI * i / N); }
+    function bin(hz){ return Math.max(1, Math.min(H, Math.round(hz * N / sr))); }
+    for (i = 0; i < MN_E.length - 1; i++) { hz = Math.min(MN_E[i + 1], nyq * 0.98); if (hz < MN_E[i] * 1.2) break; kl.push(bin(MN_E[i])); kh.push(Math.max(kl[i] + 1, bin(hz))); cc.push(Math.log(Math.sqrt(MN_E[i] * hz)) / Math.LN2); nb++; }
+    if (nb < MN_NM) return null;
+    PP = new Float32Array(nf * W); fe = new Float64Array(nf); ke0 = bin(80); ke1 = bin(8000);
+    for (f = 0; f < nf; f++) {
+      for (i = 0; i < N; i++) { re[i] = x[f * H + i] * win[i]; im[i] = 0; }
+      mnFft(re, im, tc, ts);
+      e = 0;
+      for (k = 0; k <= H; k++) { a = re[k] * re[k] + im[k] * im[k]; PP[f * W + k] = a; if (k >= ke0 && k <= ke1) e += a; }
+      fe[f] = e;
+    }
+    s = Array.prototype.slice.call(fe).sort(function(p, q){ return p - q; }); thr = s[Math.floor((nf - 1) * 0.9)] * 0.00316;   /* فریم فعال: ≤ ۲۵− dB زیر صدک ۹۰ */
+    kv0 = bin(100); kv1 = bin(900); kh0 = bin(2000); kh1 = bin(8000);
+    for (f = 0; f < nf; f++) {
+      if (fe[f] <= thr) continue;
+      na++; el = 0; eh = 0;
+      for (k = kv0; k <= kv1; k++) el += PP[f * W + k];
+      for (k = kh0; k <= kh1; k++) eh += PP[f * W + k];
+      if (el >= 2 * eh) vo.push(f);   /* واک‌دار: انرژی ۱۰۰–۹۰۰Hz دست‌کم دو برابر ۲–۸kHz */
+    }
+    if (vo.length < 12) return null;
+    bm = new Float64Array(nb); avg = new Float64Array(W);
+    for (j = 0; j < vo.length; j++) {
+      f = vo[j];
+      for (i = 0; i < nb; i++) { e = 0; for (k = kl[i]; k < kh[i]; k++) e += PP[f * W + k]; bm[i] += e; }
+      for (k = 0; k <= H; k++) avg[k] += PP[f * W + k];
+    }
+    for (i = 0; i < nb; i++) bm[i] = 10 * Math.log10(bm[i] / vo.length + 1e-20);
+    for (i = 0; i < MN_NM; i++) ref += bm[i];
+    ref /= MN_NM;
+    for (i = 0; i < nb; i++) rel.push(bm[i] - ref);   /* شکل طیف نسبی (dB) — مستقل از بلندی */
+    for (k = bin(150); k <= bin(5000); k++) { sw += avg[k]; sc += avg[k] * k * sr / N; }
+    cen = sc / (sw + 1e-20);
+    for (i = 0; i < MN_NM; i++) { c = cc[i]; tx += c; ty += rel[i]; txx += c * c; txy += c * rel[i]; }
+    tilt = (MN_NM * txy - tx * ty) / (MN_NM * txx - tx * tx);   /* شیب طیف ۱۵۰–۶۵۰۰Hz (dB/اکتاو) */
+    if (sr >= 40000) { a = 0; e = 0; for (k = bin(11000); k <= bin(16000); k++) a += avg[k]; for (k = bin(2000); k <= bin(5000); k++) e += avg[k]; air = 10 * Math.log10((a + 1e-20) / (e + 1e-20)); }
+    return { rel: rel, cen: cen, tilt: tilt, air: air, f0: mnF0(x, sr), nv: vo.length, na: na, sec: x.length / sr };
+  }
+  function mnSpread(F){
+    var nb, bs = [], b, rms = function(a){ return a.length ? Math.sqrt(cbMean(a.map(function(v){ return v * v; }))) : NaN; };
+    F = F.filter(Boolean);
+    if (F.length < 2) return null;
+    nb = F[0].rel.length;
+    for (b = 0; b < nb; b++) bs.push(cbSd(F.map(function(o){ return o.rel[b]; })));
+    return { n: F.length, lt: rms(bs.slice(0, MN_NM)), hf: rms(bs.slice(MN_NM)), bs: bs, cen: cbSd(F.map(function(o){ return o.cen; })), tilt: cbSd(F.map(function(o){ return o.tilt; })), f0: cbSd(F.map(function(o){ return o.f0 > 0 ? 12 * Math.log(o.f0) / Math.LN2 : NaN; })), air: cbMean(F.map(function(o){ return o.air; })), sr: F[0].sr };
+  }
+  window.mnColor = async function(){
+    var ta = $('#hsRepText'), bx = $('#hsRepBox'), L = [], t0 = performance.now(), id = '', cur, stored, tempo, fxp, S, ph, st, R = {}, i, one, run, put, prog, wait, r1 = function(v, k){ return isFinite(v) ? String(Math.round(v * (k || 10)) / (k || 10)) : '—'; }, rep20, rep55, x20, xc, xn, dd, sdd, ok;
+    wait = function(ms){ return new Promise(function(z){ setTimeout(z, ms); }); };
+    put = function(s){ L.push(s); try { if (ta) { ta.value = L.join('\n'); ta.scrollTop = ta.scrollHeight; } } catch (e) {} };
+    prog = function(s){ try { if (ta) { ta.value = L.join('\n') + '\n' + s; ta.scrollTop = ta.scrollHeight; } } catch (e) {} };
+    if (bx) bx.hidden = false;
+    if (!NP || !npOK) { put('آزمون رنگ صدا: موتور بومی در دسترس نیست (فقط روی APK).'); return; }
+    if (playing) { put('آزمون رنگ صدا: ابتدا پخش را متوقف کنید.'); return; }
+    for (i = 0; nsBusy && i < 120; i++) { prog('منتظر پایان اندازه‌گیری ناظر نویز…'); await wait(500); }
+    cur = currentVoice(); id = cur && /mana/i.test(cur.id) ? cur.id : '';
+    if (!id) { stored = await ensurePiper().then(function(o){ return o ? PiperTTS.stored() : []; }).catch(function(){ return []; }); id = (stored || []).filter(function(k){ return /mana/i.test(k); })[0] || ''; }
+    if (!id) { put('آزمون رنگ صدا: صدای مانا دانلود نشده است.'); return; }
+    tempo = VOICE_TEMPOS[id] || VOICE_TEMPO; fxp = $('#enh').checked ? fxProf(id) : null; st = styleParams(id); ph = mphOn();
+    S = [0, 1, 3, 4, 5, 8].map(function(k){ return CB_S[k]; });
+    one = async function(text, ns, nw, raw, phon, k, probe){
+      var sp = Math.min(1.5, paceSpeed(text) * tempo * (1 + 0.002 * (k || 0))), o, rr, xx, ft;
+      o = raw ? { id: id, text: text, noiseScale: ns, noiseScaleW: nw, clean: 0, nd: 'off', manaPh: phon, clarity: 0, pause: 0, keep: false, master: false, probe: false, pz: false, hd: false, fxPk: 0, fxHs: 0, fxLp: 20000, speed: sp, gap: PART_GAP }
+              : { id: id, text: text, noiseScale: ns, noiseScaleW: nw, clean: cleanLevel(id), nd: ndMdl(), manaPh: phon, clarity: clarityLevel(), pause: pauseLevel(), keep: false, master: !!fxp, probe: !!probe, eq: (npPlay && window.EQM && EQM.on()) ? EQM.payload() : undefined, hd: !!(window.EQM && EQM.hd && EQM.hd(id)), hdAmt: window.EQM && EQM.hdAmt ? EQM.hdAmt() : 65, fxPk: fxp ? fxp.pk : 0, fxHs: fxp ? fxp.hs : 0, fxLp: fxp ? fxp.lp : 20000, pz: svOn('svPz'), speed: sp, gap: PART_GAP };
+      rr = await NP.synthesize(o);
+      if (!rr || !rr.wav) throw new Error('خروجی wav برنگشت');
+      xx = cbPcm(rr.wav); ft = mnFeat(xx, rr.sampleRate || 22050);
+      if (ft) { ft.sr = rr.sampleRate || 22050; ft.sig = xx.length + ':' + Math.round(xx[xx.length >> 1] * 1e6) + ':' + Math.round(xx[(xx.length / 3) | 0] * 1e6); ft.dsp = rr.dsp || null; }
+      return ft;
+    };
+    run = async function(key, label, items){
+      var F = [], j, ft, sg = {}, same;
+      for (j = 0; j < items.length; j++) {
+        prog('… ' + label + ' ' + (j + 1) + '/' + items.length);
+        try { ft = await one.apply(null, items[j]); if (ft) { F.push(ft); sg[ft.sig] = 1; } else put('  ' + key + ': نمونه فریم واک‌دار کافی نداشت و کنار گذاشته شد'); } catch (e) { put('  ' + key + ': خطا ' + String((e && e.message) || e).slice(0, 100)); }
+        await wait(20);
+      }
+      same = F.length > 1 && Object.keys(sg).length === 1;
+      R[key] = { F: F, sp: mnSpread(F), same: same, label: label };
+      return R[key];
+    };
+    put('[آزمون رنگ صدا] ' + APP_BUILD + (npBuild ? ' / ' + npBuild : '') + ' — صدا=' + id);
+    put('تنظیمات: ns/nw فعلی=' + st.join('/') + ' | حالت نویز=' + sget('nzMode', 'auto') + ' | پاک‌سازی=' + cleanLevel(id) + ' | مدل=' + ndMdl() + ' | شفافیت=' + clarityLevel() + ' | مکث=' + pauseLevel() + ' | HD=' + ((window.EQM && EQM.hd && EQM.hd(id)) ? EQM.hdAmt() : 0) + ' | EQ=' + (window.EQM && EQM.on() ? 1 : 0) + ' | افزایش کیفیت=' + (fxp ? 1 : 0) + ' | واج‌آرایی=' + (ph ? 1 : 0) + ' | سرعت=' + paceSpeed(S[0]));
+    try {
+      await run('REP20', 'تکرار یک جمله، خام، ns≈0.20', [0, 1, 2, 3].map(function(k){ return [S[0], Math.round((0.2 + 0.01 * k) * 100) / 100, 0.01, true, ph, k]; }));
+      await run('REP55', 'تکرار یک جمله، خام، ns≈0.55', [0, 1, 2, 3].map(function(k){ return [S[0], Math.round((0.55 + 0.01 * k) * 100) / 100, 0.01, true, ph, k]; }));
+      await run('X20', 'جمله‌های مختلف، خام، ns=0.20', S.map(function(t){ return [t, 0.2, 0.01, true, ph, 0]; }));
+      await run('XCUR', 'جمله‌های مختلف، تنظیمات فعلی', S.map(function(t){ return [t, st[0], st[1], false, ph, 0, true]; }));
+      if (ph) await run('XNOPH', 'جمله‌های مختلف، خام، بدون واج‌آرایی مانا', S.map(function(t){ return [t, 0.2, 0.01, true, false, 0]; }));
+    } catch (e) { put('خطای آزمون: ' + String((e && e.message) || e).slice(0, 160)); }
+    put('— σ میان نمونه‌ها، فقط فریم‌های واک‌دار؛ رنگ-σ = ریشهٔ میانگین مربع σ شکل طیف ۷ باند ۱۵۰–۶۵۰۰Hz (dB)؛ هیس-σ همان برای ۶۵۰۰–۱۰۵۰۰Hz؛ زیر ≈۱dB تقریباً ناشنیدنی، بالای ≈۲dB واضح —');
+    [['REP20', 'تکرار ns0.20'], ['REP55', 'تکرار ns0.55'], ['X20', 'جمله‌ها خام ns0.20'], ['XCUR', 'جمله‌ها تنظیمات فعلی'], ['XNOPH', 'جمله‌ها خام بدون واج‌آرایی']].forEach(function(q){
+      var o = R[q[0]], s;
+      if (!o) return;
+      s = o.sp;
+      if (!s) { put(q[1] + ': داده کافی نیست (n=' + o.F.length + ')'); return; }
+      put(q[1] + ': رنگ-σ=' + r1(s.lt) + 'dB | هیس-σ=' + r1(s.hf) + 'dB | مرکز-σ=' + r1(s.cen, 1) + 'Hz | شیب-σ=' + r1(s.tilt, 100) + 'dB/oct | F0-σ=' + r1(s.f0, 100) + 'st | n=' + s.n + ' sr=' + s.sr + (isFinite(s.air) ? ' | air=' + r1(s.air) + 'dB' : '') + (o.same ? ' | ⚠ نمونه‌ها عیناً یکسان' : ''));
+      if (q[0] === 'REP20' || q[0] === 'X20' || q[0] === 'XCUR') put('   σ باندها: ' + s.bs.map(function(v, k){ return MN_E[k] + '-' + MN_E[k + 1] + ':' + r1(v); }).join(' '));
+      if (q[0] === 'X20' || q[0] === 'XCUR') put('   هر جمله — شیب: ' + o.F.map(function(f){ return r1(f.tilt, 100); }).join(' ') + ' | مرکز: ' + o.F.map(function(f){ return r1(f.cen, 1); }).join(' ') + ' | طول(ث): ' + o.F.map(function(f){ return r1(f.sec); }).join(' '));
+    });
+    rep20 = R.REP20 && R.REP20.sp; rep55 = R.REP55 && R.REP55.sp; x20 = R.X20 && R.X20.sp; xc = R.XCUR && R.XCUR.sp; xn = R.XNOPH && R.XNOPH.sp;
+    put('— برداشت (راهنما، نه قطعی) —');
+    if (R.REP20 && R.REP20.same && R.REP55 && R.REP55.same) put('• نمونه‌های تکراری عیناً یکسان‌اند: کش بومی یا نادیده‌گرفتن noise_scale؛ این آزمون برای نمونه‌برداری قطعی نیست.');
+    else if (rep20 && rep55) {
+      dd = rep55.lt / Math.max(rep20.lt, 0.05);
+      put('• اثر noise_scale: ۰٫۲۰ ← ۰٫۵۵ رنگ-σ تکرار ' + r1(rep20.lt) + ' ← ' + r1(rep55.lt) + ' dB (×' + r1(dd) + ')؛ ' + (dd >= 1.5 ? 'مقدار به مدل می‌رسد.' : 'تقریباً اثری ندارد ⇒ احتمالاً بومی مقدار را نادیده می‌گیرد یا کف/ثابت‌سازی دارد.'));
+      put('• نمونه‌برداری تنها در ns≈۰٫۲۰: ' + r1(rep20.lt) + ' dB ⇒ ' + (rep20.lt >= 1 ? 'هنوز شنیدنی است؛ کف بومی noise_scale را پایین‌تر ببرید یا چند جمله را در یک گذر بسازید.' : 'علت اصلی نیست.'));
+    }
+    if (x20 && rep20) put('• میان جمله‌ها (خام) ' + r1(x20.lt) + ' dB در برابر تکرار ' + r1(rep20.lt) + ' dB ⇒ ' + (x20.lt > 1.5 * rep20.lt + 0.3 ? 'بخش اصلی تفاوت قطعی و وابسته به متن/آوا است (خودِ مدل/واج‌آرایی/طول جمله).' : 'بخش اصلی تصادفی است.'));
+    if (x20 && xc) put('• زنجیرهٔ پردازش: ' + r1(x20.lt) + ' ← ' + r1(xc.lt) + ' dB ⇒ ' + (xc.lt - x20.lt > 0.5 ? 'پردازش پس از ساخت (حذف نویز/شفافیت/HD/EQ/مکث) ناهمگونی رنگ می‌افزاید.' : xc.lt - x20.lt < -0.5 ? 'پردازش رنگ را یکدست‌تر می‌کند.' : 'پردازش اثر محسوسی ندارد.'));
+    if (x20 && xn) put('• واج‌آرایی مانا: روشن ' + r1(x20.lt) + ' ، خاموش ' + r1(xn.lt) + ' dB ⇒ ' + (Math.abs(xn.lt - x20.lt) > 0.5 ? (xn.lt < x20.lt ? 'واج‌آرایی اختصاصی تغییر رنگ را بیشتر می‌کند.' : 'واج‌آرایی اختصاصی تغییر رنگ را کمتر می‌کند.') : 'اثر محسوسی ندارد.'));
+    try {
+      ok = R.XCUR ? R.XCUR.F.filter(function(o){ return o.dsp && o.dsp.raw && o.dsp.out && isFinite(o.dsp.raw.hf) && isFinite(o.dsp.out.hf); }) : [];
+      if (ok.length >= 3) { dd = ok.map(function(o){ return o.dsp.out.hf - o.dsp.raw.hf; }); sdd = cbSd(dd); put('• انرژی بالای ۴kHz (خام→خروجی) تغییر هر جمله: میانگین ' + r1(cbMean(dd)) + ' dB، σ=' + r1(sdd) + ' dB ⇒ ' + (sdd >= 1 ? 'پردازش هر جمله را متفاوت روشن/تیره می‌کند.' : 'پردازش یکنواخت است.')); }
+    } catch (e) {}
+    if (x20 && x20.f0 >= 1.5) put('• F0 میان جمله‌ها (خام) σ=' + r1(x20.f0, 100) + ' نیم‌پرده ⇒ گام صدا می‌پرد (رنگ نیست، ثبت صدا/زیر و بمی است).');
+    put('مدت آزمون: ' + Math.round((performance.now() - t0) / 1000) + ' ثانیه');
+    window.__mnColor = { voice: id, build: APP_BUILD, lines: L.slice() };
+    try { if (window.__elog) window.__elog.add('color', 'آزمون رنگ صدا ' + id + ': ' + L.filter(function(l){ return /^•/.test(l); }).join(' ').slice(0, 1300)); } catch (e) {}
+    try { console.log(L.join('\n')); } catch (e) {}
+    return window.__mnColor;
   };
   /* ---------- PDF library (IndexedDB) ---------- */
   function kvDelMany(keys){ return kvDelMany0(keys).then(function(n){ opfsDel(keys); return n; }); }
