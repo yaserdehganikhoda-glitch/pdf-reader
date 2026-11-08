@@ -3048,6 +3048,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       if (X && X.diag && typeof X.diag.nd === 'string') {   /* r17: وضعیت حذف‌نویز عصبی (idle = هنوز با سطح ۲/۳ ساخته نشده؛ بدون مورد) */
         var ndS = X.diag.nd;
         if (/^ok/.test(ndS)) add('o', B, 'حذف‌نویز عصبی (DPDFNet) فعال است', ndS);
+        else if (/^off:[^:]*: ?کند/.test(ndS)) add('i', B, 'حذف‌نویز عصبی برای سرعت این دستگاه کنار گذاشته شد', ndS.slice(4), 'مدل روی این گوشی کندتر از زمان واقعی است؛ فقط فیلتر کلاسیک اجرا می‌شود و نیازی به اقدام نیست.');
         else if (/^off/.test(ndS)) add('w', B, 'حذف‌نویز عصبی کار نکرد', ndS.slice(4), 'فقط فیلتر کلاسیک اجرا می‌شود؛ این متن را برای رفع خطا بفرستید.');
         else if (ndS === 'no-model') add('w', B, 'مدل حذف‌نویز عصبی داخل برنامه نیست', '', 'فایل assets/denoise/dpdfnet_baseline.onnx داخل APK نیست؛ بیلد را دوباره بگیرید. فعلاً فقط فیلتر کلاسیک اجرا می‌شود.');
       }
@@ -3760,7 +3761,7 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
   /* ===== جداکردن «می» و «نمی» از فعل با نیم‌فاصله: میکنم ← می‌کنم، نمیدانم ← نمی‌دانم ===== */
   var miFix = (function(){
     var Z = '\u200c', NB = '(?<![\\p{L}\u200c])', NE = '(?![\\p{L}\u200c])',
-        PRES = 'شو|کن|ده|رو|آی|ای|گو|بین|خور|گیر|توان|دان|خواه|باش|دار|نویس|خوان|مان|آور|اور|بر|ساز|یاب|پذیر|ریز|کش|زن|گذار|شناس|فرست|رس|خواب|نشین|پرس|فهم|آموز|گرد|ایست|انداز|افت|افزا|افروز|آفرین|آمیز|آزما|اندیش|کوش|شنو|پرداز|پندار|شمار|خند|پز|پوش|بخش|بند|تاز|تراش|ترس|چین|چسب|خر|خیز|دو|دوز|رقص|رنج|سپار|سوز|شکن|شکف|فروش|فرما|فشار|کار|کوب|گذر|گزین|گشا|گمار|نمای|نواز|پسند|پیچ|پیما|پیوند|بخش|بیز|جو|جنگ|چرخ|خوش|دز|دم|رنج|زی|ستان|سنج|شو|شکن|لرز|مال|مان|نگار|نگر|نشان|هراس|یاب|یاور|بار|بافت?|گریز|چش|ستیز|سرای|جوش|درخش|ربا|نال|فریب|آرای',
+        PRES = 'شو|کن|ده|رو|آی|ای|گو|بین|خور|گیر|توان|دان|خواه|باش|دار|نویس|خوان|مان|آور|اور|بر|ساز|یاب|پذیر|ریز|کش|زن|گذار|شناس|فرست|رس|خواب|نشین|پرس|فهم|آموز|گرد|ایست|انداز|افت|افزا|افروز|آفرین|آمیز|آزما|اندیش|کوش|شنو|پرداز|پندار|شمار|خند|پز|پوش|بخش|بند|تاز|تراش|ترس|چین|چسب|خر|خیز|دو|دوز|رقص|رنج|سپار|سوز|شکن|شکف|فروش|فرما|فشار|کار|کوب|گذر|گزین|گشا|گمار|نمای|نواز|پسند|پیچ|پیما|پیوند|بخش|بیز|جو|جنگ|چرخ|خوش|دز|دم|رنج|زی|ستان|سنج|شو|شکن|لرز|مال|مان|نگار|نگر|نشان|هراس|یاب|یاور|بار|بافت?|گریز|چش|ستیز|سرای|جوش|درخش|ربا|نال|فریب|آرای|نام|ارز|کاه|ورز|رسان|پرور|افکن',
         PAST = 'کرد|گفت|رفت|شد|داد|دید|خواست|آمد|برد|خورد|گرفت|بود|داشت|ماند|نوشت|خواند|توانست|دانست|آورد|ساخت|زد|رسید|پرسید|شنید|فهمید|گذاشت|کشید|ریخت|نشست|افتاد|یافت|ایستاد|انداخت|پرداخت|پنداشت|شمرد|خندید|پوشید|پخت|فروخت|گشت|دوید|ترسید|کوشید|پذیرفت|شناخت|فرستاد|خوابید|خرید|چید|دوخت|سوخت|شکست|شکفت|بخشید|بست|جست|رقصید|ماسید|نمود|نماید|فرمود|گذشت|گزید|گمارد|گمارید|یاوید|سپرد|بافت|توان|بایست|شایست|بایستی|گریخت|چشید|ستیزید|سرود|جوشید|درخشید|ربود|نالید|فریفت|آراست|ستود|گشود|گسست|نگریست|تپید|لغزید|لرزید|تابید|گسیخت';
     var R = new RegExp(NB + '(ن?می)[ ]?(?!(?:دانی|چشم)' + NE + ')(?=(?:' + PRES + ')(?:م|ی|یم|ید|ند|یند|د)' + NE + '|(?:' + PAST + ')(?:م|ی|یم|ید|ند|ه(?:\u200c?(?:ام|ای|ایم|اید|اند))?)?' + NE + ')', 'gu');   /* r173: «می کرده است» ← «می‌کرده است» (گزارش دستگاه: «می␠فعل» جدا) */
     var f = function(t){ return t.replace(R, '$1' + Z); };
@@ -3914,8 +3915,32 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
         R5c = new RegExp('(' + AL + ')(?=[A-Za-z])', 'gu'),
         R5d = new RegExp('([A-Za-z])(?=(?:ها|های|هایی|ی|ای)' + NE + ')', 'gu'),
         R5e = new RegExp('([A-Za-z])(?=' + AL + ')', 'gu');
+    var EX_PS = null;
+    function exLig(w){   /* r206: «لا» که در استخراج به «ال» برگشته (الزم ← لازم، تحوالت ← تحولات)؛ فقط وقتی دقیقاً یک شکل در فرهنگ‌واژه باشد */
+      var ix = [], i = -1, k, c, o = null, j, s;
+      while ((i = w.indexOf('ال', i + 1)) >= 0 && ix.length < 3) ix.push(i);
+      for (k = 1; k < (1 << ix.length); k++) {
+        c = ''; s = 0;
+        for (j = 0; j < ix.length; j++) if (k & (1 << j)) { c += w.slice(s, ix[j]) + 'لا'; s = ix[j] + 2; }
+        c += w.slice(s);
+        if (ocrSpell.has(c)) { if (o && o !== c) return null; o = c; }
+      }
+      return o;
+    }
+    function exFix(t){   /* r206 (استخراج واژهٔ درست): ۱) «مسئل‌های» ← «مسئله‌ای» (نیم‌فاصله و «ه» جابه‌جا) ۲) «تازهای» ← «تازه‌ای» ۳) «صادقاند» ← «صادق‌اند» ۴) «ال‌هام»/«الزم»/«تحوالت» ← «الهام»/«لازم»/«تحولات»؛ همه فقط با تأیید فرهنگ‌واژه و بر واژهٔ ناشناخته */
+      if (typeof t !== 'string' || !/ال|های|اند/.test(t)) return t;
+      try {
+        if (!EX_PS) EX_PS = new Set(miFix.PRES.split('|'));
+        t = t.replace(/(?<![\p{L}\u200c])(\p{L}{3,})\u200cهای(?![\p{L}\u200c])/gu, function(m, x){ return !KEEP.has(x) && !ocrSpell.known(x) && ocrSpell.has(x + 'ه') ? x + 'ه' + Z + 'ای' : m; })
+          .replace(/(?<![\p{L}\u200c])(\p{L}{2,})های(?![\p{L}\u200c])/gu, function(m, x){ return !KEEP.has(m) && !ocrSpell.has(m) && !ocrSpell.known(x) && ocrSpell.has(x + 'ه') ? x + 'ه' + Z + 'ای' : m; })
+          .replace(/(?<![\p{L}\u200c])(\p{L}{3,})اند(?![\p{L}\u200c])/gu, function(m, x){ return KEEP.has(m) || ocrSpell.has(m) || !ocrSpell.has(x) || EX_PS.has(x) || /[اآو]$/.test(x) ? m : x + Z + 'اند'; })
+          .replace(/(?<![\p{L}\u200c])(\p{L}*ال)\u200c(\p{L}+)(?![\p{L}\u200c])/gu, function(m, x, y){ var j = x + y, c; if (KEEP.has(j) || (x.length > 2 && ocrSpell.known(x))) return m; c = exLig(j); if (c) return c; return ocrSpell.has(j) ? j : m; })
+          .replace(/(?<![\p{L}\u200c])\p{L}{4,}(?![\p{L}\u200c])/gu, function(w){ return w.indexOf('ال') < 0 || KEEP.has(w) || ocrSpell.known(w) ? w : (exLig(w) || w); });
+      } catch (e) {}
+      return t;
+    }
     return function(t){
-      t = miFix(glueLex(t)).replace(RB, function(m, v, w){ return (v ? 'و ' : '') + BM[w]; })
+      t = miFix(glueLex(exFix(t))).replace(RB, function(m, v, w){ return (v ? 'و ' : '') + BM[w]; })
         .replace(RH, '$1 حالی که').replace(RA, '$1 که').replace(RQ, '$1 $2')
         .replace(R1, function(m, a, b, c){ return KEEP.has(m) ? m : a + ' ' + b + (c ? ' ' + c : ''); })
         .replace(RK, '$1 $2').replace(RV, 'و $1').replace(RP, '$1 $2')
@@ -9615,7 +9640,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r203 · 2026-11-07 · spell-v3 · errbox-v1 · mncolor-v1 · hsfb-v1 · col-v1 · bnd-v1', npBuild = '';
+  var APP_BUILD = 'html-r206 · 2026-11-08 · spell-v3 · errbox-v1 · mncolor-v1 · hsfb-v1 · col-v1 · bnd-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10201,13 +10226,13 @@ function hsPcmWhy(q){
 }
 function svNz(id, c, q){   /* r144: کف نویز زنده (بومی، همان تعریف nsMetrics) در برابر مقدار کالیبره؛ انحراف ≥ ۶ dB (۱ واحد جریمه، آستانهٔ آزمایشی) ⇒ اندازه‌گیری دوباره؛ اگر باز هم ماند ⇒ جبران نظام‌مند */
   var a, s, m, o, d, kk, t = Date.now();
-  if (!q || !isFinite(q.fl) || !hsOn() || !nsAuto()) return;   /* r158: کالیبراسیون فقط برای حالت خودکار است (سطح دستی ≠ سطح کالیبره) */
+  if (!q || !isFinite(q.fl) || q.fl < -60 || !hsOn() || !nsAuto()) return;   /* r158: کالیبراسیون فقط برای حالت خودکار است (سطح دستی ≠ سطح کالیبره) · r204: کف < −۶۰ dB یعنی فریم مردهٔ مکث/گیت (کفِ RM) است، نه نویز؛ نمونه نمی‌شود */
   kk = nsKey(id); if (HS.nk[id] !== kk) { HS.nk[id] = kk; HS.nl[id] = []; delete HS.nm[id]; }   /* تاریخچهٔ زنده فقط برای همان تنظیمات کالیبراسیون (سبک/افزایش کیفیت/شفافیت/مکث) */
   a = HS.nl[id] || (HS.nl[id] = []); a.push(q.fl); if (a.length > 15) a.shift();
   if (a.length < 8) return;
   s = a.slice().sort(function(p, r){ return p - r; }); m = (s[(s.length - 1) >> 1] + s[s.length >> 1]) / 2; HS.nm[id] = m;
   try { o = nsGet(nsKey(id)); } catch (e) { o = null; }
-  if (!o || !isFinite(o.fl)) return;
+  if (!o || !isFinite(o.fl) || o.np) return;   /* r204: کالیبراسیون بدون سکوت مرجع (np=1) عدد نویز نیست؛ مقایسه معنا ندارد */
   d = m - o.fl;
   d -= o.off || 0;   /* انحراف نظام‌مند شناخته‌شدهٔ زنده در برابر کالیبراسیون */
   if (Math.abs(d) >= 6 && t - (HS.nT[id] || 0) > 600000) {
