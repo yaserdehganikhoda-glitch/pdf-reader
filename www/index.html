@@ -9640,7 +9640,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r206 · 2026-11-08 · spell-v3 · errbox-v1 · mncolor-v1 · hsfb-v1 · col-v1 · bnd-v1', npBuild = '';
+  var APP_BUILD = 'html-r207 · 2026-11-08 · spell-v3 · errbox-v1 · mncolor-v1 · hsfb-v1 · col-v1 · bnd-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -14180,7 +14180,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
 
 
   /* ---------- صفحهٔ اصلی: همه فایل‌ها / مورد علاقه / موارد اخیر ---------- */
-  var hTab = sget('hTab', 'all'), hScan = [], hAccess = false, hDecl = true, hScanOK = false, hBusy = false, hLimit = 150, pathOf = {};
+  var hTab = sget('hTab', 'all'), hScan = [], hAccess = false, hLim = false, hDecl = true, hScanOK = false, hBusy = false, hLimit = 150, pathOf = {};
   var hFolder = '', hQ = '', hPendFold = '', hLay = sget('hLay', 'grid') === 'list' ? 'list' : 'grid';
   var HSORT0 = { all: { k: 'date', d: 'desc' }, fav: { k: 'date', d: 'desc' }, rec: { k: 'time', d: 'desc' } };
   var HTITLE = { all: 'همه فایل‌ها', fav: 'مورد علاقه', rec: 'موارد اخیر' };
@@ -14597,9 +14597,9 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
       $('#hNewF').hidden = !(hasAny && hTab === 'all' && !fo);
       $('#homeAdd').hidden = hTab !== 'all';
       var hdn = hJ('hHidden').length, hrb = $('#homeRestore'); hrb.hidden = !(hdn && hTab === 'all' && !fo); hrb.textContent = 'نمایش دوبارهٔ ' + nf.format(hdn) + ' فایل حذف‌شده از فهرست';
-      $('#homePerm').hidden = !(onNative && NP && NP.listPdfs && hTab === 'all' && hScanOK && !hAccess);
-      $('#homePermT').textContent = hDecl ? 'برای نمایش خودکار همهٔ PDFهای دستگاه، دسترسی به فایل‌ها را فعال کنید.' : 'این نسخهٔ برنامه مجوز دسترسی به فایل‌های دستگاه را ندارد، برای همین فهرست خودکار کار نمی‌کند. با «افزودن فایل PDF» می‌توانید فایل‌ها را دستی اضافه کنید.';
-      $('#homePermB').hidden = !hDecl;
+      $('#homePerm').hidden = !(onNative && NP && NP.listPdfs && hTab === 'all' && hScanOK && (!hAccess || hLim));   /* r207: hLim = Android 10 بدون دسترسی legacy */
+      $('#homePermT').textContent = hLim ? 'در Android 10 سیستم اجازهٔ دیدن همهٔ PDFها را به برنامه نمی‌دهد و فهرست خودکار خالی است. با «افزودن فایل PDF» فایل‌ها را دستی اضافه کنید.' : hDecl ? 'برای نمایش خودکار همهٔ PDFهای دستگاه، دسترسی به فایل‌ها را فعال کنید.' : 'این نسخهٔ برنامه مجوز دسترسی به فایل‌های دستگاه را ندارد، برای همین فهرست خودکار کار نمی‌کند. با «افزودن فایل PDF» می‌توانید فایل‌ها را دستی اضافه کنید.';
+      $('#homePermB').hidden = !hDecl || hLim;
       box.classList.toggle('grid', hLay === 'grid');
       thReset(); box.textContent = ''; box.classList.remove('isempty');
       if (fo) box.appendChild(hBtn('btn hback', '→ بازگشت به همه فایل‌ها', 'بازگشت به همه فایل‌ها', hFolderUp));
@@ -14640,8 +14640,8 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
       if (!ok || !NP.listPdfs) throw new Error('old');
       return NP.listPdfs();
     }).then(function(r){
-      hScan = (r && r.files) || []; hAccess = !!(r && r.access); hDecl = !(r && r.declared === false); hScanOK = true;
-    }).catch(function(){ hScanOK = false; hAccess = false; }).then(function(){ hBusy = false; hRefSpin(false); return hRender(); });
+      hScan = (r && r.files) || []; hAccess = !!(r && r.access); hLim = !!(r && r.limited); hDecl = !(r && r.declared === false); hScanOK = true;
+    }).catch(function(){ hScanOK = false; hAccess = false; hLim = false; }).then(function(){ hBusy = false; hRefSpin(false); return hRender(); });
   }
   function showHome(){
     closeTools(); setAppTab('read'); BK.drop('rd');
