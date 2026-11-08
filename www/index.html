@@ -2957,7 +2957,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
   }
   var DG_GRP = [
     ['موتور و صداها', ['engine', 'engine-fail', 'compat', 'voice-dl', 'model', 'noise', 'noise-live', 'thr']],
-    ['گفتار و پخش', ['tts-synth', 'tts-skip', 'tts-fail', 'tts-play', 'tts-polish', 'tts-stretch', 'watchdog', 'audio-health', 'native-crash', 'bgm', 'pause', 'swk', 'worker', 'read']],
+    ['گفتار و پخش', ['tts-synth', 'tts-skip', 'tts-fail', 'tts-play', 'tts-polish', 'tts-stretch', 'tts-under', 'watchdog', 'audio-health', 'native-crash', 'bgm', 'pause', 'swk', 'worker', 'read']],
     ['متن و تصحیح گفتار', ['txguard', 'text-guard', 'text-fix', 'numdrop', 'txw', 'prefix-join', 'dict', 'font', 'ocr-quality', 'hl-sync', 'ocr', 'ocr-save']],
     ['سامانه', ['error', 'promise', 'storage', 'idb', 'mem', 'exit', 'gov', 'build']]
   ];
@@ -9615,7 +9615,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r202 · 2026-11-07 · spell-v3 · errbox-v1 · mncolor-v1 · hsfb-v1 · col-v1 · bnd-v1', npBuild = '';
+  var APP_BUILD = 'html-r203 · 2026-11-07 · spell-v3 · errbox-v1 · mncolor-v1 · hsfb-v1 · col-v1 · bnd-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10941,15 +10941,19 @@ function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مک
     cn++; lastLen = n.c.text.length; idx = n.c.start; mark(true);
     playNp(n.c, n.url, n.my, true);
   }
+  /* r203: ثبت دلیل هر «گسست پخش» بومی (صف بومی خالی ماند) تا معلوم شود ساخت کند بوده، تکهٔ آماده صف نشده، یا برنامه‌ریزی نشده */
+  function underLog(c0, n, how){
+    try { dgLog('tts-under', how + ': جمله ' + c0.start + '–' + c0.end + ' (' + c0.text.length + ' نویسه، پخش ' + Math.round((Date.now() - wdAt) / 1000) + 'ث) · تکهٔ بعد: ' + (n ? (n.q ? 'در صف بومی' : (n.h ? 'آماده ولی صف‌نشده' : 'در حال ساخت')) : 'برنامه‌ریزی‌نشده') + ' · rtf ' + (+rtf()).toFixed(2) + (document.hidden ? ' · پس‌زمینه' : '')); } catch (e) {}
+  }
   function npEnded(h){
     if (h !== npCur || !npCurC || npMy !== token || !playing) return;
     var n = nxt, c0 = npCurC, my0 = npMy;
     if (n && n.q && n.my === my0 && n.c.start === c0.end + 1) {   /* تکهٔ بعد در صف بومی است: شروعش را صبر کن (از پخش دوباره جلوگیری می‌کند)؛ اگر نیامد، ادامه بده */
-      n.wf = 1; n.go = function(){ if (!n.wf) return; n.wf = 0; if (npCur === h && npMy === token && playing) { dbg.under++; idx = c0.end; gap(my0); } };
+      n.wf = 1; n.go = function(){ if (!n.wf) return; n.wf = 0; if (npCur === h && npMy === token && playing) { dbg.under++; underLog(c0, n, 'شروع تکهٔ صف‌شده نیامد'); idx = c0.end; gap(my0); } };
       setTimeout(n.go, pauseMs(c0.end) + 1500);
       return;
     }
-    dbg.under++;
+    dbg.under++; underLog(npCurC, n, 'صف بومی خالی شد');
     idx = npCurC.end;
     gap(npMy);
   }
