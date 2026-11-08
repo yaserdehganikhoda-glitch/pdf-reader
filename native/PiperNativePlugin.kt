@@ -265,7 +265,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun diag(call: PluginCall) {
-        call.resolve(JSObject().put("underruns", underruns).put("sampleRate", sampleRate).put("sdk", android.os.Build.VERSION.SDK_INT).put("bufMs", bufMs).put("bufGrow", bufGrow).put("stInline", stInline).put("stPre", stPre).put("stMsMax", stMsMax)
+        call.resolve(JSObject().put("underruns", underruns).put("sampleRate", sampleRate).put("sdk", android.os.Build.VERSION.SDK_INT).put("bufMs", bufMs).put("bufGrow", bufGrow).put("stInline", stInline).put("stPre", stPre).put("stMsMax", stMsMax).put("underStart", underStart)
             .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL).put("nd", NeuralDenoise.status(context)).put("ndm", NeuralDenoise.available(context)))
     }
     private val cpu = Executors.newSingleThreadExecutor()    // ساخت صدا (پشت‌سرهم)
@@ -432,7 +432,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r25 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r26 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
     }
 
     @PluginMethod
@@ -1834,6 +1834,7 @@ class PiperNativePlugin : Plugin() {
     @Volatile private var stInline = 0       // r25: شمار کشش‌های هم‌زمان با پخش (مرز تکه)
     @Volatile private var stPre = 0          // r25: شمار کشش‌های پیش‌محاسبه‌شده که استفاده شد
     @Volatile private var stMsMax = 0L       // r25: بیشینهٔ زمان کشش هم‌زمان با پخش (ms)
+    @Volatile private var underStart = 0     // r26: underrunهایی که پیش از شنیده‌شدن اولین نمونهٔ یک نشست پخش رخ دادند (شروع با بافر خالی)
     private val stEx = Executors.newSingleThreadExecutor()               // محاسبهٔ WSOLA برای تغییر سرعت وسط پخش، جدا از رشتهٔ پخش
     private var noisyRx: android.content.BroadcastReceiver? = null
     private fun effRate(r: Float): Float = if (Math.abs(r - 1f) < 0.004f) 1f else r
@@ -1996,7 +1997,7 @@ class PiperNativePlugin : Plugin() {
             synchronized(plLock) { if (gen == plGen) plTrack = t }
             if (afDuck) try { t.setVolume(0.3f) } catch (e: Throwable) {}
             if (gen != plGen) return
-            t.play()
+            var needPlay = true   // r26 (P08-04): play() پس از آماده‌شدن اولین بافر (کشش WSOLA) صدا زده می‌شود؛ شروع با بافر خالی underrun کاذب می‌ساخت و بافر را بی‌دلیل بزرگ می‌کرد
             var base = t.playbackHeadPosition
             var written = 0L
             var lastU = 0
@@ -2033,6 +2034,7 @@ class PiperNativePlugin : Plugin() {
             var item = first
             while (true) {
                 cur = item
+                if (needPlay && item.gapMs > 0) { try { t.play() } catch (e: Throwable) {}; needPlay = false }   // سکوت مکث باید روی ترکِ در حال پخش نوشته شود
                 var g = item.gapMs.toLong() * sr / 1000L
                 while (g > 0) {   // سکوت میان تکه‌ها (مکث جمله/بند)
                     if (gen != plGen) return
@@ -2055,6 +2057,7 @@ class PiperNativePlugin : Plugin() {
                 val tS = android.os.SystemClock.elapsedRealtime()
                 var out: ShortArray = preOut ?: Stretch.run(src, srcBase, rate, sr)
                 if (rate != 1f) { if (preOut != null) stPre++ else { stInline++; val dtS = android.os.SystemClock.elapsedRealtime() - tS; if (dtS > stMsMax) stMsMax = dtS } }
+                if (needPlay) { try { t.play() } catch (e: Throwable) {}; needPlay = false; hpAt = android.os.SystemClock.elapsedRealtime() }
                 var pos = 0
                 hpAt = android.os.SystemClock.elapsedRealtime()   // r24: زمان محاسبهٔ WSOLA جزو «بی‌حرکتی» نیست
                 var lastMode = 0L
@@ -2112,7 +2115,7 @@ class PiperNativePlugin : Plugin() {
                     pos += w; written += w
                     if (w > 0) cks.addLast(Ck(written, item.h, Math.min(1.0, (srcBase + pos * rate.toDouble()) / Math.max(1, src.size))))
                     if (pump(false)) {
-                        if (android.os.Build.VERSION.SDK_INT >= 24) { val u = t.underrunCount; if (u > lastU) { underruns += u - lastU; lastU = u; growBuf(t, sr) } }
+                        if (android.os.Build.VERSION.SDK_INT >= 24) { val u = t.underrunCount; if (u > lastU) { if (heardH == 0) underStart += u - lastU; underruns += u - lastU; lastU = u; growBuf(t, sr) } }
                     }
                 }
                 pend?.cancel(true)
