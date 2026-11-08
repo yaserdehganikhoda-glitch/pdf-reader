@@ -103,9 +103,6 @@ if [ "$NEED_PHON" = 1 ]; then
   mkdir -p android/app/src/main/java/com/pdfvoice/phon android/app/src/main/assets
   cp "$HERE/Phonemizer.java" android/app/src/main/java/com/pdfvoice/phon/Phonemizer.java
   OFFLINE_CACHE="$CACHE" bash "$HERE/build-phonemizer.sh" android/app/src/main/jniLibs android/app/src/main/assets
-  # r187: واج‌آرایی اختصاصی مانا (کسرهٔ اضافه با ALBERT/ONNX): کد کاتلین + دادهٔ مدل که هنگام بیلد دانلود می‌شود (≈ ۴۰ مگابایت به APK اضافه می‌کند)
-  cp "$HERE/ManaPhon.kt" android/app/src/main/java/com/pdfvoice/phon/ManaPhon.kt
-  OFFLINE_CACHE="$CACHE" bash "$HERE/build-mana-phon.sh" android/app/src/main/assets || echo "WARN: build-mana-phon.sh ناموفق؛ مانا بدون لایهٔ اختصاصی کار می‌کند"
   for abi in arm64-v8a armeabi-v7a; do
     for so in libpiper_phonemize_core.so libpiperphon_jni.so libsherpa-onnx-jni.so libonnxruntime.so; do
       [ -s "android/app/src/main/jniLibs/$abi/$so" ] || { echo "ERROR: $abi/$so در jniLibs نیست"; exit 1; }

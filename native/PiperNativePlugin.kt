@@ -45,7 +45,6 @@ import java.nio.ByteOrder
 import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.Executors
-import com.pdfvoice.phon.ManaPhon
 import com.pdfvoice.phon.Phonemizer
 
 /**
@@ -57,8 +56,6 @@ import com.pdfvoice.phon.Phonemizer
  * پوشهٔ دلخواه کاربر: pickFolder, folder, exportVoices({ids?}), importVoices({ids?, overwrite?})
  * رویداد: "progress" {loaded, total}
  * r17: clean=۲ ← حذف‌نویز عصبی DPDFNet ۸۵٪ + کلاسیک، clean=۳ ← عصبی ۱۰۰٪ + کلاسیک (مدل: assets/denoise/dpdfnet_baseline.onnx؛ وضعیت: diag().nd)
- * r23 (EQ پویای ناظر رنگ): synthesize({..., cbT?: [۷ عدد]}) → اگر cbT (میانهٔ شکل طیف ۷ باند، ۱۵ تکهٔ اخیر از سمت JS) برسد، هر باند با انحراف بیش از ۰٫۵dB با پیک ملایم (حداکثر ±۳dB) اصلاح می‌شود (به‌جای شلف شیب)؛ hs.bd شکل ۷ باند و hs.bg گین‌ها؛ ColorSv.shape/slope و MasterFx.bandEq
- * r19 (ناظر رنگ): synthesize({..., col?: Boolean, clT?: dB/oct}) → شیب طیف واک‌دار تکه (hs.ct) را می‌سنجد؛ اگر clT (میانهٔ ۱۵ تکهٔ اخیر از سمت JS) برسد و انحراف > ۰٫۳ dB/oct باشد، شلف بالای ملایم (حداکثر ±۲٫۵ dB، hs.cg) رنگ را به میانه نزدیک می‌کند؛ ColorSv و MasterFx.tiltShelf
  * کیفیت صدا: synthesize({..., clean?: 0..3, clarity?: 0..3}) → حذف نویز و ارتقای شفافیت/رسایی؛ ۰ خاموش، ۲ متعادل (پیش‌فرض)؛ جزئیات در SpeechClean (انتهای فایل)
  * مسترینگ: synthesize({..., master?: Boolean, fxPk?: dB, fxHs?: dB, fxLp?: Hz}) → EQ + کمپرسور + لیمیتر روی خروجی نهایی؛ جزئیات در MasterFx
  * اکولایزر کاربر (r14): synthesize({..., eq?: {pre: dB, lc: Hz, hc: Hz, q, limiter: 0|1, bands: [[Hz, dB] × ۱۰]}}) → تمام ۱۰ باند + تقویت کلی + قطع بم/زیر + محافظ برش؛ مستقل از master، پس از مسترینگ؛ MasterFx.eq
@@ -455,7 +452,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r29 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r30 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
     }
 
     @PluginMethod
@@ -861,132 +858,11 @@ class PiperNativePlugin : Plugin() {
 
     private val VOICE_BASE = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models"
 
-    private val ESPEAK_DONOR = "fa_IR-gyro-medium"   // فقط برای کپی espeak-ng-data (مانا و gyro)
-
-    // ---------- صدای مانا (Piper فارسی MahtaFetrat؛ MIT): onnx خام + json ⇒ تبدیل به قالب sherpa ----------
-    // مدل خام Piper متادیتای sherpa و tokens.txt ندارد؛ بعد از دانلود، tokens.txt از phoneme_id_map ساخته و متادیتا به انتهای onnx افزوده می‌شود.
-    private val MANA_ID = "fa_IR-mana-medium"
-    private val MANA_BASES = listOf(
-        "https://huggingface.co/MahtaFetrat/Mana-Persian-Piper/resolve/main/",
-        "https://hf-mirror.com/MahtaFetrat/Mana-Persian-Piper/resolve/main/"
-    )
-
-    private fun fetchFrom(bases: List<String>, path: String, part: File, emit: (Long, Long) -> Unit) {
-        var last: Throwable? = null
-        for (b in bases) {
-            try { fetchResumable(b + path, part, emit); return } catch (e: IllegalStateException) { last = e }
-        }
-        throw last ?: IllegalStateException("دانلود ناموفق")
-    }
-
-    private fun pbVarint(n: Int): ByteArray {
-        val o = java.io.ByteArrayOutputStream()
-        var v = n
-        while (v >= 0x80) { o.write((v and 0x7F) or 0x80); v = v ushr 7 }
-        o.write(v)
-        return o.toByteArray()
-    }
-
-    /** ModelProto.metadata_props (فیلد ۱۴) = StringStringEntryProto{key=1, value=2}؛ افزودن در انتهای فایل در protobuf معتبر است */
-    private fun pbMetaEntry(k: String, v: String): ByteArray {
-        val kb = k.toByteArray(Charsets.UTF_8)
-        val vb = v.toByteArray(Charsets.UTF_8)
-        val inner = java.io.ByteArrayOutputStream()
-        inner.write(0x0A); inner.write(pbVarint(kb.size)); inner.write(kb)
-        inner.write(0x12); inner.write(pbVarint(vb.size)); inner.write(vb)
-        val ib = inner.toByteArray()
-        val out = java.io.ByteArrayOutputStream()
-        out.write(0x72); out.write(pbVarint(ib.size)); out.write(ib)
-        return out.toByteArray()
-    }
-
-    private fun addOnnxMeta(onnx: File, meta: List<Pair<String, String>>) {
-        FileOutputStream(onnx, true).use { o -> for (kv in meta) o.write(pbMetaEntry(kv.first, kv.second)) }
-    }
-
-    /** tokens.txt برای sherpa از phoneme_id_map پیکربندی Piper: «نماد شناسه» در هر خط */
-    private fun tokensFromPiperJson(json: org.json.JSONObject): String {
-        val map = json.getJSONObject("phoneme_id_map")
-        val rows = ArrayList<Pair<Int, String>>()
-        val keys = map.keys()
-        while (keys.hasNext()) {
-            val k = keys.next()
-            val ids = map.getJSONArray(k)
-            if (ids.length() > 0) rows.add(Pair(ids.getInt(0), k))
-        }
-        rows.sortBy { it.first }
-        val sb = StringBuilder()
-        for (r in rows) sb.append(r.second).append(' ').append(r.first).append('\n')
-        return sb.toString()
-    }
-
-    private fun downloadMana(call: PluginCall, id: String) {
-        io.execute {
-            if (okMark(id).exists() && findOnnx(voiceDir(id)) != null) { call.resolve(); return@execute }
-            val partOnnx = File(root(), "$id.dl")
-            val partJson = File(root(), "$id.json.dl")
-            try {
-                if (ttsId == id) releaseEngine(id)
-                if (root().usableSpace < 450_000_000L) throw IllegalStateException("فضای خالی گوشی کافی نیست (حداقل ۴۵۰ مگابایت)")
-                val emit = { l: Long, t: Long -> notifyListeners("progress", JSObject().put("loaded", l).put("total", t)) }
-                // ۱) espeak-ng-data: از صدای gyro (اگر نصب نیست، یک‌بار دانلود می‌شود)
-                var donorBytes = 0L
-                var espeakSrc: File? = sharedEspeak(id)
-                if (espeakSrc == null && !phonAsset()) {   // r181: با دادهٔ espeak داخل APK دیگر دانلود صدای gyro فقط برای espeak لازم نیست
-                    val dpart = File(root(), "$ESPEAK_DONOR.dl")
-                    fetchResumable("$VOICE_BASE/vits-piper-$ESPEAK_DONOR.tar.bz2", dpart) { l, t -> emit(l, t + 64_000_000L) }
-                    donorBytes = dpart.length()
-                    val dd = voiceDir(ESPEAK_DONOR)
-                    dd.deleteRecursively(); dd.mkdirs()
-                    java.io.FileInputStream(dpart).use { extract(it, dd) }
-                    if (findOnnx(dd) == null || !File(findRoot(dd), "tokens.txt").exists())
-                        throw IllegalStateException("فایل‌های espeak کامل نیست")
-                    okMark(ESPEAK_DONOR).writeText("1")
-                    dpart.delete()
-                    espeakSrc = File(findRoot(dd), "espeak-ng-data").takeIf { it.isDirectory }
-                }
-                if (espeakSrc == null && !phonAsset()) throw IllegalStateException("espeak-ng-data پیدا نشد")
-                // ۲) پیکربندی و مدل (با ادامه پس از قطع شبکه)
-                fetchFrom(MANA_BASES, "fa_IR-mana-medium.onnx.json", partJson) { _, _ -> }
-                fetchFrom(MANA_BASES, "fa_IR-mana-medium.onnx", partOnnx) { l, t -> emit(donorBytes + l, donorBytes + t) }
-                if (partOnnx.length() < 20_000_000L) { partOnnx.delete(); throw IllegalStateException("فایل مدل ناقص یا نامعتبر است؛ دوباره امتحان کنید") }
-                val cfg = try { org.json.JSONObject(partJson.readText(Charsets.UTF_8)) } catch (e: Throwable) { partJson.delete(); throw IllegalStateException("فایل پیکربندی مانا خراب است؛ دوباره امتحان کنید") }
-                val tokens = tokensFromPiperJson(cfg)
-                if (tokens.length < 40) throw IllegalStateException("جدول نمادهای مانا نامعتبر است")
-                val sr = cfg.optJSONObject("audio")?.optInt("sample_rate", 22050) ?: 22050
-                val ns = cfg.optInt("num_speakers", 1)
-                val voice = cfg.optJSONObject("espeak")?.optString("voice", "fa") ?: "fa"
-                val lang = cfg.optJSONObject("language")?.optString("name_english", "Persian") ?: "Persian"
-                // ۳) چیدن فایل‌ها: onnx (+متادیتای sherpa) + tokens.txt + espeak-ng-data
-                val dst = voiceDir(id)
-                dst.deleteRecursively(); dst.mkdirs()
-                val outOnnx = File(dst, "$id.onnx")
-                partOnnx.copyTo(outOnnx, overwrite = true)
-                addOnnxMeta(outOnnx, listOf(
-                    Pair("model_type", "vits"), Pair("comment", "piper"), Pair("language", lang),
-                    Pair("voice", voice), Pair("has_espeak", "1"), Pair("n_speakers", ns.toString()), Pair("sample_rate", sr.toString())
-                ))
-                File(dst, "tokens.txt").writeText(tokens, Charsets.UTF_8)
-                espeakSrc?.copyRecursively(File(dst, "espeak-ng-data"), overwrite = true)
-                if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists())
-                    throw IllegalStateException("فایل‌های مدل کامل نیست")
-                okMark(id).writeText("1")
-                partOnnx.delete(); partJson.delete()
-                emit(1, 1)
-                call.resolve()
-            } catch (e: Throwable) {
-                voiceDir(id).deleteRecursively()   // فایل‌های ناقص دانلود (.dl) برای ادامه می‌مانند
-                call.reject("نصب ناموفق: ${e.message}")
-            }
-        }
-    }
-
     /** نصب صدا: از assets اگر همراه APK باشد، وگرنه دانلود مستقیم و استخراج هم‌زمان؛ سپس بررسی کامل‌بودن */
     @PluginMethod
     fun download(call: PluginCall) {
         val id = call.getString("id") ?: return call.reject("id")
         if (!Regex("[A-Za-z0-9_-]+").matches(id)) return call.reject("شناسهٔ صدا نامعتبر است")
-        if (id == MANA_ID) { downloadMana(call, id); return }
         io.execute {
             val part = File(root(), "$id.dl")
             var netDone = false
@@ -1204,7 +1080,6 @@ class PiperNativePlugin : Plugin() {
         val t = OfflineTts(assetManager = null, config = cfg)
         tts = t; ttsId = id; ttsKey = key; sampleRate = t.sampleRate()
         ttsPhon = needPhon; ttsVoice = if (needPhon) onnxVoice(onnx) else "fa"
-        ttsMana = needPhon && id.contains("mana", ignoreCase = true)
         return t
     }
 
@@ -1216,7 +1091,6 @@ class PiperNativePlugin : Plugin() {
     private val phonLock = Any()
     @Volatile private var ttsPhon = false       // آیا متن این موتور باید قبل از sherpa آوانگاری شود
     @Volatile private var ttsVoice = "fa"       // نام صدای espeak (از متادیتای مدل؛ پیش‌فرض fa)
-    @Volatile private var ttsMana = false       // r187: صدای مانا؟ (واج‌آرایی اختصاصی: کسرهٔ اضافه با ALBERT پیش از espeak)
     private val voiceCache = HashMap<String, String>()
 
     private fun phonTag(): String = try {
@@ -1356,7 +1230,7 @@ class PiperNativePlugin : Plugin() {
     }
 
     /** ساخت یک جمله با تولید جریانی (callback): با لغو، همان لحظه‌ای که تکهٔ جاری برسد ساخت قطع می‌شود */
-    private fun genPart(eng: OfflineTts, text: String, sp: Float, ep: Int, manaPh: Boolean): FloatArray {
+    private fun genPart(eng: OfflineTts, text: String, sp: Float, ep: Int): FloatArray {
         val acc = ArrayList<FloatArray>()
         val cb: (FloatArray) -> Int = { s ->
             acc.add(s.copyOf())
@@ -1364,9 +1238,7 @@ class PiperNativePlugin : Plugin() {
         }
         val a = if (ttsPhon) {
             // r181: آوانگاری بیرونی؛ جمله‌های خالی حذف می‌شوند (برای هر جمله یک آرایهٔ کدپوینت)
-            // r187: مانا ← واج‌آرایی اختصاصی (کسرهٔ اضافهٔ مدلی روی متن)؛ هر خطا ← همان متن
-            val src = if (ttsMana && manaPh) ManaPhon.prepare(context, text) else text
-            val ph = Phonemizer.phonemize(src, ttsVoice).filter { it.isNotEmpty() }.toTypedArray()
+            val ph = Phonemizer.phonemize(text, ttsVoice).filter { it.isNotEmpty() }.toTypedArray()
             if (ph.isEmpty()) throw IllegalStateException("آوانگاری espeak برای این متن چیزی نداد")
             if (ep != epoch.get()) throw IllegalStateException("NATIVE_CANCELLED")
             val gc = GenerationConfig(silenceScale = 0.2f, speed = sp, sid = 0)
@@ -1445,7 +1317,6 @@ class PiperNativePlugin : Plugin() {
         val lvlClean = (call.getInt("clean") ?: 2).coerceIn(0, 3)       // حذف نویز و صداهای اضافه
         val ndSel = call.getString("nd") ?: "baseline"                  // مدل DPDFNet: baseline | off (مدل‌های سنگین‌تر حذف شدند)
         val lvlClarity = (call.getInt("clarity") ?: 2).coerceIn(0, 3)   // شفافیت و رسایی
-        val lvlPause = (call.getInt("pause") ?: 2).coerceIn(0, 3)       // حذف وزوز مکث‌ها (فقط مانا): ۰ خاموش … ۳ قوی
         val keep = call.getBoolean("keep") ?: false                      // true: PCM در حافظهٔ بومی می‌ماند و فقط handle برمی‌گردد (پخش بومی)
         val fxOn = call.getBoolean("master") ?: false                    // زنجیرهٔ EQ + کمپرسور + لیمیتر (MasterFx)
         val fxPk = (call.getFloat("fxPk") ?: 2f).coerceIn(-6f, 8f)
@@ -1453,16 +1324,11 @@ class PiperNativePlugin : Plugin() {
         val fxLp = (call.getFloat("fxLp") ?: 10500f).coerceIn(4000f, 20000f)
         val eqCfg = MasterFx.EqCfg.from(call.getObject("eq"))   // r14: اکولایزر کامل ۱۰ باندی (null = خاموش یا تخت)
         val pzOn = call.getBoolean("pz") ?: false   // r145 (ناظر مکث): نرمال‌سازی سکوت مرز جمله‌ها و کوتاه‌کردن سکوت‌های داخلیِ طولانی
-        val colOn = call.getBoolean("col") ?: false   // r19: ناظر رنگ (فقط مانا؛ JS تعیین می‌کند)
-        val cbT: DoubleArray? = try { call.getArray("cbT")?.let { a -> if (a.length() == 7) DoubleArray(7) { a.getDouble(it) } else null } } catch (e: Throwable) { null }   // r23: هدف شکل طیف ۷ باند (dB نسبی، میانهٔ اخیر)؛ با آن EQ پویای باندی جای شلف شیب را می‌گیرد
-        val clT: Double? = call.getDouble("clT")   // r19: هدف شیب طیف (dB/oct، میانهٔ اخیر)؛ بدون آن فقط اندازه‌گیری می‌شود
         val lvT: Double? = call.getDouble("lvT")   // r141: هدف بلندی (dBFS، میانهٔ اخیر همان گوینده)؛ بدون آن تراز نمی‌شود
         val hdAmt = ((call.getFloat("hdAmt") ?: 65f).coerceIn(0f, 100f) / 100f).toDouble()   // شدت بازسازی بالاهای HD
         val hdOn = call.getBoolean("hd") ?: false   // HD: بالانمونه‌برداری ۲× + بازسازی بالاها (۴۴٫۱kHz برای مدل‌های ۲۲٫۰۵kHz)
         val probe = call.getBoolean("probe") ?: false   // r15: اندازه‌گیری DSP (خام در برابر خروجی)؛ کش پردازش‌شده را دور می‌زند تا نسخهٔ خام همیشه در دسترس باشد؛ صدای خروجی تغییری نمی‌کند
-        val manaPh = call.getBoolean("manaPh") ?: true   // r187: واج‌آرایی اختصاصی مانا (کسرهٔ اضافه)؛ فقط برای صدای مانا اثر دارد
-        val strong = id.contains("mana", ignoreCase = true)   // مانا: خروجی خام SNR پایین دارد؛ بدون این حالت شرط ۲۵dB باعث می‌شد حذف نویز اصلاً اجرا نشود (اعتماد تدریجی ۱۲–۲۵dB + کاهش خش بالای ۴kHz در واکه‌ها). کلید کش شامل strong است
-        // r176: gyro — کف نویز خام ≈ ‎−۱۷dB (SNR مرجع < ۲۵dB) بود و شرط سخت‌گیرانهٔ ۲۵dB حذف نویز را اصلاً اجرا نمی‌کرد؛ اعتماد تدریجی (۸ تا ۲۰dB) مثل مانا، ولی بدون سایر ویژگی‌های اختصاصی مانا (گیت/کاهش بالای ۴kHz/۱٫۱۵×)
+        // r176: gyro — کف نویز خام ≈ ‎−۱۷dB (SNR مرجع < ۲۵dB) بود و شرط سخت‌گیرانهٔ ۲۵dB حذف نویز را اصلاً اجرا نمی‌کرد؛ اعتماد تدریجی (۸ تا ۲۰dB) برای همهٔ صداها
         val grad = true   // r178: همهٔ صداها (gyro، ganji، …): SNR مرجع < ۲۵dB قبلاً حذف نویز را کاملاً خاموش می‌کرد؛ برای SNR ≥ ۲۰dB رفتار پیشین است
         val ep = epoch.get()   // لحظهٔ رسیدن درخواست؛ اگر بعدش cancel بیاید این کار رها می‌شود
         cpu.execute {
@@ -1472,8 +1338,6 @@ class PiperNativePlugin : Plugin() {
                 if (!okMark(id).exists()) throw IllegalStateException("این صدا هنوز نصب نشده است؛ چند لحظه صبر کنید تا نصب تمام شود")
                 val eng = engineFor(id, ns, nw)
                 val sr = eng.sampleRate()
-                if (ttsMana && manaPh) ManaPhon.ensure(context)   // یک‌بار؛ برچسب کش پایین باید ثابت بماند
-                val mTag = if (ttsMana) "|" + ManaPhon.tag(manaPh) else ""   // r187: کش صدای مانا برای هر حالت واج‌آرایی جدا
                 val eTag = ENGINE_VER + (if (ttsPhon) "|" + phonTag() else "")   // P07-05: نسخهٔ موتور/آوانگار در کلید؛ ارتقا ⇒ کش کهنه سرو نمی‌شود
                 // هر جمله جدا (برای کش)؛ بدون parts کل متن یک جمله حساب می‌شود
                 val items = ArrayList<Pair<String, Float>>()
@@ -1501,10 +1365,10 @@ class PiperNativePlugin : Plugin() {
                     val pt = itp.first; val ps = itp.second
                     if (pt.isBlank() || pt.none { it.isLetterOrDigit() }) continue
                     val psq = String.format(java.util.Locale.US, "%.2f", ps)
-                    val key = hashKey("v2|$eTag|$id|$ns|$nw|" + psq + "|" + pt + mTag)
+                    val key = hashKey("v2|$eTag|$id|$ns|$nw|" + psq + "|" + pt)
                     // کش دولایه، هر دو جمله‌به‌جمله و مستقل از مرز تکه‌ها: ۱) خروجی پردازش‌شده (پرش از مدل و پاک‌سازی)  ۲) نسخهٔ خام (با تغییر سطح پاک‌سازی مدل دوباره اجرا نمی‌شود)
                     val procOn = lvlClean > 0 || lvlClarity > 0
-                    fun k2(tag: String) = hashKey("v6|$DSP_VER|$eTag|$id|$ns|$nw|" + psq + "|$lvlClean|$lvlClarity|$strong|$grad$tag$mTag|" + pt)
+                    fun k2(tag: String) = hashKey("v6|$DSP_VER|$eTag|$id|$ns|$nw|" + psq + "|$lvlClean|$lvlClarity|$grad$tag|" + pt)
                     val key2 = if (procOn) k2(ndTag) else key
                     val done = if (procOn && !probe) cacheGet(key2, sr) else null
                     if (done != null) {
@@ -1514,7 +1378,7 @@ class PiperNativePlugin : Plugin() {
                         val cached = cacheGet(key, sr)
                         val s = if (cached != null) { hit++; cached } else {
                             val t0 = System.nanoTime()
-                            val g0 = genPart(eng, pt, ps, ep, manaPh)
+                            val g0 = genPart(eng, pt, ps, ep)
                             val g = g0
                             genMs += (System.nanoTime() - t0) / 1_000_000L   // زمان خالص مدل (بدون صیقل و انتقال)
                             cachePut(key, sr, g)
@@ -1526,7 +1390,7 @@ class PiperNativePlugin : Plugin() {
                         ndMs += (System.nanoTime() - nd0) / 1_000_000L
                         val ndApplied = ndMix > 0f && sn !== s   // P07-06: run در خطا/ایمنی همان ورودی را برمی‌گرداند
                         val sc0 = System.nanoTime()
-                        val pr = SpeechClean.process(sn, sr, lvlClean, lvlClarity, strong, grad)   // روی نسخهٔ خام کش؛ خودِ کش دست‌نخورده می‌ماند
+                        val pr = SpeechClean.process(sn, sr, lvlClean, lvlClarity, grad)   // روی نسخهٔ خام کش؛ خودِ کش دست‌نخورده می‌ماند
                         scMs += (System.nanoTime() - sc0) / 1_000_000L
                         if (procOn && pr !== s) cachePut(if (ndMix > 0f && !ndApplied) k2("") else key2, sr, pr)   // ND اعمال نشده ⇒ کلید «فقط کلاسیک»
                         pieces.add(pr)
@@ -1600,7 +1464,7 @@ class PiperNativePlugin : Plugin() {
                 val polH = if (hdOn && sr <= 24000) MasterFx.hdUp(pol, sr, hdAmt) else pol
                 val sro = if (polH !== pol) sr * 2 else sr   // نرخ نمونهٔ خروجی (HD: ۲×)
                 val fx0 = System.nanoTime()
-                val fin0 = if (fxOn) MasterFx.process(polH, sro, fxPk, fxHs, if (sro != sr) Math.max(fxLp, 18000f) else fxLp, strong, lvlPause) else polH
+                val fin0 = if (fxOn) MasterFx.process(polH, sro, fxPk, fxHs, if (sro != sr) Math.max(fxLp, 18000f) else fxLp) else polH
                 val fin = if (eqCfg != null) MasterFx.eq(fin0, sro, eqCfg) else fin0   // r14: اکولایزر کاربر بعد از مسترینگ
                 val fxMs = (System.nanoTime() - fx0) / 1_000_000L
                 for (i in fin.indices) fin[i] *= OUT_TRIM   // r120: ۳dB headroom (پیک ≈ −۳ dBFS)؛ بعد از کش و مسترینگ، پس کش بی‌اثر می‌ماند
@@ -1613,48 +1477,6 @@ class PiperNativePlugin : Plugin() {
                     for (ix in items.size - 1 downTo 0) { if (m[ix] < 0.0) m[ix] = nx else nx = m[ix] }   // جملهٔ بدون تکه: مرزش شروع جملهٔ بعدی
                     JSArray().also { a -> for (v in m) a.put(v) }
                 } else null
-                // r19 (ناظر رنگ): شیب طیف واک‌دار پیش از اصلاح (ct) برای تاریخچهٔ JS؛ اگر هدف رسیده و انحراف > ۰٫۳ dB/oct باشد، شلف بالای ۱٫۸kHz ملایم (نصف انحراف، حداکثر ±۲٫۵dB). پیش از تراز بلندی ⇒ تراز اثر شلف را هم حساب می‌کند؛ پس از کش ⇒ کش دست‌نخورده
-                var ctV = Double.NaN
-                var cgV = 0.0
-                var bdV: DoubleArray? = null
-                var bgV: DoubleArray? = null
-                if (colOn && fin.isNotEmpty()) {
-                    val shp = ColorSv.shape(fin, sro)
-                    if (shp != null) {
-                        bdV = shp
-                        ctV = ColorSv.slope(shp)
-                        if (cbT != null) {
-                            // r23: EQ پویای باندی — انحراف هر باند از میانهٔ اخیر (آستانه ۰٫۵dB) با پیک ملایم (۰٫۷×انحراف اضافه، حداکثر ±۳dB) برگردانده می‌شود؛ پیش از تراز بلندی و پس از کش
-                            val gs = DoubleArray(shp.size)
-                            var anyG = false
-                            for (b in shp.indices) {
-                                val d = shp[b] - cbT[b]
-                                if (d.isNaN() || d.isInfinite()) continue
-                                val g = (-Math.signum(d) * (Math.abs(d) - 0.5) * 0.7).coerceIn(-3.0, 3.0)
-                                if (Math.abs(d) > 0.5 && Math.abs(g) >= 0.1) { gs[b] = g; anyG = true }
-                            }
-                            if (anyG) {
-                                val eqd = MasterFx.bandEq(fin, sro, gs)
-                                System.arraycopy(eqd, 0, fin, 0, fin.size)
-                                bgV = gs
-                                var bi = 0
-                                for (b in gs.indices) if (Math.abs(gs[b]) > Math.abs(gs[bi])) bi = b
-                                cgV = gs[bi]
-                            }
-                        } else if (clT != null && !ctV.isNaN() && !clT.isNaN() && !clT.isInfinite()) {
-                            val d = ctV - clT
-                            val ex = Math.abs(d) - 0.3
-                            if (ex > 0.0) {
-                                val g = (-Math.signum(d) * ex * 1.7).coerceIn(-2.5, 2.5)
-                                if (Math.abs(g) >= 0.1) {
-                                    val sh = MasterFx.tiltShelf(fin, sro, g)
-                                    System.arraycopy(sh, 0, fin, 0, fin.size)
-                                    cgV = g
-                                }
-                            }
-                        }
-                    }
-                }
                 // r141 (تراز بلندی): تکه‌ای که ≥ ۲dB از هدف دور است تا ±۴dB به هدف می‌رود؛ افزایش با سقف پیک OUT_TRIM (بریدگی ندارد). پس از کش و بعد از OUT_TRIM ⇒ کش دست‌نخورده
                 val lvA0 = activeDb(fin)
                 var lvG = 1.0
@@ -1663,12 +1485,7 @@ class PiperNativePlugin : Plugin() {
                     if (g > 1.0) { var pk = 0f; for (x in fin) { val a = kotlin.math.abs(x); if (a > pk) pk = a }; if (pk > 0f) g = Math.min(g, OUT_TRIM.toDouble() / pk) }
                     if (Math.abs(g - 1.0) > 0.03) { val gf = g.toFloat(); for (i in fin.indices) fin[i] *= gf; lvG = g }
                 }
-                val hs = finHealth(fin, rawHs, lvA0, lvG, sro).also { o ->
-                    if (!ctV.isNaN() && !ctV.isInfinite()) o.put("ct", Math.round(ctV * 100.0) / 100.0)
-                    if (cgV != 0.0) o.put("cg", Math.round(cgV * 100.0) / 100.0)
-                    bdV?.let { b -> o.put("bd", JSArray().also { a -> for (v in b) a.put(Math.round(v * 100.0) / 100.0) }) }
-                    bgV?.let { b -> o.put("bg", JSArray().also { a -> for (v in b) a.put(Math.round(v * 100.0) / 100.0) }) }
-                }
+                val hs = finHealth(fin, rawHs, lvA0, lvG, sro)
                 val dsp: JSObject? = if (rawKeep != null && rawKeep.isNotEmpty()) {   // r15: آمار خام↔خروجی برای گزارش ناظر
                     var rn = 0; for (x in rawKeep) rn += x.size
                     val rw = FloatArray(rn); var rp = 0
@@ -2385,7 +2202,7 @@ private object SpeechClean {
     }
 
     @Synchronized
-    fun process(src: FloatArray, sr: Int, clean: Int, clarity: Int, strong: Boolean = false, grad: Boolean = strong): FloatArray {
+    fun process(src: FloatArray, sr: Int, clean: Int, clarity: Int, grad: Boolean = false): FloatArray {
         if ((clean <= 0 && clarity <= 0) || src.size < sr / 20) return src
         var x = src.copyOf()
         try {
@@ -2395,7 +2212,7 @@ private object SpeechClean {
                 val beta = when (clean) { 1 -> 1.0; 3 -> 1.5; else -> 1.2 }
                 val silDb = when (clean) { 1 -> 3.0; 2 -> 6.0; 3 -> 10.0; else -> 0.0 }
                 val cl = when (clarity) { 1 -> 0.6; 2 -> 1.0; 3 -> 1.4; else -> 0.0 }
-                x = enhance(x, sr, cleanDb, beta, silDb, cl, strong, grad)
+                x = enhance(x, sr, cleanDb, beta, silDb, cl, grad)
             }
         } catch (e: Throwable) {
             return src   // هر خطای پیش‌بینی‌نشده: صدای اصلی بدون پردازش
@@ -2446,9 +2263,8 @@ private object SpeechClean {
         for (m in v.size - 2 downTo 0) v[m] = v[m + 1] + coef * (v[m] - v[m + 1])
     }
 
-    private fun enhance(x: FloatArray, sr: Int, cleanDb0: Double, beta: Double, silDb0: Double, cl: Double, strong: Boolean, grad: Boolean = strong): FloatArray {
-        // مانا: عمق پاک‌سازی ۱۵٪ بیشتر از سایر صداها، ولی دیگر یک سطح بالاتر از انتخاب کاربر نمی‌رود (۱۸dB سقف)؛ شدت زیاد + بهرهٔ بی‌هموار = «نویز موزیکال»/غ‌غ‌غ
-        var cleanDb = if (strong) minOf(18.0, cleanDb0 * 1.15) else cleanDb0
+    private fun enhance(x: FloatArray, sr: Int, cleanDb0: Double, beta: Double, silDb0: Double, cl: Double, grad: Boolean = false): FloatArray {
+        var cleanDb = cleanDb0
         var silDb = silDb0
         val n = x.size
         var nn = 256
@@ -2505,13 +2321,13 @@ private object SpeechClean {
         var en = 0.0
         for (k in 1 until half) en += raw[k]
         if (speech < 1e-9) return x     // بی‌صدا
-        // مرجع نویز قابل‌اعتماد نیست (سکوتی در جمله نیست): حذف نویز و دروازه اعمال نمی‌شود (جز مانا: اعتماد تدریجی)
+        // مرجع نویز قابل‌اعتماد نیست (سکوتی در جمله نیست): حذف نویز و دروازه اعمال نمی‌شود (در حالت grad: اعتماد تدریجی)
         val snrDb = 10.0 * Math.log10(speech / maxOf(en, 1e-20))
-        // مانا: خروجی خام خش بیشتری دارد و شرط سخت‌گیرانهٔ ۲۵dB باعث می‌شد حذف نویز اصلاً اجرا نشود؛ برای آن اعتماد تدریجی (۸ تا ۲۰dB) و شدت متناسب (آزمون عددی روی گفتار مصنوعی: ۴ تا ۶dB کاهش بیشتر نویز در ۱۰ تا ۱۴dB SNR، بدون افت SDR)
+        // اعتماد تدریجی (۸ تا ۲۰dB) و شدت متناسب به‌جای شرط سخت‌گیرانهٔ ۲۵dB که حذف نویز را اصلاً اجرا نمی‌کرد
         val relW = if (grad) ((snrDb - 8.0) / 12.0).coerceIn(0.0, 1.0) else if (snrDb >= 25.0) 1.0 else 0.0
         val reliable = relW > 0.0
         if (reliable && relW < 1.0) { cleanDb *= relW; silDb *= relW }
-        if (reliable && !strong && snrDb < 25.0) { cleanDb *= 0.7; silDb *= 0.7 }   // r178: صداهایی که پیش‌تر اصلاً حذف نویز نمی‌گرفتند (SNR < ۲۵dB) با ۷۰٪ شدت شروع می‌کنند؛ در صورت تمیز بودن بالاتر برده می‌شود
+        if (reliable && snrDb < 25.0) { cleanDb *= 0.7; silDb *= 0.7 }   // r178: صداهایی که پیش‌تر اصلاً حذف نویز نمی‌گرفتند (SNR < ۲۵dB) با ۷۰٪ شدت شروع می‌کنند؛ در صورت تمیز بودن بالاتر برده می‌شود
         if (!reliable && cl <= 0.0 && !(grad && cleanDb > 0.0)) return x
         val noiseRaw = DoubleArray(bins)
         for (k in 0 until bins) {
@@ -2578,25 +2394,6 @@ private object SpeechClean {
         val kB = Math.round(2500.0 / df).toInt()
         val taper = DoubleArray(bins) { ((it - kA).toDouble() / maxOf(1, kB - kA)).coerceIn(0.0, 1.0) }
 
-        // مانا: در فریم‌های واکه‌دار (غیرسایشی) بالای ~۴kHz عملاً فقط خش مدل است، نه گفتار؛ همان‌جا کمی کم می‌شود. فریم‌های سایشی (س، ش، ف) دست‌نخورده می‌مانند.
-        val vcut = DoubleArray(frames)
-        val vramp = DoubleArray(bins)
-        val fz = DoubleArray(frames)      // صامت‌وار (سایشی) بودن هر فریم: ۰ واکه … ۱ سایشی
-        val hfDb = if (strong && cleanDb0 > 0.0) minOf(4.0, cleanDb0 * 0.3) else 0.0     // سطح ۲: ۳٫۶dB، سطح ۳: ۴dB (قبلاً تا ۷dB؛ صدا را خفه می‌کرد)
-        if (hfDb > 0.0 && k1 < k3 && k3 + 2 < k4) {
-            val kv1 = Math.round(4000.0 / df).toInt()
-            val kv2 = Math.round(7000.0 / df).toInt()
-            for (k in 0 until bins) vramp[k] = ((k - kv1).toDouble() / maxOf(1, kv2 - kv1)).coerceIn(0.0, 1.0)
-            for (m in 0 until frames) {
-                var elo = 0.0; var ehi = 0.0
-                val o = m * bins
-                for (k in k1 until k4) { val p = pw[o + k]; if (k < k3) elo += p else ehi += p }
-                fz[m] = (((ehi / (elo + 1e-20)) - 0.25) / 0.5).coerceIn(0.0, 1.0)
-                vcut[m] = hfDb * (1.0 - fz[m]) * spS[m]
-            }
-            smoothZp(vcut, 0.25)
-        }
-
         // گذر ۲الف: Wiener تصمیم‌محور → سطح بهرهٔ کل جمله (فریم×باند، لگاریتمی) → هموارسازی → گذر ۲ب: اعمال و بازسازی با هم‌پوشانی
         // علت «غ‌غ‌غ/خش آبکی»: بهرهٔ هر باند در هر فریم (۵٫۸ms) مستقل و فقط با فیلتر ۳تایی در فرکانس هموار می‌شد؛ باندهای منفرد که آستانه را رد می‌کردند
         // به شکل «جزیره‌های» کوتاه (نویز موزیکال) از پردازش رد می‌شدند و روی واکه‌ها مدولاسیون تند در همان ریتم فریم‌ها می‌ساختند.
@@ -2604,14 +2401,13 @@ private object SpeechClean {
         val doWiener = cleanDb > 0.0 && reliable
         val gmin = if (cleanDb > 0.0) Math.pow(10.0, -cleanDb / 20.0) else 1.0
         val gsp = if (cleanDb > 0.0) Math.pow(10.0, -(0.5 * cleanDb) / 20.0) else 1.0   // کفِ بالاتر در فریم‌های گفتار: صامت‌های ضعیف خورده نشوند
-        val gspFr = if (strong && cleanDb > 0.0) Math.pow(10.0, -(0.4 * cleanDb) / 20.0) else gsp   // مانا: در فریم‌های سایشی کف بالاتر؛ «س، ش، ف» ضعیف نخورند
         val sil = if (reliable && silDb > 0.0) Math.pow(10.0, -silDb / 20.0) else 1.0
         val alpha = 0.93
         val lg: FloatArray? = if (doWiener) FloatArray(frames * bins) else null   // ln(بهره) ≤ ۰؛ جملهٔ ۱۰ثانیه‌ای ≈ ۴٫۵MB
         if (lg != null) {
             val prevP = DoubleArray(bins)
             for (m in 0 until frames) {
-                val gfl = gmin + ((gsp + (gspFr - gsp) * fz[m]) - gmin) * spS[m]
+                val gfl = gmin + (gsp - gmin) * spS[m]
                 val o = m * bins
                 for (k in 0 until bins) {
                     val p = pw[o + k]
@@ -2648,14 +2444,12 @@ private object SpeechClean {
             val silF = 1.0 - (1.0 - sil) * (1.0 - spS[m])
             val riderLin = Math.pow(10.0, rD[m] / 20.0)
             val bcDb = bC[m]
-            val vcutDb = vcut[m]
             val go = m * bins
             for (k in 0 until bins) {
                 var v = 1.0
                 if (lg != null) { v = Math.exp(lg[go + k].toDouble()); if (v > 1.0) v = 1.0 }
                 var tot = v * silF * riderLin
                 if (bcDb > 0.01 || bcDb < -0.01) { if (taper[k] > 0.0) tot *= Math.pow(10.0, bcDb * taper[k] / 20.0) }
-                if (vcutDb > 0.01 && vramp[k] > 0.0) tot *= Math.pow(10.0, -vcutDb * vramp[k] / 20.0)
                 re[k] *= tot; im[k] *= tot
             }
             for (k in 1 until half) { re[nn - k] = re[k]; im[nn - k] = -im[k] }
@@ -2678,121 +2472,6 @@ private object SpeechClean {
  * → کمپرسور (−۲۲dB، ۳:۱) → ×۱٫۱ → لیمیتر (−۲dB، ۲۰:۱، پیش‌نگر ۳ms) → نرم‌برش ایمنی.
  * روی خروجی صیقل‌شدهٔ هر تکه اجرا می‌شود؛ پس کش جمله‌ها دست‌نخورده می‌ماند.
  */
-/** r19 (ناظر رنگ): شیب طیف فریم‌های واک‌دار (dB/اکتاو) روی ۷ باند ۱۵۰–۶۵۰۰Hz؛ همان تعریف «آزمون رنگ صدا» (mnFeat) در index.html.
- *  فریم فعال: انرژی ۸۰–۸۰۰۰Hz بالاتر از ۲۵− dB زیر صدک ۹۰؛ واک‌دار: انرژی ۱۰۰–۹۰۰Hz دست‌کم دو برابر ۲–۸kHz. NaN = فریم واک‌دار کافی نیست. */
-private object ColorSv {
-    private val EDGE = doubleArrayOf(150.0, 400.0, 800.0, 1500.0, 2500.0, 3500.0, 5000.0, 6500.0)
-
-    private fun fft(re: DoubleArray, im: DoubleArray, cosT: DoubleArray, sinT: DoubleArray) {
-        val n = re.size
-        var j = 0
-        for (i in 1 until n) {
-            var k = n shr 1
-            while ((j and k) != 0) { j = j xor k; k = k shr 1 }
-            j = j xor k
-            if (i < j) {
-                val tr = re[i]; re[i] = re[j]; re[j] = tr
-                val ti = im[i]; im[i] = im[j]; im[j] = ti
-            }
-        }
-        var m = 2
-        while (m <= n) {
-            val h = m shr 1
-            val st = n / m
-            var i = 0
-            while (i < n) {
-                for (k in 0 until h) {
-                    val a = i + k
-                    val b = a + h
-                    val wr = cosT[k * st]
-                    val wi = sinT[k * st]
-                    val tr = re[b] * wr - im[b] * wi
-                    val ti = re[b] * wi + im[b] * wr
-                    re[b] = re[a] - tr; im[b] = im[a] - ti
-                    re[a] += tr; im[a] += ti
-                }
-                i += m
-            }
-            m = m shl 1
-        }
-    }
-
-    /** r23: شکل طیف نسبی ۷ باند (dB، میانگین صفر) فریم‌های واک‌دار؛ null = فریم واک‌دار کافی نیست. */
-    fun shape(x: FloatArray, sr: Int): DoubleArray? {
-        var n = 1
-        while (n < sr * 0.046) n = n shl 1
-        val h = n shr 1
-        val nfAll = (x.size - n) / h + 1
-        if (nfAll < 16) return null
-        val step = Math.max(1, nfAll / 400)   // سقف ≈۴۰۰ فریم؛ هزینهٔ اندازه‌گیری برای تکهٔ بلند محدود می‌ماند
-        val cosT = DoubleArray(h) { Math.cos(2.0 * Math.PI * it / n) }
-        val sinT = DoubleArray(h) { -Math.sin(2.0 * Math.PI * it / n) }
-        val win = DoubleArray(n) { 0.5 - 0.5 * Math.cos(2.0 * Math.PI * it / n) }
-        fun bin(hz: Double): Int = Math.round(hz * n / sr).toInt().coerceIn(1, h)
-        val nb = EDGE.size - 1
-        val kl = IntArray(nb) { bin(EDGE[it]) }
-        val kh = IntArray(nb) { Math.max(kl[it] + 1, bin(EDGE[it + 1])) }
-        val ke0 = bin(80.0); val ke1 = bin(8000.0)
-        val kv0 = bin(100.0); val kv1 = bin(900.0)
-        val kh0 = bin(2000.0); val kh1 = bin(8000.0)
-        val cnt = (nfAll + step - 1) / step
-        val fe = DoubleArray(cnt)
-        val el = DoubleArray(cnt)
-        val eh = DoubleArray(cnt)
-        val bands = Array(cnt) { DoubleArray(nb) }
-        val re = DoubleArray(n)
-        val im = DoubleArray(n)
-        val pw = DoubleArray(h + 1)
-        var q = 0
-        var f = 0
-        while (f < nfAll && q < cnt) {
-            val o = f * h
-            for (i in 0 until n) { re[i] = x[o + i] * win[i]; im[i] = 0.0 }
-            fft(re, im, cosT, sinT)
-            for (k in 0..h) pw[k] = re[k] * re[k] + im[k] * im[k]
-            var e = 0.0; var l = 0.0; var hh = 0.0
-            for (k in ke0..ke1) e += pw[k]
-            for (k in kv0..kv1) l += pw[k]
-            for (k in kh0..kh1) hh += pw[k]
-            fe[q] = e; el[q] = l; eh[q] = hh
-            for (i in 0 until nb) { var b = 0.0; for (k in kl[i] until kh[i]) b += pw[k]; bands[q][i] = b }
-            q++
-            f += step
-        }
-        val srt = fe.copyOf(q)
-        srt.sort()
-        val thr = srt[((q - 1) * 0.9).toInt()] * 0.00316   // فریم فعال: ≤ ۲۵− dB زیر صدک ۹۰
-        val bm = DoubleArray(nb)
-        var nv = 0
-        for (i in 0 until q) {
-            if (fe[i] <= thr) continue
-            if (el[i] < 2.0 * eh[i]) continue   // واک‌دار
-            nv++
-            for (b in 0 until nb) bm[b] += bands[i][b]
-        }
-        if (nv < 12) return null
-        var ref = 0.0
-        for (b in 0 until nb) { bm[b] = 10.0 * Math.log10(bm[b] / nv + 1e-20); ref += bm[b] }
-        ref /= nb
-        return DoubleArray(nb) { bm[it] - ref }
-    }
-
-    /** شیب طیف (dB/اکتاو) از شکل ۷ باندی. */
-    fun slope(rel: DoubleArray): Double {
-        val nb = rel.size
-        var tx = 0.0; var ty = 0.0; var txx = 0.0; var txy = 0.0
-        for (b in 0 until nb) {
-            val c = Math.log(Math.sqrt(EDGE[b] * EDGE[b + 1])) / Math.log(2.0)
-            val r = rel[b]
-            tx += c; ty += r; txx += c * c; txy += c * r
-        }
-        val sl = (nb * txy - tx * ty) / (nb * txx - tx * tx)
-        return if (sl.isNaN() || sl.isInfinite()) Double.NaN else sl
-    }
-
-    fun tilt(x: FloatArray, sr: Int): Double { val s = shape(x, sr) ?: return Double.NaN; return slope(s) }
-}
-
 private object MasterFx {
     private class Bq(val b0: Double, val b1: Double, val b2: Double, val a1: Double, val a2: Double) {
         fun run(x: DoubleArray) {
@@ -2918,55 +2597,6 @@ private object MasterFx {
         }
     }
 
-    /** مکث‌بُر: در ضبط واقعی، لابه‌لای مکث‌ها (۱٫۴ثانیه) خطوط هارمونیک ثابت حدود −۵۰ تا −۵۶ dBFS بود که هر ~۰٫۳ثانیه فرکانسشان پله‌ای عوض می‌شد
-     *  (وزوز «گیژ»)؛ دُم/لِید ساکت خروجی مدل. حذف‌کنندهٔ طیفی نویز ایستا را فرض می‌کند و خط‌های پله‌ای را نمی‌گیرد.
-     *  اینجا فقط بازه‌های پیوستهٔ ≥ minMs که انرژی‌شان ≥ |relDb| زیر سطح گفتار است تا floorDb کم می‌شوند (با محوشدن نرم). گفتار و مکث‌های کوتاه بین واژه‌ها دست‌نخورده‌اند. */
-    private fun pauseMute(x: DoubleArray, sr: Int, relDb: Double, minMs: Double, floorDb: Double, fadeMs: Double) {
-        val n = x.size
-        val blk = maxOf(8, (sr * 0.004).toInt())
-        val nb = (n + blk - 1) / blk
-        if (nb < 24) return
-        val env = DoubleArray(nb)
-        for (b in 0 until nb) {
-            val a = b * blk; val e = minOf(n, a + blk)
-            var s = 0.0
-            for (i in a until e) s += x[i] * x[i]
-            env[b] = Math.sqrt(s / (e - a))
-        }
-        val sorted = env.copyOf(); java.util.Arrays.sort(sorted)
-        val top = maxOf(3, (nb * 0.3).toInt())
-        var ref = 0.0
-        for (i in 0 until top) ref += sorted[nb - 1 - i]
-        ref /= top
-        if (ref < 1e-4) return
-        val th = ref * Math.pow(10.0, relDb / 20.0)
-        val blkMs = blk * 1000.0 / sr
-        val minB = Math.ceil(minMs / blkMs).toInt()
-        val gmin = Math.pow(10.0, floorDb / 20.0)
-        val g = DoubleArray(nb) { 1.0 }
-        var b = 0
-        var any = false
-        while (b < nb) {
-            if (env[b] < th) {
-                var e = b
-                while (e < nb && env[e] < th) e++
-                if (e - b >= minB) { for (j in b until e) g[j] = gmin; any = true }
-                b = e
-            } else b++
-        }
-        if (!any) return
-        val c = 1.0 - Math.exp(-4.0 / (fadeMs / blkMs))
-        for (i in 1 until nb) g[i] = g[i - 1] + c * (g[i] - g[i - 1])
-        for (i in nb - 2 downTo 0) g[i] = g[i + 1] + c * (g[i] - g[i + 1])
-        for (i in 0 until n) {
-            val pos = (i - blk / 2.0) / blk
-            val b0 = Math.floor(pos).toInt().coerceIn(0, nb - 1)
-            val b1 = minOf(nb - 1, b0 + 1)
-            val f = (pos - b0).coerceIn(0.0, 1.0)
-            x[i] *= minOf(1.0, g[b0] + (g[b1] - g[b0]) * f)
-        }
-    }
-
     private fun softClip(v: Double): Float {
         val a = Math.abs(v)
         if (a <= 0.98) return v.toFloat()
@@ -3082,27 +2712,6 @@ private object MasterFx {
      * Q بالاگذر/پایین‌گذر در WebAudio بر حسب dB است (۰٫۷dB ≈ ۱٫۰۸۵ خطی، مثل lowpass مسترینگ). محافظ برش بدون جبران بلندی (تغییر ناخواستهٔ سطح هنگام روشن/خاموش‌کردن نباشد).
      * باند/قطعی که از ۰٫۴۵×نرخ نمونه بالاتر باشد (مثل شلف ۱۲kHz در صدای ۲۲٫۰۵kHz) روی همان سقف طراحی می‌شود؛ پایین‌گذر بالای سقف رد می‌شود.
      */
-    /** r19 (ناظر رنگ): شلف بالای ۱٫۸kHz روی کل تکه؛ db منفی = تیره‌تر (شیب طیف تندتر)، مثبت = روشن‌تر. */
-    private val CB_FC = doubleArrayOf(245.0, 566.0, 1095.0, 1936.0, 2958.0, 4183.0, 5701.0)   // مراکز هندسی ۷ باند ColorSv
-
-    /** r23 (EQ پویای ناظر رنگ): پیک ملایم (Q=۱٫۶) روی مرکز هر باند ۷گانهٔ ColorSv؛ gains[b] برحسب dB (۰ = بدون فیلتر). */
-    fun bandEq(src: FloatArray, sr: Int, gains: DoubleArray): FloatArray {
-        if (src.isEmpty()) return src
-        val x = DoubleArray(src.size) { src[it].toDouble() }
-        for (b in gains.indices) {
-            if (b >= CB_FC.size || Math.abs(gains[b]) < 0.05) continue
-            peaking(CB_FC[b], 1.6, gains[b], sr).run(x)
-        }
-        return FloatArray(x.size) { x[it].toFloat() }
-    }
-
-    fun tiltShelf(src: FloatArray, sr: Int, db: Double): FloatArray {
-        if (src.isEmpty() || Math.abs(db) < 0.05) return src
-        val x = DoubleArray(src.size) { src[it].toDouble() }
-        highShelf(1800.0, db, sr).run(x)
-        return FloatArray(x.size) { x[it].toFloat() }
-    }
-
     fun eq(src: FloatArray, sr: Int, c: EqCfg): FloatArray {
         if (src.isEmpty()) return src
         val x = DoubleArray(src.size) { src[it].toDouble() }
@@ -3123,22 +2732,18 @@ private object MasterFx {
         return FloatArray(x.size) { softClip(x[it]) }
     }
 
-    fun process(src: FloatArray, sr: Int, pk: Float, hs: Float, lp: Float, strong: Boolean = false, pauseLvl: Int = 2): FloatArray {
+    fun process(src: FloatArray, sr: Int, pk: Float, hs: Float, lp: Float): FloatArray {
         if (src.isEmpty()) return src
         val x = DoubleArray(src.size) { src[it].toDouble() }
         highpass(75.0, 1.122, sr).run(x)
         lowShelf(180.0, 1.3, sr).run(x)
         peaking(2800.0, 0.9, pk.toDouble(), sr).run(x)
         peaking(7000.0, 1.3, -1.8, sr).run(x)
-        // r189 (عیب‌یابی خروجی مانا، ۱۷۰ ثانیه): طیف بلندمدت گفتار بین ۴٫۵ تا ۹kHz موج‌دار بود — سوراخ ≈ −۸dB در ۵٫۵–۶٫۵kHz، قله ≈ +۶dB در ۷–۷٫۵kHz و قلهٔ +۵dB در ۴٫۵–۵kHz (نسبت به ۵–۵٫۸kHz)؛
-        // این سه فیلتر نرم، موج را پر/هموار می‌کنند (ایمن: حداکثر +۴dB؛ فقط مانا). اگر خش بالا زیاد شد، ۶۰۰۰←+۲٫۵ یا حذف کنید
-        if (strong) { peaking(6000.0, 2.2, 4.0, sr).run(x); peaking(7250.0, 2.5, -3.0, sr).run(x); peaking(4750.0, 2.5, -2.0, sr).run(x) }
         highShelf(6000.0, hs.toDouble(), sr).run(x)
         lowpass(lp.toDouble(), 1.085, sr).run(x)
         comp(x, sr, -22.0, 24.0, 3.0, 0.005, 0.15, 0.006)
         for (i in x.indices) x[i] *= 1.1
-        gate(x, sr, if (strong) -32.0 else -34.0, if (strong) -7.0 else -6.0)   // مانا: گیت ملایم‌تر؛ حذف نویز طیفی کار اصلی را می‌کند و گیت تند، صامت‌های ضعیف و پایان واژه را به‌صورت «غ‌غ‌غ» می‌برد
-        if (strong && pauseLvl > 0) pauseMute(x, sr, when (pauseLvl) { 1 -> -35.0; 2 -> -30.0; else -> -25.0 }, 100.0, -42.0, 18.0)   // مانا: حذف وزوز هارمونیک مکث‌ها (بالا)
+        gate(x, sr, -34.0, -6.0)
         comp(x, sr, -2.0, 0.0, 20.0, 0.001, 0.08, 0.003)
         return FloatArray(x.size) { softClip(x[it]) }
     }
