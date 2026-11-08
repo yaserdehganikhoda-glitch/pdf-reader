@@ -265,7 +265,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun diag(call: PluginCall) {
-        call.resolve(JSObject().put("underruns", underruns).put("sampleRate", sampleRate).put("sdk", android.os.Build.VERSION.SDK_INT).put("bufMs", bufMs).put("bufGrow", bufGrow)
+        call.resolve(JSObject().put("underruns", underruns).put("sampleRate", sampleRate).put("sdk", android.os.Build.VERSION.SDK_INT).put("bufMs", bufMs).put("bufGrow", bufGrow).put("stInline", stInline).put("stPre", stPre).put("stMsMax", stMsMax)
             .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL).put("nd", NeuralDenoise.status(context)).put("ndm", NeuralDenoise.available(context)))
     }
     private val cpu = Executors.newSingleThreadExecutor()    // ساخت صدا (پشت‌سرهم)
@@ -432,7 +432,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r23 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r25 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
     }
 
     @PluginMethod
@@ -1812,7 +1812,13 @@ class PiperNativePlugin : Plugin() {
 
     // ---------- پخش بومی (AudioTrack) ----------
     private class Pcm(val s: ShortArray, val sr: Int)
-    private class PlItem(val h: Int, val pcm: Pcm, val gapMs: Int)
+    private class PlItem(val h: Int, val pcm: Pcm, val gapMs: Int, val rate: Float = -1f) {
+        val qAt = android.os.SystemClock.elapsedRealtime()                  // r25 (P08-04/07): لحظهٔ صف‌شدن؛ تغییر سرعتِ پس از آن ضریب همراه آیتم را باطل می‌کند
+        @Volatile var pre: java.util.concurrent.Future<ShortArray>? = null  // r25: WSOLA از پیش‌محاسبه‌شده (روی stEx) تا مرز تکه‌ها زیر بار نرود
+        @Volatile var preRate = 1f
+    }
+    /** r24 (P08-01/02): نقطهٔ کنترل زمان‌بندی. پس از نوشتن f فریم، موقعیت منبع به p (کسر ۰..۱) رسیده است. هایلایت/شروع آیتم فقط وقتی اعلام می‌شود که سر پخش (playbackHeadPosition) به f برسد، نه لحظهٔ نوشتن در بافر */
+    private class Ck(val f: Long, val h: Int, val p: Double)
 
     private val pcmStore = java.util.concurrent.ConcurrentHashMap<Int, Pcm>()
     private val pcmIds = java.util.concurrent.ConcurrentLinkedQueue<Int>()
@@ -1825,6 +1831,9 @@ class PiperNativePlugin : Plugin() {
     private var plNext: PlItem? = null
     private var plActive = false
     @Volatile private var plRateAt = 0L                                  // لحظهٔ آخرین تغییر سرعت (برای debounce)
+    @Volatile private var stInline = 0       // r25: شمار کشش‌های هم‌زمان با پخش (مرز تکه)
+    @Volatile private var stPre = 0          // r25: شمار کشش‌های پیش‌محاسبه‌شده که استفاده شد
+    @Volatile private var stMsMax = 0L       // r25: بیشینهٔ زمان کشش هم‌زمان با پخش (ms)
     private val stEx = Executors.newSingleThreadExecutor()               // محاسبهٔ WSOLA برای تغییر سرعت وسط پخش، جدا از رشتهٔ پخش
     private var noisyRx: android.content.BroadcastReceiver? = null
     private fun effRate(r: Float): Float = if (Math.abs(r - 1f) < 0.004f) 1f else r
@@ -1991,6 +2000,34 @@ class PiperNativePlugin : Plugin() {
             var base = t.playbackHeadPosition
             var written = 0L
             var lastU = 0
+            // r24 (P08-01/02): رویدادهای playerStart/playerPos بر پایهٔ «آنچه واقعاً شنیده شده»؛ ضربان فقط با پیشروی واقعی سر پخش؛ بی‌حرکتی ۳ث ⇒ stall
+            val cks = java.util.ArrayDeque<Ck>()
+            var heardH = 0
+            var lastEv = 0L
+            var lastHp = -1L
+            var hpAt = android.os.SystemClock.elapsedRealtime()
+            fun pump(force: Boolean): Boolean {
+                val now = android.os.SystemClock.elapsedRealtime()
+                if (!force && now - lastEv < 100) return false
+                lastEv = now
+                val hp = (t.playbackHeadPosition - base).toLong()
+                var h = 0
+                var p = -1.0
+                while (true) {
+                    val c = cks.peekFirst() ?: break
+                    if (c.f > hp) break
+                    cks.pollFirst()
+                    if (c.h != 0) {
+                        if (c.h != heardH) { heardH = c.h; emitPl("playerStart", c.h) }
+                        h = c.h; p = c.p
+                    }
+                }
+                if (hp != lastHp) {
+                    lastHp = hp; hpAt = now
+                    if (h != 0) emitPl("playerPos", h, p) else if (heardH != 0) emitPl("playerPos", heardH)   // ضربان بدون موقعیت (مکث/سکوت)
+                } else if (now - hpAt > 3000 && t.playState == AudioTrack.PLAYSTATE_PLAYING) throw IllegalStateException("stall")
+                return true
+            }
             var step = Math.max(256, sr / 50)
             var zeros = ShortArray(step)
             var item = first
@@ -2004,15 +2041,22 @@ class PiperNativePlugin : Plugin() {
                     if (w < 0) throw IllegalStateException("write $w")
                     if (w == 0) Thread.sleep(2)
                     written += w; g -= w
+                    pump(false)
                 }
                 if (gen != plGen) return
-                emitPl("playerStart", item.h)
                 val src = item.pcm.s
-                var rate = effRate(plRate)
+                // r25 (P08-04/07): ضریب باقی‌مانده همراه آیتم می‌آید (مگر پس از صف‌شدن سرعت عوض شده باشد)؛ plRate هم هم‌گام می‌شود تا تعویض اشتباهِ «سرعت تکهٔ قبل» رخ ندهد
+                val useQ = item.rate > 0f && plRateAt <= item.qAt
+                var rate = effRate(if (useQ) item.rate else plRate)
+                if (useQ) plRate = rate
                 var srcBase = 0
-                var out = Stretch.run(src, srcBase, rate, sr)
+                val pf0 = item.pre
+                val preOut: ShortArray? = if (pf0 != null && rate != 1f && Math.abs(item.preRate - rate) < 0.004f) (try { pf0.get(3, java.util.concurrent.TimeUnit.SECONDS) } catch (e: Throwable) { null }) else null
+                val tS = android.os.SystemClock.elapsedRealtime()
+                var out: ShortArray = preOut ?: Stretch.run(src, srcBase, rate, sr)
+                if (rate != 1f) { if (preOut != null) stPre++ else { stInline++; val dtS = android.os.SystemClock.elapsedRealtime() - tS; if (dtS > stMsMax) stMsMax = dtS } }
                 var pos = 0
-                var lastEv = 0L
+                hpAt = android.os.SystemClock.elapsedRealtime()   // r24: زمان محاسبهٔ WSOLA جزو «بی‌حرکتی» نیست
                 var lastMode = 0L
                 var retryAt = 0L
                 var pend: java.util.concurrent.Future<ShortArray>? = null
@@ -2066,10 +2110,8 @@ class PiperNativePlugin : Plugin() {
                     if (w < 0) throw IllegalStateException("write $w")
                     if (w == 0) Thread.sleep(2)
                     pos += w; written += w
-                    val now = android.os.SystemClock.elapsedRealtime()
-                    if (now - lastEv >= 100) {
-                        lastEv = now
-                        emitPl("playerPos", item.h, Math.min(1.0, (srcBase + pos * rate.toDouble()) / Math.max(1, src.size)))
+                    if (w > 0) cks.addLast(Ck(written, item.h, Math.min(1.0, (srcBase + pos * rate.toDouble()) / Math.max(1, src.size))))
+                    if (pump(false)) {
                         if (android.os.Build.VERSION.SDK_INT >= 24) { val u = t.underrunCount; if (u > lastU) { underruns += u - lastU; lastU = u; growBuf(t, sr) } }
                     }
                 }
@@ -2088,8 +2130,10 @@ class PiperNativePlugin : Plugin() {
                     else if (tn - dAt > 3000 && t.playState == AudioTrack.PLAYSTATE_PLAYING) throw IllegalStateException("stall")
                     Thread.sleep(8)
                     nx = takeNext()
+                    pump(false)
                 }
                 if (nx == null) {
+                    pump(true)   // r24: دُم آیتم (آخرین جمله) هم هایلایت شود پیش از playerEnd
                     // r166: بافر خالی شد ولی آیتم بعدی هنوز ساخته نشده: ترک را مکث می‌کنیم و جلسه را باز نگه می‌داریم (playerQueue همچنان queued=true می‌گیرد)
                     try { t.pause() } catch (e: Throwable) {}
                     val graceEnd = android.os.SystemClock.elapsedRealtime() + IDLE_GRACE_MS
@@ -2102,7 +2146,7 @@ class PiperNativePlugin : Plugin() {
                         if (closeIfIdle(gen)) { emitPl("playerEnd", item.h); return }
                         nx = takeNext()
                     }
-                    if (nx != null) { try { t.play() } catch (e: Throwable) {} }
+                    if (nx != null) { try { t.play() } catch (e: Throwable) {}; hpAt = android.os.SystemClock.elapsedRealtime() }
                 }
                 val nn = nx ?: return
                 if (nn.pcm.sr != sr) {   // P07-09: نرخ نمونه عوض شد (مثلاً HD) ⇒ پس از تخلیهٔ بافر، ترک تازه با نرخ جدید
@@ -2114,7 +2158,9 @@ class PiperNativePlugin : Plugin() {
                         if (hp != dh) { dh = hp; da = tn }
                         else if (tn - da > 3000 && t.playState == AudioTrack.PLAYSTATE_PLAYING) throw IllegalStateException("stall")
                         Thread.sleep(8)
+                        pump(false)
                     }
+                    pump(true); cks.clear(); lastHp = -1L
                     val oldT = t
                     sr = nn.pcm.sr
                     t = makeTrack(sr)
@@ -2124,7 +2170,7 @@ class PiperNativePlugin : Plugin() {
                     if (afDuck) try { t.setVolume(0.3f) } catch (e: Throwable) {}
                     if (gen != plGen) return
                     t.play()
-                    base = t.playbackHeadPosition; written = 0L; lastU = 0
+                    base = t.playbackHeadPosition; written = 0L; lastU = 0; lastHp = -1L; hpAt = android.os.SystemClock.elapsedRealtime()
                     step = Math.max(256, sr / 50); zeros = ShortArray(step)
                 }
                 item = nn
@@ -2164,8 +2210,14 @@ class PiperNativePlugin : Plugin() {
         val h = call.getInt("handle") ?: return call.reject("handle")
         val pcm = pcmStore[h] ?: return call.reject("NO_HANDLE")
         val gap = (call.getInt("gapMs") ?: 0).coerceIn(0, 3000)
+        val qrIn = call.getFloat("rate")
+        val qr = if (qrIn != null) effRate(qrIn.coerceIn(0.4f, 2.5f)) else -1f
+        val item = PlItem(h, pcm, gap, qr)
+        if (qr > 0f && qr != 1f) { item.preRate = qr; item.pre = try { stEx.submit(java.util.concurrent.Callable<ShortArray> { Stretch.run(pcm.s, 0, qr, pcm.sr) }) } catch (e: Throwable) { null } }
         var ok = false
-        synchronized(plLock) { if (plActive) { plNext = PlItem(h, pcm, gap); ok = true } }
+        var dropped: PlItem? = null
+        synchronized(plLock) { if (plActive) { dropped = plNext; plNext = item; ok = true } }
+        if (!ok) item.pre?.cancel(true) else dropped?.pre?.cancel(true)
         call.resolve(JSObject().put("queued", ok))
     }
 
