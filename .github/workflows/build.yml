@@ -128,6 +128,23 @@ jobs:
           for U in https://repo.maven.apache.org/maven2 https://maven-central.storage-download.googleapis.com/maven2 https://repo1.maven.org/maven2; do
             echo "$U -> $(curl -s -o /dev/null -w '%{http_code}' --max-time 30 $U/$P)"
           done
+      - name: Pre-fetch Gradle (retry + mirror; avoids GitHub 504)
+        run: |
+          P=android/gradle/wrapper/gradle-wrapper.properties
+          F=$(grep -o 'gradle-[0-9.]*-\(all\|bin\)\.zip' "$P" | head -1)
+          test -n "$F" || { echo "::error::distributionUrl در $P پیدا نشد"; exit 1; }
+          mkdir -p "$HOME/gradle-dl"
+          ok=0
+          for U in "https://services.gradle.org/distributions/$F" "https://mirrors.cloud.tencent.com/gradle/$F"; do
+            for i in 1 2 3 4; do
+              echo "try $i: $U"
+              if curl -fL --retry 2 --max-time 300 -o "$HOME/gradle-dl/$F" "$U" && unzip -tq "$HOME/gradle-dl/$F" >/dev/null 2>&1; then ok=1; break 2; fi
+              sleep 15
+            done
+          done
+          [ "$ok" = 1 ] || { echo "::error::دانلود Gradle از هیچ منبعی ممکن نشد"; exit 1; }
+          sed -i "s#^distributionUrl=.*#distributionUrl=file://$HOME/gradle-dl/$F#" "$P"
+          grep -n distributionUrl "$P"
       - name: Build debug APK
         run: |
           cd android && chmod +x gradlew
