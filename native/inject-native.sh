@@ -176,6 +176,21 @@ open(m,'w',encoding='utf-8').write(s)
 assert 'PlayerService' in s and 'WAKE_LOCK' in s and 'MANAGE_EXTERNAL_STORAGE' in s
 PY
 
+# 3c2) kt-r27 (P09-09): آیکن دکمه‌های «سرعت» و «توقف کامل» کارت مدیا/قفل‌صفحه (PlaybackState.CustomAction).
+# مستند Android: آیکن باید در بستهٔ همان MediaSession باشد؛ پس به‌جای android.R.drawable دو drawable خود برنامه ساخته می‌شود (Kotlin با getIdentifier می‌خواند؛ نبودنشان فقط یعنی این دو دکمه نیست).
+RESD=android/app/src/main/res/drawable
+mkdir -p "$RESD"
+cat > "$RESD/ic_pv_speed.xml" <<'XML'
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M4,18l8.5,-6L4,6v12zM13,6v12l8.5,-6L13,6z"/>
+</vector>
+XML
+cat > "$RESD/ic_pv_stop.xml" <<'XML'
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M6,6h12v12H6z"/>
+</vector>
+XML
+
 # 3d) r93: برگشت سیستم (کشیدن از لبه / دکمهٔ برگشت). بدون این، گوشی برنامه را به صفحهٔ خانه می‌برد.
 # BackApp برای هر Activity یک OnBackPressedCallback اضافه می‌کند که اول از JS (window.__nativeBack) می‌پرسد؛ اگر JS مصرفش نکرد، رفتار پیش‌فرض اجرا می‌شود.
 cat > "$PKG_PATH/BackApp.java" <<'JAVA'
@@ -255,6 +270,48 @@ if mm and 'android:name=' not in mm.group(0):
     open(m,'w',encoding='utf-8').write(s); print('BackApp registered in manifest')
 else:
     print('WARN: <application> دارای android:name است؛ BackApp ثبت نشد (برگشت بومی کار نمی‌کند)')
+PY
+
+# 3e) kt-r27 (P0/P2): شواهد و گارد مانیفست. خروجی هم در لاگ و هم در «خلاصهٔ اجرا» (GITHUB_STEP_SUMMARY) چاپ می‌شود تا از گوشی خوانده شود.
+# نبودِ ثبت PlayerService / نوع mediaPlayback / مجوزهای پخش پیش‌زمینه ⇒ بیلد قرمز (برای عبور موقت: MANIFEST_GUARD=0 در env گام).
+PKG_PATH="$PKG_PATH" python3 - <<'PY'
+import os, re, sys
+m = 'android/app/src/main/AndroidManifest.xml'
+s = open(m, encoding='utf-8').read()
+pkg = os.environ.get('PKG_PATH', '')
+bad = []
+rep = ['### inject-native: شواهد مانیفست و Gradle (kt-r27)', '']
+perms = re.findall(r'<uses-permission[^>]*>', s)
+rep += ['**uses-permission**', '```'] + perms + ['```']
+svc = re.search(r'<service\b[^>]*PlayerService[^>]*>', s)
+rep += ['**PlayerService**', '```', svc.group(0) if svc else '(ثبت نشده)', '```']
+app = re.search(r'<application\b[^>]*>', s)
+act = re.search(r'<activity\b[^>]*>', s)
+rep += ['**application / activity**', '```', app.group(0) if app else '(نیست)', act.group(0) if act else '(نیست)', '```']
+rep += ['**BackApp.java**: ' + ('موجود' if os.path.exists(os.path.join(pkg, 'BackApp.java')) else 'نیست')]
+for g in ('android/variables.gradle', 'android/app/build.gradle'):
+    if os.path.exists(g):
+        ls = [l.strip() for l in open(g, encoding='utf-8').read().splitlines() if re.search(r'\b(compileSdk|targetSdk|minSdk)(Version)?\b|\bnamespace\b|\bapplicationId\b', l)]
+        rep += ['**' + g + '**', '```'] + ls + ['```']
+for p in ('FOREGROUND_SERVICE', 'FOREGROUND_SERVICE_MEDIA_PLAYBACK', 'WAKE_LOCK', 'POST_NOTIFICATIONS'):
+    if 'android.permission.%s"' % p not in s: bad.append('مجوز %s در مانیفست نیست' % p)
+if not svc: bad.append('PlayerService در مانیفست ثبت نشده')
+elif not re.search(r'foregroundServiceType\s*=\s*"[^"]*mediaPlayback', svc.group(0)): bad.append('PlayerService بدون foregroundServiceType=mediaPlayback است')
+kt = os.path.join(pkg, 'PiperNativePlugin.kt')
+if not os.path.exists(kt) or 'class PlayerService' not in open(kt, encoding='utf-8').read(): bad.append('کلاس PlayerService در PiperNativePlugin.kt نیست')
+for d in ('ic_pv_speed.xml', 'ic_pv_stop.xml'):
+    if not os.path.exists('android/app/src/main/res/drawable/' + d): rep.append('هشدار: ' + d + ' نیست (دکمه‌های مدیای سرعت/توقف نمایش داده نمی‌شوند)')
+rep += ['', ('**گارد مانیفست: ناموفق** — ' + '؛ '.join(bad)) if bad else '**گارد مانیفست: سالم**']
+txt = '\n'.join(rep) + '\n'
+print(txt)
+sm = os.environ.get('GITHUB_STEP_SUMMARY')
+if sm:
+    try: open(sm, 'a', encoding='utf-8').write(txt)
+    except Exception as e: print('WARN: نوشتن خلاصه ممکن نشد', e)
+if bad:
+    off = os.environ.get('MANIFEST_GUARD', '1') == '0'
+    for b in bad: print(('::warning::' if off else '::error::') + b)
+    if not off: sys.exit(1)
 PY
 
 # 4) امضای ثابت (تا هر نسخه روی قبلی نصب شود)

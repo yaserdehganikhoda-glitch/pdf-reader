@@ -266,7 +266,8 @@ class PiperNativePlugin : Plugin() {
     @PluginMethod
     fun diag(call: PluginCall) {
         call.resolve(JSObject().put("underruns", underruns).put("sampleRate", sampleRate).put("sdk", android.os.Build.VERSION.SDK_INT).put("bufMs", bufMs).put("bufGrow", bufGrow).put("stInline", stInline).put("stPre", stPre).put("stMsMax", stMsMax).put("underStart", underStart)
-            .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL).put("nd", NeuralDenoise.status(context)).put("ndm", NeuralDenoise.available(context)))
+            .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL).put("nd", NeuralDenoise.status(context)).put("ndm", NeuralDenoise.available(context))
+            .put("svc", MediaBridge.svcDump()).put("svcFile", MediaBridge.svcFile(context)))
     }
     private val cpu = Executors.newSingleThreadExecutor()    // ساخت صدا (پشت‌سرهم)
     private var tts: OfflineTts? = null
@@ -348,7 +349,9 @@ class PiperNativePlugin : Plugin() {
                         arr.put(o)
                     }
                 }
-                val r = JSObject(); r.put("access", hasPdfAccess()); r.put("declared", pdfDeclared()); r.put("files", arr); call.resolve(r)
+                /* kt-r29 (P09-12): Android 10 بدون حالت legacy: مجوز خواندن هست ولی PDF غیررسانه‌ای از MediaStore دیده نمی‌شود ⇒ فهرست خالی «محدود» است، نه «PDF پیدا نشد» */
+                val lim = Build.VERSION.SDK_INT == 29 && arr.length() == 0 && hasPdfAccess() && !Environment.isExternalStorageLegacy()
+                val r = JSObject(); r.put("access", hasPdfAccess()); r.put("declared", pdfDeclared()); r.put("limited", lim); r.put("files", arr); call.resolve(r)
             } catch (e: Throwable) { call.reject(e.message ?: "scan failed") }
         }.start()
     }
@@ -362,6 +365,18 @@ class PiperNativePlugin : Plugin() {
     /** قفل بیدارباش CPU هنگام پخش: با خاموش‌شدن صفحه، مکث‌ها و ساخت جمله‌های بعدی کند یا قطع نشود.
      *  نیازمند <uses-permission android:name="android.permission.WAKE_LOCK"/> در AndroidManifest.xml؛ اگر نباشد بی‌صدا نادیده گرفته می‌شود. */
     private var wl: android.os.PowerManager.WakeLock? = null
+    @Volatile private var wlAt = 0L   // kt-r28 (P09-11): لحظهٔ آخرین acquire؛ برای تمدید پیش از پایان سقف ۴ ساعته
+
+    /** kt-r28 (P09-11): JS فقط هنگام تغییر وضعیت keepAwake را می‌زند؛ پس در خوانش پیوستهٔ بیش از ۴ ساعت قفل بدون تمدید رها می‌شد. هنگام mediaUpdate اگر ≥۳٫۵ ساعت از گرفتن گذشته، دوباره می‌گیریم (قفل بدون شمارنده ⇒ سقف از نو). */
+    private fun wlRenew() {
+        try {
+            val w = wl
+            if (w != null && w.isHeld && android.os.SystemClock.elapsedRealtime() - wlAt > 3L * 60 * 60 * 1000 + 30 * 60 * 1000) {
+                w.acquire(4 * 60 * 60 * 1000L); wlAt = android.os.SystemClock.elapsedRealtime()
+                MediaBridge.svcLog(context, "wl-renew")
+            }
+        } catch (e: Throwable) { MediaBridge.svcLog(context, "wl-renew-ex", e) }
+    }
 
     @PluginMethod
     fun keepAwake(call: PluginCall) {
@@ -372,7 +387,7 @@ class PiperNativePlugin : Plugin() {
                     val pm = context.getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
                     wl = pm.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "pdfvoice:tts").also { it.setReferenceCounted(false) }
                 }
-                if (wl?.isHeld != true) wl?.acquire(4 * 60 * 60 * 1000L)
+                if (wl?.isHeld != true) { wl?.acquire(4 * 60 * 60 * 1000L); wlAt = android.os.SystemClock.elapsedRealtime() }
             } else {
                 if (wl?.isHeld == true) wl?.release()
             }
@@ -387,7 +402,7 @@ class PiperNativePlugin : Plugin() {
                 }
                 PlayerService.startFgs(context, si)
             } else if (!MediaBridge.active) PlayerService.stopSafe(context)
-        } catch (e: Throwable) { /* بدون اعلان یا مجوز: پخش بدون سرویس ادامه دارد */ }
+        } catch (e: Throwable) { MediaBridge.svcLog(context, "keepAwake-fgs", e) /* بدون اعلان یا مجوز: پخش بدون سرویس ادامه دارد */ }
         call.resolve()
     }
 
@@ -402,26 +417,34 @@ class PiperNativePlugin : Plugin() {
         call.getDouble("dur")?.let { MediaBridge.durMs = it.toLong() }
         call.getDouble("pos")?.let { MediaBridge.posMs = it.toLong() }
         call.getString("cover")?.let { b64 ->
-            try { val by = android.util.Base64.decode(b64, android.util.Base64.DEFAULT); MediaBridge.cover = android.graphics.BitmapFactory.decodeByteArray(by, 0, by.size) } catch (e: Throwable) {}
+            try {
+                val by = android.util.Base64.decode(b64, android.util.Base64.DEFAULT)
+                /* kt-r29 (P09-13): کاور بزرگ حافظهٔ گوشی ضعیف را نخورد؛ ضلع بلند ≤۵۱۲px با inSampleSize */
+                val bo = android.graphics.BitmapFactory.Options().also { it.inJustDecodeBounds = true }
+                android.graphics.BitmapFactory.decodeByteArray(by, 0, by.size, bo)
+                var ss = 1; val mx = maxOf(bo.outWidth, bo.outHeight)
+                while (mx / ss > 512) ss *= 2
+                MediaBridge.cover = android.graphics.BitmapFactory.decodeByteArray(by, 0, by.size, android.graphics.BitmapFactory.Options().also { it.inSampleSize = ss })
+            } catch (e: Throwable) {}
         }
     }
     private fun mediaPush() {
         try {
             val si = Intent(context, PlayerService::class.java).setAction(PlayerService.A_SYNC)
             PlayerService.startFgs(context, si)
-        } catch (e: Throwable) { /* شروع سرویس از پس‌زمینه ممنوع/بدون مجوز: پخش بدون اعلان ادامه دارد */ }
+        } catch (e: Throwable) { MediaBridge.svcLog(context, "mediaPush-fgs", e) /* شروع سرویس از پس‌زمینه ممنوع/بدون مجوز: پخش بدون اعلان ادامه دارد */ }
     }
     @PluginMethod
     fun mediaStart(call: PluginCall) {
         mediaApply(call)
         MediaBridge.active = true
         MediaBridge.cb = { a, p -> notifyListeners("mediaAction", JSObject().put("action", a).put("pos", p)) }
-        mediaPush(); call.resolve()
+        mediaPush(); afRetry(); call.resolve()
     }
     @PluginMethod
     fun mediaUpdate(call: PluginCall) {
         if (!MediaBridge.active) { call.reject("NO_MEDIA"); return }
-        mediaApply(call); mediaPush(); call.resolve()
+        mediaApply(call); mediaPush(); wlRenew(); afRetry(); call.resolve()
     }
     @PluginMethod
     fun mediaStop(call: PluginCall) {
@@ -432,7 +455,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r26 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r29 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)).put("mph", ManaPhon.status(context)))
     }
 
     @PluginMethod
@@ -579,6 +602,10 @@ class PiperNativePlugin : Plugin() {
     }
 
     private fun binStart(u: Uri, name: String): JSObject {
+        if (bins.size >= 4) {   /* kt-r27 (P09-07): ورودیِ رهاشده (JS بدون close) جای ذخیرهٔ جدید را نگیرد؛ قدیمی‌ترین بسته می‌شود (ناقصش حذف، مگر همان فایلِ همین ذخیره) */
+            val oldest = bins.keys.minOrNull()
+            if (oldest != null) { try { binDrop(oldest, binUris[oldest] != u) } catch (e: Exception) {} }
+        }
         if (bins.size >= 4) throw IllegalStateException("تعداد فایل‌های بازِ ذخیره زیاد است")
         val os = context.contentResolver.openOutputStream(u, "wt") ?: throw IllegalStateException("نوشتن در فایل ممکن نشد")
         val sid = binSeq.incrementAndGet()
@@ -672,18 +699,24 @@ class PiperNativePlugin : Plugin() {
                 var n = 0
                 for (id in ids) {
                     val name = "piper-$id.zip"
-                    t.findFile(name)?.delete()
-                    val f = t.createFile("application/zip", name) ?: throw IllegalStateException("ساخت فایل در پوشه ممکن نشد")
+                    /* kt-r27 (P09-03): نوشتن در نام موقت (پیشوند tmp- تا واردکردن آن را پشتیبان حساب نکند)؛ پشتیبان قدیمی فقط پس از اتمام موفق جایگزین می‌شود */
+                    val tmpName = "tmp-$name"
+                    t.findFile(tmpName)?.delete()
+                    val f = t.createFile("application/zip", tmpName) ?: throw IllegalStateException("ساخت فایل در پوشه ممکن نشد")
                     val dir = voiceDir(id)
-                    val os = context.contentResolver.openOutputStream(f.uri, "w") ?: throw IllegalStateException("نوشتن در پوشه ممکن نشد")
-                    ZipOutputStream(BufferedOutputStream(os, 1 shl 16)).use { z ->
-                        z.setLevel(1)
-                        dir.walkTopDown().filter { it.isFile && it.name != ".ok" }.forEach { file ->
-                            z.putNextEntry(ZipEntry(file.relativeTo(dir).path.replace('\\', '/')))
-                            file.inputStream().use { it.copyTo(z) }
-                            z.closeEntry()
+                    try {
+                        val os = context.contentResolver.openOutputStream(f.uri, "w") ?: throw IllegalStateException("نوشتن در پوشه ممکن نشد")
+                        ZipOutputStream(BufferedOutputStream(os, 1 shl 16)).use { z ->
+                            z.setLevel(1)
+                            dir.walkTopDown().filter { it.isFile && it.name != ".ok" }.forEach { file ->
+                                z.putNextEntry(ZipEntry(file.relativeTo(dir).path.replace('\\', '/')))
+                                file.inputStream().use { it.copyTo(z) }
+                                z.closeEntry()
+                            }
                         }
-                    }
+                    } catch (e: Throwable) { try { f.delete() } catch (x: Throwable) {}; throw e }
+                    t.findFile(name)?.delete()
+                    if (!f.renameTo(name)) throw IllegalStateException("تغییر نام فایل موقت ممکن نشد؛ پشتیبان کامل با نام $tmpName در پوشه است")
                     n++
                     notifyListeners("progress", JSObject().put("stage", "export").put("n", n))
                 }
@@ -711,25 +744,31 @@ class PiperNativePlugin : Plugin() {
                     if (!over && okMark(id).exists()) continue
                     if (ttsId == id) releaseEngine(id)
                     val dst = voiceDir(id)
-                    dst.deleteRecursively(); dst.mkdirs()
+                    /* kt-r27 (P09-03): استخراج در پوشهٔ موقت؛ صدای نصب‌شده فقط پس از اعتبارسنجی کامل جایگزین می‌شود (در شکست دست‌نخورده می‌ماند) */
+                    val tmp = File(dst.parentFile, dst.name + ".tmp")
+                    val bak = File(dst.parentFile, dst.name + ".old")
+                    tmp.deleteRecursively(); bak.deleteRecursively(); tmp.mkdirs()
                     try {
                         val ins = context.contentResolver.openInputStream(f.uri) ?: throw IllegalStateException("خواندن از پوشه ممکن نشد")
                         ZipInputStream(BufferedInputStream(ins, 1 shl 16)).use { z ->
                             while (true) {
                                 val e = z.nextEntry ?: break
-                                val out = File(dst, e.name)
-                                if (!out.canonicalPath.startsWith(dst.canonicalPath + File.separator)) continue   // جلوگیری از path traversal
+                                val out = File(tmp, e.name)
+                                if (!out.canonicalPath.startsWith(tmp.canonicalPath + File.separator)) continue   // جلوگیری از path traversal
                                 if (e.isDirectory) { out.mkdirs(); continue }
                                 out.parentFile?.mkdirs()
                                 FileOutputStream(out).use { z.copyTo(it) }
                             }
                         }
-                        if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists())
+                        if (findOnnx(tmp) == null || !File(findRoot(tmp), "tokens.txt").exists())
                             throw IllegalStateException("فایل مدل کامل نیست")
+                        if (dst.exists() && !dst.renameTo(bak)) throw IllegalStateException("جایگزینی صدا ممکن نشد")
+                        if (!tmp.renameTo(dst)) { if (bak.exists()) bak.renameTo(dst); throw IllegalStateException("جایگزینی صدا ممکن نشد") }
                         okMark(id).writeText("1")
+                        bak.deleteRecursively()
                         done.put(id); n++
                     } catch (e: Exception) {
-                        dst.deleteRecursively()
+                        tmp.deleteRecursively()
                     }
                     notifyListeners("progress", JSObject().put("stage", "import").put("n", n))
                 }
@@ -1922,6 +1961,9 @@ class PiperNativePlugin : Plugin() {
     @Volatile private var afOn = false
     @Volatile private var afLostT = false
     @Volatile private var afDuck = false
+    @Volatile private var afFailed = false   // kt-r29 (P09-06): آخرین درخواست فوکوس رد شد (نه از دست‌رفتن بعد از گرفتن)
+    @Volatile private var afRetries = 0
+    @Volatile private var afLogR = -99   // kt-r27: آخرین کد نتیجهٔ requestAudioFocus که در svc ثبت شد (ثبت فقط هنگام تغییر)
     @Volatile private var afAt = 0L   // لحظهٔ آخرین درخواست فوکوس؛ JS با آن تداخل هم‌فرایندی WebView را از برنامهٔ دیگر تشخیص می‌دهد
     private val afl = AudioManager.OnAudioFocusChangeListener { c ->
         try {
@@ -1937,20 +1979,23 @@ class PiperNativePlugin : Plugin() {
             }
         } catch (e: Throwable) {}
     }
-    private fun afRequest() {
+    private fun afRequest(retry: Boolean = false) {
+        if (!retry) afRetries = 0
         afLostT = false
         if (afOn) return
         afAt = android.os.SystemClock.elapsedRealtime()
         try {
             val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
             val r = if (android.os.Build.VERSION.SDK_INT >= 26) {
-                val rq = android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+                val rq = android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)   /* kt-r29 (P09-08/P8): بلندگو برای خوانش؛ پخش برنامهٔ دیگر زیرش کم‌صدا نمی‌ماند، متوقف می‌شود */
                     .setAudioAttributes(android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_MEDIA).setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH).build())
                     .setOnAudioFocusChangeListener(afl).build()
                 afReq = rq; am.requestAudioFocus(rq)
-            } else @Suppress("DEPRECATION") am.requestAudioFocus(afl, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            } else @Suppress("DEPRECATION") am.requestAudioFocus(afl, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
+            afFailed = r != AudioManager.AUDIOFOCUS_REQUEST_GRANTED
             afOn = r == AudioManager.AUDIOFOCUS_REQUEST_GRANTED   // اگر رد شد (مثلاً تماس) پخش مسدود نمی‌شود؛ دفعهٔ بعد دوباره تلاش می‌شود
-        } catch (e: Throwable) {}
+            if (r != afLogR) { afLogR = r; MediaBridge.svcLog(context, "focus", null, "r=" + r + (if (afOn) "(granted)" else "(NOT granted; 0=failed 1=granted 2=delayed)")) }
+        } catch (e: Throwable) { MediaBridge.svcLog(context, "focus-ex", e) }
     }
     private fun afAbandon() {
         try {
@@ -1958,7 +2003,17 @@ class PiperNativePlugin : Plugin() {
             if (android.os.Build.VERSION.SDK_INT >= 26) afReq?.let { am.abandonAudioFocusRequest(it) }
             else @Suppress("DEPRECATION") am.abandonAudioFocus(afl)
         } catch (e: Throwable) {}
-        afOn = false; afDuck = false
+        afOn = false; afDuck = false; afFailed = false
+    }
+    /** kt-r29 (P09-06): از هدف API 35 درخواست فوکوس پیش از برقراری سرویس پیش‌زمینه رد می‌شود؛ پس از mediaStart/mediaUpdate (سرویس برقرار) حداکثر ۲ بار دوباره تلاش می‌شود.
+     *  فقط اگر آخرین درخواست «رد شده» بوده؛ فوکوسِ از دست‌رفته به‌دست برنامهٔ دیگر (afAbandon ⇒ afFailed=false) هرگز دوباره گرفته نمی‌شود. */
+    private fun afRetry() {
+        try {
+            if (afOn || !afFailed || afRetries >= 2 || !MediaBridge.playing) return
+            if (!synchronized(plLock) { plActive }) return
+            afRetries++
+            afRequest(true)
+        } catch (e: Throwable) {}
     }
 
     /** جداشدن هدفون/بلوتوث: صدا ناگهان از بلندگو پخش نشود */
@@ -2254,8 +2309,8 @@ class PiperNativePlugin : Plugin() {
         PlayerService.stopSafe(context)
         try { if (wl?.isHeld == true) wl?.release() } catch (e: Throwable) {}
         cpu.execute { try { tts?.release() } catch (e: Throwable) {}; tts = null; ttsId = null; ttsKey = null; try { NeuralDenoise.release() } catch (e: Throwable) {} }
-        try { bins.keys.toList().forEach { try { binDrop(it, false) } catch (e: Exception) {} } } catch (e: Throwable) {}
-        cpu.shutdown(); io.shutdown(); bio.shutdown()
+        try { bins.keys.toList().forEach { try { binDrop(it, true) } catch (e: Exception) {} }   /* kt-r27 (P09-05): فایل ناقص نماند */ } catch (e: Throwable) {}
+        cpu.shutdown(); io.shutdown(); bio.shutdown(); acEx.shutdown()   /* kt-r27 (P09-14) */
     }
 }
 
@@ -3188,6 +3243,41 @@ object MediaBridge {
     @Volatile var durMs = 0L
     @Volatile var posMs = 0L
     @Volatile var cover: android.graphics.Bitmap? = null
+
+    /* kt-r27 (P09-01/06): حلقهٔ لاگ سرویس/پیش‌زمینه/فوکوس (۳۰ ورودی آخر) ← diag().svc. نخستین استثنای هر اجرا با پشتهٔ کوتاه در files/svc.log
+       (فایل جدا از crash.log: JS هر محتوای crash.log را «بستن ناگهانی برنامه» نشان می‌دهد) ← diag().svcFile. ورودی تکراریِ پشت‌سرهم یک خط با شمارنده می‌شود. */
+    private val svcBuf = java.util.ArrayDeque<String>()
+    private var svcLastBody = ""
+    private var svcRep = 0
+    @Volatile private var svcFirst = false
+    fun svcLog(ctx: android.content.Context?, tag: String, e: Throwable? = null, extra: String = "") {
+        try {
+            val t = System.currentTimeMillis()
+            val hms = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US).format(java.util.Date(t))
+            val body = tag + (if (e != null) " " + e.javaClass.simpleName + ": " + (e.message ?: "").take(120) else "") + (if (extra.isNotEmpty()) " " + extra else "")
+            synchronized<Unit>(svcBuf) {
+                if (body == svcLastBody && svcBuf.isNotEmpty()) {
+                    svcRep++
+                    svcBuf.removeLast(); svcBuf.addLast(hms + " " + body + " ×" + (svcRep + 1))
+                } else {
+                    svcLastBody = body; svcRep = 0
+                    svcBuf.addLast(hms + " " + body)
+                    while (svcBuf.size > 30) svcBuf.removeFirst()
+                }
+            }
+            if (e != null && ctx != null && !svcFirst) {
+                svcFirst = true
+                val sw = java.io.StringWriter(); e.printStackTrace(java.io.PrintWriter(sw))
+                val f = java.io.File(ctx.filesDir, "svc.log")
+                val stamp = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(java.util.Date(t))
+                val old = try { if (f.exists()) f.readText() else "" } catch (x: Throwable) { "" }
+                f.writeText((old + "[" + stamp + "] " + tag + " sdk=" + android.os.Build.VERSION.SDK_INT + "\n" + sw.toString().take(700) + "\n").takeLast(3000))
+            }
+        } catch (x: Throwable) {}
+    }
+    fun svcDump(): String = synchronized(svcBuf) { svcBuf.joinToString(" | ") }
+    fun svcFile(ctx: android.content.Context): String =
+        try { val f = java.io.File(ctx.filesDir, "svc.log"); if (f.exists()) f.readText().takeLast(1500) else "" } catch (x: Throwable) { "" }
 }
 
 /** سرویس پیش‌زمینهٔ پخش (mediaPlayback) + MediaSession + اعلان MediaStyle (فقط کلاس‌های فریم‌ورک؛ بدون وابستگی جدید).
@@ -3199,6 +3289,8 @@ class PlayerService : android.app.Service() {
         val PENDING = java.util.concurrent.atomic.AtomicInteger(0)
         @Volatile var pendAt = 0L
         @Volatile var stopReq = false
+        /* kt-r29 (P09-04/P9): پس از مکث سرویس تا این مدت پیش‌زمینه می‌ماند تا «پخش» از هدست/کارت قفل‌صفحه نیازی به شروع FGS از پس‌زمینه نداشته باشد؛ ۰ = رفتار قبلی (آزادسازی فوری) */
+        const val PAUSE_HOLD_MS = 10 * 60 * 1000L
         fun startFgs(ctx: Context, si: Intent) {
             if (android.os.Build.VERSION.SDK_INT >= 26) {
                 PENDING.incrementAndGet(); pendAt = android.os.SystemClock.elapsedRealtime(); stopReq = false
@@ -3213,6 +3305,19 @@ class PlayerService : android.app.Service() {
     }
     private var ms: android.media.session.MediaSession? = null
     private val h = android.os.Handler(android.os.Looper.getMainLooper())
+    private var holdArmed = false
+    private var heldN: android.app.Notification? = null
+    private val detachRun = Runnable {   /* kt-r29 (P09-04): پایان نگه‌داری پس از مکث ⇒ همان آزادسازی قبلی (اعلان قابل سوایپ) */
+        holdArmed = false
+        try {
+            if (MediaBridge.active && !MediaBridge.playing) {
+                if (android.os.Build.VERSION.SDK_INT >= 24) stopForeground(android.app.Service.STOP_FOREGROUND_DETACH) else @Suppress("DEPRECATION") stopForeground(false)
+                heldN?.let { (getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager).notify(NID, it) }
+                MediaBridge.svcLog(this, "pause-hold-detach")
+            }
+        } catch (e: Throwable) { MediaBridge.svcLog(this, "pause-hold-detach-ex", e) }
+        heldN = null
+    }
     private var clicks = 0
     private val fire = Runnable {
         val c = clicks; clicks = 0
@@ -3232,6 +3337,7 @@ class PlayerService : android.app.Service() {
             override fun onSkipToPrevious() { MediaBridge.cb?.invoke("prev", 0L) }
             override fun onSeekTo(pos: Long) { MediaBridge.cb?.invoke("seek", pos) }
             override fun onStop() { MediaBridge.cb?.invoke("stop", 0L) }
+            override fun onCustomAction(action: String, extras: android.os.Bundle?) { if (action == "speed" || action == "stop") MediaBridge.cb?.invoke(action, 0L) }   /* kt-r27 (P09-09) */
             /* هدست: یک‌بار = پخش/توقف، دوبار = بعدی، سه‌بار = قبلی */
             override fun onMediaButtonEvent(i: Intent): Boolean {
                 val ev = if (android.os.Build.VERSION.SDK_INT >= 33) i.getParcelableExtra(Intent.EXTRA_KEY_EVENT, android.view.KeyEvent::class.java)
@@ -3274,10 +3380,20 @@ class PlayerService : android.app.Service() {
             android.media.session.PlaybackState.ACTION_SKIP_TO_NEXT or android.media.session.PlaybackState.ACTION_SKIP_TO_PREVIOUS or
             android.media.session.PlaybackState.ACTION_SEEK_TO or android.media.session.PlaybackState.ACTION_STOP
         /* r113: موقعیت/مدت بر حسب میلی‌ثانیهٔ تخمینی؛ سرعت = نرخ پخش تا نوار بین به‌روزرسانی‌ها خودش جلو برود، هنگام مکث ۰ */
-        s.setPlaybackState(android.media.session.PlaybackState.Builder().setActions(A)
-            .setState(if (st.playing) android.media.session.PlaybackState.STATE_PLAYING else android.media.session.PlaybackState.STATE_PAUSED,
-                if (st.durMs > 0) st.posMs else st.index.toLong() * 1000L, if (st.playing) st.rate else 0f).build())
         val rt = String.format(java.util.Locale.US, "%.2f", st.rate).trimEnd('0').trimEnd('.')
+        /* kt-r27 (P09-10): بدون مدت (واحد = جمله) سرعت ۰ تا نوار ثانیه‌ثانیه جلو نرود */
+        val pb = android.media.session.PlaybackState.Builder().setActions(A)
+            .setState(if (st.playing) android.media.session.PlaybackState.STATE_PLAYING else android.media.session.PlaybackState.STATE_PAUSED,
+                if (st.durMs > 0) st.posMs else st.index.toLong() * 1000L, if (st.playing && st.durMs > 0) st.rate else 0f)
+        /* kt-r27 (P09-09): از Android 13 کارت مدیا/قفل‌صفحه دکمه‌ها را از PlaybackState می‌سازد؛ «سرعت» و «توقف کامل» CustomAction‌اند.
+           آیکن باید در بستهٔ خود برنامه باشد (مستند Android: همان بستهٔ MediaSession) ← drawable‌های ic_pv_speed / ic_pv_stop را inject-native.sh می‌سازد؛ نبودنشان ⇒ فقط بدون این دو دکمه */
+        try {
+            val iSp = resources.getIdentifier("ic_pv_speed", "drawable", packageName)
+            val iSt = resources.getIdentifier("ic_pv_stop", "drawable", packageName)
+            if (iSp != 0) pb.addCustomAction(android.media.session.PlaybackState.CustomAction.Builder("speed", "سرعت ${rt}×", iSp).build())
+            if (iSt != 0) pb.addCustomAction(android.media.session.PlaybackState.CustomAction.Builder("stop", "توقف کامل", iSt).build())
+        } catch (e: Throwable) { MediaBridge.svcLog(this, "customAction", e) }
+        s.setPlaybackState(pb.build())
         st.cover?.let { b.setLargeIcon(it) }
         b.setContentText(st.sub).setOngoing(st.playing).setDeleteIntent(pi("stop", 5))
             .addAction(act(android.R.drawable.ic_media_previous, "جملهٔ قبل", "prev", 1))
@@ -3290,6 +3406,7 @@ class PlayerService : android.app.Service() {
     }
 
     private fun end() {
+        h.removeCallbacks(detachRun); holdArmed = false; heldN = null   /* kt-r29 */
         MediaBridge.active = false; MediaBridge.playing = false
         try { if (android.os.Build.VERSION.SDK_INT >= 24) stopForeground(android.app.Service.STOP_FOREGROUND_REMOVE) else @Suppress("DEPRECATION") stopForeground(true) } catch (e: Throwable) {}
         stopSelf()
@@ -3315,7 +3432,7 @@ class PlayerService : android.app.Service() {
                 n0 = if (warm) { try { build() } catch (e: Throwable) { quick() } } else quick()
                 if (android.os.Build.VERSION.SDK_INT >= 29) startForeground(NID, n0, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
                 else startForeground(NID, n0)
-            } catch (e: Throwable) { n0 = null }
+            } catch (e: Throwable) { n0 = null; MediaBridge.svcLog(this, "fgs-1", e) }
             PENDING.updateAndGet { if (it > 0) it - 1 else 0 }
             if (stopReq && PENDING.get() == 0) { stopReq = false; end(); return START_NOT_STICKY }   /* توقفِ به‌تعویق‌افتاده: حالا امن است */
         }
@@ -3325,27 +3442,35 @@ class PlayerService : android.app.Service() {
             return START_NOT_STICKY
         }
         val n = if (warm && n0 != null) n0 else try { build() } catch (e: Throwable) { n0 }
-        if (n == null) { stopSelf(); return START_NOT_STICKY }
+        if (n == null) { MediaBridge.svcLog(this, "no-notification-stopSelf"); stopSelf(); return START_NOT_STICKY }
         try {
             if (android.os.Build.VERSION.SDK_INT >= 29) startForeground(NID, n, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
             else startForeground(NID, n)
+            if (MediaBridge.playing) { h.removeCallbacks(detachRun); holdArmed = false; heldN = null }   /* kt-r29 (P09-04) */
             if (MediaBridge.active && !MediaBridge.playing) {   /* مکث: اعلان قابل سوایپ می‌شود، پیش‌زمینه آزاد */
-                if (android.os.Build.VERSION.SDK_INT >= 24) stopForeground(android.app.Service.STOP_FOREGROUND_DETACH) else @Suppress("DEPRECATION") stopForeground(false)
-                nm.notify(NID, n)
+                if (PAUSE_HOLD_MS > 0L) {   /* kt-r29 (P09-04): نگه‌داشتن تا PAUSE_HOLD_MS؛ سپس detachRun همان آزادسازی را می‌کند */
+                    heldN = n
+                    if (!holdArmed) { holdArmed = true; h.postDelayed(detachRun, PAUSE_HOLD_MS) }
+                } else {
+                    if (android.os.Build.VERSION.SDK_INT >= 24) stopForeground(android.app.Service.STOP_FOREGROUND_DETACH) else @Suppress("DEPRECATION") stopForeground(false)
+                    nm.notify(NID, n)
+                }
             }
-        } catch (e: Throwable) { if (n0 == null) stopSelf() }
+        } catch (e: Throwable) { MediaBridge.svcLog(this, if (n0 == null) "fgs-2-stopSelf" else "fgs-2", e); if (n0 == null) stopSelf() }
         return START_NOT_STICKY
     }
 
     /** حذف برنامه از لیست اخیر: اعلان شبح نماند */
     override fun onTaskRemoved(rootIntent: Intent?) {
         try { MediaBridge.cb?.invoke("stop", 0L) } catch (e: Throwable) {}
-        end()
+        /* kt-r27 (P09-02): اگر startForegroundService هنوز به onStartCommand نرسیده، همین‌جا نبند (ForegroundServiceDidNotStartInTime)؛ onStartCommand پس از startForeground خودش پایان می‌دهد */
+        if (PENDING.get() > 0 && android.os.SystemClock.elapsedRealtime() - pendAt < 10000L) { stopReq = true; MediaBridge.svcLog(this, "taskRemoved-deferred") }
+        else end()
         super.onTaskRemoved(rootIntent)
     }
 
     override fun onDestroy() {
-        h.removeCallbacks(fire)
+        h.removeCallbacks(fire); h.removeCallbacks(detachRun)
         try { ms?.isActive = false; ms?.release() } catch (e: Throwable) {}
         ms = null
         super.onDestroy()
