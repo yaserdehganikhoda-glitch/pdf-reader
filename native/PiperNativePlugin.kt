@@ -297,6 +297,7 @@ class PiperNativePlugin : Plugin() {
      *  بدون دسترسی کامل فقط فایل‌هایی که سیستم نشان می‌دهد برمی‌گردد (access=false). */
     private fun hasPdfAccess(): Boolean =
         if (Build.VERSION.SDK_INT >= 30) Environment.isExternalStorageManager()
+        else if (Build.VERSION.SDK_INT < 23) true   /* kt-r30 (N-02): قبل از Android 6 مجوز هنگام نصب داده می‌شود؛ checkSelfPermission از API 23 است */
         else context.checkSelfPermission("android.permission.READ_EXTERNAL_STORAGE") == android.content.pm.PackageManager.PERMISSION_GRANTED
 
     /** آیا مجوز لازم در AndroidManifest.xml همین نسخه اعلام شده است؟ بدون آن سیستم دکمهٔ دسترسی را غیرفعال می‌کند. */
@@ -317,7 +318,7 @@ class PiperNativePlugin : Plugin() {
                     context.startActivity(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                 }
             } else {
-                activity?.requestPermissions(arrayOf("android.permission.READ_EXTERNAL_STORAGE"), 9318)
+                if (Build.VERSION.SDK_INT >= 23) activity?.requestPermissions(arrayOf("android.permission.READ_EXTERNAL_STORAGE"), 9318)   /* kt-r30 (N-02): requestPermissions از API 23 */
             }
             val r = JSObject(); r.put("access", hasPdfAccess()); r.put("declared", true); call.resolve(r)
         } catch (e: Throwable) { call.reject(e.message ?: "request failed") }
@@ -436,12 +437,12 @@ class PiperNativePlugin : Plugin() {
         mediaApply(call)
         MediaBridge.active = true
         MediaBridge.cb = { a, p -> notifyListeners("mediaAction", JSObject().put("action", a).put("pos", p)) }
-        mediaPush(); afRetry(); call.resolve()
+        mediaPush(); call.resolve()
     }
     @PluginMethod
     fun mediaUpdate(call: PluginCall) {
         if (!MediaBridge.active) { call.reject("NO_MEDIA"); return }
-        mediaApply(call); mediaPush(); wlRenew(); afRetry(); call.resolve()
+        mediaApply(call); mediaPush(); wlRenew(); call.resolve()
     }
     @PluginMethod
     fun mediaStop(call: PluginCall) {
@@ -452,7 +453,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r30 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r31 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
     }
 
     @PluginMethod
@@ -1778,8 +1779,6 @@ class PiperNativePlugin : Plugin() {
     @Volatile private var afOn = false
     @Volatile private var afLostT = false
     @Volatile private var afDuck = false
-    @Volatile private var afFailed = false   // kt-r29 (P09-06): آخرین درخواست فوکوس رد شد (نه از دست‌رفتن بعد از گرفتن)
-    @Volatile private var afRetries = 0
     @Volatile private var afLogR = -99   // kt-r27: آخرین کد نتیجهٔ requestAudioFocus که در svc ثبت شد (ثبت فقط هنگام تغییر)
     @Volatile private var afAt = 0L   // لحظهٔ آخرین درخواست فوکوس؛ JS با آن تداخل هم‌فرایندی WebView را از برنامهٔ دیگر تشخیص می‌دهد
     private val afl = AudioManager.OnAudioFocusChangeListener { c ->
@@ -1796,8 +1795,7 @@ class PiperNativePlugin : Plugin() {
             }
         } catch (e: Throwable) {}
     }
-    private fun afRequest(retry: Boolean = false) {
-        if (!retry) afRetries = 0
+    private fun afRequest() {
         afLostT = false
         if (afOn) return
         afAt = android.os.SystemClock.elapsedRealtime()
@@ -1809,7 +1807,6 @@ class PiperNativePlugin : Plugin() {
                     .setOnAudioFocusChangeListener(afl).build()
                 afReq = rq; am.requestAudioFocus(rq)
             } else @Suppress("DEPRECATION") am.requestAudioFocus(afl, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
-            afFailed = r != AudioManager.AUDIOFOCUS_REQUEST_GRANTED
             afOn = r == AudioManager.AUDIOFOCUS_REQUEST_GRANTED   // اگر رد شد (مثلاً تماس) پخش مسدود نمی‌شود؛ دفعهٔ بعد دوباره تلاش می‌شود
             if (r != afLogR) { afLogR = r; MediaBridge.svcLog(context, "focus", null, "r=" + r + (if (afOn) "(granted)" else "(NOT granted; 0=failed 1=granted 2=delayed)")) }
         } catch (e: Throwable) { MediaBridge.svcLog(context, "focus-ex", e) }
@@ -1820,17 +1817,7 @@ class PiperNativePlugin : Plugin() {
             if (android.os.Build.VERSION.SDK_INT >= 26) afReq?.let { am.abandonAudioFocusRequest(it) }
             else @Suppress("DEPRECATION") am.abandonAudioFocus(afl)
         } catch (e: Throwable) {}
-        afOn = false; afDuck = false; afFailed = false
-    }
-    /** kt-r29 (P09-06): از هدف API 35 درخواست فوکوس پیش از برقراری سرویس پیش‌زمینه رد می‌شود؛ پس از mediaStart/mediaUpdate (سرویس برقرار) حداکثر ۲ بار دوباره تلاش می‌شود.
-     *  فقط اگر آخرین درخواست «رد شده» بوده؛ فوکوسِ از دست‌رفته به‌دست برنامهٔ دیگر (afAbandon ⇒ afFailed=false) هرگز دوباره گرفته نمی‌شود. */
-    private fun afRetry() {
-        try {
-            if (afOn || !afFailed || afRetries >= 2 || !MediaBridge.playing) return
-            if (!synchronized(plLock) { plActive }) return
-            afRetries++
-            afRequest(true)
-        } catch (e: Throwable) {}
+        afOn = false; afDuck = false
     }
 
     /** جداشدن هدفون/بلوتوث: صدا ناگهان از بلندگو پخش نشود */
@@ -2892,6 +2879,8 @@ class PlayerService : android.app.Service() {
         const val A_SYNC = "pv.sync"; const val A_CMD = "pv.cmd"; const val NID = 7421; const val CH = "pdfvoice_play"
         /* r113: startForegroundService هایی که onStartCommand‌شان هنوز اجرا نشده؛ تا آن زمان stopService ممنوع (علت ForegroundServiceDidNotStartInTimeException) */
         val PENDING = java.util.concurrent.atomic.AtomicInteger(0)
+        /** kt-r30 (N-01): AtomicInteger.updateAndGet از API 24 است ولی minSdk=22؛ همین منطق با compareAndSet (API 1) */
+        fun pendDec() { while (true) { val c = PENDING.get(); if (PENDING.compareAndSet(c, if (c > 0) c - 1 else 0)) break } }
         @Volatile var pendAt = 0L
         @Volatile var stopReq = false
         /* kt-r29 (P09-04/P9): پس از مکث سرویس تا این مدت پیش‌زمینه می‌ماند تا «پخش» از هدست/کارت قفل‌صفحه نیازی به شروع FGS از پس‌زمینه نداشته باشد؛ ۰ = رفتار قبلی (آزادسازی فوری) */
@@ -2899,7 +2888,7 @@ class PlayerService : android.app.Service() {
         fun startFgs(ctx: Context, si: Intent) {
             if (android.os.Build.VERSION.SDK_INT >= 26) {
                 PENDING.incrementAndGet(); pendAt = android.os.SystemClock.elapsedRealtime(); stopReq = false
-                try { ctx.startForegroundService(si) } catch (e: Throwable) { PENDING.updateAndGet { if (it > 0) it - 1 else 0 }; throw e }
+                try { ctx.startForegroundService(si) } catch (e: Throwable) { pendDec(); throw e }
             } else ctx.startService(si)
         }
         fun stopSafe(ctx: Context) {
@@ -3038,7 +3027,7 @@ class PlayerService : android.app.Service() {
                 if (android.os.Build.VERSION.SDK_INT >= 29) startForeground(NID, n0, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
                 else startForeground(NID, n0)
             } catch (e: Throwable) { n0 = null; MediaBridge.svcLog(this, "fgs-1", e) }
-            PENDING.updateAndGet { if (it > 0) it - 1 else 0 }
+            pendDec()   /* kt-r30 (N-01) */
             if (stopReq && PENDING.get() == 0) { stopReq = false; end(); return START_NOT_STICKY }   /* توقفِ به‌تعویق‌افتاده: حالا امن است */
         }
         if (cmd) {   /* دکمهٔ اعلان: فقط به JS منتقل می‌شود؛ وضعیت جدید را JS با mediaUpdate می‌فرستد */

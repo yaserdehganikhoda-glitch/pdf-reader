@@ -288,8 +288,8 @@ rep += ['**application / activity**', '```', app.group(0) if app else '(نیست
 rep += ['**BackApp.java**: ' + ('موجود' if os.path.exists(os.path.join(pkg, 'BackApp.java')) else 'نیست')]
 for g in ('android/variables.gradle', 'android/app/build.gradle'):
     if os.path.exists(g):
-        ls = [l.strip() for l in open(g, encoding='utf-8').read().splitlines() if re.search(r'\b(compileSdk|targetSdk|minSdk)(Version)?\b|\bnamespace\b|\bapplicationId\b', l)]
-        rep += ['**' + g + '**', '```'] + ls + ['```']
+        ls = [l.strip() for l in open(g, encoding='utf-8').read().splitlines() if re.search(r'\b(compileSdk|targetSdk)(Version)?\b|\bnamespace\b|\bapplicationId\b', l)]
+        rep += ['**' + g + '** (minSdk عمداً نیست: گام 6 آن را بالا می‌برد؛ مقدار نهایی در پایین همین خلاصه است)', '```'] + ls + ['```']
 for p in ('FOREGROUND_SERVICE', 'FOREGROUND_SERVICE_MEDIA_PLAYBACK', 'WAKE_LOCK', 'POST_NOTIFICATIONS'):
     if 'android.permission.%s"' % p not in s: bad.append('مجوز %s در مانیفست نیست' % p)
 if not svc: bad.append('PlayerService در مانیفست ثبت نشده')
@@ -347,6 +347,7 @@ python3 - <<'PY'
 import re, os, sys
 REQ = 24
 changed = False
+fin = []
 for p in ('android/variables.gradle', 'android/app/build.gradle'):
     if not os.path.exists(p): continue
     s = open(p, encoding='utf-8').read()
@@ -359,7 +360,12 @@ for p in ('android/variables.gradle', 'android/app/build.gradle'):
     n = re.sub(r'(\bminSdk(?:Version)?\s*=?\s*)(\d+)', fix, s)
     if n != s: open(p, 'w', encoding='utf-8').write(n)
     for line in n.splitlines():
-        if re.search(r'\bminSdk(?:Version)?\b', line): print(p + ': ' + line.strip())
+        if re.search(r'\bminSdk(?:Version)?\b', line):
+            print(p + ': ' + line.strip()); fin.append(p + ': ' + line.strip())
+sm = os.environ.get('GITHUB_STEP_SUMMARY')
+if sm and fin:
+    try: open(sm, 'a', encoding='utf-8').write('### minSdk نهایی (پس از گام 6)\n```\n' + '\n'.join(fin) + '\n```\n')
+    except Exception: pass
 if not changed:
     print('WARN: مقدار عددی minSdk کمتر از %d پیدا/اصلاح نشد؛ خطوط بالا را ببینید' % REQ)
 PY
