@@ -21,16 +21,16 @@ const h=require("fs").readFileSync(process.argv[1],"utf8");let bad=0;
 const m=h.match(/var CFG_DEF = (\{[^}]*\})/);if(m){const k=Object.keys(JSON.parse(m[1]));k.forEach(x=>{if(!h.includes("id=\""+x+"\"")&&!h.includes("sget(\x27"+x+"\x27")&&!h.includes("\x27"+x+"\x27")){console.log("FAIL کلید بی‌مصرف در CFG_DEF:",x);bad=1}});console.log("OK CFG_DEF",k.length,"کلید")}
 if(bad)process.exit(1);console.log("OK پاک‌سازی")
 ' "$F" || E=1
-node "$D/g2p.js" "$F" | tee /tmp/g2p.out; node -e '
+node "$D/g2p.js" "$F" > /tmp/g2p.out || { echo "FAIL node tools/g2p.js (rc=$?)"; E=1; }; cat /tmp/g2p.out; node -e '
 const r=JSON.parse(require("fs").readFileSync("/tmp/g2p.out","utf8").split("\n")[0]);
 if(r.hom.acc<0.98||r.num.acc<0.98||r.msPerSentence_node>5){console.log("FAIL آستانهٔ Golden/زمان");process.exit(1)}console.log("OK Golden")' || E=1
-node "$D/evalez.js" "$F" > /tmp/ez.out 2>&1 || E=1; head -1 /tmp/ez.out
-node "$D/evalemo.js" "$F" > /tmp/emo.out || E=1; head -1 /tmp/emo.out; node -e '
+node "$D/evalez.js" "$F" > /tmp/ez.out 2>&1 || { echo "FAIL node tools/evalez.js (rc=$?)"; tail -5 /tmp/ez.out; E=1; }; head -1 /tmp/ez.out
+node "$D/evalemo.js" "$F" > /tmp/emo.out || { echo "FAIL node tools/evalemo.js (rc=$?)"; E=1; }; head -1 /tmp/emo.out; node -e '
 const r=JSON.parse(require("fs").readFileSync("/tmp/emo.out","utf8").split("\n")[0]);
 if(r.macroF1_5<0.7||r.ms_per_sentence_node>5){console.log("FAIL آستانهٔ احساس");process.exit(1)}console.log("OK احساس")' || E=1
-node "$D/evalemo.js" "$F" --holdout > /tmp/emoh.out 2>&1 || E=1; head -1 /tmp/emoh.out
-node "$D/emopar.js" "$F" > /tmp/emopar.out 2>&1 || E=1; tail -1 /tmp/emopar.out
-node "$D/emph.js" "$F" > /tmp/emph.out 2>&1 || E=1; tail -2 /tmp/emph.out
+node "$D/evalemo.js" "$F" --holdout > /tmp/emoh.out 2>&1 || { echo "FAIL node tools/evalemo.js --holdout (rc=$?)"; tail -5 /tmp/emoh.out; E=1; }; head -1 /tmp/emoh.out
+node "$D/emopar.js" "$F" > /tmp/emopar.out 2>&1 || { echo "FAIL node tools/emopar.js (rc=$?)"; tail -5 /tmp/emopar.out; E=1; }; tail -1 /tmp/emopar.out
+node "$D/emph.js" "$F" > /tmp/emph.out 2>&1 || { echo "FAIL node tools/emph.js (rc=$?)"; tail -8 /tmp/emph.out; E=1; }; tail -2 /tmp/emph.out
 node "$D/prio.js" "$F" || E=1
 node "$D/regress.js" "$F" || E=1
 exit $E

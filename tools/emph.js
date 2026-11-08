@@ -1,7 +1,8 @@
 // آزمون شکست تأکید و سلامت هایلایت: node emph.js ../index.html
 const fs=require('fs'),vm=require('vm'),assert=require('assert');const h=fs.readFileSync(process.argv[2],'utf8');
+const at=s=>{const i=h.indexOf(s);if(i<0)throw new Error('emph.js: anchor یافت نشد: '+s);return i};   /* r208: شکست anchor پیام روشن بدهد */
 const X=require('./load.js')(process.argv[2]);X.S.fixOn=1;
-const code=h.slice(h.indexOf('function emoSplit('),h.indexOf('window.emoVoiceK'));
+const code=h.slice(at('function emoSplit('),at('window.emoVoiceK'));
 let lvl=2;const ctx={sents:[],rsm:null,emoLvl:()=>lvl,emoEmph:X.ev('emoEmph'),ttsText:(t,a,b,c)=>X.ttsText(t,a,b,c),spk:o=>o.text,console};
 vm.createContext(ctx);vm.runInContext(code+';this.emoSplit=emoSplit;this.emoFoldMarks=emoFoldMarks;this.emoPartW=emoPartW;',ctx);
 let n=0;const ok=(c,m)=>{assert(c,m);n++};
@@ -42,10 +43,10 @@ for(let t=0;t<=100;t++){const fr=t/100;const a=idxAt(f,fr);const b=idxAt([0,0.2,
 console.log('emph OK',n,'assertions');
 // ۵) chunkAt واقعی با stub: ناوردا‌ها
 {
-  const s0=h.indexOf('function chunkAt('),s1=h.indexOf('/* نشانهٔ نسخه (APP_BUILD)');
-  const cc={sents:[],rsm:null,mRate:()=>1,paceSpeed:()=>1,pauseMs:()=>300,emoPar:()=>null,emoLvl:()=>2,emoEmph:X.ev('emoEmph'),ttsText:(t,a,b,c)=>X.ttsText(t,a,b,c),spk:o=>o.text,svPzTx:s=>s,svFixTx:s=>s,window:{},Math,String,console};   /* r184: chunkAt به svFixTx/svPzTx/window نیاز دارد */
+  const s0=at('function chunkAt('),s1=at('/* نشانهٔ نسخه (APP_BUILD)');
+  const cc={sents:[],rsm:null,mRate:()=>1,paceSpeed:()=>1,pauseMs:()=>300,emoPar:()=>null,emoLvl:()=>2,emoEmph:X.ev('emoEmph'),ttsText:(t,a,b,c)=>X.ttsText(t,a,b,c),spk:o=>o.text,svPzTx:s=>s,svFixTx:s=>s,poemEnd:(s,x)=>x,adRef:()=>false,window:{},Math,String,console};   /* r184: chunkAt به svFixTx/svPzTx/window نیاز دارد؛ r208: poemEnd/adRef (جمله‌های بدون po ⇒ همان متن) */
   vm.createContext(cc);
-  vm.runInContext(h.slice(h.indexOf('function emoSplit('),h.indexOf('function emoFoldMarks('))+h.slice(s0,s1)+';this.chunkAt=chunkAt;',cc);
+  vm.runInContext(h.slice(at('function emoSplit('),at('function emoFoldMarks('))+h.slice(s0,s1)+';this.chunkAt=chunkAt;',cc);
   const T=['اولین جمله ساده است.','او امروز *واقعاً* خیلی دوستش داشت.','جملهٔ سوم هم ساده است.'];
   cc.sents=T.map((x,i)=>({text:x,page:1,pe:false,cont:false}));
   let c=cc.chunkAt(0,500);
