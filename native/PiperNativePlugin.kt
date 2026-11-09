@@ -453,7 +453,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r31 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r32 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
     }
 
     @PluginMethod
@@ -1275,14 +1275,23 @@ class PiperNativePlugin : Plugin() {
         call.resolve()
     }
 
+    @Volatile private var ciAt = 0L      // kt-r32 (P10-F9): نتیجهٔ اسکن پوشه برای درخواست‌های {cached:true} (صفحهٔ ناظر) ۶۰ثانیه نگه داشته می‌شود
+    @Volatile private var ciBytes = 0L
+    @Volatile private var ciFiles = 0
     @PluginMethod
     fun cacheInfo(call: PluginCall) {
+        val useCached = call.getBoolean("cached") == true
         io.execute {
             try {
-                val fs = cacheFiles()
-                val total = fs.sumOf { it.length() }
-                synchronized(cacheLock) { cacheBytes = total }
-                call.resolve(JSObject().put("bytes", total).put("files", fs.size).put("max", cacheMax()).put("hits", cHit.get()).put("misses", cMiss.get()).put("evicted", cEvict.get()))
+                val now = android.os.SystemClock.elapsedRealtime()
+                if (!(useCached && ciAt > 0L && now - ciAt < 60_000L)) {
+                    val fs = cacheFiles()
+                    val tot = fs.sumOf { it.length() }
+                    synchronized(cacheLock) { cacheBytes = tot }
+                    ciBytes = tot; ciFiles = fs.size; ciAt = now
+                }
+                val total = ciBytes
+                call.resolve(JSObject().put("bytes", total).put("files", ciFiles).put("max", cacheMax()).put("hits", cHit.get()).put("misses", cMiss.get()).put("evicted", cEvict.get()))
             } catch (e: Throwable) { call.reject("خطا: ${e.message}") }
         }
     }
@@ -1291,7 +1300,7 @@ class PiperNativePlugin : Plugin() {
     fun cacheClear(call: PluginCall) {
         io.execute {
             try {
-                synchronized(cacheLock) { cacheRoot().listFiles()?.forEach { it.delete() }; cacheBytes = 0L }
+                synchronized(cacheLock) { cacheRoot().listFiles()?.forEach { it.delete() }; cacheBytes = 0L; ciAt = 0L }
                 call.resolve()
             } catch (e: Throwable) { call.reject("خطا: ${e.message}") }
         }
@@ -1347,7 +1356,7 @@ class PiperNativePlugin : Plugin() {
                     for (i in 0 until partsArr.length()) {
                         val o = partsArr.getJSONObject(i)
                         items.add(Pair(o.optString("t", ""), o.optDouble("s", sp.toDouble()).toFloat().coerceIn(0.4f, 2.5f)))
-                        itemGaps.add(o.optDouble("g", gap.toDouble()).toFloat().coerceIn(0f, 1.5f))
+                        itemGaps.add(o.optDouble("g", gap.toDouble()).toFloat().coerceIn(0f, 8f))   // kt-r32 (P10-F6): هم‌سقف مکث دستی JS (۸ث)
                     }
                 } else { items.add(Pair(text, sp)); itemGaps.add(gap) }
                 // r17: حذف‌نویز عصبی (DPDFNet 48kHz) پیش از فیلتر کلاسیک: سطح ۲ ← ۸۵٪، سطح ۳ ← کامل؛ سطح ۰/۱ بی‌اثر. اگر مدل/کتابخانه نبود ndMix=0 و فقط فیلتر کلاسیک اجرا می‌شود.
@@ -1459,7 +1468,9 @@ class PiperNativePlugin : Plugin() {
                     System.arraycopy(x, 0, all, pos, x.size); pos += x.size
                     if (k < pieces.size - 1) pos += pieceGaps[k]   // سکوت (صفر)
                 }
+                val hsT0 = System.nanoTime()
                 val rawHs = rawHealth(all)   // r13: بریدگی و مقدار نامعتبر پیش از صیقل/لیمیتر (ناظر سلامت صدا)
+                val hsRaw = System.nanoTime() - hsT0
                 val trim = IntArray(1)   // نمونه‌هایی که صیقل از ابتدای بافر بریده (مرزها باید همین‌قدر جابه‌جا شوند)
                 val pol = polish(all, sr, trim)
                 val polH = if (hdOn && sr <= 24000) MasterFx.hdUp(pol, sr, hdAmt) else pol
@@ -1479,14 +1490,18 @@ class PiperNativePlugin : Plugin() {
                     JSArray().also { a -> for (v in m) a.put(v) }
                 } else null
                 // r141 (تراز بلندی): تکه‌ای که ≥ ۲dB از هدف دور است تا ±۴dB به هدف می‌رود؛ افزایش با سقف پیک OUT_TRIM (بریدگی ندارد). پس از کش و بعد از OUT_TRIM ⇒ کش دست‌نخورده
+                val hsT1 = System.nanoTime()
                 val lvA0 = activeDb(fin)
+                val hsAct = System.nanoTime() - hsT1
                 var lvG = 1.0
                 if (lvT != null && lvA0 > -90.0 && Math.abs(lvT - lvA0) >= 2.0) {
                     var g = Math.pow(10.0, (lvT - lvA0).coerceIn(-4.0, 4.0) / 20.0)
                     if (g > 1.0) { var pk = 0f; for (x in fin) { val a = kotlin.math.abs(x); if (a > pk) pk = a }; if (pk > 0f) g = Math.min(g, OUT_TRIM.toDouble() / pk) }
                     if (Math.abs(g - 1.0) > 0.03) { val gf = g.toFloat(); for (i in fin.indices) fin[i] *= gf; lvG = g }
                 }
+                val hsT2 = System.nanoTime()
                 val hs = finHealth(fin, rawHs, lvA0, lvG, sro)
+                val hsMs = (hsRaw + hsAct + (System.nanoTime() - hsT2)) / 1_000_000L   // kt-r32 (P10-F9): هزینهٔ خالص ناظر سلامت (rawHealth + activeDb + finHealth)
                 val dsp: JSObject? = if (rawKeep != null && rawKeep.isNotEmpty()) {   // r15: آمار خام↔خروجی برای گزارش ناظر
                     var rn = 0; for (x in rawKeep) rn += x.size
                     val rw = FloatArray(rn); var rp = 0
@@ -1495,13 +1510,13 @@ class PiperNativePlugin : Plugin() {
                 } else null
                 if (keep) {
                     val h = pcmPut(fin, sro)
-                    val res = JSObject().put("hs", hs).also { if (dsp != null) it.put("dsp", dsp) }.put("handle", h).put("sampleRate", sro).put("durationMs", fin.size * 1000L / sro).put("genMs", genMs).put("hit", hit).put("parts", pieces.size).put("ndMs", ndMs).put("scMs", scMs).put("fxMs", fxMs).put("totMs", (System.nanoTime() - tot0) / 1_000_000L).put("sr", sr).put("ttsPhon", ttsPhon).put("ttsKey", ttsKey ?: "")
+                    val res = JSObject().put("hs", hs).put("hsMs", hsMs).also { if (dsp != null) it.put("dsp", dsp) }.put("handle", h).put("sampleRate", sro).put("durationMs", fin.size * 1000L / sro).put("genMs", genMs).put("hit", hit).put("parts", pieces.size).put("ndMs", ndMs).put("scMs", scMs).put("fxMs", fxMs).put("totMs", (System.nanoTime() - tot0) / 1_000_000L).put("sr", sr).put("ttsPhon", ttsPhon).put("ttsKey", ttsKey ?: "")
                     if (marks != null) res.put("marks", marks)
                     if (pzOn) res.put("pz", JSObject().put("n", pzN).put("hid", pzHid * 1000L / sr).put("cut", pzCut * 1000L / sr).put("ni", pzInt).put("nic", pzIntCut * 1000L / sr))
                     call.resolve(res)
                 } else {
                     val wav = toWav(fin, sro)
-                    val res = JSObject().put("hs", hs).also { if (dsp != null) it.put("dsp", dsp) }.put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", sro).put("genMs", genMs).put("hit", hit).put("parts", pieces.size).put("ndMs", ndMs).put("scMs", scMs).put("fxMs", fxMs).put("totMs", (System.nanoTime() - tot0) / 1_000_000L).put("sr", sr).put("ttsPhon", ttsPhon).put("ttsKey", ttsKey ?: "")
+                    val res = JSObject().put("hs", hs).put("hsMs", hsMs).also { if (dsp != null) it.put("dsp", dsp) }.put("wav", Base64.encodeToString(wav, Base64.NO_WRAP)).put("sampleRate", sro).put("genMs", genMs).put("hit", hit).put("parts", pieces.size).put("ndMs", ndMs).put("scMs", scMs).put("fxMs", fxMs).put("totMs", (System.nanoTime() - tot0) / 1_000_000L).put("sr", sr).put("ttsPhon", ttsPhon).put("ttsKey", ttsKey ?: "")
                     if (marks != null) res.put("marks", marks)
                     if (pzOn) res.put("pz", JSObject().put("n", pzN).put("hid", pzHid * 1000L / sr).put("cut", pzCut * 1000L / sr).put("ni", pzInt).put("nic", pzIntCut * 1000L / sr))
                     call.resolve(res)
@@ -2071,7 +2086,7 @@ class PiperNativePlugin : Plugin() {
     fun playerQueue(call: PluginCall) {
         val h = call.getInt("handle") ?: return call.reject("handle")
         val pcm = pcmStore[h] ?: return call.reject("NO_HANDLE")
-        val gap = (call.getInt("gapMs") ?: 0).coerceIn(0, 3000)
+        val gap = (call.getInt("gapMs") ?: 0).coerceIn(0, 8000)   // kt-r32 (P10-F6)
         val qrIn = call.getFloat("rate")
         val qr = if (qrIn != null) effRate(qrIn.coerceIn(0.4f, 2.5f)) else -1f
         val item = PlItem(h, pcm, gap, qr)
