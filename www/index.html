@@ -1738,9 +1738,9 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
         <div class="field">
           <span class="flab">سبک گفتار</span>
           <select id="vstyle" data-seg aria-label="سبک گفتار">
-            <option value="serene" data-short="بسیار آرام" data-desc="مکث‌های میان جمله‌ها حدود ۶۰٪ بازتر از «انسانی»؛ جمله‌ها هرگز پشت‌سرهم و بی‌نفس نمی‌آیند. مناسب کتاب و گوش‌دادن طولانی.">بسیار آرام (نفس‌دار و بی‌شتاب)</option>
-            <option value="soft" data-short="ملایم" data-desc="مکث‌های میان جمله‌ها حدود ۱۵٪ بازتر از «انسانی»؛ نزدیک به طبیعی.">ملایم (کمی آرام‌تر)</option>
-<option value="calm" data-short="آرام" data-desc="مکث‌های میان جمله‌ها حدود ۳۰٪ بازتر از «انسانی»؛ شنیدن راحت و آرامش‌بخش.">آرام (دلنشین و آرامش‌بخش)</option>
+            <option value="serene" data-short="بسیار آرام" data-desc="مکث‌های میان جمله‌ها حدود ۶۰٪ بازتر از «انسانی»؛ جمله‌ها هرگز پشت‌سرهم و بی‌نفس نمی‌آیند. مناسب کتاب و گوش‌دادن طولانی. برای گوینده gyro مکث پایان جمله ثابت و مصوب است و با این گزینه عوض نمی‌شود.">بسیار آرام (نفس‌دار و بی‌شتاب)</option>
+            <option value="soft" data-short="ملایم" data-desc="مکث‌های میان جمله‌ها حدود ۱۵٪ بازتر از «انسانی»؛ نزدیک به طبیعی. برای گوینده gyro مکث پایان جمله ثابت و مصوب است و با این گزینه عوض نمی‌شود.">ملایم (کمی آرام‌تر)</option>
+<option value="calm" data-short="آرام" data-desc="مکث‌های میان جمله‌ها حدود ۳۰٪ بازتر از «انسانی»؛ شنیدن راحت و آرامش‌بخش. برای گوینده gyro مکث پایان جمله ثابت و مصوب است و با این گزینه عوض نمی‌شود.">آرام (دلنشین و آرامش‌بخش)</option>
             <option value="stable" data-short="پایدار" data-desc="لحن و مکث مثل «انسانی»؛ در این نسخه تفاوتی در خروجی ندارد.">پایدار (یکنواخت‌تر، مناسب کتاب)</option>
             <option value="balanced" data-short="متعادل" data-desc="لحن و مکث مثل «انسانی»؛ در این نسخه تفاوتی در خروجی ندارد.">متعادل</option>
             <option value="natural" data-short="انسانی" data-desc="نزدیک‌ترین حالت به لحن یک گوینده انسانی: لحن طبیعی مدل با مکث انسانی (پیشنهادی).">انسانی (پیشنهادی)</option>
@@ -9616,7 +9616,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r212 · 2026-11-09 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1', npBuild = '';
+  var APP_BUILD = 'html-r214 · 2026-11-09 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10017,6 +10017,7 @@ function hsFbSt(s, fb){   /* r192: noise هر پلهٔ ساخت مجدد متف�
   var r = function(x){ return Math.round(x * 100) / 100; };
   return fb === 2 ? [Math.min(0.6, r(s[0] + 0.07)), Math.min(0.2, r(s[1] + 0.02))] : [Math.min(0.66, r(s[0] + 0.12)), Math.min(0.2, r(s[1] + 0.04))];
 }
+function hsStTxt(id, fb){ try { var s0 = styleParams(id), t = fb === undefined ? s0 : (fb ? hsFbSt(s0, fb) : hsSt(s0)); return t[0] + '/' + t[1]; } catch (e) { return ''; } }   /* r213 (P10-F8): noise_scale/noise_w به‌صورت «ns/nw»؛ fb نامعین = مقدار اصلی، ۰ = پلهٔ jitter (hsSt)، ۲/۳ = hsFbSt */
 function hsTx(c){ return String((c && c.text) || '').slice(0, 30).replace(/\s+/g, ' '); }
 function hsLadder(c, v, why, chk, orig){   /* r192: ساخت مجدد پله‌ای — تکهٔ خالی/بی‌صدا با همان متن و همان پردازش دوباره خالی درمی‌آمد (مثلاً ۲۸۲۰، ۲۹۹۵، ۳۰۶۰). هر پله یک چیز را ساده می‌کند و اولین نتیجهٔ سالم برگزیده می‌شود؛ مشکلات دیگر (طول/بریدگی) مثل قبل فقط یک پلهٔ نویز دارند */
   var empty = /خالی|بی.?صدا|NaN/.test(why || ''), rungs = empty ? [0, 2, 3] : [0], t0 = Date.now(), lw = '', last = null;
@@ -10314,10 +10315,11 @@ function hsRec(o){   /* r160: ثبت فشردهٔ رویداد برای «گزا
 }
 function hsR(x, k){ return x != null && isFinite(x) ? Math.round(x * k) / k : null; }
 function hsSnap(h, o){ if (!h) return null; o = o || h; return { pk: hsR(h.pk, 1000), cl: hsR(h.cl, 10000), dc: hsR(h.dc, 10000), nan: h.nan | 0, ar: hsR(h.ar, 10), a0: hsR(o.a0, 10), g: hsR(o.g, 100), fl: hsR(o.fl, 10) }; }
-function hsEv(c, b, p, why, out, h, b2, w2){   /* رویداد تکهٔ مشکوک: p = n (بومی) | b (مرورگر)؛ out = fixed | improved | kept | cap | err */
+function hsEv(c, b, p, why, out, h, b2, w2, vid, fb2){   /* رویداد تکهٔ مشکوک: p = n (بومی) | b (مرورگر)؛ out = fixed | improved | kept | cap | err */
   try {
     var e = { k: 'chunk', i: c.start, p: p, w: why, out: out, Ln: (c.text.match(/[\p{L}\p{N}]/gu) || []).length, d: hsR((b.size - 44) / ((b.sr || 22050) * 2), 100), h: hsSnap(h, b.hp), tx: c.text.slice(0, 40).replace(/\s+/g, ' ') + ' (' + c.text.length + ')' };
     if (b2 || w2) { e.w2 = w2 || ''; if (b2 && b2.size) { e.d2 = hsR((b2.size - 44) / ((b2.sr || 22050) * 2), 100); e.h2 = hsSnap(b2.hp); } }
+    if (p === 'n' && vid) { e.ns = hsStTxt(vid); if (fb2 !== undefined) e.ns2 = hsStTxt(vid, fb2); }   /* r213 (P10-F8): پارامتر نویز اصلی و (در ساخت مجدد موفق) پلهٔ بازساخته */
     hsRec(e);
   } catch (x) {}
 }
@@ -10325,6 +10327,7 @@ function hsFmt(e){
   var h = e.h, s;
   if (e.k === 'chunk') {
     s = e.t + ' تکه#' + e.i + ' [' + e.p + '] ' + e.out + ' «' + e.w + '» Ln=' + e.Ln + ' dur=' + e.d;
+    if (e.ns) s += ' | ns/nw=' + e.ns + (e.ns2 ? ' ← ' + e.ns2 : '');
     if (h) s += ' | pk=' + h.pk + ' cl=' + h.cl + ' dc=' + h.dc + ' nan=' + h.nan + ' ar=' + h.ar + ' a0=' + h.a0 + ' g=' + h.g + ' fl=' + h.fl;
     if (e.w2 != null) s += ' | بازساخت: «' + (e.w2 || 'سالم') + '»' + (e.d2 != null ? ' dur=' + e.d2 : '') + (e.h2 ? ' pk=' + e.h2.pk + ' ar=' + e.h2.ar + ' a0=' + e.h2.a0 : '');
     return s + ' | «' + e.tx + '»';
@@ -10359,6 +10362,7 @@ function hsReport(force){   /* r160: گزارش کامل ناظر سلامت و 
     a = (HS.ld[id] || []).slice(); s = a.slice().sort(function(p, r){ return p - r; }); m = s.length ? (s[(s.length - 1) >> 1] + s[s.length >> 1]) / 2 : null;
     o.push('تاریخچهٔ بلندی a0 (dB، ' + a.length + '/۱۵)=[' + a.map(function(x){ return hsR(x, 10); }).join(', ') + '] میانه=' + hsR(m, 10) + ' lvT=' + (svLvT(id, HS.lk[id]) === undefined ? '—' : svLvT(id, HS.lk[id])) + ' امضا=' + String(HS.lk[id] || '').slice(0, 60));
   } catch (e) {}
+  try { Object.keys(HS.cp).forEach(function(k){ var q = HS.cp[k], sq, md; if (k.indexOf(id + '~') !== 0 || q.length < 8) return; sq = q.slice().sort(function(p, r){ return p - r; }); md = hsMed(q); o.push('تاریخچهٔ نرخ گفتار (نویسه/ثانیه) ' + k + ' (' + q.length + '/۱۵): میانه=' + hsR(md, 10) + ' کمینه=' + hsR(sq[0], 10) + ' بیشینه=' + hsR(sq[sq.length - 1], 10) + ' | آستانهٔ مشکوک: <' + hsR(md * 0.55, 10) + ' یا >' + hsR(md * 2.5, 10)); }); } catch (e) {}   /* r214: برای کالیبرهٔ آستانه‌های hsRel با دادهٔ دستگاه */
   try { nz = id ? nsGet(nsKey(id)) : null; o.push('کف نویز: زنده(میانه)=' + hsR(HS.nm[id], 10) + ' نمونهٔ زنده=' + (HS.nl[id] || []).length + ' | کالیبره=' + (nz ? hsR(nz.fl, 10) + ' سطح=' + nz.lv + ' جبران=' + (nz.off || 0) : 'ندارد')); } catch (e) {}
   o.push('رویدادهای اخیر (' + HS.rp.length + '/۱۲):');
   HS.rp.forEach(function(e){ o.push('  ' + hsFmt(e)); });
@@ -10408,11 +10412,11 @@ function hsGuard(c, v, b, ak){
   why = hsWhy(c, b, v.id) || hsHpWhy(b.hp); svPzSt(b.pz);
   if (!why) { hsNote(c, b, v.id); svLoud(v.id, c, b.hp); return b; }   /* r158: تکهٔ مشکوکِ در آستانهٔ جایگزینی وارد تاریخچهٔ بلندی/کف نویز نمی‌شود */
   HS.bad++;
-  if (!hsRbOk()) { HS.kept++; hsLog('تکهٔ ' + c.start + ': ' + why + ' ← ساخت مجدد انجام نشد (سقف ۴ بار در دقیقه)'); hsEv(c, b, 'n', why, 'cap', b.hp); hsShow(); return b; }
+  if (!hsRbOk()) { HS.kept++; hsLog('تکهٔ ' + c.start + ': ' + why + ' ← ساخت مجدد انجام نشد (سقف ۴ بار در دقیقه)'); hsEv(c, b, 'n', why, 'cap', b.hp, null, '', v.id); hsShow(); return b; }
   hsLog('تکهٔ ' + c.start + ': ' + why + ' ← ساخت مجدد «' + hsTx(c) + '»'); hsShow();
   return hsLadder(c, v, why, function(b2){ if (!b2 || !b2.nh) return 'نتیجهٔ ساخت مجدد نامعتبر'; return hsWhy(c, b2, v.id) || hsHpWhy(b2.hp); }, b).then(function(r){
-    if (!r.b) { HS.kept++; hsLog('تکهٔ ' + c.start + ': پس از همهٔ پله‌های ساخت مجدد هم مشکوک (' + r.w + ')'); hsEv(c, b, 'n', why, 'kept', b.hp, r.last, r.w); hsShow(); return b; }
-    HS.fixed++; hsEv(c, b, 'n', why, 'fixed' + (r.fb ? '@' + r.fb : ''), b.hp, r.b, ''); if (r.fb) hsLog('تکهٔ ' + c.start + ': با پلهٔ ' + r.fb + ' درست شد'); hsShow();
+    if (!r.b) { HS.kept++; hsLog('تکهٔ ' + c.start + ': پس از همهٔ پله‌های ساخت مجدد هم مشکوک (' + r.w + ')'); hsEv(c, b, 'n', why, 'kept', b.hp, r.last, r.w, v.id); hsShow(); return b; }
+    HS.fixed++; hsEv(c, b, 'n', why, 'fixed' + (r.fb ? '@' + r.fb : ''), b.hp, r.b, '', v.id, r.fb || 0); if (r.fb) hsLog('تکهٔ ' + c.start + ': با پلهٔ ' + r.fb + ' درست شد'); hsShow();
     if (r.b.nh !== b.nh) hsRelease(b);
     if (r.fb < 2) svLoud(v.id, c, r.b.hp);   /* پلهٔ خام امضای پردازش دیگری دارد و تاریخچهٔ بلندی را به‌هم نمی‌زند */
     return r.b;
