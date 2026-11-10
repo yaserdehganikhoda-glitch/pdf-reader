@@ -3621,6 +3621,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       });
     });
     var ppr = false;   /* poem-v2 (P6): نیمهٔ اول جفت (_pr) پایان خط ندارد؛ نیمهٔ دوم با «pr» نشانه می‌خورد */
+    ocrOrder.off = !poV2();   /* poem-v2: اکنون بدون شناسه‌ی آزاد poV2 در متن Worker (گارد OCR)؛ در Worker همیشه روشن */
     ocrOrder(segs, rtl ? 'rtl' : 'ltr', true).forEach(function(sg){
       var f = ppr; ppr = !!sg._pr;
       if (!sg.it) return;
@@ -4609,7 +4610,7 @@ var ocrSpell = (function(){
     function ptx(l){ return l.text != null ? String(l.text) : (l.it || []).slice().sort(function(p, q){ return rtl ? q.transform[4] - p.transform[4] : p.transform[4] - q.transform[4]; }).map(function(q){ return q.str || ''; }).join(' '); }
     function pkey(s){ return (String(s).replace(/[\s.،,؛;:!?؟…"»”')\]\u200c]+$/, '').split(/\s+/).pop() || '').replace(/ي/g, 'ی').replace(/ك/g, 'ک').slice(-2); }
     function pairRows(R, L){
-      var on = typeof poV2 !== 'function' || poV2(), Rm, Lm, used = [], pr = [], inP = [], seq = [], ys = [], dd = [], ks = {}, k, j, a, b, o, bo, bj, n, bad = 0, cn = 0, dg = 0, mp = 0, mx = 0, key, pit, gap = false, rh, cr, ver = function(l){ return ptx(l).replace(/[\s\u200c]/g, '').length > 4; };
+      var on = ocrOrder.off !== true, Rm, Lm, used = [], pr = [], inP = [], seq = [], ys = [], dd = [], ks = {}, k, j, a, b, o, bo, bj, n, bad = 0, cn = 0, dg = 0, mp = 0, mx = 0, key, pit, gap = false, rh, cr, ver = function(l){ return ptx(l).replace(/[\s\u200c]/g, '').length > 4; };
       if (!on || R.length < 4 || L.length < 4) return null;
       Rm = R.filter(ver).sort(function(p, q){ return cy(p) - cy(q); });
       Lm = L.filter(ver).sort(function(p, q){ return cy(p) - cy(q); });
