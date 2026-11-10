@@ -3,7 +3,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert');const h=fs.read
 const at=s=>{const i=h.indexOf(s);if(i<0)throw new Error('emph.js: anchor یافت نشد: '+s);return i};   /* r208: شکست anchor پیام روشن بدهد */
 const X=require('./load.js')(process.argv[2]);X.S.fixOn=1;
 const code=h.slice(at('function emoSplit('),at('window.emoVoiceK'));
-let lvl=2;const ctx={sents:[],rsm:null,emoLvl:()=>lvl,emoEmph:X.ev('emoEmph'),ttsText:(t,a,b,c)=>X.ttsText(t,a,b,c),spk:o=>o.text,console};
+let lvl=2;const ctx={ttsPo:(s,f)=>f(),poV2:()=>false,poLast:()=>false,poRhSplit:()=>null,sents:[],rsm:null,emoLvl:()=>lvl,emoEmph:X.ev('emoEmph'),ttsText:(t,a,b,c)=>X.ttsText(t,a,b,c),spk:o=>o.text,console};
 vm.createContext(ctx);vm.runInContext(code+';this.emoSplit=emoSplit;this.emoFoldMarks=emoFoldMarks;this.emoPartW=emoPartW;',ctx);
 let n=0;const ok=(c,m)=>{assert(c,m);n++};
 // ۱) تشخیص
@@ -44,7 +44,7 @@ console.log('emph OK',n,'assertions');
 // ۵) chunkAt واقعی با stub: ناوردا‌ها
 {
   const s0=at('function chunkAt('),s1=at('/* نشانهٔ نسخه (APP_BUILD)');
-  const cc={sents:[],rsm:null,mRate:()=>1,paceSpeed:()=>1,pauseMs:()=>300,emoPar:()=>null,emoLvl:()=>2,emoEmph:X.ev('emoEmph'),ttsText:(t,a,b,c)=>X.ttsText(t,a,b,c),spk:o=>o.text,svPzTx:s=>s,svFixTx:s=>s,poemEnd:(s,x)=>x,adRef:()=>false,window:{},Math,String,console};   /* r184: chunkAt به svFixTx/svPzTx/window نیاز دارد؛ r208: poemEnd/adRef (جمله‌های بدون po ⇒ همان متن) */
+  const cc={ttsPo:(s,f)=>f(),poV2:()=>false,poLast:()=>false,poRhSplit:()=>null,sents:[],rsm:null,mRate:()=>1,paceSpeed:()=>1,pauseMs:()=>300,emoPar:()=>null,emoLvl:()=>2,emoEmph:X.ev('emoEmph'),ttsText:(t,a,b,c)=>X.ttsText(t,a,b,c),spk:o=>o.text,svPzTx:s=>s,svFixTx:s=>s,poemEnd:(s,x)=>x,adRef:()=>false,window:{},Math,String,console};   /* r184: chunkAt به svFixTx/svPzTx/window نیاز دارد؛ r208: poemEnd/adRef (جمله‌های بدون po ⇒ همان متن) */
   vm.createContext(cc);
   vm.runInContext(h.slice(at('function emoSplit('),at('function emoFoldMarks('))+h.slice(s0,s1)+';this.chunkAt=chunkAt;',cc);
   const T=['اولین جمله ساده است.','او امروز *واقعاً* خیلی دوستش داشت.','جملهٔ سوم هم ساده است.'];
