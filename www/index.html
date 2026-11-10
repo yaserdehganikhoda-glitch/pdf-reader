@@ -2234,6 +2234,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
       </section>
       <section class="mcard" aria-label="ضبط‌های ذخیره‌شده">
         <div class="rch"><b>ضبط‌های ذخیره‌شده</b><div class="rb"><button class="btn xs" id="rcFold" type="button" hidden>انتخاب پوشهٔ ذخیره</button><button class="btn xs" id="rcAll" type="button" hidden>ذخیرهٔ همه</button></div></div>
+        <p class="hint" id="rcLSt" aria-live="polite"></p>
         <div class="rcl" id="rcList"></div>
       </section>
     </div>
@@ -3283,7 +3284,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
         out.appendChild(p);
       });
       var m = document.createElement('p'); m.className = 'hint';
-      m.textContent = bad ? 'برخی فایل‌های لازم داخل برنامه نیست؛ لاگ مرحلهٔ ساخت را بررسی کنید.' : (rows[rows.length - 1].ok ? 'همه‌چیز لازم داخل برنامه است و اینترنت لازم نیست.' : 'فایل‌های برنامه کامل است؛ فقط برای نصب صدا (یک‌بار) اینترنت لازم است.');
+      m.textContent = bad ? 'برخی فایل‌های لازم داخل برنامه نیست؛ لاگ مرحلهٔ ساخت را بررسی کنید.' : (rows[rows.length - 1].ok ? (rows.some(function(x){ return !x.ok && x.opt; }) ? 'موارد ضروری داخل برنامه است؛ ردیف‌های △ اختیاری‌اند و توضیح هر کدام کنار خودش آمده است.' : 'همه‌چیز لازم داخل برنامه است و اینترنت لازم نیست.') : 'فایل‌های برنامه کامل است؛ فقط برای نصب صدا (یک‌بار) اینترنت لازم است.');
       out.appendChild(m);
     }).catch(function(e){ out.textContent = 'بررسی انجام نشد: ' + em(e); });
   }
@@ -9755,7 +9756,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r218 · 2026-11-10 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v3 · pcol-v1 · pdict-v1', npBuild = '';
+  var APP_BUILD = 'html-r219 · 2026-11-10 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v3 · pcol-v1 · pdict-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -14793,10 +14794,17 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
   var RC = { run: false, stop: false, au: null, url: '', pid: '' }, RCK = 'rc:idx', rcQ = Promise.resolve();
   function rcLock(f){ var p = rcQ.then(f); rcQ = p.catch(function(){}); return p; }
   function rcSt(t){ var e = $('#rcSt'); if (e) e.textContent = t || ''; }
+  function rcLs(t){ var e = $('#rcLSt'); if (e) e.textContent = t || ''; }   /* r219: پیام‌های فهرست «ضبط‌های ذخیره‌شده» کنار خود فهرست (نه در کارت بالا) */
+  function rcNote(t){ if ((RC.note || '').indexOf(t) < 0) RC.note = (RC.note ? RC.note + ' ' : '') + t; }   /* یادداشت پایان ضبط؛ تکرار برای هر بخش نمی‌شود */
   function rcBar(f){ var e = $('#rcBar'); if (!e) return; e.hidden = f < 0; if (f >= 0) e.firstChild.style.width = Math.round(Math.min(1, f) * 1000) / 10 + '%'; }
   function rcDur(s){ s = Math.round(s); var r = s % 60; return nf.format(Math.floor(s / 60)) + ':' + (r < 10 ? nf.format(0) : '') + nf.format(r); }
   function rcSize(n){ return n >= 1048576 ? nf.format(Math.round(n / 104857.6) / 10) + ' مگابایت' : nf.format(Math.max(1, Math.round(n / 1024))) + ' کیلوبایت'; }
   function rcP2(n){ return (n < 10 ? '0' : '') + n; }
+  function rcBase(){   /* r219: نام پایه تا ۱۵۰ بایت UTF-8 (حد نام فایل ۲۵۵ بایت؛ هر حرف فارسی ۲ بایت) */
+    var s = Array.from(msBase()), o = '', n = 0, b, i, te = typeof TextEncoder !== 'undefined' ? new TextEncoder() : null;
+    for (i = 0; i < s.length; i++) { b = te ? te.encode(s[i]).length : 3; if (n + b > 150) break; o += s[i]; n += b; }
+    return o.trim() || 'document';
+  }
   function rcRange(){   /* محدودهٔ جمله‌ها از روی صفحه‌ها؛ تکه‌ها هرگز از مرز صفحه نمی‌گذرند، پس مرز بازه هم مرز تکه است */
     var n = sents.length, sc = $('#rcScope').value, ix, cur, last, a, b, i, i0 = -1, i1 = -1;
     if (!n) return null;
@@ -14860,6 +14868,7 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
     };
   }
   var RC_MP3_SR = [8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000];
+  var RC_AAC_MAXS = 360;   /* r219: بخش بلندتر از ۶ دقیقه به m4a فشرده نمی‌شود (کل WAV یک‌جا base64 به نیتیو می‌رود و سقف زمان نیتیو ۲۰ ثانیه است) */
   async function rcMp3(seg, br){
     var w, u, pend = null, outp = [], acc = [], accN = 0, i, p, ab, n, o, c, d, k, up = 1, esr = seg.sr;
     if (RC_MP3_SR.indexOf(seg.sr) < 0) throw new Error('نرخ نمونهٔ ' + seg.sr + ' برای MP3 پشتیبانی نمی\u200cشود.');
@@ -14868,6 +14877,7 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
       if (up > 1) esr = seg.sr * up; else br = 160;
     }
     if (esr < 16000 && br > 64) br = 64;
+    if (RC.noLib) throw new Error('رمزگذار MP3 در همین ضبط در دسترس نبود.');   /* r219: پس از اولین شکست، برای بخش‌های بعدی دوباره منتظر نمی‌مانیم */
     if (typeof Worker === 'undefined') throw new Error('Worker در این دستگاه در دسترس نیست.');
     u = URL.createObjectURL(new Blob(['(' + rcMp3Worker.toString() + ')()'], { type: 'text/javascript' }));
     w = new Worker(u); URL.revokeObjectURL(u);
@@ -14886,10 +14896,10 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
       acc = []; accN = 0;
       if (!n) return;
       d = await call({ t: 'd', b: c.buffer }, 120000); c = null;
-      if (d.b && d.b.byteLength) outp.push(d.b);
+      if (d.b && d.b.byteLength) outp.push(new Blob([d.b]));
     }
     try {
-      await call({ t: 'i', sr: esr, up: up, br: br, urls: [new URL('lib/lame.min.js', location.href).href, 'https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js'] }, 30000);
+      await call({ t: 'i', sr: esr, up: up, br: br, urls: [new URL('lib/lame.min.js', location.href).href, 'https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js'] }, 30000).catch(function(e){ RC.noLib = true; throw e; });
       for (p = 0; p < seg.parts.length; p++) {
         ab = seg.parts[p] instanceof Blob ? new Uint8Array(await seg.parts[p].arrayBuffer()) : seg.parts[p];
         acc.push(ab); accN += ab.length; ab = null;
@@ -14897,7 +14907,7 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
       }
       await flushAcc();
       d = await call({ t: 'f' }, 30000);
-      if (d.b && d.b.byteLength) outp.push(d.b);
+      if (d.b && d.b.byteLength) outp.push(new Blob([d.b]));
       return new Blob(outp, { type: 'audio/mpeg' });
     } finally {
       try { w.onmessage = w.onerror = null; w.terminate(); } catch (e) {}
@@ -14915,12 +14925,14 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
         throw new Error('خروجی MP3 خالی بود.');
       } catch (e) { RC.note = 'ساخت MP3 ممکن نشد (' + em(e) + ')؛ فایل با قالب جایگزین (m4a یا WAV) ذخیره شد.'; fmt = 'm4a'; }
     }
+    if (fmt === 'm4a' && seg.n / 2 / seg.sr > RC_AAC_MAXS) { rcNote('بخش بیش از ' + nf.format(RC_AAC_MAXS / 60) + ' دقیقه است؛ برای جلوگیری از کمبود حافظه به‌جای m4a به‌صورت WAV ذخیره شد (طول هر فایل را ۵ دقیقه بگذارید یا MP3 بسازید).'); fmt = 'wav'; }
     if (fmt === 'm4a' && NP && npOK && NP.encodeAac && acOK !== false) {
       try {
         r = await withTimeout(Promise.resolve(NP.encodeAac({ wav: await blobB64(wav) })), 180000, 'فشرده‌سازی بیش از حد طول کشید.');
         if (r && r.aac) { z = b64Blob(r.aac, 'audio/mp4'); if (z.size > 512 && z.size < wav.size) { out = z; ext = 'm4a'; } }
       } catch (e) { acNo(e); }
     }
+    if (fmt === 'm4a' && ext !== 'm4a') rcNote('فشرده‌سازی m4a انجام نشد؛ فایل با قالب WAV ذخیره شد.');
     return { b: out, ext: ext, d: seg.n / 2 / seg.sr };
   }
   function rcRoom(n){
@@ -14932,7 +14944,8 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
         m = { id: id, n: nm, d: s.d, s: s.b.size, t: Date.now(), r: rid, k: k, f: s.ext, a: seg.p1, z: seg.p2 };
     if (!(await rcRoom(s.b.size))) throw new Error('فضای ذخیره‌سازی برنامه کافی نیست؛ ضبط‌های قدیمی را حذف کنید.');
     if (!(await kvSet('rc:' + id, s.b))) throw new Error('ذخیرهٔ فایل صوتی در حافظهٔ برنامه ممکن نشد.');
-    await rcLock(function(){ return bmGet(RCK).then(function(a){ a.push(m); return kvSet(RCK, a); }); });
+    var ok = await rcLock(function(){ return bmGet(RCK).then(function(a){ if (!a.length && RC.n > 0) return false; a.push(m); return kvSet(RCK, a).then(function(o){ if (o) RC.n = a.length; return o; }); }); });   /* r219: خواندن ناموفق فهرست با «خالی» اشتباه نمی‌شود؛ نتیجهٔ نوشتن بررسی می‌شود */
+    if (!ok) { try { await kvDelMany(['rc:' + id]); } catch (e) {} throw new Error('ذخیرهٔ فهرست ضبط‌ها ممکن نشد؛ دوباره تلاش کنید.'); }
     return m;
   }
   function rcUi(on){
@@ -14951,9 +14964,9 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
     if (!v) { rcSt('گوینده‌ای انتخاب نشده است.'); return; }
     if (ids.indexOf(v.id) < 0) { rcSt('صدای «' + v.id.replace(/^fa_IR-/, '').replace(/-medium$/, '') + '» هنوز دانلود نشده است.'); return; }
     fmt = $('#rcFmt').value; spd = $('#rcSpd').value; cap = (+$('#rcLen').value || 5) * 60;
-    rid = Date.now(); d = new Date(rid); stamp = String(d.getFullYear()).slice(2) + rcP2(d.getMonth() + 1) + rcP2(d.getDate()) + '-' + rcP2(d.getHours()) + rcP2(d.getMinutes());
-    base = msBase(); rate0 = $('#rate').value; rsm0 = rsm;
-    RC.run = true; RC.stop = false; RC.note = ''; rcAuStop(); rcUi(true); rcBar(0); kaSync();
+    rid = Date.now(); d = new Date(rid); stamp = String(d.getFullYear()).slice(2) + rcP2(d.getMonth() + 1) + rcP2(d.getDate()) + '-' + rcP2(d.getHours()) + rcP2(d.getMinutes()) + rcP2(d.getSeconds());
+    base = rcBase(); rate0 = $('#rate').value; rsm0 = rsm;
+    RC.run = true; RC.stop = false; RC.note = ''; RC.noLib = false; rcAuStop(); rcUi(true); rcBar(0); kaSync();
     if (playing) pause();
     npCancel();
     if (spd === '1') $('#rate').value = '1';   /* سرعت ضبط عادی؛ مقدار قبلی در finally برمی‌گردد (رویدادی ارسال نمی‌شود) */
@@ -15005,7 +15018,7 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
   }
   /* ---- پخش، ذخیرهٔ فایل، حذف ---- */
   function rcAuStop(){
-    var a = RC.au; RC.au = null; RC.pid = ''; RC.sl = RC.tm = null; RC.drag = false;
+    var a = RC.au; RC.au = null; RC.pid = ''; RC.sl = RC.tm = null; RC.drag = false; RC.tok = (RC.tok || 0) + 1;
     if (a) { try { a.onended = a.onerror = null; a.pause(); a.removeAttribute('src'); a.load(); } catch (e) {} }
     if (RC.url) { try { URL.revokeObjectURL(RC.url); } catch (e) {} RC.url = ''; }
   }
@@ -15016,37 +15029,42 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
   function rcPlay(m){
     if (RC.pid === m.id) { rcAuStop(); rcDraw(); return; }
     rcAuStop(); if (playing) pause();
+    var tk = RC.tok;   /* r219: ضربهٔ تازه‌تر یا توقف، نتیجهٔ دیررسیدهٔ این خواندن را باطل می‌کند (دو Audio هم‌زمان نمی‌سازد) */
     kvGet('rc:' + m.id).then(function(x){
-      if (!x) { rcSt('فایل صوتی پیدا نشد.'); return; }
+      if (tk !== RC.tok) return;
+      if (!x) { rcLs('فایل صوتی پیدا نشد؛ ردیف را حذف کنید.'); return; }
       var u = URL.createObjectURL(x), a = new Audio(u);
-      RC.url = u; RC.au = a; RC.pid = m.id;
-      a.onended = a.onerror = function(){ if (RC.au === a) { rcAuStop(); rcDraw(); } };
+      RC.url = u; RC.au = a; RC.pid = m.id; rcLs('');
+      a.onended = function(){ if (RC.au === a) { rcAuStop(); rcDraw(); } };
+      a.onerror = function(){ if (RC.au === a) { rcAuStop(); rcDraw(); rcLs('فایل صوتی قابل پخش نیست؛ اگر خراب است حذفش کنید.'); } };
       a.ontimeupdate = rcTick;
-      a.play().then(function(){ rcDraw(); }, function(){ if (RC.au === a) { rcAuStop(); rcDraw(); } });
+      a.play().then(function(){ rcDraw(); }, function(){ if (RC.au === a) { rcAuStop(); rcDraw(); rcLs('پخش فایل ممکن نشد.'); } });
     });
   }
+  function rcFoldTxt(){ var fb = $('#rcFold'); if (fb) fb.textContent = ms.nat && ms.nat.uri ? (ms.bad ? 'پوشه در دسترس نیست — انتخاب مجدد' : 'پوشه: ' + (ms.nat.name || 'انتخاب‌شده')) : 'انتخاب پوشهٔ ذخیره'; }
   async function rcFolder(){   /* پوشهٔ ذخیرهٔ ماندگار (همان «مسیر ذخیره» برنامه: ms.nat)؛ false = بدون انتخاب */
     var r = await NP.pickTextFolder();
     if (!r || !r.uri) return false;
-    ms.nat = { uri: r.uri, name: r.name || 'پوشهٔ انتخابی' }; ms.dir = null; await kvSet('ms:nat', ms.nat); kvDel('ms:dir'); msPathUi();
+    ms.nat = { uri: r.uri, name: r.name || 'پوشهٔ انتخابی' }; ms.dir = null; ms.bad = false; await kvSet('ms:nat', ms.nat); kvDel('ms:dir'); msPathUi();
     return true;
   }
   async function rcNative(blob, name){   /* r165: ذخیرهٔ بومی (SAF) تکه‌تکه با تکه‌های ~۵۰۰KB؛ null = افزونهٔ قدیمی (متد ندارد) */
-    var uri = (ms.nat && ms.nat.uri) || '', CH = 524288, o, off, op = function(u){ return NP.saveBinaryOpen({ name: name, uri: u }); };
+    var uri = (ms.nat && ms.nat.uri) || '', CH = 524288, fb = false, o, off, op = function(u){ return NP.saveBinaryOpen({ name: name, uri: u }); };
     if (!NP || !NP.saveBinaryOpen || !NP.saveBinaryWrite || !NP.saveBinaryClose) return null;
     try { o = await op(uri); }
     catch (e) {
       if (msUnimpl(e)) return null;
       if (msCancel(e)) return 'ذخیره لغو شد.';
       if (!uri) throw e;
-      uri = '';   /* پوشهٔ ذخیره از دست رفته یا قابل نوشتن نیست ⇒ «ذخیره به‌عنوان» */
+      uri = ''; ms.bad = true; fb = true;   /* پوشهٔ ذخیره از دست رفته یا قابل نوشتن نیست ⇒ «ذخیره به‌عنوان»؛ r219: «ذخیرهٔ همه» دوباره پوشه می‌خواهد */
       try { o = await op(''); } catch (e2) { if (msCancel(e2)) return 'ذخیره لغو شد.'; throw e2; }
     }
+    if (uri) ms.bad = false;
     try {
       for (off = 0; off < blob.size; off += CH) await NP.saveBinaryWrite({ sid: o.sid, data: await blobB64(blob.slice(off, off + CH)) });
       await NP.saveBinaryClose({ sid: o.sid });
     } catch (e) { try { await NP.saveBinaryClose({ sid: o.sid, abort: true }); } catch (x) {} throw e; }
-    return 'ذخیره شد' + (uri && ms.nat ? ' در پوشهٔ «' + ms.nat.name + '»' : '') + ': ' + (o.name || name);
+    return 'ذخیره شد' + (uri && ms.nat ? ' در پوشهٔ «' + ms.nat.name + '»' : '') + ': ' + (o.name || name) + (fb ? ' — پوشهٔ ذخیره در دسترس نبود؛ برای دفعهٔ بعد پوشهٔ تازه‌ای انتخاب کنید.' : '');
   }
   async function rcDeliver(blob, name){   /* اندروید: ذخیرهٔ بومی (saveBinary) ← Filesystem ← برگهٔ اشتراک‌گذاری ← وب: دانلود. بدون مسیر ممکن، خطای صریح (فایل در برنامه می‌ماند) */
     var FS, f = null, r;
@@ -15064,18 +15082,19 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
     msDl(blob, name); return 'در پوشهٔ دانلودها ذخیره شد: ' + name;
   }
   function rcSave(m){
-    return kvGet('rc:' + m.id).then(function(x){ if (!x) throw new Error('فایل صوتی پیدا نشد.'); return rcDeliver(x, m.n); }).then(function(t){ rcSt(t); return t; }, function(e){ var t = 'ذخیره انجام نشد: ' + em(e); rcSt(t); return t; });
+    return kvGet('rc:' + m.id).then(function(x){ if (!x) throw new Error('فایل صوتی پیدا نشد.'); return rcDeliver(x, m.n); }).then(function(t){ rcLs(t); rcFoldTxt(); return t; }, function(e){ var t = 'ذخیره انجام نشد: ' + em(e); rcLs(t); return t; });
   }
   function rcDel(m){
     if (RC.pid === m.id) rcAuStop();
-    return rcLock(function(){ return kvDelMany(['rc:' + m.id]).then(function(){ return bmGet(RCK); }).then(function(a){ return kvSet(RCK, a.filter(function(q){ return q.id !== m.id; })); }); }).then(rcDraw);
+    return rcLock(function(){ return kvDelMany(['rc:' + m.id]).then(function(){ return bmGet(RCK); }).then(function(a){ var f; if (!a.length && RC.n > 0) return; f = a.filter(function(q){ return q.id !== m.id; }); return kvSet(RCK, f).then(function(o){ if (o) RC.n = f.length; return o; }); }); }).then(rcDraw);
   }
   function rcDraw(){
     var box = $('#rcList'); if (!box) return Promise.resolve();
     return bmGet(RCK).then(function(a){
       var p;
       var fb = $('#rcFold');
-      fb.hidden = !(onNative && NP && NP.saveBinaryOpen); fb.textContent = ms.nat && ms.nat.uri ? 'پوشه: ' + (ms.nat.name || 'انتخاب‌شده') : 'انتخاب پوشهٔ ذخیره';
+      RC.n = a.length;
+      fb.hidden = !(onNative && NP && NP.saveBinaryOpen); rcFoldTxt();
       box.textContent = ''; $('#rcAll').hidden = a.length < 2;
       if (!a.length) { p = document.createElement('p'); p.className = 'hint'; p.textContent = 'هنوز ضبطی ذخیره نشده است.'; box.appendChild(p); return; }
       a.sort(function(x, y){ return (y.r - x.r) || (x.k - y.k); });
@@ -15103,7 +15122,7 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
     var cur = sents[idx] ? sents[idx].page : 1, last = sents.length ? sents[sents.length - 1].page : 1;
     ['rcFmt', 'rcLen', 'rcSpd', 'rcBr'].forEach(function(k){ var e = $('#' + k), v = sget(k, ''); if (v && Array.prototype.some.call(e.options, function(o){ return o.value === v; })) e.value = v; });
     $('#rcP1').value = $('#rcP2').value = cur; $('#rcP1').max = $('#rcP2').max = last; $('#rcRng').hidden = $('#rcScope').value !== 'rng';
-    rcFmtUi(); rcSt(''); rcBar(-1); rcInfo(); rcDraw();
+    rcFmtUi(); rcSt(''); rcLs(''); rcBar(-1); rcInfo(); rcDraw();
     $('#rcOv').hidden = false; BK.push('rc', function(){ if (RC.run) { rcSt('ابتدا ضبط را متوقف کنید.'); return false; } rcClose(); });
   }
   function rcClose(){ rcAuStop(); BK.drop('rc'); $('#rcOv').hidden = true; }
@@ -15113,15 +15132,15 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
   $('#rcScope').onchange = function(){ $('#rcRng').hidden = this.value !== 'rng'; rcInfo(); };
   $('#rcP1').oninput = $('#rcP2').oninput = rcInfo;
   ['rcFmt', 'rcLen', 'rcSpd', 'rcBr'].forEach(function(k){ $('#' + k).onchange = function(){ sset(k, this.value); rcFmtUi(); }; });
-  $('#rcFold').onclick = async function(){ try { if (await rcFolder()) { rcSt('پوشهٔ ذخیره تعیین شد.'); rcDraw(); } } catch (e) { rcSt(msCancel(e) ? 'انتخاب پوشه لغو شد.' : 'انتخاب پوشه انجام نشد: ' + em(e)); } };
+  $('#rcFold').onclick = async function(){ try { if (await rcFolder()) { rcLs('پوشهٔ ذخیره تعیین شد.'); rcDraw(); } } catch (e) { rcLs(msCancel(e) ? 'انتخاب پوشه لغو شد.' : 'انتخاب پوشه انجام نشد: ' + em(e)); } };
   $('#rcAll').onclick = async function(){
     var a = await bmGet(RCK), i, t, ok = 0;
-    if (onNative && NP && NP.saveBinaryOpen && !(ms.nat && ms.nat.uri) && a.length > 1) {   /* بدون پوشه، برای هر فایل یک پنجرهٔ «ذخیره به‌عنوان» باز می‌شد */
-      rcSt('یک پوشه برای ذخیرهٔ همهٔ فایل‌ها انتخاب کنید.');
-      try { if (!(await rcFolder())) return; } catch (e) { rcSt(msCancel(e) ? 'ذخیره لغو شد.' : 'انتخاب پوشه انجام نشد: ' + em(e)); return; }
+    if (onNative && NP && NP.saveBinaryOpen && (!(ms.nat && ms.nat.uri) || ms.bad) && a.length > 1) {   /* بدون پوشه، برای هر فایل یک پنجرهٔ «ذخیره به‌عنوان» باز می‌شد */
+      rcLs('یک پوشه برای ذخیرهٔ همهٔ فایل‌ها انتخاب کنید.');
+      try { if (!(await rcFolder())) return; } catch (e) { rcLs(msCancel(e) ? 'ذخیره لغو شد.' : 'انتخاب پوشه انجام نشد: ' + em(e)); return; }
     }
     a.sort(function(x, y){ return (y.r - x.r) || (x.k - y.k); });
-    for (i = 0; i < a.length; i++) { t = await rcSave(a[i]); if (!/^ذخیره شد/.test(t)) break; ok++; rcSt('ذخیره شد: ' + nf.format(ok) + ' از ' + nf.format(a.length)); }
+    for (i = 0; i < a.length; i++) { t = await rcSave(a[i]); if (!/^ذخیره شد/.test(t)) break; ok++; rcLs('ذخیره شد: ' + nf.format(ok) + ' از ' + nf.format(a.length)); }
   };
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !$('#rcOv').hidden && !RC.run) rcClose(); });
   hRender(); hScanRun();
