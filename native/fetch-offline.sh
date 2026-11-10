@@ -41,8 +41,9 @@ for f in ort-wasm-simd-threaded.wasm ort-wasm-simd-threaded.jsep.wasm; do
 done
 cp "$N/pdfjs-dist/build/pdf.min.js" "$N/pdfjs-dist/build/pdf.worker.min.js" "$D/lib/"
 # رمزگذار MP3 (lamejs) برای «ضبط و ذخیرهٔ خوانش»؛ اختیاری: نبودنش ضبط را خراب نمی‌کند (m4a/WAV)
-LM="$(find "$N/lamejs" -name lame.min.js 2>/dev/null | head -1 || true)"
-[ -n "$LM" ] && [ -s "$LM" ] && cp "$LM" "$D/lib/lame.min.js" || echo "WARN: lame.min.js not found; MP3 export needs internet (CDN)" >&2
+LM="$N/lamejs/lame.min.js"   # مسیر صریح بستهٔ lamejs؛ در نبودش اولین lame.min.js پیداشده
+[ -s "$LM" ] || LM="$(find "$N/lamejs" -name lame.min.js 2>/dev/null | head -1 || true)"
+if [ -n "$LM" ] && [ -s "$LM" ] && grep -q Mp3Encoder "$LM"; then cp "$LM" "$D/lib/lame.min.js"; else echo "WARN: lame.min.js not found or invalid (no Mp3Encoder); MP3 export needs internet (CDN)" >&2; fi
 [ -d "$N/pdfjs-dist/cmaps" ] && cp -r "$N/pdfjs-dist/cmaps/." "$D/lib/cmaps/" || echo "WARN: cmaps not found" >&2
 [ -d "$N/pdfjs-dist/standard_fonts" ] && cp -r "$N/pdfjs-dist/standard_fonts/." "$D/lib/standard_fonts/" || echo "WARN: standard_fonts not found" >&2
 # مدل‌های PaddleOCR (PP-OCRv5 عربی/فارسی، ONNX) با بررسی sha256
