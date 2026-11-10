@@ -1496,7 +1496,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
     <div class="field"><label for="dqW"><span>واژه</span></label><input id="dqW" type="text" dir="rtl" autocomplete="off"></div>
     <div class="field"><label for="dqP"><span>تلفظ</span></label><input id="dqP" type="text" dir="rtl" autocomplete="off"></div>
     <div class="field"><label for="dqS"><span>ثبت برای</span></label>
-      <select id="dqS"><option value="pdf">این فایل</option><option value="all">همهٔ فایل‌ها</option></select>
+      <select id="dqS"><option value="pdf">این فایل</option><option value="all">همهٔ فایل‌ها</option><option value="poem">شعرها</option></select>
     </div>
     <p class="hint" id="dqMsg" aria-live="polite"></p>
     <div class="two"><button class="btn primary" id="dqOk" type="button">ثبت</button><button class="btn" id="dqNo" type="button">انصراف</button></div>
@@ -1755,6 +1755,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
             <option value="2" data-short="بیانی" data-desc="سرعت هر جمله را بر اساس احساسش چند درصد تغییر می‌دهد (غم کندتر، شادی و ترس کمی تندتر؛ بیش از سطح «طبیعی») و یک واژهٔ تأکیدی («واژه» یا *واژه*) با مکث کوتاه و سرعت ۰٫۹× جدا خوانده می‌شود؛ مناسب داستان و گفت‌وگو. اگر ربات‌گونه شد تیک تغییر سرعت را بردارید یا به «خاموش» برگردید.">بیانی</option>
           </select>
         </div>
+        <div class="slist"><label class="chk"><input type="checkbox" id="poRh"><span class="st"><b>تأکید قافیهٔ شعر (آزمایشی)</b><small>فقط با گوینده‌ی ganji_adabi روی شعر: واژهٔ آخر هر مصرع جدا، کمی کندتر (۰٫۸۸×) و با مکث ۰٫۰۸ ثانیه خوانده می‌شود. اگر زیروبم روی واژهٔ آخر پرید، تیک را بردارید.</small></span></label></div>
         <div class="slist"><label class="chk"><input type="checkbox" id="emoSpd" checked><span class="st"><b>تغییر سرعت بر اساس احساس</b><small>فقط وقتی «احساس گفتار» روشن است اثر دارد: جمله‌های غمگین کمی کندتر و شاد یا ترسناک کمی تندتر خوانده می‌شوند. اگر طبیعی نبود تیک را بردارید؛ تأکید واژه و بقیهٔ رفتار بدون تغییر می‌ماند.</small></span></label></div>
 </section>
 <section class="grp" id="svBox">
@@ -1992,6 +1993,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
             <select id="dictScope" data-seg aria-label="دامنهٔ واژه‌نامه">
               <option value="pdf" data-short="این فایل">این فایل</option>
               <option value="all" data-short="همهٔ فایل‌ها">همهٔ فایل‌ها</option>
+              <option value="poem" data-short="شعرها">شعرها (فقط مصرع‌های شعر)</option>
             </select>
           </div>
           <p class="hint" id="dictWho"></p>
@@ -2022,6 +2024,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
             <textarea id="dict" dir="rtl" aria-label="فهرست جایگزینی تلفظ" placeholder="مثلاً:&#10;خویش = خویش&#10;ChatGPT = چت جی پی تی"></textarea>
             <p class="hint">هر خط یک مورد: «کلمه = تلفظ». سمت راست خالی = کلمه خوانده نشود. «الف | ب = تلفظ» چند شکل را با هم تعریف می‌کند. «/الگو/ = جایگزین» عبارت منظم است. «غلط => درست» غلط‌های OCR را در خود متن اصلاح می‌کند. خط‌های شروع‌شده با # توضیح‌اند. پسوندهای «‌ها، ‌های، ‌ی…» خودکار شناخته می‌شوند.</p>
             <p class="hint">واژه‌نامهٔ «این فایل» با نام همین PDF ذخیره می‌شود و با باز کردن همان فایل برمی‌گردد و بر «همهٔ فایل‌ها» اولویت دارد. در متن هم می‌توانید کلمه را انتخاب کنید و «افزودن به واژه‌نامه» را بزنید یا آن را دوبار لمس کنید.</p>
+            <p class="hint">واژه‌نامهٔ «شعرها» فقط روی مصرع‌های شعر اعمال می‌شود (برای همهٔ فایل‌ها) و در شعر بر «این فایل» و «همهٔ فایل‌ها» اولویت دارد؛ نثر بدون تغییر می‌ماند. کلمه‌ای که داخل شعر انتخاب یا دوبار لمس شود مستقیم به همین واژه‌نامه می‌رود.</p>
           </details>
         </div>
       </details>
@@ -3616,10 +3619,12 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
         else { cur = { it: [it], bbox: { x0: x0, x1: x1, y0: -(r.y + f), y1: -r.y } }; segs.push(cur); }
       });
     });
+    var ppr = false;   /* poem-v2 (P6): نیمهٔ اول جفت (_pr) پایان خط ندارد؛ نیمهٔ دوم با «pr» نشانه می‌خورد */
     ocrOrder(segs, rtl ? 'rtl' : 'ltr', true).forEach(function(sg){
+      var f = ppr; ppr = !!sg._pr;
       if (!sg.it) return;
       sg.it.sort(function(p, q){ return rtl ? q.transform[4] - p.transform[4] : p.transform[4] - q.transform[4]; });
-      sg.it.forEach(function(it, k){ out.push(Object.assign({}, it, { hasEOL: k === sg.it.length - 1 })); });
+      sg.it.forEach(function(it, k){ out.push(Object.assign({}, it, { hasEOL: k === sg.it.length - 1 && !sg._pr, pr: k === 0 && f ? 1 : 0 })); });
     });
     return out;
   }
@@ -4504,7 +4509,7 @@ var ocrSpell = (function(){
   /* ===== حذف نویسه‌های زائد و نمادهای تصادفی خروجی OCR (کاربیج حاشیه) ===== */
   function ocrPurgeMk(){ return (function(){
     var WS = /[\t\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g,
-        CF = /(?!\u200C)[\p{Cf}\p{Cc}\p{Cs}\p{Co}\p{Cn}\uFFFC]/gu,                 /* کنترلی، نامرئی، خصوصی (به‌جز نیم‌فاصله) */
+        CF = /(?![\u200C\u001f])[\p{Cf}\p{Cc}\p{Cs}\p{Co}\p{Cn}\uFFFC]/gu,                 /* کنترلی، نامرئی، خصوصی (به‌جز نیم‌فاصله) */
         SEP = /[|¦_\\~*#@^`]+/g,                                                    /* جداکنندهٔ کاربیج ← فاصله */
         SYM = /(?![°])[\p{So}\p{Sk}]|(?![+=×÷±<>−∑∫√≤≥≠≈∞∂∆∏∈∉⊂⊃∪∩→←↔⇒])\p{Sm}|[¬§¶†‡•·‣⁃{}]|(?![()\[\]«»“”‘’"'])[\p{Ps}\p{Pe}\p{Pi}\p{Pf}]/gu,
         FOR = /(?![\p{Script=Arabic}\p{Script=Latin}\p{Script=Greek}])\p{L}/gu,     /* حروف ارمنی، سیریلیک، چینی و… */
@@ -4599,6 +4604,49 @@ var ocrSpell = (function(){
       });
     }
     function cols(R, L, brk){ if (rtl) { if (R.length) cut(R, brk); if (L.length) cut(L, brk || R.length > 0); } else { if (L.length) cut(L, brk); if (R.length) cut(R, brk || L.length > 0); } }
+    /* poem-v2 (P6): شعر دوستونه. ستون راست و چپی که ردیف‌به‌ردیف هم‌تراز و دارای نشانهٔ شعرند، جفت‌جفت خوانده می‌شوند (مصرع راست ← مصرع روبرو)؛ نشانهٔ شعر = بند با فاصلهٔ هم‌تراز در هر دو ستون، یا قافیه/ردیف، یا ≥۱۰ ردیف و پایان‌های بدون حرف ربط. ocrOrder در Worker با String() ساخته می‌شود ⟵ فقط وابسته به همین تابع */
+    function ptx(l){ return l.text != null ? String(l.text) : (l.it || []).slice().sort(function(p, q){ return rtl ? q.transform[4] - p.transform[4] : p.transform[4] - q.transform[4]; }).map(function(q){ return q.str || ''; }).join(' '); }
+    function pkey(s){ return (String(s).replace(/[\s.،,؛;:!?؟…"»”')\]\u200c]+$/, '').split(/\s+/).pop() || '').replace(/ي/g, 'ی').replace(/ك/g, 'ک').slice(-2); }
+    function pairRows(R, L){
+      var on = typeof poV2 !== 'function' || poV2(), Rm, Lm, used = [], pr = [], inP = [], seq = [], ys = [], dd = [], ks = {}, k, j, a, b, o, bo, bj, n, bad = 0, cn = 0, dg = 0, mp = 0, mx = 0, key, pit, gap = false, rh, cr, ver = function(l){ return ptx(l).replace(/[\s\u200c]/g, '').length > 4; };
+      if (!on || R.length < 4 || L.length < 4) return null;
+      Rm = R.filter(ver).sort(function(p, q){ return cy(p) - cy(q); });
+      Lm = L.filter(ver).sort(function(p, q){ return cy(p) - cy(q); });
+      if (Rm.length < 4 || Lm.length < 4) return null;
+      for (k = 0; k < Rm.length; k++) {
+        a = Rm[k].bbox; bj = -1; bo = 0;
+        for (j = 0; j < Lm.length; j++) {
+          if (used[j]) continue;
+          b = Lm[j].bbox; o = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0);
+          if (o > bo && o >= 0.5 * Math.min(a.y1 - a.y0, b.y1 - b.y0)) { bo = o; bj = j; }
+        }
+        if (bj >= 0) { used[bj] = 1; pr.push(rtl ? [Rm[k], Lm[bj]] : [Lm[bj], Rm[k]]); }
+      }
+      n = pr.length;
+      if (n < 4 || n < 0.9 * Rm.length || n < 0.9 * Lm.length) return null;
+      pr.forEach(function(p){
+        var ta = ptx(p[0]).trim(), tb = ptx(p[1]).trim(), r = ta.length / tb.length;
+        if (ta.length < 12 || ta.length > 70 || tb.length < 12 || tb.length > 70 || r < 0.6 || r > 1.67) bad++;
+        [ta, tb].forEach(function(s){ if (/[\d۰-۹٠-٩]/.test(s)) dg++; if (/(?:^|\s)(?:و|که|را|به|از|در|با|تا|یا|بر|برای|این|آن)$/.test(s.replace(/[\s.،,؛;:!?؟…"»”')\]]+$/, ''))) cn++; });
+        ys.push(cy(p[0]));
+        key = pkey(ptx(p[1])); if (key.length === 2) { ks[key] = (ks[key] || 0) + 1; if (key === pkey(ptx(p[0]))) mp++; }
+      });
+      if (bad > 0.15 * n || dg > 0.2 * n) return null;
+      for (k = 1; k < ys.length; k++) dd.push(ys[k] - ys[k - 1]);
+      pit = dd.slice().sort(function(p, q){ return p - q; })[dd.length >> 1] || 0;
+      for (k = 0; k < dd.length; k++) if (pit > 0 && dd[k] > 1.5 * pit) gap = true;
+      for (key in ks) if (ks[key] > mx) mx = ks[key];
+      rh = mx >= 0.6 * n || mp >= 0.6 * n; cr = cn / (2 * n);
+      if (n < 6 || !((gap && n >= 8 && cr < 0.06) || mx >= 0.75 * n || mp >= 0.75 * n || (rh && cr < 0.1) || (n >= 10 && cr < 0.06))) return null;
+      pr.forEach(function(p){ p[0]._pr = true; inP.push(p[0], p[1]); seq.push({ y: cy(p[0]), s: [p[0], p[1]] }); });
+      R.concat(L).forEach(function(l){ if (inP.indexOf(l) < 0) seq.push({ y: cy(l), s: [l] }); });
+      return [].concat.apply([], seq.map(function(q, i){ q.i = i; return q; }).sort(function(p, q){ return p.y - q.y || p.i - q.i; }).map(function(q){ return q.s; }));
+    }
+    function cols2(R, L, brk){
+      var q = pairRows(R, L);
+      if (!q) { cols(R, L, brk); return; }
+      q.forEach(function(l, k){ l._brk = !k && !!brk; out.push(l); });
+    }
     function cut(S, brk){
       var c, Sp, R, L, T, B, k, pv;
       if (S.length < 2) { leaf(S, brk); return; }
@@ -4608,11 +4656,11 @@ var ocrSpell = (function(){
         R = S.filter(function(l){ return !(l.bbox.x0 < c && l.bbox.x1 > c) && cx(l) > c; });
         L = S.filter(function(l){ return !(l.bbox.x0 < c && l.bbox.x1 > c) && cx(l) <= c; });
         if (R.length && L.length) {
-          if (!Sp.length) { cols(R, L, brk); return; }
+          if (!Sp.length) { cols2(R, L, brk); return; }
           pv = -Infinity;                                /* سطرهای عبوری، صفحه را به نوارهای افقی می‌شکنند */
           for (k = 0; k <= Sp.length; k++) {
             var lim = k < Sp.length ? cy(Sp[k]) : Infinity, y0 = pv;
-            cols(R.filter(function(l){ return cy(l) >= y0 && cy(l) < lim; }), L.filter(function(l){ return cy(l) >= y0 && cy(l) < lim; }), true);
+            cols2(R.filter(function(l){ return cy(l) >= y0 && cy(l) < lim; }), L.filter(function(l){ return cy(l) >= y0 && cy(l) < lim; }), true);
             if (k < Sp.length) { leaf([Sp[k]], true); pv = lim; }
           }
           return;
@@ -5422,9 +5470,10 @@ var ocrSpell = (function(){
   }
   /* P2: بیتِ دوستونی «مصرع۱ ⟦فاصلهٔ ستونی⟧ مصرع۲» (نشانگر \u001f) ← دو مصرع؛ شرط: هر دو ≥۸ و ≤۴۸ نویسه، ≥۲ واژه، بدون رقم/لاتین، نسبت طول ۰٫۶۵–۱٫۵۵، بدون نقطهٔ پایان/آیتم در مصرع اول؛ دست‌کم ۲ ردیف پیاپی با قافیه (poRhyme)، یا یک ردیف پس از سطری که به «:» یا ««» ختم می‌شود */
   function poRow(l){
-    var p = l.split('\u001f'), a, b, r;
+    var v = l.indexOf('\u001f\u001f') >= 0, p = l.split(v ? '\u001f\u001f' : '\u001f'), a, b, r;
     if (p.length !== 2) return null;
     a = p[0].trim(); b = p[1].trim();
+    if (v) return a.length >= 3 && b.length >= 3 && a.length <= 120 && b.length <= 120 ? [a, b, 1] : null;   /* poem-v2 (P6): ردیف تأییدشدهٔ هندسی */
     if (a.length < 8 || b.length < 8 || a.length > 48 || b.length > 48) return null;
     if (/[\d۰-۹٠-٩A-Za-z]|\.{3,}/.test(a + b) || JB_ITEM.test(a) || JB_END.test(a)) return null;
     if (a.split(/\s+/).length < 2 || b.split(/\s+/).length < 2) return null;
@@ -5437,7 +5486,7 @@ var ocrSpell = (function(){
     while (i < ls.length) {
       j = i; rows = [];
       while (j < ls.length && (c = poRow(ls[j]))) { rows.push(c); j++; }
-      ok = (rows.length >= 2 && poRhyme([].concat.apply([], rows))) || (rows.length === 1 && i > 0 && /[:«]\s*$/.test(ls[i - 1]));
+      ok = (rows.length > 0 && rows.every(function(r){ return r[2]; })) || (rows.length >= 2 && poRhyme([].concat.apply([], rows))) || (rows.length === 1 && i > 0 && /[:«]\s*$/.test(ls[i - 1]));
       if (ok) { fp.push([out.length, out.length + rows.length * 2]); rows.forEach(function(r){ out.push(r[0], r[1]); }); i = j; }
       else { out.push(ls[i]); i++; }
     }
@@ -5528,7 +5577,7 @@ function jbWrapW(ls, old){
       brk = mode === 'line' || (mode !== 'join' && (JB_HD.test(l) || JB_HD.test(nx) || !joinable(l, nx, ref >= 40 && l.length < ref * 0.45 && !fr[i], ref >= 40 && l.length >= ref * 0.85)));
       out += l + (brk ? '\n' : ' ');
     });
-    return out.trim().replace(/\u001f/g, '، ');
+    return out.trim().replace(/\u001f+/g, '، ');
   }
   /* ===== فاصلهٔ علائم نگارشی: حذف هر فاصله پیش از , ، ; ؛ . ? ؟ ! : و یک فاصلهٔ استاندارد پس از آن‌ها (بدون آسیب به اعداد اعشاری، سه‌نقطه، آدرس و نام فایل) ===== */
   var fixPunct = (function(){
@@ -5722,6 +5771,7 @@ function jbWrapW(ls, old){
           else if (g > fs * 1.8) sep = '\u001f';   /* فاصلهٔ افقی بزرگ = ستون جدول */
         }
       }
+      if (it.pr && pv) sep = '\u001f\u001f';   /* poem-v2 (P6): مصرع روبروی تأییدشده از رویهٔ ستونی */
       out += (pv ? sep : '') + s;
       if (it.hasEOL) { out += '\n'; pv = null; } else pv = { tr: tr, w: it.width, s: s };
     }
@@ -7144,7 +7194,17 @@ function jbWrapW(ls, old){
     return out;
   }
   function ocrText(d, dir, G){
-    var ls = ocrOrder(ocrCluster(ocrLines(d), dir), dir), out = [], py = null, pend = false;
+    function poMerge(a0){   /* poem-v2 (P6): دو نیمهٔ هم‌ردیفِ تأییدشدهٔ ocrOrder ← یک خط با جداکنندهٔ \u001f\u001f (هندسهٔ هر نیمه برای هایلایت جدا می‌ماند) */
+      var o = [], i, a, b;
+      for (i = 0; i < a0.length; i++) {
+        a = a0[i]; b = a0[i + 1];
+        if (a && a._pr && b && a.bbox && b.bbox) { o.push({ text: a.text, text2: b.text, ba: a.bbox, bb2: b.bbox, bbox: { x0: Math.min(a.bbox.x0, b.bbox.x0), y0: Math.min(a.bbox.y0, b.bbox.y0), x1: Math.max(a.bbox.x1, b.bbox.x1), y1: Math.max(a.bbox.y1, b.bbox.y1) }, confidence: Math.min(a.confidence == null ? 100 : a.confidence, b.confidence == null ? 100 : b.confidence), _brk: a._brk }); i++; }
+        else o.push(a);
+      }
+      return o;
+    }
+    function poJoin(t, l){ var u; if (l.text2 == null) return t; u = ocrPurge(l.text2).replace(/\s+/g, ' ').trim(); return t && u ? t + '\u001f\u001f' + u : t || u; }
+    var ls = poMerge(ocrOrder(ocrCluster(ocrLines(d), dir), dir)), out = [], py = null, pend = false;
     if (!ls.length) return (d && d.text) || '';
     var hs = ls.map(function(l){ return l.bbox ? l.bbox.y1 - l.bbox.y0 : 0; }).filter(Boolean).sort(function(p, q){ return p - q; }), mh = hs.length ? hs[hs.length >> 1] : 0;
     var x0 = 1e9, x1 = 0, ex;
@@ -7153,7 +7213,7 @@ function jbWrapW(ls, old){
     var jf = false, jn = 0;   /* r167: صفحهٔ دوطرفه‌تراز (≥۴۵٪ سطرها تمام‌عرض): سطر کوتاهِ بدون علامت پایان = آخر بند ← نقطه */
     if (ls.length >= 6 && ex > 0) { ls.forEach(function(l){ if (l.bbox && l.bbox.x1 - l.bbox.x0 >= ex * 0.93) jn++; }); jf = jn / ls.length >= 0.45; }
     ls.forEach(function(l, li){
-      var t = ocrPurge(l.text || '').replace(/\s+/g, ' ').trim(), nl = (t.match(/\p{L}/gu) || []).length, nd = (t.match(/[\p{L}\p{N}]/gu) || []).length, c = l.confidence == null ? 100 : l.confidence, bb = l.bbox, nx = ls[li + 1], nb = nx && nx.bbox;
+      var t = poJoin(ocrPurge(l.text || '').replace(/\s+/g, ' ').trim(), l), nl = (t.match(/\p{L}/gu) || []).length, nd = (t.match(/[\p{L}\p{N}]/gu) || []).length, c = l.confidence == null ? 100 : l.confidence, bb = l.bbox, nx = ls[li + 1], nb = nx && nx.bbox;
       var att = !!bb && ((py !== null && bb.y0 - py <= mh * 0.9) || (!!nb && nb.y0 - bb.y1 <= mh * 0.9));   /* به پاراگراف پیوسته است (خط پایانی «است.»، «را») */
       var mg = !!bb && ex > 0 && nd <= 2 && c < 70 && !att && bb.x1 - bb.x0 < mh * 3 && (bb.x1 - x0 < ex * 0.06 || x1 - bb.x0 < ex * 0.06);
       if (l._brk) pend = true;
@@ -7162,7 +7222,8 @@ function jbWrapW(ls, old){
       if (!/[\p{L}\p{N}]/u.test(t) || c < 25 || (c < 50 && nl < 4) || mg) { if (G && t && (c < 25 || (c < 50 && nl < 4)) && nd >= 3) { G.ld = (G.ld || 0) + 1; if ((G.dl || (G.dl = [])).length < 8) G.dl.push(t.slice(0, 120)); } return; }   /* حذف خط کم‌اطمینان شمرده می‌شود (نه جایگزین در متن: TTS نخواند) */
       if (pend && out.length) out.push('');
       if (jf && bb && nb && !l._brk && bb.x1 - bb.x0 < ex * 0.82 && nb.y0 - bb.y1 <= mh * 0.9 && t.split(' ').length >= 3 && t.length >= 10 && /\p{L}$/u.test(t)) t += '.';
-      pend = false; out.push(t); if (G && bb) G.push([t, bb.x0, bb.y0, bb.x1, bb.y1]);
+      pend = false; out.push(t);
+      if (G && bb) { if (l.ba && l.bb2 && t.indexOf('\u001f\u001f') > 0) { var h2 = t.split('\u001f\u001f'); G.push([h2[0], l.ba.x0, l.ba.y0, l.ba.x1, l.ba.y1]); G.push([h2[1], l.bb2.x0, l.bb2.y0, l.bb2.x1, l.bb2.y1]); } else G.push([t, bb.x0, bb.y0, bb.x1, bb.y1]); }
     });
     return out.length ? out.join('\n') : (d.text || '');
   }
@@ -8647,7 +8708,7 @@ function jbWrapW(ls, old){
   function monIdx(m){ return MON_ENW.indexOf(m.slice(0, 3).toLowerCase()) + 1; }
   function dmy(d, m, y, mons){ return ' ' + ordFa(+d) + ' ' + mons[+m] + ' ' + numFa(String(+y)) + ' '; }
   var NEG_RE = /(?<!\d\s*)(?<![\p{L}\d\-–\/.])[-−](?=\d)/gu;
-  var userDict = [], dictG = '', dictP = '', docName = '';
+  var userDict = [], dictG = '', dictP = '', dictS = '', poSet = null, docName = '';
   function normCh(t){ return persianize(t, false); }
   /* قالب هر خط: «کلمه = تلفظ». «الف | ب = تلفظ» چند شکل را یکی می‌کند؛ «/regex/i = جایگزین» (با $1…) برای الگو؛ خط‌های شروع‌شده با # توضیح‌اند.
      کلمهٔ ساده با پسوندهای نیم‌فاصله‌ای (‌ها، ‌های، ‌ی، ‌ام…) هم یافت می‌شود و پسوند حفظ می‌شود. */
@@ -8673,11 +8734,16 @@ function jbWrapW(ls, old){
     } catch (e) {}
   }
   function parseDict0(){
-    userDict = []; ocrFx = []; userTok = new Map(); userTokI = new Map(); userCx = [];
+    var b;
+    dictBuild(dictP + '\n' + dictG, false); poSet = null;
+    if (dictS && /^\s*[^#\s=][^=\n]*=/m.test(dictS)) { b = [userDict, userTok, userTokI, userCx, ocrFx]; dictBuild(dictS + '\n' + dictP + '\n' + dictG, true); poSet = [userDict, userTok, userTokI, userCx]; userDict = b[0]; userTok = b[1]; userTokI = b[2]; userCx = b[3]; ocrFx = b[4]; }   /* pdict-v1: واژه‌نامهٔ «شعرها» (dictS) مجموعهٔ جدا و کامل (شعرها ← این فایل ← همهٔ فایل‌ها) است و فقط برای مصرع‌های شعر جایگزین می‌شود (ttsPo)؛ سطرهای «=>» (اصلاح OCR) در آن نادیده گرفته می‌شوند */
+  }
+  function dictBuild(txt, po){
+    userDict = []; if (!po) ocrFx = []; userTok = new Map(); userTokI = new Map(); userCx = [];
     /* واژه‌نامهٔ همین فایل اول می‌آید تا بر واژه‌نامهٔ همهٔ فایل‌ها اولویت داشته باشد */
-    (dictP + '\n' + dictG).split('\n').forEach(function(l){
+    txt.split('\n').forEach(function(l){
       l = l.replace(/^\s+/, ''); if (!l || l.charAt(0) === '#') return;
-      var ar = l.indexOf('=>'); if (ar > 0) { ocrFxAdd(l.slice(0, ar).trim(), l.slice(ar + 2).trim()); return; }
+      var ar = l.indexOf('=>'); if (ar > 0) { if (!po) ocrFxAdd(l.slice(0, ar).trim(), l.slice(ar + 2).trim()); return; }
       var p = l.indexOf('='); if (p < 1) return;
       var lhs = l.slice(0, p).trim(), b = l.slice(p + 1).trim(), rm = /^\/(.+)\/([iu]*)$/.exec(lhs);
       if (rm) { try { userDict.push({ re: new RegExp(rm[1], 'g' + (rm[2].indexOf('i') >= 0 ? 'i' : '') + 'u'), to: b, rx: 1 }); } catch (e) {} return; }
@@ -8688,7 +8754,7 @@ function jbWrapW(ls, old){
       });
     });
     if (userDict.length > DICT_MAX) {                                /* نشانگر تک‌نویسه فقط تا ۶۱۴۴ مدخل در محدودهٔ PUA جا دارد؛ بیشتر از آن حذف و گزارش می‌شود (T-12) */
-      try { if (window.__elog) window.__elog.add('dict', 'واژه‌نامه بیش از ' + DICT_MAX + ' مدخل دارد؛ ' + (userDict.length - DICT_MAX) + ' مدخل آخر نادیده گرفته شد'); } catch (e) {}
+      try { if (!po && window.__elog) window.__elog.add('dict', 'واژه‌نامه بیش از ' + DICT_MAX + ' مدخل دارد؛ ' + (userDict.length - DICT_MAX) + ' مدخل آخر نادیده گرفته شد'); } catch (e) {}
       userDict.length = DICT_MAX;
     }
     userTok = new Map(); userTokI = new Map(); userCx = [];
@@ -9442,11 +9508,19 @@ function jbWrapW(ls, old){
     return { ok: ok, bad: bad };
   }
   var dictSaved = '';
-  function dictScopeNow(){ return (sget('dictScope', 'pdf') === 'pdf' && docName) ? 'pdf' : 'all'; }
-  function dictKeyOf(sc){ return sc === 'pdf' ? 'dict:' + docName : 'dict'; }
-  function dictTextOf(sc){ return sc === 'pdf' ? dictP : dictG; }
+  function dictScopeNow(){ var z = sget('dictScope', 'pdf'); return z === 'poem' ? 'poem' : (z === 'pdf' && docName) ? 'pdf' : 'all'; }
+  function dictKeyOf(sc){ return sc === 'pdf' ? 'dict:' + docName : sc === 'poem' ? 'dictPoem' : 'dict'; }
+  function dictTextOf(sc){ return sc === 'pdf' ? dictP : sc === 'poem' ? dictS : dictG; }
+  function dictWhere(sc){ return sc === 'pdf' ? 'واژه‌نامهٔ این فایل' : sc === 'poem' ? 'واژه‌نامهٔ شعرها' : 'واژه‌نامهٔ همهٔ فایل‌ها'; }
+  function dictScopeAt(n){ try { var e = n && (n.nodeType === 1 ? n : n.parentNode), sp = e && e.closest ? e.closest('span[data-i]') : null, q = sp ? sents[+sp.dataset.i] : null; return q && q.po ? 'poem' : null; } catch (x) { return null; } }   /* pdict-v1: کلمه‌ای که داخل مصرع شعر است ⇒ 'poem' */
+  function ttsPo(s, f){   /* pdict-v1: برای مصرع شعر، واژه‌نامهٔ «شعرها» را هنگام ساخت متن گفتار فعال می‌کند (همگام؛ پس از اجرا برمی‌گردد) */
+    if (!s || !s.po || !poSet) return f();
+    var a = userDict, b = userTok, c = userTokI, d = userCx;
+    userDict = poSet[0]; userTok = poSet[1]; userTokI = poSet[2]; userCx = poSet[3];
+    try { return f(); } finally { userDict = a; userTok = b; userTokI = c; userCx = d; }
+  }
   function dictSetText(sc, v){
-    if (sc === 'pdf') dictP = v; else dictG = v;
+    if (sc === 'pdf') dictP = v; else if (sc === 'poem') dictS = v; else dictG = v;
     if (v) sset(dictKeyOf(sc), v); else { try { localStorage.removeItem(dictKeyOf(sc)); } catch (e) {} }
   }
   function shortName(n){ n = String(n || '').replace(/\.pdf$/i, ''); return n.length > 28 ? n.slice(0, 27) + '…' : n; }
@@ -9459,17 +9533,17 @@ function jbWrapW(ls, old){
   }
   function dictUi0(note){
     var d = $('#dict'), dirty = d.value !== dictSaved, st = dictStat(d.value), m = $('#dictMsg'), sc = dictScopeNow(),
-        where = sc === 'pdf' ? 'واژه‌نامهٔ این فایل' : 'واژه‌نامهٔ همهٔ فایل‌ها';
+        where = dictWhere(sc);
     $('#dictSave').disabled = !dirty;
-    $('#dictWho').textContent = (docName ? 'این فایل: ' + nf.format(dictStat(dictP).ok) + ' واژه · ' : '') + 'همهٔ فایل‌ها: ' + nf.format(dictStat(dictG).ok) + ' واژه' + (docName ? ' (واژه‌های این فایل اولویت دارند)' : '');
+    $('#dictWho').textContent = (docName ? 'این فایل: ' + nf.format(dictStat(dictP).ok) + ' واژه · ' : '') + 'همهٔ فایل‌ها: ' + nf.format(dictStat(dictG).ok) + ' واژه · شعرها: ' + nf.format(dictStat(dictS).ok) + ' واژه (فقط در شعر، با بیشترین اولویت)' + (docName ? ' · واژه‌های این فایل بر همهٔ فایل‌ها اولویت دارند' : '');
     if (dirty) m.textContent = 'تغییرها هنوز ذخیره نشده‌اند. «ثبت و ذخیرهٔ واژه‌ها» را بزنید.' + (st.bad ? ' ' + nf.format(st.bad) + ' سطر بدون «=» نادیده گرفته می‌شود.' : '');
     else m.textContent = (note ? note + ' ' : '') + (st.ok ? nf.format(st.ok) + ' واژه در ' + where + ' ثبت است.' : 'واژه‌ای در ' + where + ' ثبت نشده است.') + (st.bad ? ' ' + nf.format(st.bad) + ' سطر بدون «=» نادیده گرفته می‌شود.' : '');
   }
   function dictUi(note){ dictUi0(note); try { $('#dxRev').hidden = $('#dict').value === dictSaved; dxSched(); } catch (e) {} }
   function dictKeyW(t){ return normCh(String(t).trim()).toLowerCase(); }
   /* پیدا کردن واژه در واژه‌نامه‌ها (اول این فایل، بعد همهٔ فایل‌ها) */
-  function dictFind(w){
-    var k = dictKeyW(w), scs = ['pdf', 'all'], i, j, ls, p;
+  function dictFind(w, only){
+    var k = dictKeyW(w), scs = only ? [only] : ['pdf', 'all'], i, j, ls, p;
     for (i = 0; i < scs.length; i++) {
       if (scs[i] === 'pdf' && !docName) continue;
       ls = dictTextOf(scs[i]).split('\n');
@@ -9497,12 +9571,12 @@ function jbWrapW(ls, old){
   }
   function addDict(w, v){
     var sc = dictScopeNow();
-    if (dictAddLine(sc, w, v)) $('#fixMsg').textContent = '«' + w + '» با تلفظ «' + v + '» به ' + (sc === 'pdf' ? 'واژه‌نامهٔ این فایل' : 'واژه‌نامهٔ همهٔ فایل‌ها') + ' اضافه شد؛ می‌توانید آن را در بخش واژه‌نامه ویرایش کنید.';
+    if (dictAddLine(sc, w, v)) $('#fixMsg').textContent = '«' + w + '» با تلفظ «' + v + '» به ' + dictWhere(sc) + ' اضافه شد؛ می‌توانید آن را در بخش واژه‌نامه ویرایش کنید.';
   }
   var lpT = 0, lpDone = 0;
   function showTip(i){
     var s = sents[i]; if (!s) return;
-    var r = { uns: {} }, out = ttsText(spk(s), engine(), r, s.cont), tip = $('#fixTip');
+    var r = { uns: {} }, out = ttsPo(s, function(){ return ttsText(spk(s), engine(), r, s.cont); }), tip = $('#fixTip');
     tip.textContent = '';
     function row(l, v){ var d = document.createElement('div'), b = document.createElement('b'); b.textContent = l + ': '; d.appendChild(b); d.appendChild(document.createTextNode(v)); tip.appendChild(d); }
     row('متن', s.text); row('خوانده می‌شود', out);
@@ -9618,7 +9692,17 @@ function emoPar(k){
   if (window.emoDbg && !emoSeen[k]) { emoSeen[k] = 1; try { console.log('[emo]', k, a.e, emoTag(sents[k].text).k, 'ls=' + ls.toFixed(3), 'pad=' + Math.round(pad * 1000) + 'ms'); } catch (x) {} }
   return Math.abs(ls - 1) < 0.002 && pad < 0.02 ? null : { ls: Math.round(ls * 1000) / 1000, pad: pad > 0.02 ? pad : null };
 }
-function emoSplit(j, q){   /* شکست تأکید (فقط سطح «بیانی»): جملهٔ j ⇒ [پیش | واژهٔ مؤکد | پس] با مکث ۰٫۰۸ث و سرعت ۰٫۹×؛ null = بدون شکست (رفتار قبلی) */
+function poRhOn(){ return sget('poRh', '0') === '1'; }   /* poem-v3 (P8): تیک «تأکید قافیهٔ شعر»؛ پیش‌فرض خاموش تا آزمون شنیداری */
+function poRhSplit(j, q){   /* poem-v3 (P8): مصرع ⇒ [پیش | واژهٔ پایانی (قافیه/ردیف)] با مکث ۰٫۰۸ث و سرعت ۰٫۸۸×؛ null = بدون شکست */
+  var s = sents[j], tk, w, a, L = /[\u0621-\u06D3]/;
+  if (!s || !s.po || !poV2() || !poRhOn() || !adRef() || (rsm && rsm.i === j)) return null;
+  tk = String(q.t).trim().split(/\s+/); if (tk.length < 3) return null;
+  w = tk.pop(); a = tk.join(' '); if (!L.test(a) || !L.test(w)) return null;
+  function mk(t, sp, g){ var o = { t: t, s: sp, g: g }; if (q.n != null) o.n = q.n; if (q.w != null) o.w = q.w; return o; }
+  return [mk(a, q.s, 0.08), mk(w, Math.min(1.5, q.s * 0.88), q.g)];   /* علامت پایان مصرع (،/./؟/!) با واژهٔ آخر می‌ماند ⇒ فرود/ادامه حفظ می‌شود */
+}
+function emoSplit(j, q){ return ttsPo(sents[j], function(){ return emoSplit0(j, q); }); }
+function emoSplit0(j, q){   /* شکست تأکید (فقط سطح «بیانی»): جملهٔ j ⇒ [پیش | واژهٔ مؤکد | پس] با مکث ۰٫۰۸ث و سرعت ۰٫۹×؛ null = بدون شکست (رفتار قبلی) */
   var s = sents[j], em, tk, a, w, b, L = /[\u0621-\u06D3]/;
   if (!s || emoLvl() !== 2 || (rsm && rsm.i === j)) return null;
   em = emoEmph(s.text); if (!em) return null;
@@ -9658,20 +9742,20 @@ function chunkAt(i, lim){
     var rb = mRate(), e = i, len = sents[i].text.length;
     while (lim > 1 && !sents[e].pe && e + 1 < sents.length && sents[e + 1].page === sents[i].page && len + 1 + sents[e + 1].text.length <= lim) { e++; len += 1 + sents[e].text.length; }
     var t = [];
-    for (var k = i; k <= e; k++) t.push(poemEnd(sents[k], svPzTx(svFixTx(ttsText(sents[k].po && poV2() && adRef() ? sents[k].text : spk(sents[k]), undefined, undefined, sents[k].cont)))));   /* poem-v2 (P5): مصرع = یک گروه نفس؛ ویرگول خودکار addPauses درونش درج نمی‌شود */
+    for (var k = i; k <= e; k++) t.push(poemEnd(sents[k], svPzTx(svFixTx(ttsPo(sents[k], function(){ return ttsText(sents[k].po && poV2() && adRef() ? sents[k].text : spk(sents[k]), undefined, undefined, sents[k].cont); }))), k));   /* poem-v2 (P5): مصرع = یک گروه نفس؛ ویرگول خودکار addPauses درونش درج نمی‌شود */
     if (rsm && rsm.i === i && t.length) { var rw = String(t[0]).split(/\s+/), rk = Math.floor(rsm.f * rw.length); if (rk > 0 && rk < rw.length - 1) t[0] = rw.slice(rk).join(' '); }   /* ادامه از واژهٔ ذخیره‌شده (فقط نخستین تکه) */
     var P = [], pm = [], sp = false, j, q, ep, r, mo;
     for (j = 0; j < t.length; j++) {
       q = { t: t[j], s: paceSpeed(t[j]) * (sents[i + j].po && sents[i + j].hb === 2 && adRef() ? (poV2() && poLast(i + j) ? 0.92 : 0.95) : 1), g: Math.max(0.08, Math.min(1.5, pauseMs(i + j, true) / 1000 / Math.pow(rb, 0.6))) }; ep = emoPar(i + j);
       mo = window.PZM ? PZM.end(sents[i + j], sents[i + j + 1]) : null; if (mo !== null) { q.g = Math.max(0, Math.min(8, mo / 1000 / Math.pow(rb, 0.6))); ep = null; }   /* r150: مکث دستی؛ مقدار کاربر بر مکث احساسی مقدم است */
       if (ep) { if (ep.ns != null) q.n = ep.ns; if (ep.nw != null) q.w = ep.nw; if (ep.pad != null) q.g = Math.max(q.g, ep.pad); if (ep.ls != null && emoSpdOn()) q.s = Math.min(1.5, Math.round(q.s / ep.ls * 1000) / 1000); }   /* r212 (P10-F4B): ls = ضریب length_scale ⇒ سرعت = سرعت ÷ ls (غم ls>1 کندتر)؛ سقف ۱٫۵ مثل ساخت صدا؛ پیش از emoSplit تا همهٔ partها همین سرعت را بگیرند */
-      r = emoSplit(i + j, q) || (window.PZM ? PZM.inner(q, rb) : null);   /* r150: شکست در نقطه‌های مکث دستی درون‌جمله */
+      r = emoSplit(i + j, q) || (window.PZM ? PZM.inner(q, rb) : null) || poRhSplit(i + j, q);   /* r150: شکست در نقطه‌های مکث دستی درون‌جمله */
       if (r) { sp = true; r.forEach(function(x){ P.push(x); pm.push(j); }); } else { P.push(q); pm.push(j); }
     }
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r215 · 2026-11-09 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v2', npBuild = '';
+  var APP_BUILD = 'html-r218 · 2026-11-10 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v3 · pcol-v1 · pdict-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10713,7 +10797,8 @@ function svPzCtx(i, q, t){   /* r146 (مکث بافتی): [افزوده ms، ک�
   return [d, f];
 }
 function adRef(){ try { var v = currentVoice(); return !!(v && /adabi/i.test(v.id)); } catch (e) { return false; } }   /* شعرخوان ادبی: مصرع اول ≈ ۰٫۵ث و پایان بیت ≈ ۱٫۰ تا ۱٫۱ث (بیت‌خوانی حرفه‌ای) */
-function poemEnd(s, x){ if (!s || !s.po || !adRef()) return x; var y = String(x).replace(/[\s.,،;؛:!?؟…]+$/, ''), tl = String(x).slice(y.length), qm = poV2() ? tl.match(/[?؟]/) : null; return y ? y + (qm ? qm[0] : (s.hb === 2 ? (poV2() && /!/.test(tl) ? '!' : '.') : '،')) : x; }   /* poem-v2 (P3): پرسش (؟) در پایان مصرع و تعجب (!) در پایان بیت حفظ می‌شود */
+function poemEnd(s, x, k){ if (!s || !s.po || !adRef()) return x; var y = String(x).replace(/[\s.,،;؛:!?؟…]+$/, ''), tl = String(x).slice(y.length), qm = poV2() ? tl.match(/[?؟]/) : null; return y ? y + (qm ? qm[0] : (s.hb === 2 ? (poV2() && /!/.test(tl) ? '!' : (poCont(k) ? '،' : '.')) : '،')) : x; }   /* poem-v2 (P3): پرسش (؟) در پایان مصرع و تعجب (!) در پایان بیت حفظ می‌شود */
+function poCont(i){ var q, n; if (i == null || !poV2() || sget('poCt', '1') === '0') return false; q = sents[i]; n = sents[i + 1]; return !!(q && q.po && q.hb === 2 && n && n.po && n.hb === 1 && n.page === q.page && /^[\s\u00AB"'*(\[]*(?:\u06A9\u0647|\u06A9\u0632|\u062A\u0627)(?=\s|$)/.test(n.text)); }   /* poem-v3 (P7): بیت پیوسته (مثنوی): مصرع اول بیت بعد با «که/کز/تا» شروع می‌شود ⇒ فرود پایان بیت با «،» ملایم؛ خاموش: localStorage poCt='0' */
 function poLast(i){ var q = sents[i], n = sents[i + 1]; return !!(q && q.po && q.hb === 2 && !(n && n.po && n.page === q.page)); }   /* poem-v2: آخرین مصرعِ شعر (پس از آن شعر نیست) */   /* شعرخوان ادبی: مصرع اول با ویرگول (آهنگ ادامه‌دار)، پایان بیت با نقطه (آهنگ فرودآینده) */
 function gyRef(){ try { var v = currentVoice(); return !!(v && /gyro/i.test(v.id)); } catch (e) { return false; } }   /* پروفایل مرجع gyro: r179: مکث پایان جمله ≈ ۰٫۹۴ ثانیه (۸۳۰ms + ≈۱۱۵ms سکوت مرز) و «؛/:» ≈ ۰٫۲۹ثانیه (۱۷۵ms) مطابق اندازه‌گیری نمونهٔ فرید با متن معلوم (نقطه ۸۴۰–۹۸۰ms، «؛» ۲۹۰ms) */
 function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مکث‌های داخل صدای ساخته‌شده که خود با سرعت پخش کشیده می‌شوند) */
@@ -12465,6 +12550,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
   $('#emoLvl').onchange = function(){ sset('emoLvl', this.value); changed(); };
   $('#emoSpd').checked = sget('emoSpd', '1') !== '0';
   $('#emoSpd').onchange = function(){ sset('emoSpd', this.checked ? '1' : '0'); changed(); };
+  $('#poRh').checked = sget('poRh', '0') === '1'; $('#poRh').onchange = function(){ sset('poRh', this.checked ? '1' : '0'); changed(); };
   ['vclean', 'vclarity'].forEach(function(id){
     var el = $('#' + id), dv = id === 'vclean' ? 'a' : '2'; el.value = sget(id, dv); if (['0', '1', '2', '3'].concat(id === 'vclean' ? ['a'] : []).indexOf(el.value) < 0) el.value = dv;
     el.onchange = function(){ sset(id, this.value); changed(); warmPiper(); try { nsStatus(); nsKick(); } catch (e) {} };   /* کش خام بومی می‌ماند؛ پس تغییر سطح سریع اعمال می‌شود */
@@ -12681,18 +12767,18 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
   function dxTest(){
     var s = $('#dxT').value.trim(), o = $('#dxO'), r, out = '';
     if (!s) { o.textContent = ''; return; }
-    try { r = { uns: {} }; out = ttsText(s, engine(), r, false); } catch (e) { out = ''; }
+    try { r = { uns: {} }; out = ttsPo(dictScopeNow() === 'poem' ? { po: true } : null, function(){ return ttsText(s, engine(), r, false); }); } catch (e) { out = ''; }
     o.textContent = out ? String(out).replace(/[\uE000-\uF8FF]/g, '').trim() : 'خروجی ساخته نشد.';
   }
   $('#dxT').oninput = function(){ clearTimeout(dx.tt); dx.tt = setTimeout(dxTest, 250); };
 
-  dictG = sget('dict', ''); parseDict(); dictShow();
+  dictG = sget('dict', ''); dictS = sget('dictPoem', ''); parseDict(); dictShow();
   $('#dict').oninput = function(){ dictUi(); };
   $('#dictExp').onclick = async function(){
     var v = $('#dict').value, m = $('#dictMsg'), b = this;
     if (!v.trim()) { m.textContent = 'واژه‌نامه خالی است.'; return; }
     b.disabled = true; m.textContent = 'در حال ذخیره…';
-    m.textContent = await msQuick('واژه‌نامه' + (dictScopeNow() === 'pdf' && docName ? '-' + msSafe(shortName(docName)) : ''), v);
+    m.textContent = await msQuick('واژه‌نامه' + (dictScopeNow() === 'poem' ? '-شعرها' : dictScopeNow() === 'pdf' && docName ? '-' + msSafe(shortName(docName)) : ''), v);
     b.disabled = false;
   };
   $('#dictImp').onclick = function(){ $('#dictFile').click(); };
@@ -12721,7 +12807,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
   $('#dictSave').onclick = function(){ dictCommit(); };
 
   /* ---------- انتخاب کلمه در متن → افزودن سریع به واژه‌نامه / کپی ---------- */
-  var selTxt = '', selT = 0, selHide = 0;
+  var selTxt = '', selT = 0, selHide = 0, selSc = null;
   function selInfo(){
     var s = window.getSelection ? window.getSelection() : null;
     if (!s || s.isCollapsed || !s.rangeCount) return '';
@@ -12733,7 +12819,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
     var t = selInfo(), bar = $('#selBar');
     if (t && !$('#dqSheet').hidden) return;
     if (!t) { clearTimeout(selHide); selHide = setTimeout(function(){ bar.hidden = true; }, 450); return; }
-    clearTimeout(selHide); selTxt = t;
+    clearTimeout(selHide); selTxt = t; try { selSc = dictScopeAt(window.getSelection().anchorNode); } catch (e) { selSc = null; }
     $('#selAdd').hidden = t.length > 60; $('#selCopy').textContent = 'کپی';
     bar.hidden = false;
   }
@@ -12747,19 +12833,19 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
       return out && out !== w ? out : '';
     } catch (e) { return ''; }
   }
-  function openDq(raw){
+  function openDq(raw, sc0){
     var w = String(raw || '').replace(/\s+/g, ' ').replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '').trim();
     if (!w) return;
-    var f = dictFind(w);
+    var fp = sc0 === 'poem' ? dictFind(w, 'poem') : null, f = fp || dictFind(w);
     $('#dqW').value = w;
     $('#dqP').value = f ? f.v : (dqSuggest(w) || w);
-    $('#dqS').value = f ? f.sc : dictScopeNow();
-    $('#dqMsg').textContent = f ? 'این واژه از قبل ثبت شده است؛ ثبت دوباره، تلفظ را ویرایش می‌کند.' : 'تلفظ را همان‌طور که باید خوانده شود بنویسید. برای حذف کلمه از خواندن، تلفظ را خالی بگذارید.';
+    $('#dqS').value = sc0 === 'poem' ? 'poem' : f ? f.sc : dictScopeNow();
+    $('#dqMsg').textContent = f ? (sc0 === 'poem' && !fp ? 'این واژه در واژه‌نامهٔ دیگری هست؛ ثبت اینجا فقط برای مصرع‌های شعر اعمال می‌شود.' : 'این واژه از قبل ثبت شده است؛ ثبت دوباره، تلفظ را ویرایش می‌کند.') : 'تلفظ را همان‌طور که باید خوانده شود بنویسید. برای حذف کلمه از خواندن، تلفظ را خالی بگذارید.';
     $('#selBar').hidden = true; $('#dqSheet').hidden = false; BK.push('dq', function(){ closeDq(); });
     setTimeout(function(){ try { $('#dqP').focus(); $('#dqP').select(); } catch (e) {} }, 60);
   }
   function closeDq(){ $('#dqSheet').hidden = true; BK.drop('dq'); }
-  $('#selAdd').onclick = function(){ openDq(selTxt); };
+  $('#selAdd').onclick = function(){ openDq(selTxt, selSc); };
   /* دوبار کلیک روی کلمه: به واژه‌نامهٔ تلفظ می‌رود و کلمه را همان‌جا اضافه می‌کند */
   function wordAt(e){
     var s = window.getSelection ? String(window.getSelection()) : '', r, t, a, b;
@@ -12773,9 +12859,9 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
     var w = wordAt(e); if (!w || /\s/.test(w) || w.indexOf('=') >= 0) return;
     try { window.getSelection().removeAllRanges(); } catch (x) {}
     $('#selBar').hidden = true;
-    var sc = dictScopeNow(), f = dictFind(w), v = f ? f.v : (dqSuggest(w) || w);
+    var sp = dictScopeAt(e.target), sc = sp || dictScopeNow(), f = dictFind(w, sp || undefined), fo = f || (sp ? dictFind(w) : null), v = fo ? fo.v : (dqSuggest(w) || w);   /* pdict-v1: دوبار لمس کلمه در شعر ⇒ واژه‌نامهٔ شعرها */
     if (!f) dictAddLine(sc, w, v);
-    status('«' + w + '» ' + (f ? 'از قبل در واژه‌نامه بود.' : 'به واژه‌نامهٔ تلفظ اضافه شد.'));
+    status('«' + w + '» ' + (f ? 'از قبل در ' + (sp ? 'واژه‌نامهٔ شعرها' : 'واژه‌نامه') + ' بود.' : 'به ' + (sp ? 'واژه‌نامهٔ شعرها' : 'واژه‌نامهٔ تلفظ') + ' اضافه شد.'));
     openMenu('text');
     setTimeout(function(){
       var box = $('#dictBox'), d = $('#dict'); box.open = true; try { $('#dxAdv').open = true; } catch (x) {}
@@ -12803,7 +12889,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
     if (dictAddLine(sc, w, v)) {
       closeDq();
       try { window.getSelection().removeAllRanges(); } catch (e) {}
-      status('«' + w + '» به ' + (sc === 'pdf' && docName ? 'واژه‌نامهٔ این فایل' : 'واژه‌نامهٔ همهٔ فایل‌ها') + ' اضافه شد.');
+      status('«' + w + '» به ' + dictWhere(sc === 'pdf' && !docName ? 'all' : sc) + ' اضافه شد.');
     }
   };
   $('#dqNo').onclick = closeDq;
@@ -13462,7 +13548,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
   Array.prototype.forEach.call(toolsEl.querySelectorAll('.tile,.tbanner'), function(b){ b.addEventListener('click', function(){ toolRun(b); }); });
 
   /* ---- نشانگر «تغییریافته» و بازنشانی هر بخش ---- */
-  var CFG_DEF = {"hsOn":true,"svMem":true,"svMdl":true,"svLvl":true,"svPz":true,"svExit":true,"svTx":true,"svThm":true,"vstyle":"natural","emoLvl":"0","emoSpd":true,"vclean":"a","nzOn":true,"nzFix":"2","nzMdl":"baseline","vclarity":"2","nzMode":"auto","nzNs":"0.55","nzNw":"0.01","enh":true,"humPace":true,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":true,"oCols":true,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oNumDrop":true,"oPre":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"oSpellTL":false,"oSmart":true,"oVg":true,"oVgMode":"safe","ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
+  var CFG_DEF = {"hsOn":true,"svMem":true,"svMdl":true,"svLvl":true,"svPz":true,"svExit":true,"svTx":true,"svThm":true,"vstyle":"natural","emoLvl":"0","emoSpd":true,"poRh":false,"vclean":"a","nzOn":true,"nzFix":"2","nzMdl":"baseline","vclarity":"2","nzMode":"auto","nzNs":"0.55","nzNw":"0.01","enh":true,"humPace":true,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":true,"oCols":true,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oNumDrop":true,"oPre":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"oSpellTL":false,"oSmart":true,"oVg":true,"oVgMode":"safe","ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
   Array.prototype.forEach.call(document.querySelectorAll(CFG_SEC), function(s){
     var h = s.tagName === 'DETAILS' ? s.querySelector('summary .stt b') : s.querySelector('h3'), pn = s.closest('.panel');
     if (!s.id) s.id = 'cs-' + (++cfgN);
@@ -13556,7 +13642,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
     }, 5000);
   })();
 
-  var CFG_KEY = /^(hsOn$|sv(?:Mem|Mdl|Lvl|Pz|Exit|Tx|Thm)$|hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|stAuto|stCap|theme|vfAuto|voice$|vstyle$|emoLvl$|emoSpd$|nz|harakat)/;
+  var CFG_KEY = /^(hsOn$|sv(?:Mem|Mdl|Lvl|Pz|Exit|Tx|Thm)$|hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|stAuto|stCap|theme|vfAuto|voice$|vstyle$|emoLvl$|emoSpd$|poRh$|poCt$|nz|harakat)/;
 
   /* وقتی برنامه در پس‌زمینه است (مثلاً پخش با صفحهٔ خاموش) انیمیشن‌ها متوقف شوند */
   document.addEventListener('visibilitychange', function(){ document.documentElement.classList.toggle('bg-paused', document.hidden); });
