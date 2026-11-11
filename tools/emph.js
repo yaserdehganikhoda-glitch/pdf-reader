@@ -44,7 +44,7 @@ console.log('emph OK',n,'assertions');
 // ۵) chunkAt واقعی با stub: ناوردا‌ها
 {
   const s0=at('function chunkAt('),s1=at('/* نشانهٔ نسخه (APP_BUILD)');
-  const cc={ttsPo:(s,f)=>f(),poV2:()=>false,poLast:()=>false,poRhSplit:()=>null,sents:[],rsm:null,mRate:()=>1,paceSpeed:()=>1,pauseMs:()=>300,emoPar:()=>null,emoLvl:()=>2,emoEmph:X.ev('emoEmph'),ttsText:(t,a,b,c)=>X.ttsText(t,a,b,c),spk:o=>o.text,svPzTx:s=>s,svFixTx:s=>s,poemEnd:(s,x)=>x,adRef:()=>false,window:{},Math,String,console};   /* r184: chunkAt به svFixTx/svPzTx/window نیاز دارد؛ r208: poemEnd/adRef (جمله‌های بدون po ⇒ همان متن) */
+  const cc={ttsPo:(s,f)=>f(),poNoPros:(s,f)=>f(),poV2:()=>false,poLast:()=>false,poRhSplit:()=>null,sents:[],rsm:null,mRate:()=>1,paceSpeed:()=>1,pauseMs:()=>300,emoPar:()=>null,emoLvl:()=>2,emoEmph:X.ev('emoEmph'),ttsText:(t,a,b,c)=>X.ttsText(t,a,b,c),spk:o=>o.text,svPzTx:s=>s,svFixTx:s=>s,poemEnd:(s,x)=>x,adRef:()=>false,window:{},Math,String,console};   /* r184: chunkAt به svFixTx/svPzTx/window نیاز دارد؛ r208: poemEnd/adRef (جمله‌های بدون po ⇒ همان متن) */
   vm.createContext(cc);
   vm.runInContext(h.slice(at('function emoSplit('),at('function emoFoldMarks('))+h.slice(s0,s1)+';this.chunkAt=chunkAt;',cc);
   const T=['اولین جمله ساده است.','او امروز *واقعاً* خیلی دوستش داشت.','جملهٔ سوم هم ساده است.'];
