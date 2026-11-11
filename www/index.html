@@ -9390,8 +9390,7 @@ function jbWrapW(ls, old){
     ws[best - 1] += ','; bump('pause');
     longBreak(ws, a, best, depth + 1); longBreak(ws, best, b, depth + 1);
   }
-  var poNP = 0;   /* poem-v4 (P14): >۰ ⇒ ویرگول خودکار (prosody) خاموش؛ مصرعِ شعرخوان ادبی یک گروه نفس است (poNoPros) */
-  function poNoPros(s, f){ if (!(s && s.po && poV2() && adRef())) return f(); poNP++; try { return f(); } finally { poNP--; } }
+  var poNP = 0;   /* poem-v4 (P14): >۰ ⇒ ویرگول خودکار (prosody) خاموش؛ مصرعِ شعرخوان ادبی یک گروه نفس است (poNoPros)؛ r226: تعریف تابع کنار ttsPo (ناحیهٔ فقط‌اصلی) است */
   function prosody(t){
     if (!sOn() || poNP) return t;
     return t.split(/(?<=[.!?])\s+/).map(function(sg){
@@ -9562,6 +9561,7 @@ function jbWrapW(ls, old){
   function dictTextOf(sc){ return sc === 'pdf' ? dictP : sc === 'poem' ? dictS : dictG; }
   function dictWhere(sc){ return sc === 'pdf' ? 'واژه‌نامهٔ این فایل' : sc === 'poem' ? 'واژه‌نامهٔ شعرها' : 'واژه‌نامهٔ همهٔ فایل‌ها'; }
   function dictScopeAt(n){ try { var e = n && (n.nodeType === 1 ? n : n.parentNode), sp = e && e.closest ? e.closest('span[data-i]') : null, q = sp ? sents[+sp.dataset.i] : null; return q && q.po ? 'poem' : null; } catch (x) { return null; } }   /* pdict-v1: کلمه‌ای که داخل مصرع شعر است ⇒ 'poem' */
+  /* poem-v4 (P14؛ r226: جابه‌جا از بلوک Worker) */ function poNoPros(s, f){ if (!(s && s.po && poV2() && adRef())) return f(); poNP++; try { return f(); } finally { poNP--; } }
   function ttsPo(s, f){   /* pdict-v1: برای مصرع شعر، واژه‌نامهٔ «شعرها» را هنگام ساخت متن گفتار فعال می‌کند (همگام؛ پس از اجرا برمی‌گردد) */
     if (!s || !s.po || !poSet) return f();
     var a = userDict, b = userTok, c = userTokI, d = userCx;
@@ -9804,7 +9804,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r225 · 2026-11-11 · pbase-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v1 · pdict-v1', npBuild = '';
+  var APP_BUILD = 'html-r226 · 2026-11-11 · pbase-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v1 · pdict-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
