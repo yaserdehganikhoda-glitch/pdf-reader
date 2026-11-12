@@ -5531,15 +5531,19 @@ var ocrSpell = (function(){
   }
   /* P2: بیتِ دوستونی «مصرع۱ ⟦فاصلهٔ ستونی⟧ مصرع۲» (نشانگر \u001f) ← دو مصرع؛ شرط: هر دو ≥۸ و ≤۴۸ نویسه، ≥۲ واژه، بدون رقم/لاتین، نسبت طول ۰٫۶۵–۱٫۵۵، بدون نقطهٔ پایان/آیتم در مصرع اول؛ دست‌کم ۲ ردیف پیاپی با قافیه (poRhyme)، یا یک ردیف پس از سطری که به «:» یا ««» ختم می‌شود */
   function poRow(l){
-    var v = l.indexOf('\u001f\u001f') >= 0, p = l.split(v ? '\u001f\u001f' : '\u001f'), a, b, r;
+    var v = l.indexOf('\u001f\u001f') >= 0, p = l.split(v ? '\u001f\u001f' : '\u001f'), a, b, r, k, d, bd = 1e9, bk = 1, mg = 0, la, lb;
+    if (!v && p.length >= 3 && p.length <= 16) {   /* r231: مصرع‌های ترازشده (فاصلهٔ واژه‌ها بزرگ) چند «\u001f» می‌دهند؛ مرز بیت = نزدیک‌ترین به میانهٔ طول (مصرع‌ها هم‌اندازه‌اند). فقط وقتی قافیهٔ ردیف‌ها تأیید شود شعر است (poCols) */
+      for (k = 1; k < p.length; k++) { la = p.slice(0, k).join(' ').trim().length; lb = p.slice(k).join(' ').trim().length; d = Math.abs(la - lb); if (d < bd) { bd = d; bk = k; } }
+      p = [p.slice(0, bk).join(' '), p.slice(bk).join(' ')]; mg = 1;
+    }
     if (p.length !== 2) return null;
-    a = p[0].trim(); b = p[1].trim();
+    a = p[0].replace(/\u001f+/g, ' ').replace(/\s+/g, ' ').trim(); b = p[1].replace(/\u001f+/g, ' ').replace(/\s+/g, ' ').trim();   /* r231: فاصلهٔ درون مصرع به «،» تبدیل نشود */
     if (v) return a.length >= 3 && b.length >= 3 && a.length <= 120 && b.length <= 120 ? [a, b, 1] : null;   /* poem-v2 (P6): ردیف تأییدشدهٔ هندسی */
     if (a.length < 8 || b.length < 8 || a.length > 48 || b.length > 48) return null;
     if (/[\d۰-۹٠-٩A-Za-z]|\.{3,}/.test(a + b) || JB_ITEM.test(a) || JB_END.test(a)) return null;
     if (a.split(/\s+/).length < 2 || b.split(/\s+/).length < 2) return null;
     r = a.length / b.length;
-    return r >= 0.65 && r <= 1.55 ? [a, b] : null;
+    return r >= 0.65 && r <= 1.55 ? (mg ? [a, b, 0, 1] : [a, b]) : null;
   }
   function poCols(ls){
     var out = [], fp = [], i = 0, j, rows, c, ok;
@@ -5547,7 +5551,7 @@ var ocrSpell = (function(){
     while (i < ls.length) {
       j = i; rows = [];
       while (j < ls.length && (c = poRow(ls[j]))) { rows.push(c); j++; }
-      ok = (rows.length > 0 && rows.every(function(r){ return r[2]; })) || (rows.length >= 2 && poRhyme([].concat.apply([], rows))) || (rows.length === 1 && i > 0 && /[:«]\s*$/.test(ls[i - 1]));
+      ok = (rows.length > 0 && rows.every(function(r){ return r[2]; })) || (rows.length >= 2 && poRhyme([].concat.apply([], rows.map(function(r){ return [r[0], r[1]]; })))) || (rows.length === 1 && !rows[0][3] && i > 0 && /[:«]\s*$/.test(ls[i - 1]));
       if (ok) { fp.push([out.length, out.length + rows.length * 2]); rows.forEach(function(r){ out.push(r[0], r[1]); }); i = j; }
       else { out.push(ls[i]); i++; }
     }
@@ -9849,7 +9853,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r231 · 2026-11-12 · prhy-v1 · pbase-v2 · pvar-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1', npBuild = '';
+  var APP_BUILD = 'html-r231 · 2026-11-12 · prhy-v1 · pgap-v1 · pbase-v2 · pvar-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
