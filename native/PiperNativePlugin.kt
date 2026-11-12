@@ -66,7 +66,7 @@ import com.pdfvoice.phon.Phonemizer
  *
  * پخش بومی (AudioTrack): synthesize({..., keep: true}) به‌جای WAV یک handle برمی‌گرداند؛ playerPlay({handle, rate}), playerQueue({handle, gapMs}) (پخش پشت‌سرهم بی‌وقفه),
  *   playerRate({rate}) (کندکردن/تندکردن با WSOLA بدون تغییر زیر‌وبمی), playerStop(), release({handle?|all?})
- *   رویدادها: playerStart {h}, playerPos {h, p:0..1}, playerEnd {h}, playerError {h, msg}
+ *   رویدادها: playerStart {h}, playerPos {h, p:0..1}, playerEnd {h}, playerError {h, msg}, playerGap {h, ms} (kt-r33: آغاز سکوت ≥۲ثانیه)
  *
  * مسیر ذخیرهٔ صداها (یک‌جا قابل تغییر): <externalFilesDir>/piper/<id>/
  *
@@ -453,7 +453,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r32 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r33 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
     }
 
     @PluginMethod
@@ -1892,6 +1892,7 @@ class PiperNativePlugin : Plugin() {
                     val c = cks.peekFirst() ?: break
                     if (c.f > hp) break
                     cks.pollFirst()
+                    if (c.h < 0) { try { notifyListeners("playerGap", JSObject().put("h", heardH).put("ms", -c.h)) } catch (e: Throwable) {}; continue }   // kt-r33 (P13): h منفی = آغاز شنیده‌شدن سکوتِ بلند (ms)؛ JS موسیقی را در استراحت بلند می‌کند
                     if (c.h != 0) {
                         if (c.h != heardH) { heardH = c.h; emitPl("playerStart", c.h) }
                         h = c.h; p = c.p
@@ -1909,6 +1910,7 @@ class PiperNativePlugin : Plugin() {
             while (true) {
                 cur = item
                 if (needPlay && item.gapMs > 0) { try { t.play() } catch (e: Throwable) {}; needPlay = false }   // سکوت مکث باید روی ترکِ در حال پخش نوشته شود
+                if (item.gapMs >= 2000) cks.addLast(Ck(written, -item.gapMs, 0.0))   // kt-r33 (P13): نقطهٔ بازرسی آغاز سکوت؛ رویداد playerGap وقتی سر پخش به آن برسد (نه هنگام نوشتن در بافر)
                 var g = item.gapMs.toLong() * sr / 1000L
                 while (g > 0) {   // سکوت میان تکه‌ها (مکث جمله/بند)
                     if (gen != plGen) return
