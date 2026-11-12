@@ -453,7 +453,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r33 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r34 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
     }
 
     @PluginMethod
@@ -1258,6 +1258,25 @@ class PiperNativePlugin : Plugin() {
         return peakGuard(out)
     }
 
+    /** kt-r34 (P12-E2): تغییر زیر و بم با بازنمونه‌برداری مکعبی (Catmull-Rom). r>1 زیرتر و کوتاه‌تر؛ مدت را سرعت تولید جبران کرده است. ±۳ نیم‌پرده بیشینه (فرمانت هم کمی جابه‌جا می‌شود). */
+    private fun resampleRate(x: FloatArray, r: Float): FloatArray {
+        if (x.size < 4 || r <= 0f) return x
+        val last = x.size - 1
+        val n = (last / r.toDouble()).toInt() + 1
+        val y = FloatArray(n)
+        for (j in 0 until n) {
+            val p = j.toDouble() * r
+            val i = p.toInt()
+            val f = (p - i).toFloat()
+            val a = x[if (i > 0) i - 1 else 0]
+            val b = x[i]
+            val c = x[if (i + 1 <= last) i + 1 else last]
+            val d = x[if (i + 2 <= last) i + 2 else last]
+            y[j] = b + 0.5f * f * (c - a + f * (2f * a - 5f * b + 4f * c - d + f * (3f * (b - c) + d - a)))
+        }
+        return y
+    }
+
     /** خروجی خام VITS گاهی از ±۱ بیرون می‌زند؛ کش ۱۶بیتی آن را سخت می‌بُرد (اعوجاج)، و نوبت اول (float) با دفعات بعد (بریده) فرق می‌کرد.
      *  قبل از هر استفاده/کش، فقط در صورت لزوم کل جمله با یک ضریب کم می‌شود (نه بریدن)؛ بلندی نهایی را بعداً صیقل یکسان می‌کند. */
     private fun peakGuard(f: FloatArray): FloatArray {
@@ -1351,14 +1370,15 @@ class PiperNativePlugin : Plugin() {
                 val eTag = ENGINE_VER + (if (ttsPhon) "|" + phonTag() else "")   // P07-05: نسخهٔ موتور/آوانگار در کلید؛ ارتقا ⇒ کش کهنه سرو نمی‌شود
                 // هر جمله جدا (برای کش)؛ بدون parts کل متن یک جمله حساب می‌شود
                 val items = ArrayList<Pair<String, Float>>()
+                val itemPt = ArrayList<Float>(); val itemDb = ArrayList<Float>()   // kt-r34 (P12-E2): زیر و بم (نیم‌پرده) و بلندی (dB) هر جمله
                 val itemGaps = ArrayList<Float>()   // مکث (ثانیه) پس از هر جمله؛ بدون g همان gap سراسری
                 if (partsArr != null && partsArr.length() > 0) {
                     for (i in 0 until partsArr.length()) {
                         val o = partsArr.getJSONObject(i)
                         items.add(Pair(o.optString("t", ""), o.optDouble("s", sp.toDouble()).toFloat().coerceIn(0.4f, 2.5f)))
-                        itemGaps.add(o.optDouble("g", gap.toDouble()).toFloat().coerceIn(0f, 8f))   // kt-r32 (P10-F6): هم‌سقف مکث دستی JS (۸ث)
+                        itemGaps.add(o.optDouble("g", gap.toDouble()).toFloat().coerceIn(0f, 8f)); itemPt.add(o.optDouble("pt", 0.0).toFloat().coerceIn(-3f, 3f)); itemDb.add(o.optDouble("db", 0.0).toFloat().coerceIn(-5f, 2.5f))   // kt-r32 (P10-F6): هم‌سقف مکث دستی JS (۸ث)
                     }
-                } else { items.add(Pair(text, sp)); itemGaps.add(gap) }
+                } else { items.add(Pair(text, sp)); itemGaps.add(gap); itemPt.add(0f); itemDb.add(0f) }
                 // r17: حذف‌نویز عصبی (DPDFNet 48kHz) پیش از فیلتر کلاسیک: سطح ۲ ← ۸۵٪، سطح ۳ ← کامل؛ سطح ۰/۱ بی‌اثر. اگر مدل/کتابخانه نبود ndMix=0 و فقط فیلتر کلاسیک اجرا می‌شود.
                 val ndWant = if (ndSel == "off") 0f else if (lvlClean >= 3) 1.0f else if (lvlClean == 2) 0.85f else 0f
                 val ndMix = if (ndWant > 0f && NeuralDenoise.ready(context, ndSel)) ndWant else 0f
@@ -1373,8 +1393,12 @@ class PiperNativePlugin : Plugin() {
                 var hit = 0
                 for ((ix, itp) in items.withIndex()) {
                     val pt = itp.first; val ps = itp.second
+                    // kt-r34: زیر و بم با بازنمونه‌برداری با گام reff؛ مدت را سرعت تولید (÷گام) جبران می‌کند (psg = ps؛ بدون جابه‌جایی بی‌تغییر)
+                    val ptc = itemPt[ix]
+                    val psg = if (ptc == 0f) ps else (ps / Math.pow(2.0, ptc / 12.0).toFloat()).coerceIn(0.4f, 2.5f)
+                    val reff = ps / psg
                     if (pt.isBlank() || pt.none { it.isLetterOrDigit() }) continue
-                    val psq = String.format(java.util.Locale.US, "%.2f", ps)
+                    val psq = String.format(java.util.Locale.US, "%.2f", psg)
                     val key = hashKey("v2|$eTag|$id|$ns|$nw|" + psq + "|" + pt)
                     // کش دولایه، هر دو جمله‌به‌جمله و مستقل از مرز تکه‌ها: ۱) خروجی پردازش‌شده (پرش از مدل و پاک‌سازی)  ۲) نسخهٔ خام (با تغییر سطح پاک‌سازی مدل دوباره اجرا نمی‌شود)
                     val procOn = lvlClean > 0 || lvlClarity > 0
@@ -1383,12 +1407,12 @@ class PiperNativePlugin : Plugin() {
                     val done = if (procOn && !probe) cacheGet(key2, sr) else null
                     if (done != null) {
                         hit++
-                        pieces.add(done)
+                        pieces.add(if (reff != 1f) resampleRate(done, reff) else done)
                     } else {
                         val cached = cacheGet(key, sr)
                         val s = if (cached != null) { hit++; cached } else {
                             val t0 = System.nanoTime()
-                            val g0 = genPart(eng, pt, ps, ep)
+                            val g0 = genPart(eng, pt, psg, ep)
                             val g = g0
                             genMs += (System.nanoTime() - t0) / 1_000_000L   // زمان خالص مدل (بدون صیقل و انتقال)
                             cachePut(key, sr, g)
@@ -1403,7 +1427,7 @@ class PiperNativePlugin : Plugin() {
                         val pr = SpeechClean.process(sn, sr, lvlClean, lvlClarity, grad)   // روی نسخهٔ خام کش؛ خودِ کش دست‌نخورده می‌ماند
                         scMs += (System.nanoTime() - sc0) / 1_000_000L
                         if (procOn && pr !== s) cachePut(if (ndMix > 0f && !ndApplied) k2("") else key2, sr, pr)   // ND اعمال نشده ⇒ کلید «فقط کلاسیک»
-                        pieces.add(pr)
+                        pieces.add(if (reff != 1f) resampleRate(pr, reff) else pr)
                     }
                     pieceGaps.add((itemGaps[ix] * sr).toInt())
                     pieceItem.add(ix)
@@ -1479,6 +1503,17 @@ class PiperNativePlugin : Plugin() {
                 val fin0 = if (fxOn) MasterFx.process(polH, sro, fxPk, fxHs, if (sro != sr) Math.max(fxLp, 18000f) else fxLp) else polH
                 val fin = if (eqCfg != null) MasterFx.eq(fin0, sro, eqCfg) else fin0   // r14: اکولایزر کاربر بعد از مسترینگ
                 val fxMs = (System.nanoTime() - fx0) / 1_000_000L
+                // kt-r34 (P12-E2): بلندی هر جمله (db) روی بازهٔ همان جمله، پس از صیقل (صیقل یک ضریب برای کل فراخوانی می‌گذارد)؛ قبل از OUT_TRIM و تراز بلندی
+                if (itemDb.any { it != 0f }) {
+                    for (k in pieces.indices) {
+                        val gdb = itemDb[pieceItem[k]]
+                        if (gdb == 0f) continue
+                        val gk = Math.pow(10.0, gdb / 20.0).toFloat()
+                        val sA = (((starts[k] - trim[0]).coerceAtLeast(0).toLong() * sro) / sr).toInt().coerceIn(0, fin.size)
+                        val sB = if (k + 1 < pieces.size) (((starts[k + 1] - trim[0]).coerceAtLeast(0).toLong() * sro) / sr).toInt().coerceIn(sA, fin.size) else fin.size
+                        for (q in sA until sB) fin[q] *= gk
+                    }
+                }
                 for (i in fin.indices) fin[i] *= OUT_TRIM   // r120: ۳dB headroom (پیک ≈ −۳ dBFS)؛ بعد از کش و مسترینگ، پس کش بی‌اثر می‌ماند
                 // مرز واقعی شروع هر جمله (کسری از ۰ تا ۱ از کل خروجی)؛ برای هم‌گام‌سازی هایلایت به‌جای تخمین از نسبت نویسه‌ها (T-14)
                 // playerPos بومی هم کسری از همین بافر است (مستقل از سرعت پخش)؛ در وب نسبت زمان به مدت صداست
