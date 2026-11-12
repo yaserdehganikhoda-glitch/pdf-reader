@@ -4625,7 +4625,7 @@ var ocrSpell = (function(){
     function ptx(l){ return l.text != null ? String(l.text) : (l.it || []).slice().sort(function(p, q){ return rtl ? q.transform[4] - p.transform[4] : p.transform[4] - q.transform[4]; }).map(function(q){ return q.str || ''; }).join(' '); }
     function pkey(s){ return (String(s).replace(/[\s.،,؛;:!?؟…"»”')\]\u200c]+$/, '').split(/\s+/).pop() || '').replace(/ي/g, 'ی').replace(/ك/g, 'ک').slice(-2); }
     function pairRows(R, L){
-      var LW = [], fr = ocrOrder.force === true, on = ocrOrder.off !== true, Rm, Lm, used = [], pr = [], inP = [], seq = [], ys = [], dd = [], ks = {}, k, j, a, b, o, bo, bj, n, bad = 0, cn = 0, dg = 0, mp = 0, mx = 0, key, pit, gap = false, rh, cr, ver = function(l){ return ptx(l).replace(/[\s\u200c]/g, '').length > 4; };
+      var LW = [], fr = ocrOrder.force === true, on = ocrOrder.off !== true, Rm, Lm, used = [], pr = [], inP = [], seq = [], ys = [], dd = [], ks = {}, k, j, a, b, o, bo, bj, n, bad = 0, cn = 0, dg = 0, mp = 0, mx = 0, z = {}, mz = 0, key, pit, gap = false, rh, cr, ver = function(l){ return ptx(l).replace(/[\s\u200c]/g, '').length > 4; };
       if (!on || R.length < 4 || L.length < 4) return null;
       Rm = R.filter(ver).sort(function(p, q){ return cy(p) - cy(q); });
       Lm = L.filter(ver).sort(function(p, q){ return cy(p) - cy(q); });
@@ -4647,18 +4647,19 @@ var ocrSpell = (function(){
         if (ta.length < 12 || ta.length > 70 || tb.length < 12 || tb.length > 70 || r < 0.6 || r > 1.67) bad++;
         [ta, tb].forEach(function(s){ if (/[\d۰-۹٠-٩]/.test(s)) dg++; if (/(?:^|\s)(?:و|که|را|به|از|در|با|تا|یا|بر|برای|این|آن)$/.test(s.replace(/[\s.،,؛;:!?؟…"»”')\]]+$/, ''))) cn++; });
         ys.push(cy(p[0]));
-        key = pkey(ptx(p[1])); if (key.length === 2) { ks[key] = (ks[key] || 0) + 1; if (key === pkey(ptx(p[0]))) mp++; }
+        key = pkey(ptx(p[1])); if (key.length === 2) { ks[key] = (ks[key] || 0) + 1; if (key === pkey(ptx(p[0]))) mp++; cr = key.charAt(1).replace('\u0622', '\u0627'); z[cr] = (z[cr] || 0) + 1; }
       });
       if (bad > (fr ? 0.4 : 0.15) * n || dg > (fr ? 0.4 : 0.2) * n) return null;   /* r229: در حالت اجباری شرط‌های نثرنما سست‌تر؛ هم‌ترازی ردیفی همچنان لازم است */
       for (k = 1; k < ys.length; k++) dd.push(ys[k] - ys[k - 1]);
       pit = dd.slice().sort(function(p, q){ return p - q; })[dd.length >> 1] || 0;
       for (k = 0; k < dd.length; k++) if (pit > 0 && dd[k] > 1.5 * pit) gap = true;
       for (key in ks) if (ks[key] > mx) mx = ks[key];
-      rh = mx >= 0.6 * n || mp >= 0.6 * n;
+      for (key in z) if (z[key] > mz) mz = z[key];
+      rh = mx >= 0.6 * n || mp >= 0.6 * n || (n >= 4 && mz >= 0.85 * n);   /* r231: قافیهٔ تک‌حرفی («ـا») مثل poRhyme */
       var ex = 0, ei = 0, ej;   /* P13 (r227): ردیف (دنبالهٔ پیوستهٔ ≥۵ مصرع دوم با همان واژهٔ ربطیِ پایانی، مثل «را») نثرنما حساب نمی‌شود */
       while (ei < LW.length) { ej = ei; while (ej + 1 < LW.length && LW[ej + 1] === LW[ei]) ej++; if (ej - ei + 1 >= 5 && /^(?:و|که|را|به|از|در|با|تا|یا|بر|برای|این|آن)$/.test(LW[ei])) ex += ej - ei + 1; ei = ej + 1; }
       cr = (cn - ex) / (2 * n);
-      if (fr ? n < 4 : (n < 6 || !((gap && n >= 8 && cr < 0.06) || mx >= 0.75 * n || mp >= 0.75 * n || (rh && cr < 0.1) || (n >= 10 && cr < 0.06)))) return null;
+      if (fr ? n < 4 : (n < 6 || !((gap && n >= 8 && cr < 0.06) || mx >= 0.75 * n || mp >= 0.75 * n || (n >= 4 && mz >= 0.85 * n) || (rh && cr < 0.1) || (n >= 10 && cr < 0.06)))) return null;
       pr.forEach(function(p, k){ p[0]._pr = true; if (k && pit > 0 && dd[k - 1] > 1.5 * pit) p[0]._gb = true; inP.push(p[0], p[1]); seq.push({ y: cy(p[0]), s: [p[0], p[1]] }); });
       R.concat(L).forEach(function(l){ if (inP.indexOf(l) < 0) seq.push({ y: cy(l), s: [l] }); });
       return [].concat.apply([], seq.map(function(q, i){ q.i = i; return q; }).sort(function(p, q){ return p.y - q.y || p.i - q.i; }).map(function(q){ return q.s; }));
@@ -5505,11 +5506,12 @@ var ocrSpell = (function(){
   /* قافیه: دو حرف پایانی واژهٔ آخر هر مصرع. بیتِ (L[2q], L[2q+1]) و رشتهٔ مصرع‌های دوم: شعر اگر ≥۷۵٪ مصرع‌های دوم هم‌کلید باشند (غزل/قصیده/رباعی) یا ≥۷۵٪ بیت‌ها دو مصرع هم‌کلید داشته باشند (مثنوی). نثرِ ستون‌باریک که نقطه‌اش اتفاقاً در سطرهای زوج افتاده، معمولاً قافیهٔ یکدست ندارد */
   function poKey(l){ return ((String(l).replace(/[\s.،,؛;:!?؟…"»”')\]\u200c\u001e]+$/, '').split(/\s+/).pop() || '').replace(/ي/g, 'ی').replace(/ك/g, 'ک')).slice(-2); }
   function poRhyme(L){
-    var n = L.length >> 1, a = {}, b = 0, q, k, mx = 0;
+    var n = L.length >> 1, a = {}, z = {}, b = 0, q, k, c, mx = 0, mz = 0;
     if (n < 2) return false;
-    for (q = 0; q < n; q++) { k = poKey(L[2 * q + 1]); if (k.length === 2) a[k] = (a[k] || 0) + 1; if (k.length === 2 && k === poKey(L[2 * q])) b++; }
+    for (q = 0; q < n; q++) { k = poKey(L[2 * q + 1]); if (k.length === 2) { a[k] = (a[k] || 0) + 1; c = k.charAt(1).replace('\u0622', '\u0627'); z[c] = (z[c] || 0) + 1; } if (k.length === 2 && k === poKey(L[2 * q])) b++; }
     for (k in a) if (a[k] > mx) mx = a[k];
-    return mx >= n * 0.75 || b >= n * 0.75;
+    for (k in z) if (z[k] > mz) mz = z[k];
+    return mx >= n * 0.75 || b >= n * 0.75 || (n >= 4 && mz >= n * 0.85);   /* r231: قافیهٔ تک‌حرفی (مثل «ـا» در غزل‌های بی‌ردیف: وفا/اندرآ/دایما/بقا) — ≥۸۵٪ مصرع‌های دوم با یک حرف پایانی و ≥۴ بیت */
   }
   /* P1: رشتهٔ سطرهای هم‌طول (ضریب تغییرات < ۰٫۱۳؛ مصرع‌های واقعیِ آزموده‌شده ۰٫۰۵–۰٫۰۹) که نقطهٔ پایان فقط (تقریباً) در سطرهای زوجِ رشته (مصرع دوم) می‌آید و قافیه دارد = شعر نقطه‌گذاری‌شده؛ ≥ نیمی از بیت‌ها نقطه‌دار و هیچ نقطه‌ای پس از مصرع اول نباشد. وگرنه رفتار پیشین (شکستن در نخستین نقطه) */
   function poPair(ls, i, k){
@@ -9847,7 +9849,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r230 · 2026-11-12 · pbase-v2 · pvar-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1', npBuild = '';
+  var APP_BUILD = 'html-r231 · 2026-11-12 · prhy-v1 · pbase-v2 · pvar-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
