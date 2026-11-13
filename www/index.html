@@ -1796,7 +1796,9 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <p class="hint"><b>ناظر تصحیح گفتار</b> همیشه فعال است و عدد، تاریخ، اختصار، لاتین، تنوین، ارجاع درون‌متنی، مکث‌گذاری و واژه‌نامهٔ آوایی را پیش از خواندن اصلاح می‌کند؛ قرن/سده را ترتیبی می‌خواند («قرن ۲۱» ← بیست‌ویکم) و فهرست حروف «ب ج د» را به واژه نمی‌چسباند؛ مخفف‌های دانشگاهی و فارسی (et al.، Fig.، ن.ک، ک.پ)، یکاهای علمی (dB، nm، kV) را می‌خواند و شناسه‌های DOI/ISBN/arXiv را حذف می‌کند.</p>
 <p class="hint"><b>ناظر ساختار متن</b> سطربندی، تشخیص کدگذاری، طول تکه‌جمله، مرتب‌سازی سطرها بر اساس موقعیت (X/Y) و تشخیص ستون‌بندی (ستون راست ← چپ) را خودکار نگه می‌دارد؛ ستون واژه‌به‌واژه، سطر پایان‌یافته با حرف‌ربط، پسوند جداافتاده (مثل «ها» و «تر») و پرانتز/گیومهٔ نیمه‌باز را به‌هم می‌چسباند و شعر، فهرست و جدول را دست‌نخورده می‌گذارد؛ عرض شکست سطر را از سطرهای میان‌جمله برآورد می‌کند، سطر انگلیسیِ تمام‌عرض با حرف بزرگ بعدی و «در سال/صفحه» + عدد را به‌هم می‌چسباند. <span id="svStrSt"></span></p>
 <div class="slist"><label class="chk"><input type="checkbox" id="svTx" checked><span class="st"><b>نگهبان خروجی متن</b><small>پیش از ساخت صدا، مانده‌های لاتین، رقم و نماد در متن گفتار را می‌یابد و فقط ثبت می‌کند.</small></span></label></div>
-<div class="slist"><label class="chk"><input type="checkbox" id="poMt"><span class="st"><b>ناظر وزن شعر (آزمایشی)</b><small>فقط با گوینده‌ی ganji_adabi روی شعر: با تقطیع عروضی (۱۳ وزن پرکاربرد) کسرهٔ اضافه را فقط جایی می‌گذارد که وزن و رأی چند مصرع همسایه تأیید کند؛ اگر وزن برازش نشد یا مطمئن نبود، متن دست‌نخورده می‌ماند. اگر خوانش بدتر شد تیک را بردارید.</small></span></label></div>
+<div class="slist"><label class="chk"><input type="checkbox" id="poMt"><span class="st"><b>ناظر وزن شعر (آزمایشی)</b><small id="poMtSt"></small><small>فقط با گوینده‌ی ganji_adabi روی شعر: با تقطیع عروضی (۱۳ وزن پرکاربرد) کسرهٔ اضافه را فقط جایی می‌گذارد که وزن و رأی چند مصرع همسایه تأیید کند؛ اگر وزن برازش نشد یا مطمئن نبود، متن دست‌نخورده می‌ماند. اگر خوانش بدتر شد تیک را بردارید.</small></span></label></div>
+<div class="slist"><label class="chk"><input type="checkbox" id="poEj"><span class="st"><b>نرم‌سازی مکث در پیوستگی معنا (آزمایشی)</b><small>اگر مصرع با اضافه یا حرف ربط/اضافه (و، که، به، از، در…) تمام شود، مکث بین دو مصرع حدود ۴۰٪ کوتاه‌تر و فرود پایان بیت ملایم‌تر می‌شود. فقط روی شعر با گوینده‌ی شعرخوان.</small></span></label></div>
+<div class="slist"><label class="chk"><input type="checkbox" id="poAll"><span class="st"><b>رفتار شعرخوان برای gyro و ganji هم (آزمایشی)</b><small>مکث‌های بیت، پایان‌بندی مصرع و ناظر وزن که اکنون فقط با ganji_adabi کار می‌کنند، برای gyro و ganji هم فعال می‌شود. اگر خوانش بدتر شد تیک را بردارید.</small></span></label></div>
 <h4 class="svh">پایداری و منابع</h4>
 <div class="slist"><label class="chk"><input type="checkbox" id="svMem" checked><span class="st"><b>ناظر حافظهٔ فعال</b><small>اگر حافظهٔ JS از ۷۰٪ سقف گذشت، حافظه‌های موقت و صفحه‌های دورِ رندرشده را آزاد می‌کند؛ به اعلان فشار حافظهٔ اندروید هم پاسخ می‌دهد.</small></span></label></div>
 <div class="slist"><label class="chk"><input type="checkbox" id="svMdl" checked><span class="st"><b>ناظر یکپارچگی مدل صدا</b><small>هش SHA-256 مدل صدای فعال را (حداکثر هر ۳ روز، هنگام بیکاری) با مرجع اولین بررسی می‌سنجد و در صورت خرابی فقط هشدار می‌دهد.</small></span></label></div>
@@ -9591,7 +9593,9 @@ function jbWrapW(ls, old){
   /* poem-v5 (W3، r232): ناظر وزن — اسکنر عروضی سبک فقط برای گذاشتن «کسرهٔ اضافه» در مصرع شعر (ganji_adabi). ۱۳ وزن پرکاربرد؛ نامزدها: اضافهٔ هر واژه و «و» (o/va)؛ وزن غالب از ≤۱۳ مصرع همسایه رأی‌گیری می‌شود و فقط اگر همهٔ ترکیب‌های برازشی روی یک واژه هم‌رأی باشند اعمال می‌شود؛ وگرنه متن دست‌نخورده. پیش‌فرض خاموش (poMt='1' برای روشن) تا آزمون شنیداری */
   var PO_MT = ['SLLLSLLLSLLLSLLL', 'SLLLSLLLSLL', 'LLSSLLSSLLSSLL', '?SLLLSLLLSLLLSL', 'SSLLSSLLSSLLSSL', '?SLLLSLLLSL', 'SLSLSSLLSLSLSSL', '?SLLSLSLSSL', 'LLSLSLSSLLSLSL', 'SLLSLLSLLSLL', 'SLLSLLSLLSL', 'LLSLLLSLLLSLLLSL', 'LSSLLSSLLSL'];
   var PO_NEZ = /^(?:و|که|را|از|به|در|با|تا|یا|بر|اگر|چون|نه|هم|هر|این|آن|ای|چو|چه|ور|گر|مگر|همی|می|نمی|بی|من|تو|او|ما|شما|وی|ایشان|زین|ازین|بدین|بدان|هرگز|کنون)$/;
-  var poMtC = {}, poMtD = null;
+  var poMtC = {}, poMtD = null, poMtS = { n: 0, f: 0 };
+  var PO_MN = ['هزج مثمن سالم', 'هزج مسدس محذوف', 'هزج مثمن اخرب مکفوف محذوف', 'رمل مثمن محذوف', 'رمل مثمن مخبون محذوف', 'رمل مسدس محذوف', 'مجتث مثمن مخبون محذوف', 'خفیف مسدس مخبون محذوف', 'مضارع مثمن اخرب مکفوف محذوف', 'متقارب مثمن سالم', 'متقارب مثمن محذوف', 'رجز مثمن سالم', 'سریع مطوی مکشوف'];
+  function poMtUi(b){ try { var e = document.getElementById('poMtSt'); if (e) e.textContent = 'برازش وزن: ' + poMtS.f + ' از ' + poMtS.n + ' مصرع' + (poMtS.n > poMtS.f ? ' · ' + (poMtS.n - poMtS.f) + ' مصرع ناموزون (مظنون به خطای املا/OCR یا شعر نو)' : '') + (b >= 0 ? ' · وزن غالب: ' + PO_MN[b] : ''); } catch (e) {} }
   function poIsV(x){ return x === 'L' || x === 'S'; }
   function poTok(w){
     var t = [], i, c, nx, p, n = w.length;
@@ -9607,16 +9611,19 @@ function jbWrapW(ls, old){
     return t;
   }
   function poSyl(t){   /* هجابندی با مصوت کوتاهِ ناپیدا؛ خوشهٔ پایانی پس از مصوت بلند فقط وقتی مجاز است که همخوان دوم انسدادی باشد و اول «ی/و» نباشد */
-    var o = '', i = 0, n = t.length, j, k, lg, im;
+    var o = '', i = 0, n = t.length, j, k, lg, im, i0, g = 0;
     while (i < n) {
+      i0 = i; if (++g > 64) return o;   /* r234: سقف تکرار (جلوگیری از حلقهٔ بی‌پایان) */
       if (!poIsV(t[i])) i++;
       im = !(i < n && poIsV(t[i])); lg = false;
       if (!im) { lg = t[i] === 'L'; i++; }
       j = i; while (j < n && !poIsV(t[j])) j++;
       k = j - i; if (j < n) k--;
+      if (k < 0) k = 0;   /* r234: مصوتِ پشت مصوت ⇒ k=-1 بود */
       if (k > 2) k = im ? 1 : 2;
       if (k === 2 && j === n && !im && !(/[\u062A\u062F\u06A9\u06AF\u0637\u0642]/.test(t[i + 1]) && !/[\u06CC\u0648]/.test(t[i]))) k = 0;
-      i += k; o += (lg || k > 0) ? 'L' : 'S';
+      i += k; if (i <= i0) i = i0 + 1;   /* r234: پیشرفت تضمین‌شده */
+      o += (lg || k > 0) ? 'L' : 'S';
     }
     return o;
   }
@@ -9624,7 +9631,7 @@ function jbWrapW(ls, old){
   var PO_WP = /^([«"(\[]*)([\u0621-\u06D3\u200c]+)([^\u0621-\u06D3\u200c]*)$/;
   function poMesra(tx){   /* → {W, V, fits:[[وزن، ماسک]]} یا null؛ با حافظهٔ نهان کوچک */
     var a, W = [], V = [], i, m, w, f, nv, mask, g, tk, ws, mi, fits = [], z, b;
-    if (poMtD !== docName) { poMtC = {}; poMtD = docName; }
+    if (poMtD !== docName) { poMtC = {}; poMtD = docName; poMtS = { n: 0, f: 0 }; }
     if (poMtC.hasOwnProperty(tx)) return poMtC[tx];
     if (Object.keys(poMtC).length > 400) poMtC = {};
     a = String(tx).trim().split(/\s+/);
@@ -9639,12 +9646,14 @@ function jbWrapW(ls, old){
       if (w === '\u0648') V.push([i, 'c']);
       else if (!f && i < a.length - 1 && m[3] === '' && !PO_NEZ.test(w)) V.push([i, 'e']);
     }
-    nv = V.length; if (nv > 9) return (poMtC[tx] = null);
+    nv = V.length; if (nv > 8) return (poMtC[tx] = null);
+    z = (typeof performance !== 'undefined' ? performance.now() : 0);
     for (mask = 0; mask < (1 << nv); mask++) {
+      if (z && (mask & 15) === 15 && performance.now() - z > 20) return (poMtC[tx] = null);   /* r234: بودجهٔ زمانی ۲۰ms برای هر مصرع */
       g = []; b = {};
       V.forEach(function(v, q){ b[v[0]] = (mask >> q) & 1; });
       W.forEach(function(x, q){
-        if (x.cj) { if (!b[q] && g.length) g[g.length - 1].push('S'); else g.push(['\u0648', 'S']); return; }
+        if (x.cj) { if (!b[q] && g.length) { if (poIsV(g[g.length - 1][g[g.length - 1].length - 1])) g[g.length - 1].push('\u0648'); g[g.length - 1].push('S'); } else g.push(['\u0648', 'S']); return; }
         tk = x.t.slice();
         if (x.f || b[q]) { if (poIsV(tk[tk.length - 1])) tk.push('\u06CC', 'S'); else tk.push('S'); }
         g.push(tk);
@@ -9652,6 +9661,7 @@ function jbWrapW(ls, old){
       ws = g.map(poSyl).join('');
       for (mi = 0; mi < PO_MT.length; mi++) if (poFit(ws, PO_MT[mi])) fits.push([mi, mask]);
     }
+    poMtS.n++; if (fits.length) poMtS.f++;
     return (poMtC[tx] = { W: W, V: V, fits: fits });
   }
   function poScan(k){
@@ -9665,6 +9675,7 @@ function jbWrapW(ls, old){
         r.fits.forEach(function(f){ if (!seen[f[0]]) { seen[f[0]] = 1; cnt[f[0]] = (cnt[f[0]] || 0) + 1; } });
       }
       for (c in cnt) { if (cnt[c] > bc) { b2 = bc; bc = cnt[c]; best = +c; } else if (cnt[c] > b2) b2 = cnt[c]; }
+      poMtUi(best);
       if (tot < 4 || best < 0 || bc < 3 || bc < tot * 0.6 || b2 === bc) return tx;
       r = poMesra(tx); if (!r) return tx;
       r.fits.forEach(function(f){ if (f[0] === best) ms.push(f[1]); });
@@ -9887,7 +9898,7 @@ function poVar(i, q, t, strong, soft){   /* r230: تنوع مکث شعر (به�
   if (!proLvl()) return 1;
   f = 0.93 + (hStr(t) % 15) / 100;
   if (q.hb === 2 && poV2() && poCont(i)) f *= 0.85;
-  else if (q.hb === 1) f *= strong ? 1.2 : soft ? 1.1 : 1;
+  else if (q.hb === 1) { f *= strong ? 1.2 : soft ? 1.1 : 1; if (sget('poEj', '0') === '1' && /(?:\u0650|\u06C0|\u0654|(?:^|\s)(?:و|که|به|از|در|با|تا|یا|بر|برای))[\s»\"]*$/.test(String(q.text))) f *= 0.6; }   /* r233 (W5): مصرع ناتمام (اضافه/حرف ربط/اضافه در پایان) ⇒ مکث قیصره کوتاه‌تر */
   return f;
 }
 function poRhOn(){ return sget('poRh', '0') === '1'; }   /* poem-v3 (P8): تیک «تأکید قافیهٔ شعر»؛ پیش‌فرض خاموش تا آزمون شنیداری */
@@ -9953,7 +9964,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r232 · 2026-11-12 · pmeter-v1 · prhy-v1 · pgap-v1 · pbase-v3 · pvar-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1', npBuild = '';
+  var APP_BUILD = 'html-r234 · 2026-11-13 · pmeter-v3 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v3 · pvar-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10994,9 +11005,9 @@ function svPzCtx(i, q, t){   /* r146 (مکث بافتی): [افزوده ms، ک�
   if (rs.length) { st = q._pzs || (q._pzs = {}); rs.forEach(function(r){ if (!st[r]) { st[r] = 1; SV.pzR[r] = (SV.pzR[r] || 0) + 1; if (!SV.pzE[r]) { SV.pzE[r] = 1; elogR('pause', 'مکث ' + PZ_NM[r] + ' اعمال شد: «' + t.slice(-40) + '»'); } } }); }
   return [d, f];
 }
-function adRef(){ try { var v = currentVoice(); return !!(v && /adabi/i.test(v.id)); } catch (e) { return false; } }   /* شعرخوان ادبی: مصرع اول ≈ ۰٫۵ث و پایان بیت ≈ ۱٫۰ تا ۱٫۱ث (بیت‌خوانی حرفه‌ای) */
+function adRef(){ try { var v = currentVoice(); return !!(v && (/adabi/i.test(v.id) || (sget('poAll', '0') === '1' && typeof HAR_VOICES !== 'undefined' && HAR_VOICES.indexOf(v.id) >= 0))); } catch (e) { return false; } }   /* r233 (W8): poAll='1' ⇒ gyro/ganji هم شعرخوان‌اند */   /* شعرخوان ادبی: مصرع اول ≈ ۰٫۵ث و پایان بیت ≈ ۱٫۰ تا ۱٫۱ث (بیت‌خوانی حرفه‌ای) */
 function poemEnd(s, x, k){ if (!s || !s.po || !adRef()) return x; var y = String(x).replace(/[\s.,،;؛:!?؟…]+$/, ''), tl = String(x).slice(y.length), qm = poV2() ? tl.match(/[?؟]/) : null; return y ? y + (qm ? qm[0] : (s.hb === 2 ? (poV2() && /!/.test(tl) ? '!' : (poCont(k) ? '،' : '.')) : '،')) : x; }   /* poem-v2 (P3): پرسش (؟) در پایان مصرع و تعجب (!) در پایان بیت حفظ می‌شود */
-function poCont(i){ var q, n; if (i == null || !poV2() || sget('poCt', '1') === '0') return false; q = sents[i]; n = sents[i + 1]; return !!(q && q.po && q.hb === 2 && n && n.po && n.hb === 1 && n.page === q.page && /^[\s\u00AB"'*(\[]*(?:\u06A9\u0647|\u06A9\u0632|\u062A\u0627)(?=\s|$)/.test(n.text)); }   /* poem-v3 (P7): بیت پیوسته (مثنوی): مصرع اول بیت بعد با «که/کز/تا» شروع می‌شود ⇒ فرود پایان بیت با «،» ملایم؛ خاموش: localStorage poCt='0' */
+function poCont(i){ var q, n; if (i == null || !poV2() || sget('poCt', '1') === '0') return false; q = sents[i]; n = sents[i + 1]; return !!(q && q.po && q.hb === 2 && n && n.po && n.hb === 1 && n.page === q.page && (/^[\s\u00AB"'*(\[]*(?:\u06A9\u0647|\u06A9\u0632|\u062A\u0627)(?=\s|$)/.test(n.text) || (sget('poEj', '0') === '1' && /(?:\u0650|\u06C0|\u0654|(?:^|\s)(?:و|که|به|از|در|با|تا|یا|بر|برای))[\s»\"]*$/.test(String(q.text))))); }   /* poem-v3 (P7): بیت پیوسته (مثنوی): مصرع اول بیت بعد با «که/کز/تا» شروع می‌شود ⇒ فرود پایان بیت با «،» ملایم؛ خاموش: localStorage poCt='0' */
 function poLast(i){ var q = sents[i], n = sents[i + 1]; return !!(q && q.po && q.hb === 2 && !(n && n.po && n.page === q.page)); }
   /* P13 (r227): استراحت پایان غزل/صفحه در شعر. مرز غزل = پایان بیت (hb≠1) با ≥۴ مصرع در بند و جملهٔ بعد غیرشعر یا آغاز بندِ تازه (gb)؛ مرز صفحه = ≥۴ مصرعِ پیاپی تا پایان صفحه. مکث دستی (PZM) مقدم است؛ مدت ثابت و بدون اثر سرعت/آرامش */
   function poForceOn(){ return sget('poRowForce', '0') === '1'; }   /* r229: استخراج سطری اجباری (پیش‌فرض خاموش) */
@@ -12784,7 +12795,8 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
   $('#emoSpd').onchange = function(){ sset('emoSpd', this.checked ? '1' : '0'); changed(); };
   $('#proLvl').value = ['0', '1', '2'].indexOf(sget('proLvl', '1')) >= 0 ? sget('proLvl', '1') : '1'; $('#proLvl').onchange = function(){ sset('proLvl', this.value); changed(); };   /* r230 */
   $('#poRh').checked = sget('poRh', '0') === '1'; $('#poRh').onchange = function(){ sset('poRh', this.checked ? '1' : '0'); changed(); };
-  $('#poMt').checked = sget('poMt', '0') === '1'; $('#poMt').onchange = function(){ sset('poMt', this.checked ? '1' : '0'); changed(); };   /* r232 (W3) */
+  $('#poMt').checked = sget('poMt', '0') === '1'; $('#poMt').onchange = function(){ sset('poMt', this.checked ? '1' : '0'); changed(); };
+  ['poEj', 'poAll'].forEach(function(id){ var el = $('#' + id); el.checked = sget(id, '0') === '1'; el.onchange = function(){ sset(id, this.checked ? '1' : '0'); changed(); }; });   /* r233 (W5/W8) */   /* r232 (W3) */
   ['vclean', 'vclarity'].forEach(function(id){
     var el = $('#' + id), dv = id === 'vclean' ? 'a' : '2'; el.value = sget(id, dv); if (['0', '1', '2', '3'].concat(id === 'vclean' ? ['a'] : []).indexOf(el.value) < 0) el.value = dv;
     el.onchange = function(){ sset(id, this.value); changed(); warmPiper(); try { nsStatus(); nsKick(); } catch (e) {} };   /* کش خام بومی می‌ماند؛ پس تغییر سطح سریع اعمال می‌شود */
@@ -13887,7 +13899,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
     }, 5000);
   })();
 
-  var CFG_KEY = /^(hsOn$|sv(?:Mem|Mdl|Lvl|Pz|Exit|Tx|Thm)$|hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|stAuto|stCap|theme|vfAuto|voice$|vstyle$|emoLvl$|emoSpd$|proLvl$|poRh$|poCt$|poMt$|nz|harakat)/;
+  var CFG_KEY = /^(hsOn$|sv(?:Mem|Mdl|Lvl|Pz|Exit|Tx|Thm)$|hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|stAuto|stCap|theme|vfAuto|voice$|vstyle$|emoLvl$|emoSpd$|proLvl$|poRh$|poCt$|poMt$|poEj$|poAll$|nz|harakat)/;
 
   /* وقتی برنامه در پس‌زمینه است (مثلاً پخش با صفحهٔ خاموش) انیمیشن‌ها متوقف شوند */
   document.addEventListener('visibilitychange', function(){ document.documentElement.classList.toggle('bg-paused', document.hidden); });
