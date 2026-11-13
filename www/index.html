@@ -9630,7 +9630,7 @@ function jbWrapW(ls, old){
   function poFit(s, m){ var n = m.length, i, c; if (s.length !== n) return false; for (i = 0; i < n - 1; i++) { c = m.charAt(i); if (c !== '?' && c !== s.charAt(i)) return false; } return true; }
   var PO_WP = /^([«"(\[]*)([\u0621-\u06D3\u200c]+)([^\u0621-\u06D3\u200c]*)$/;
   function poMesra(tx){   /* → {W, V, fits:[[وزن، ماسک]]} یا null؛ با حافظهٔ نهان کوچک */
-    var a, W = [], V = [], n3, i, m, w, f, nv, mask, g, tk, ws, mi, fits = [], z, b;
+    var a, W = [], V = [], n3, zp, i, m, w, f, nv, mask, g, tk, ws, mi, fits = [], z, b;
     if (poMtD !== docName) { poMtC = {}; poMtD = docName; poMtS = { n: 0, f: 0 }; poMtBad = []; }
     if (poMtC.hasOwnProperty(tx)) return poMtC[tx];
     if (Object.keys(poMtC).length > 400) poMtC = {};
@@ -9640,9 +9640,10 @@ function jbWrapW(ls, old){
       m = PO_WP.exec(a[i]); if (!m) return (poMtC[tx] = null);
       w = m[2].replace(/\u064A/g, '\u06CC').replace(/\u0643/g, '\u06A9');
       f = /(?:\u0650|\u06C0|\u0647\u0654|\u0647\u200c\u06CC)$/.test(w) ? 1 : 0;
-      w = w.replace(/\u0647\u200c\u06CC$/, '\u0647').replace(/(?:\u0647\u0654|\u06C0)$/, '\u0647').replace(/[\u064B-\u065F\u0670\u200c]/g, '');
+      w = w.replace(/\u0647\u200c\u06CC$/, '\u0647').replace(/(?:\u0647\u0654|\u06C0)$/, '\u0647').replace(/[\u064B-\u065F\u0670]/g, '').replace(/^\u200c+|\u200c+$/g, '').replace(/\u200c+/g, '\u200c');
       if (!w) return (poMtC[tx] = null);
-      tk = poTok(w); W.push({ w: w, t: tk, f: f, cj: w === '\u0648', p: m });
+      zp = w.split('\u200c'); w = zp.join('');   /* r237: نیم‌فاصله ⇒ هر پاره جدا هجابندی می‌شود (می‌کند، نالیده‌اند، جدایی‌ها) */
+      tk = [].concat.apply([], zp.map(poTok)); W.push({ w: w, t: tk, f: f, cj: w === '\u0648', p: m });
       n3 = tk.length; if (n3 >= 3 && !poIsV(tk[n3 - 1]) && !poIsV(tk[n3 - 2]) && !poIsV(tk[n3 - 3]) && tk[n3 - 1] === '\u062F' && (n3 === 3 || poIsV(tk[n3 - 4]))) { W[W.length - 1].k3 = 1; V.push([i, 'k']); }   /* r236: «کند/برد/خرد»: kand یا ko‑nad (سنجیده: برازش مثنوی ۳←۵ از ۱۴، برازش کاذب نثر ۰) */
       if (w === '\u0648') V.push([i, 'c']);
       else if (!f && i < a.length - 1 && m[3] === '' && !PO_NEZ.test(w)) V.push([i, 'e']);
@@ -9974,7 +9975,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r236 · 2026-11-13 · pmeter-v5 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v3 · pvar-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1', npBuild = '';
+  var APP_BUILD = 'html-r237 · 2026-11-13 · pmeter-v6 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v3 · pvar-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
