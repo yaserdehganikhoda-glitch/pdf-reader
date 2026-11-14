@@ -264,7 +264,7 @@ class PiperNativePlugin : Plugin() {
     fun diag(call: PluginCall) {
         call.resolve(JSObject().put("underruns", underruns).put("sampleRate", sampleRate).put("sdk", android.os.Build.VERSION.SDK_INT).put("bufMs", bufMs).put("bufGrow", bufGrow).put("stInline", stInline).put("stPre", stPre).put("stMsMax", stMsMax).put("underStart", underStart)
             .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL).put("nd", NeuralDenoise.status(context)).put("ndm", NeuralDenoise.available(context))
-            .put("svc", MediaBridge.svcDump()).put("svcFile", MediaBridge.svcFile(context)))
+            .put("svc", MediaBridge.svcDump()).put("svcFile", MediaBridge.svcFile(context)).put("esp", espCmpGet()))
     }
     private val cpu = Executors.newSingleThreadExecutor()    // ساخت صدا (پشت‌سرهم)
     private var tts: OfflineTts? = null
@@ -453,7 +453,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r34 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r35 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
     }
 
     @PluginMethod
@@ -1099,6 +1099,60 @@ class PiperNativePlugin : Plugin() {
         if (v.isNotEmpty()) v else "ERR:" + (Phonemizer.loadError() ?: "no-version")
     } catch (e: Throwable) { "ERR" }
 
+    // ---------- kt-r35 (P13-07): منبع دادهٔ espeak-ng در کلید کش ----------
+    // دادهٔ هم‌نسخهٔ APK (asset) را ENGINE_VER در کلید پوشش می‌دهد ⇒ برچسب خالی و کش موجود معتبر می‌ماند؛
+    // دادهٔ کپی‌شده از یک صدا ("voice") اندازهٔ سه فایل را وارد کلید می‌کند تا با عوض‌شدن منبع، کش کهنه سرو نشود.
+    @Volatile private var espSrc = ""
+
+    // ---------- kt-r35 (P13-06): مقایسهٔ هش دادهٔ espeak هر صدا با دادهٔ مشترک (فقط گزارش در diag().esp؛ رفتار آوانگاری عوض نمی‌شود) ----------
+    // مقدار هر فایل: "=" یعنی مثل دادهٔ مشترک، "-" یعنی فایل نیست، وگرنه ۱۲ نویسهٔ اول SHA-256 همان فایل.
+    // روی رشتهٔ io و فقط وقتی فهرست صداهای نصب‌شده عوض شود اجرا می‌شود؛ تا آماده شدن «pending» برمی‌گردد.
+    private val ESP_CMP = arrayOf("fa_rules", "fa_dict", "phondata")
+    @Volatile private var espCmpRes: JSObject? = null
+    @Volatile private var espCmpSig = ""
+    @Volatile private var espCmpBusy = false
+
+    private fun espCmpWork(sig: String) {
+        try {
+            val shared = File(context.filesDir, "espeak-ng-data-shared")
+            if (!File(shared, "phondata").isFile) return
+            val sh = HashMap<String, String>()
+            val s = JSObject()
+            for (n in ESP_CMP) {
+                val f = File(shared, n)
+                val h = if (f.isFile) sha256(f).substring(0, 12) else "-"
+                sh[n] = h
+                s.put(n, h)
+            }
+            val vs = JSObject()
+            for (d in root().listFiles() ?: emptyArray()) {
+                if (!d.isDirectory || !File(d, ".ok").exists()) continue
+                val own = File(findRoot(d), "espeak-ng-data")
+                if (!own.isDirectory) continue
+                val v = JSObject()
+                for (n in ESP_CMP) {
+                    val f = File(own, n)
+                    val h = if (f.isFile) sha256(f).substring(0, 12) else "-"
+                    v.put(n, if (f.isFile && h == sh[n]) "=" else h)
+                }
+                vs.put(d.name, v)
+            }
+            espCmpRes = JSObject().put("shared", s).put("voices", vs)
+            espCmpSig = sig
+        } catch (e: Throwable) { } finally { espCmpBusy = false }
+    }
+
+    private fun espCmpGet(): Any {
+        val sig = (root().listFiles() ?: emptyArray()).filter { it.isDirectory && File(it, ".ok").exists() }.map { it.name }.sorted().joinToString(",")
+        val r = espCmpRes
+        if (r != null && sig == espCmpSig) return r
+        if (!espCmpBusy) {
+            espCmpBusy = true
+            try { io.execute { espCmpWork(sig) } } catch (e: Throwable) { espCmpBusy = false }
+        }
+        return r ?: "pending"
+    }
+
     private fun copyAssetDir(am: android.content.res.AssetManager, src: String, dst: File) {
         val names = am.list(src) ?: emptyArray()
         if (names.isEmpty()) {
@@ -1132,6 +1186,7 @@ class PiperNativePlugin : Plugin() {
             }
             try { Phonemizer.init(shared.absolutePath) }
             catch (e: Throwable) { mark.delete(); throw e }
+            espSrc = if (hasAsset) "" else "v" + File(shared, "phondata").length() + "-" + File(shared, "fa_dict").length() + "-" + File(shared, "fa_rules").length()   // kt-r35 (P13-07)
         }
     }
 
@@ -1367,7 +1422,7 @@ class PiperNativePlugin : Plugin() {
                 if (!okMark(id).exists()) throw IllegalStateException("این صدا هنوز نصب نشده است؛ چند لحظه صبر کنید تا نصب تمام شود")
                 val eng = engineFor(id, ns, nw)
                 val sr = eng.sampleRate()
-                val eTag = ENGINE_VER + (if (ttsPhon) "|" + phonTag() else "")   // P07-05: نسخهٔ موتور/آوانگار در کلید؛ ارتقا ⇒ کش کهنه سرو نمی‌شود
+                val eTag = ENGINE_VER + (if (ttsPhon) "|" + phonTag() + (if (espSrc.isEmpty()) "" else "|" + espSrc) else "")   // P07-05: نسخهٔ موتور/آوانگار در کلید؛ ارتقا ⇒ کش کهنه سرو نمی‌شود
                 // هر جمله جدا (برای کش)؛ بدون parts کل متن یک جمله حساب می‌شود
                 val items = ArrayList<Pair<String, Float>>()
                 val itemPt = ArrayList<Float>(); val itemDb = ArrayList<Float>()   // kt-r34 (P12-E2): زیر و بم (نیم‌پرده) و بلندی (dB) هر جمله
