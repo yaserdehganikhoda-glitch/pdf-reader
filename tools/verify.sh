@@ -34,4 +34,5 @@ node "$D/emph.js" "$F" > /tmp/emph.out 2>&1 || { echo "FAIL node tools/emph.js (
 node "$D/prio.js" "$F" || E=1
 node "$D/regress.js" "$F" || E=1
 node "$D/p15-vm-test.js" "$F" > /tmp/p15.out 2>&1 || { echo "FAIL node tools/p15-vm-test.js (rc=$?)"; tail -8 /tmp/p15.out; E=1; }; tail -1 /tmp/p15.out   # P15: شعر/عربی بدون جایگزینی خودکار املا، fixHi در شعر، احساس علمی/حقوقی، «ة»
+node "$D/sup-replay.js" "$F" > /tmp/sup.out 2>&1 || { echo "FAIL node tools/sup-replay.js (rc=$?)"; tail -8 /tmp/sup.out; E=1; }; tail -1 /tmp/sup.out   # P15-F4: هستهٔ ناظر واحد (بازپخش با ساعت مجازی)
 exit $E
