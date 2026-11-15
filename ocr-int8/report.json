@@ -3,7 +3,7 @@
  "act": "u8",
  "calib": "-",
  "attn_fp32": true,
- "agree_cer_pct": 1.21,
+ "agree_cer_pct": 1.277,
  "n_val": 120,
  "size_fp32": 7994035,
  "size_int8": 7279972,
@@ -11,8 +11,8 @@
  "int8_initializers": 16,
  "qdq_nodes": 8,
  "quant_s": 0.1,
- "cpu_x86_ms_fp32": 13.0,
- "cpu_x86_ms_int8": 12.9,
+ "cpu_x86_ms_fp32": 13.4,
+ "cpu_x86_ms_int8": 13.6,
  "ir": 8,
  "opset": {
   "ai.onnx": 17
@@ -39,7 +39,7 @@
    "mode": "static",
    "act": "u8",
    "calib": "percentile",
-   "agree_cer_pct": 12.71,
+   "agree_cer_pct": 14.751,
    "ratio": 0.316,
    "compat_ok": true
   },
@@ -47,7 +47,7 @@
    "mode": "static",
    "act": "s8",
    "calib": "percentile",
-   "agree_cer_pct": 12.643,
+   "agree_cer_pct": 14.049,
    "ratio": 0.316,
    "compat_ok": true
   },
@@ -55,7 +55,7 @@
    "mode": "static",
    "act": "u8",
    "calib": "entropy",
-   "agree_cer_pct": 11.298,
+   "agree_cer_pct": 15.773,
    "ratio": 0.316,
    "compat_ok": true
   },
@@ -63,7 +63,7 @@
    "mode": "dynamic",
    "act": "u8",
    "calib": "-",
-   "agree_cer_pct": 1.21,
+   "agree_cer_pct": 1.277,
    "ratio": 0.911,
    "compat_ok": true
   }
