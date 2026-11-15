@@ -159,6 +159,15 @@ else
   echo "voices: داخل APK گذاشته نشد (دانلود بعد از نصب)"
 fi
 
+# 3b2) kt-r36 (A09): هش سنجاق‌شدهٔ صداهای دانلودیِ زمان اجرا؛ قالب مثل checksums.txt (<sha256>  <شناسهٔ صدا>). فایل را workflow «Voice sums» می‌سازد.
+# نبودنش = صداها مثل پیش بدون سنجش هش نصب می‌شوند (فقط هشدار). فایل داخل www می‌رود تا «cap sync» آن را به assets/public ببرد.
+if [ -s "$HERE/voice-sums.txt" ]; then
+  mkdir -p www && cp "$HERE/voice-sums.txt" www/voice-sums.txt
+  echo "voice-sums: $(grep -cE '^[0-9a-fA-F]{64}  ' "$HERE/voice-sums.txt") مورد سنجاق شد"
+else
+  echo "::warning::native/voice-sums.txt نیست؛ صداهای دانلودی بدون سنجش هش نصب می‌شوند (workflow «Voice sums» را اجرا کنید)"
+fi
+
 # 3c) مانیفست: سرویس پخش پیش‌زمینه و مجوزهای لازم (بدون آن پخش با صفحهٔ خاموش بی‌صدا کار نمی‌کند؛ دو مجوز آخر برای فهرست خودکار PDFها)
 # r35: RECORD_AUDIO و MODIFY_AUDIO_SETTINGS برای یادداشت صوتی
 python3 - <<'PY'
