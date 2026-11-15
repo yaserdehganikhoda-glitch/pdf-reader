@@ -453,7 +453,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r35 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r36 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
     }
 
     @PluginMethod
@@ -866,6 +866,8 @@ class PiperNativePlugin : Plugin() {
         if (!Regex("[A-Za-z0-9_-]+").matches(id)) return call.reject("شناسهٔ صدا نامعتبر است")
         io.execute {
             val part = File(root(), "$id.dl")
+            val tmp = File(root().parentFile, "piper-new-" + voiceDir(id).name)   // kt-r36 (A09): نصب در پوشهٔ موقت؛ صدای قبلی تا لحظهٔ جایگزینی سالم می‌ماند
+            val want = (call.getString("sha256") ?: "").trim()   // kt-r36 (A09): هش مرجع اختیاری (۶۴ هگز) از JS؛ خالی = بدون سنجش
             var netDone = false
             // نصب تکراری (مثلاً هم‌زمان با بارگذاری از پوشه): اگر صدا کامل نصب است کاری لازم نیست
             if (okMark(id).exists() && findOnnx(voiceDir(id)) != null) { call.resolve(); return@execute }
@@ -885,11 +887,12 @@ class PiperNativePlugin : Plugin() {
                     fetchResumable("$VOICE_BASE/vits-piper-$id.tar.bz2", part, emit)
                     netDone = true
                     if (part.length() < 5_000_000L) throw IllegalStateException("فایل دانلودشده ناقص یا نامعتبر است؛ دوباره امتحان کنید")
+                    if (want.length == 64 && !sha256(part).equals(want, ignoreCase = true)) throw IllegalStateException("هش فایل دانلودشده با مرجع نمی‌خواند؛ نصب لغو شد")
                     total0 = part.length()
                     src = java.io.FileInputStream(part)
                 }
                 if (ttsId == id) releaseEngine(id)
-                val dst = voiceDir(id)
+                val dst = tmp
                 dst.deleteRecursively(); dst.mkdirs()
                 var loaded = 0L; var lastEmit = 0L
                 val counting = object : java.io.FilterInputStream(src) {
@@ -905,11 +908,13 @@ class PiperNativePlugin : Plugin() {
                 emit(loaded, loaded)
                 if (findOnnx(dst) == null || !File(findRoot(dst), "tokens.txt").exists())
                     throw IllegalStateException("فایل‌های مدل کامل نیست")
+                voiceDir(id).deleteRecursively()
+                if (!dst.renameTo(voiceDir(id))) throw IllegalStateException("جابه‌جایی نهایی نصب ناموفق بود")   // kt-r36 (A09): جایگزینی با rename در همان پارتیشن
                 okMark(id).writeText("1")
                 part.delete()
                 call.resolve()
             } catch (e: Throwable) {
-                voiceDir(id).deleteRecursively()
+                tmp.deleteRecursively()
                 if (netDone) part.delete()   // فایل کامل ولی خراب → دفعهٔ بعد از صفر؛ قطعی شبکه → فایل ناقص برای ادامه می‌ماند
                 call.reject("نصب ناموفق: ${e.message}")
             }
