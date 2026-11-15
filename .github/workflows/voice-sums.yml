@@ -1,0 +1,30 @@
+name: Voice sums
+# برای ساخت/به‌روزرسانی native/voice-sums.txt (هش SHA-256 صداهای دانلودیِ زمان اجرا). دستی اجرا کنید: Actions → Voice sums → Run workflow.
+# توجه: هش از همان نسخهٔ فعلیِ انتشار رسمی گرفته می‌شود (اعتماد در لحظهٔ ساخت). اگر انتشار رسمی بعداً فایل را عوض کند، نصب صدا با پیام «هش نمی‌خواند» رد می‌شود و باید این workflow دوباره اجرا شود.
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sums:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compute SHA-256 of voice archives
+        env:
+          IDS: "fa_IR-gyro-medium fa_IR-ganji-medium fa_IR-ganji_adabi-medium"
+          BASE: "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models"
+        run: |
+          set -o pipefail
+          mkdir -p native; : > /tmp/voice-sums.txt
+          for id in $IDS; do
+            h=$(curl -fsSL --retry 4 --retry-delay 5 "$BASE/vits-piper-$id.tar.bz2" | sha256sum | cut -d' ' -f1)
+            [ ${#h} -eq 64 ] || { echo "::error::هش $id ساخته نشد"; exit 1; }
+            echo "$h  $id" | tee -a /tmp/voice-sums.txt
+          done
+          cp /tmp/voice-sums.txt native/voice-sums.txt
+      - name: Commit
+        run: |
+          git config user.name "github-actions"; git config user.email "github-actions@users.noreply.github.com"
+          git add native/voice-sums.txt
+          if git diff --cached --quiet; then echo "بدون تغییر"; else git commit -m "voice-sums: به‌روزرسانی هش صداها" && git push; fi
