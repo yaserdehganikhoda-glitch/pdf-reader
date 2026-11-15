@@ -33,4 +33,5 @@ node "$D/emopar.js" "$F" > /tmp/emopar.out 2>&1 || { echo "FAIL node tools/emopa
 node "$D/emph.js" "$F" > /tmp/emph.out 2>&1 || { echo "FAIL node tools/emph.js (rc=$?)"; tail -8 /tmp/emph.out; E=1; }; tail -2 /tmp/emph.out
 node "$D/prio.js" "$F" || E=1
 node "$D/regress.js" "$F" || E=1
+node "$D/p15-vm-test.js" "$F" > /tmp/p15.out 2>&1 || { echo "FAIL node tools/p15-vm-test.js (rc=$?)"; tail -8 /tmp/p15.out; E=1; }; tail -1 /tmp/p15.out   # P15: شعر/عربی بدون جایگزینی خودکار املا، fixHi در شعر، احساس علمی/حقوقی، «ة»
 exit $E
