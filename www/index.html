@@ -2903,7 +2903,8 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
     });
   }
   /* مدل‌های زنانهٔ Coqui پس از نصب برنامه دانلود می‌شوند؛ نشانی و آینه‌ها داخل پلاگین بومی (DOWNLOADABLE) است و فقط شناسه رد می‌شود */
-  var VOICE_SHA256 = {};   /* r241 (A09): { 'شناسهٔ صدا': 'sha256 هگز ۶۴ نویسه‌ای فایل vits-piper-<id>.tar.bz2' }؛ با tools/voice-hashes.sh پر شود. خالی = بدون سنجش (رفتار پیشین) */
+  var VOICE_SHA256 = {};   /* r243 (A09/B04): { 'شناسهٔ صدا': 'sha256 هگز ۶۴ نویسه‌ای فایل vits-piper-<id>.tar.bz2' }؛ از فایل همراه برنامه voice-sums.txt (قالب checksums.txt: «<sha256>  <id>») پر می‌شود که inject-native.sh از native/voice-sums.txt کپی می‌کند. نبودن فایل = بدون سنجش (رفتار پیشین) */
+  try { if (window.Capacitor && window.fetch) fetch('voice-sums.txt').then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){ String(t).split('\n').forEach(function(l){ var m = /^([0-9a-fA-F]{64})\s+(\S+)\s*$/.exec(l.trim()); if (m) VOICE_SHA256[m[2]] = m[1].toLowerCase(); }); }).catch(function(){}); } catch (e) {}
   function dlArgs(id){ var a = { id: id, resume: true }; if (VOICE_SHA256[id]) a.sha256 = VOICE_SHA256[id]; return a; }
   function waitOnline(){
     if (navigator.onLine !== false) return Promise.resolve();
@@ -9534,7 +9535,7 @@ function jbWrapW(ls, old){
     if (bs < 0.35) { best = 'neutral'; k = 0; if (q) { best = 'question'; k = 0.6; } else if (wh >= 0.35) { best = 'whisper'; k = wh; } else if (ex) { best = 'emph'; k = Math.min(0.6, 0.3 + ex * 0.15); } }
     else if (q && !qx && bs < 0.6) { best = 'question'; k = 0.6; }
     else if (wh > bs) { best = 'whisper'; k = wh; }
-    if (!dia && ((tn.replace(/[^\d\u06F0-\u06F9A-Za-z]/g, '').length / Math.max(1, tn.length)) > 0.04 || /(?:جدول|نمودار|فرمول|آزمایش|درصد|معادله|دادهها|نتایج)/.test(tn) || EMO_LEG.test(t) || arLike(raw))) { best = 'neutral'; k = 0; }   /* r240 (A04): متن علمی/آموزشی و حقوقی-اداری: احساس و زیر و بم خاموش (پیش‌تر سقف ۰٫۳) */
+    if (best !== 'neutral' && !dia && ((tn.replace(/[^\d\u06F0-\u06F9A-Za-z]/g, '').length / Math.max(1, tn.length)) > 0.04 || /(?:جدول|نمودار|فرمول|آزمایش|درصد|معادله|دادهها|نتایج)/.test(tn) || EMO_LEG.test(t) || arLike(raw))) k = 0;   /* r240/r244 (A04): متن علمی/آموزشی و حقوقی-اداری و عربی: برچسب (e) می‌ماند تا Golden/آمار تغییر نکند ولی قدرت k=۰ ⇒ احساس و زیر و بم بی‌اثر (پیش‌تر سقف ۰٫۳) */
     var o = { e: best, k: Math.round(k * 100) / 100, d: dia };
     if (EMO_N >= 500) { EMO_C.delete(EMO_C.keys().next().value); EMO_N--; }
     EMO_C.set(raw, o); EMO_N++;
@@ -10042,7 +10043,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r242 · 2026-11-15 · pguard-v3 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1', npBuild = '';
+  var APP_BUILD = 'html-r244 · 2026-11-15 · pguard-v3 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
