@@ -1808,7 +1808,7 @@ html[data-hlg="off"]:not([data-hls]) .pvh i:not(.ap){box-shadow:0 0 0 4px var(--
 <div class="slist"><label class="chk"><input type="checkbox" id="svMdl" checked><span class="st"><b>ناظر یکپارچگی مدل صدا</b><small>هش SHA-256 مدل صدای فعال را (حداکثر هر ۳ روز، هنگام بیکاری) با مرجع اولین بررسی می‌سنجد و در صورت خرابی فقط هشدار می‌دهد.</small></span></label></div>
 <div class="slist"><label class="chk"><input type="checkbox" id="svExit" checked><span class="st"><b>ناظر خروج غیرمنتظره</b><small>اگر برنامه هنگام پخش یا OCR بدون خروج عادی بسته شود، بار بعد مرحله و حافظه را ثبت می‌کند.</small></span></label></div>
 <div class="slist"><label class="chk"><input type="checkbox" id="svThm" checked><span class="st"><b>ناظر دمای پخش</b><small>وقتی گوشی داغ است (وضعیت ۲ یا بیشتر)، اندازه‌گیری‌های پس‌زمینه مثل ناظر نویز به تعویق می‌افتند.</small></span></label></div>
-<div class="slist"><label class="chk"><input type="checkbox" id="svHub" checked><span class="st"><b>ناظر واحد (زمان‌بند مشترک)</b><small>ناظرهای سیاستی پس‌زمینه را با یک زمان‌بند مشترک اجرا می‌کند؛ اگر ناظری پیاپی خطا بدهد از زمان‌بند مشترک کنار می‌رود (ناظر حافظه به تایمر جداگانه برمی‌گردد) و اگر کند باشد کم‌دورتر می‌شود. خاموش‌کردن = بازگشت فوری به تایمر جداگانهٔ پیشین.</small></span></label></div>
+<div class="slist"><label class="chk"><input type="checkbox" id="hubOn" checked><span class="st"><b>ناظر واحد (زمان‌بند مشترک ناظرها)</b><small>تیک ناظرهای حافظه، خروج غیرمنتظره، یکپارچگی مدل و تازه‌سازی گزارش با یک زمان‌بند مشترک و محافظ خطا اجرا می‌شود (۵ خطای پیاپی ⇒ همان ناظر خودکار غیرفعال؛ اجرای کند ⇒ دورهٔ ×۲). خاموش: بازگشت فوری به تایمر پیشین. دستهٔ A (نگهبان پخش، بیدار‌ماندن، ناظرهای بومی) در جای خود می‌ماند.</small></span></label></div>
 <h4 class="svh">شعرخوانی</h4>
 <div class="slist"><label class="chk"><input type="checkbox" id="poRest" checked><span class="st"><b>استراحت پایان غزل و صفحه</b><small>در خوانش شعر، پس از پایان هر غزل و هر صفحه، گوینده چند ثانیه مکث می‌کند و اگر موسیقی پس‌زمینه انتخاب شده باشد، در همان مکث کمی بلندتر پخش می‌شود. مکث دستی «ناظر مکث» بر این مقدم است.</small></span></label></div>
 <div class="slist"><label class="chk"><input type="checkbox" id="poRowForce"><span class="st"><b>استخراج سطریِ اجباری دو ستون (فقط کتاب شعر)</b><small>در صفحه‌های دو ستونه ردیف‌های هم‌تراز همیشه سطری (راست ← چپ) استخراج می‌شوند، حتی اگر تشخیص خودکار شعر نکند. برای کتاب نثر دو ستونه روشن نکنید. متن لایهٔ PDF بلافاصله بازسازی می‌شود؛ صفحه‌های OCR‌شدهٔ قبلی تا OCR دوباره عوض نمی‌شوند.</small></span></label></div>
@@ -2905,8 +2905,8 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
   }
   /* مدل‌های زنانهٔ Coqui پس از نصب برنامه دانلود می‌شوند؛ نشانی و آینه‌ها داخل پلاگین بومی (DOWNLOADABLE) است و فقط شناسه رد می‌شود */
   var VOICE_SHA256 = {};   /* r243 (A09/B04): { 'شناسهٔ صدا': 'sha256 هگز ۶۴ نویسه‌ای فایل vits-piper-<id>.tar.bz2' }؛ از فایل همراه برنامه voice-sums.txt (قالب checksums.txt: «<sha256>  <id>») پر می‌شود که inject-native.sh از native/voice-sums.txt کپی می‌کند. نبودن فایل = بدون سنجش (رفتار پیشین) */
-  try { if (window.Capacitor && window.fetch) fetch('voice-sums.txt').then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){ String(t).split('\n').forEach(function(l){ var m = /^([0-9a-fA-F]{64})\s+(\S+)\s*$/.exec(l.trim()); if (m) VOICE_SHA256[m[2].replace(/^.*[\\/]/, '').replace(/^vits-piper-/, '').replace(/\.tar\.bz2$/, '')] = m[1].toLowerCase();   /* r247 (K-03): کلید می‌تواند «شناسه» یا نام فایل checksums.txt (vits-piper-<id>.tar.bz2) باشد؛ هر دو به شناسه برمی‌گردند */ }); }).catch(function(){}); } catch (e) {}
-  function dlArgs(id){ var a = { id: id, resume: true }; if (VOICE_SHA256[id]) a.sha256 = VOICE_SHA256[id]; else if (window.Capacitor) { try { dgLog('voice-dl', id + ' · بدون هش مرجع؛ نصب بدون سنجش'); } catch (e) {} }   /* r245 (N02): نبود سنجاق دیگر بی‌صدا نیست */ return a; }
+  try { if (window.Capacitor && window.fetch) fetch('voice-sums.txt').then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){ String(t).split('\n').forEach(function(l){ var m = /^([0-9a-fA-F]{64})\s+(\S+)\s*$/.exec(l.trim()); if (m) VOICE_SHA256[m[2]] = m[1].toLowerCase(); }); }).catch(function(){}); } catch (e) {}
+  function dlArgs(id){ var a = { id: id, resume: true }; if (VOICE_SHA256[id]) a.sha256 = VOICE_SHA256[id]; return a; }
   function waitOnline(){
     if (navigator.onLine !== false) return Promise.resolve();
     return new Promise(function(res){ var f = function(){ window.removeEventListener('online', f); res(); }; window.addEventListener('online', f); });
@@ -2928,7 +2928,6 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       var run = function(){
         return once().catch(function(e){
           dgLog('voice-dl', id + ' · تلاش ' + (tries + 1) + ' از ۶ · ' + String((e && (e.message || e.code)) || e).slice(0, 120));
-          if (e && (e.code === 'E_HASH' || /هش فایل دانلودشده/.test(String(e.message || '')))) throw e;   /* r245 (N01): ناهم‌خوانی هش قطعی است؛ تلاش مجدد = دانلود بیهودهٔ ۷۰ مگابایتی */
           if (++tries > 6) throw e;
           if (cb) cb({ stage: 'retry', n: tries });
           return waitOnline().then(function(){ return new Promise(function(r){ setTimeout(r, 1200 * tries); }); }).then(run);
@@ -10045,7 +10044,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r247 · 2026-11-15 · pguard-v3 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · hashx-v2 · hub-v2', npBuild = '';
+  var APP_BUILD = 'html-r245 · 2026-11-15 · hub-v1 · pguard-v3 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10553,58 +10552,64 @@ function hsWhy(c, b, vid){   /* دلیل مشکوک‌بودن طول؛ '' = س�
 function hsRelease(b){ try { if (b && b.nh) NP.release({ handle: b.nh }).catch(function(){}); } catch (e) {} }
 /* ---- r137: ناظر هوشمند — ناظرهای تازه فقط اندازه‌گیری و ثبت می‌کنند؛ تنها دخالت: سبک‌سازی حافظه در حالت بحرانی و به‌تعویق‌انداختن کارهای پس‌زمینه در داغی ---- */
 var SV = { txN: 0, txB: 0, txS: '', mem: 0, memAt: 0, memH: 0, memL: 0, memN: 0, ses: false, lw: 0, lh: 0, lp: '', lv: -1, hlR: 0, hlE: 0, ocq: null, prev: '', rt: 0, trN: 0, trL: 0, trAt: 0, mdlB: 0, mdlD: {}, txF: 0, rpD: {}, pzT: 0, pzR: {}, pzE: {} };
+/*@@HUB*/
+/* r245 (P15/F2+F5): «ناظر واحد» — ثبت‌نام ناظرها (فهرست زندهٔ صفحهٔ «ناظر هوشمند»)، یک زمان‌بند مشترک برای ناظرهای دستهٔ B، محافظ خطا (۵ خطای پیاپی ⇒ همان ناظر غیرفعال)، خودتنظیمی هزینه (۳ اجرای >۶۰ms ⇒ دوره ×۲ تا ×۴) و لاگ حلقه‌ای با سقف ثابت (۶۰). دستهٔ A (نگهبان پخش، بیدار‌ماندن، ضربان OCR، ناظرهای بومی) در جای خود می‌ماند و اینجا فقط فهرست می‌شود. مهاجرت یک‌به‌یک: این نسخه فقط «تیک ناظرهای sv» (svMem/svExit/svMdl/svRender)؛ پرچم hubOn=0 ⇒ بازگشت فوری به setInterval پیشین. step(now) با ساعت تزریقی (clk) آزمون‌پذیر است. */
+var HUB = (function(){
+  var T = {}, R = [], RMAX = 60, tm = 0, on = false, H = { clk: function(){ return Date.now(); } };
+  function lg(id, ev, msg){ R.push([H.clk(), id, ev, String(msg == null ? '' : msg).slice(0, 90)]); if (R.length > RMAX) R.splice(0, R.length - RMAX); }
+  function step(now){   /* ← زمان بیدارباش بعدی (مطلق) یا 0 */
+    var k, t, nx = 0, t0, dt;
+    for (k in T) {
+      t = T[k]; if (!t.run || t.off || !t.every) continue;
+      if (!t.due) t.due = now + t.every * t.mul;
+      if (now >= t.due) {
+        t.due = now + t.every * t.mul; t0 = H.clk();
+        try { if (!t.gate || t.gate()) { t.run(); t.runs++; } t.err = 0; }
+        catch (e) { t.err++; lg(k, 'err', e && e.message); if (t.err >= 5) { t.off = 1; lg(k, 'off', '۵ خطای پیاپی؛ غیرفعال شد'); } }
+        dt = H.clk() - t0; t.ms += dt; if (dt > t.mx) t.mx = dt;
+        if (dt > 60) { if (++t.slow >= 3 && t.mul < 4) { t.mul *= 2; t.slow = 0; lg(k, 'slow', 'دوره ×' + t.mul); } } else t.slow = 0;
+      }
+      if (!t.off && (!nx || t.due < nx)) nx = t.due;
+    }
+    return nx;
+  }
+  function arm(){
+    var nx; clearTimeout(tm); tm = 0; if (!on) return;
+    nx = step(H.clk());
+    if (nx) tm = setTimeout(arm, Math.max(200, nx - H.clk()));
+  }
+  H.reg = function(id, d){
+    d = d || {};
+    T[id] = { id: id, cat: d.cat || 'B', name: d.name || id, per: d.per || d.every || 0, every: d.every | 0, run: d.run || null, gate: d.gate || null, owns: d.owns || '', due: 0, err: 0, off: 0, runs: 0, slow: 0, mul: 1, ms: 0, mx: 0 };
+    if (on && T[id].run && T[id].every) arm();
+    return T[id];
+  };
+  H.start = function(){ if (on) return; on = true; arm(); };
+  H.stop = function(){ on = false; clearTimeout(tm); tm = 0; };
+  H.step = step;
+  H.running = function(){ return on; };
+  H.list = function(){ var o = [], k, t; for (k in T) { t = T[k]; o.push({ id: k, cat: t.cat, name: t.name, per: t.per, sched: !!(t.run && t.every), runs: t.runs, err: t.err, off: t.off, mul: t.mul, ms: Math.round(t.ms), mx: Math.round(t.mx) }); } return o; };
+  H.log = function(){ return R.slice(); };
+  H.line = function(){
+    var L = H.list(), a = 0, b = 0, c = 0, sc = 0, off = [], k;
+    for (k = 0; k < L.length; k++) { if (L[k].cat === 'A') a++; else if (L[k].cat === 'C') c++; else b++; if (L[k].sched) sc++; if (L[k].off) off.push(L[k].name); }
+    return 'ناظر واحد: ' + (on ? 'روشن' : 'خاموش (تایمر پیشین)') + '؛ ' + L.length + ' ناظر ثبت‌شده (A=' + a + '، B=' + b + '، C=' + c + ')، ' + sc + ' با زمان‌بند مشترک' + (off.length ? '؛ خودکار غیرفعال‌شده: ' + off.join('، ') : '') + (R.length ? '؛ رویدادها: ' + R.length : '') + '.';
+  };
+  /* مالک پارامترهای خروجی (فقط مستند/عیب‌یابی؛ رفتار را تغییر نمی‌دهد): نویسندگان فعلی هر پارامتر */
+  H.own = {
+    gap: ['pauseMs (PZM ← poRestAt ← پایه ← svPzCtx ← کف ← شعر/gyro ← calm)', 'chunkAt (سقف ۱٫۵ث جز poRest، PZM.end، emoPar.pad)', 'kt: ۰–۸ث و +۱۱۵ms مرز'],
+    speed: ['paceSpeed×mRate', 'ضریب شعر ۰٫۹۲/۰٫۹۵', 'emoPar.ls', 'poRhSplit/emoSplit', 'kt effRate'],
+    noise: ['styleParams', 'emoPar.ns/nw', 'hsSt/hsFbSt (ناظر سلامت)', 'کنترل دستی r189 (قید سخت)'],
+    pitch_db: ['proPD (تنها نویسنده)'],
+    bgm: ['bgmLevel', 'bgmDuck', 'poRestBoost/bgmRest', 'اسلایدر کاربر']
+  };
+  H._test = H;
+  return H;
+})();
+/*@@/HUB*/
 function svOn(k){ return sget(k, '1') !== '0'; }
 function svLog(k, m){ try { if (window.__elog) window.__elog.add(k, String(m).slice(0, 200)); } catch (e) {} }
 function svHot(){ return svOn('svThm') && thermal() >= 2; }
-/*@@SUP:A*/
-/* r246 (P15-F2/F5): هستهٔ ناظر واحد — فقط ناظرهای دستهٔ B (سیاستی/اندازه‌گیری). یک تایمر مشترک با دورهٔ ب.م.م دوره‌ها (برای یک وظیفه = همان دورهٔ پیشین؛ تایمر اضافه نمی‌شود)، نگهبان (۵ خطای پیاپی ⇒ خاموشیِ همان وظیفه)، خودتنظیمی (هزینه > بودجه در ۳ اجرای پیاپی ⇒ دوره دوبرابر تا ۴×؛ ۵ اجرای ارزان ⇒ بازگشت)، لاگ حلقهٔ ۴۰ و ردّ تشخیصی ۲۰۰ (فقط شناسه/زمان/هزینه، بدون متن). بدون DOM؛ ساعت/تایمر/لاگ تزریقی ⇒ آزمون بازپخش tools/sup-replay.js. */
-function supHub(E){
-  var T = [], H = null, per = 0, ring = [], tr = [], TR = !!E.trace;
-  function gcd(a, b){ var r; while (b) { r = a % b; a = b; b = r; } return a; }
-  function lg(id, ev, v){
-    ring.push({ t: Math.round(E.now()), id: id, ev: ev, v: v }); if (ring.length > 40) ring.shift();
-    try { E.log('hub', id + ' ' + ev + (v == null ? '' : ' ' + v)); } catch (e) {}
-  }
-  function arm(){
-    var p = 0, i;
-    for (i = 0; i < T.length; i++) if (!T[i].off) p = p ? gcd(p, T[i].every) : T[i].every;
-    if (p === per && (H !== null || !p)) return;
-    for (i = 0; i < T.length; i++) T[i].c = 0;
-    if (H !== null) { try { E.clear(H); } catch (e) {} H = null; }
-    per = p; if (p) H = E.set(tick, p);
-  }
-  function tick(){
-    var i, t, t0, ms, ok, dirty = false;
-    for (i = 0; i < T.length; i++) {
-      t = T[i]; if (t.off) continue;
-      if (++t.c < (t.every / per) * t.slow) continue;
-      t.c = 0; ok = 1; t0 = E.now();
-      try { t.run(); t.f = 0; } catch (e) { ok = 0; t.f++; t.e++; lg(t.id, 'err', t.f); if (t.f >= 5) { t.off = true; dirty = true; lg(t.id, 'off'); if (t.onOff) { try { t.onOff(t.id); } catch (e2) {} } } }   /* r247 (K-02): خاموشیِ نگهبان می‌تواند به فراخواننده خبر بدهد (برای بازگشت به مسیر پیشین) */
-      ms = E.now() - t0; t.n++; t.m.push(ms); if (t.m.length > 32) t.m.shift();
-      if (TR) { tr.push({ t: Math.round(t0), id: t.id, ok: ok, ms: Math.round(ms * 10) / 10, k: t.slow }); if (tr.length > 200) tr.shift(); }
-      if (ms > t.budget) { t.lo = 0; if (++t.hi >= 3 && t.slow < 4) { t.slow *= 2; t.hi = 0; lg(t.id, 'slow', t.slow); } }
-      else if (ms < t.budget / 2) { t.hi = 0; if (++t.lo >= 5 && t.slow > 1) { t.slow /= 2; t.lo = 0; lg(t.id, 'fast', t.slow); } }
-      else { t.hi = 0; t.lo = 0; }
-    }
-    if (dirty) arm();
-  }
-  function reg(d){
-    var i;
-    if (!d || !d.id || typeof d.run !== 'function' || !(d.every >= 100)) return false;
-    for (i = 0; i < T.length; i++) if (T[i].id === d.id) return false;
-    T.push({ id: d.id, every: Math.round(d.every), run: d.run, budget: d.budget || 80, onOff: typeof d.onOff === 'function' ? d.onOff : null, c: 0, slow: 1, hi: 0, lo: 0, f: 0, e: 0, n: 0, off: false, m: [] });
-    arm(); return true;
-  }
-  function unreg(id){
-    var i; for (i = 0; i < T.length; i++) if (T[i].id === id) { T.splice(i, 1); break; }
-    arm();
-  }
-  function stat(){
-    return T.map(function(t){ var a = t.m.slice().sort(function(x, y){ return x - y; }), n = a.length; return { id: t.id, n: t.n, e: t.e, off: t.off, slow: t.slow, p50: n ? a[n >> 1] : 0, p95: n ? a[Math.min(n - 1, Math.floor(n * 0.95))] : 0 }; });
-  }
-  return { reg: reg, unreg: unreg, stat: stat, ring: function(){ return ring.slice(); }, trace: function(){ return tr.slice(); }, timers: function(){ return H !== null ? 1 : 0; } };
-}
-/*@@SUP:/A*/
 function svFixTx(s){   /* r144: اقدام نگهبان متن — بازماندهٔ رقم/نماد/لاتین پس از ttsText و پیش از ساخت اصلاح می‌شود؛ فقط وقتی «تصحیح گفتار» روشن است */
   var o = s;
   if (typeof s !== 'string' || !svOn('svTx')) return s;
@@ -10778,6 +10783,7 @@ function svLive(){
   if (SV.tg) { p = svTgParts(); o.push('• نگهبان متن (ثبت‌فقط، باقی‌مانده در جمله‌ها): ' + (p.length ? p.join(' · ') : 'موردی نیست') + '.'); }
   o.push('• ناظر هم‌گامی هایلایت: ' + nf.format(SV.hlR) + ' تکه با مرز واقعی پلاگین، ' + nf.format(SV.hlE) + ' تکه تخمینی' + (SV.hlE ? ' (احتمال جلو/عقب‌ماندن هایلایت)' : '') + '.');
   if (SV.ownN) o.push('• مالکیت پارامترها: ' + nf.format(SV.ownN) + ' مقدار دستی قدیمی صدا/متن در این اجرا به مقدار ناظرها برگردانده شد.');
+  try { o.push('• ' + HUB.line()); } catch (e) {}   /* r245: ناظر واحد */
   if (q) { p = Math.round(q.r * 100 / q.n); o.push('• ناظر کیفیت متن: ' + nf.format(p) + '٪ جمله‌ها مشکوک‌اند (' + nf.format(q.r) + ' از ' + nf.format(q.n) + ')' + (p >= 25 ? ' ← اسکن دوباره یا اصلاح دستی پیشنهاد می‌شود' : '') + '.'); }
   return o;
 }
@@ -13928,7 +13934,7 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
   Array.prototype.forEach.call(toolsEl.querySelectorAll('.tile,.tbanner'), function(b){ b.addEventListener('click', function(){ toolRun(b); }); });
 
   /* ---- نشانگر «تغییریافته» و بازنشانی هر بخش ---- */
-  var CFG_DEF = {"hsOn":true,"svMem":true,"svMdl":true,"svLvl":true,"svPz":true,"svExit":true,"svTx":true,"svThm":true,"svHub":true,"vstyle":"natural","emoLvl":"0","emoSpd":true,"proLvl":"1","poRh":false,"vclean":"a","nzOn":true,"nzFix":"2","nzMdl":"baseline","vclarity":"2","nzMode":"auto","nzNs":"0.55","nzNw":"0.01","enh":true,"humPace":true,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":true,"oCols":true,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oNumDrop":true,"oPre":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"oSpellTL":false,"oSmart":true,"oVg":true,"oVgMode":"safe","ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
+  var CFG_DEF = {"hsOn":true,"svMem":true,"svMdl":true,"svLvl":true,"svPz":true,"svExit":true,"svTx":true,"svThm":true,"vstyle":"natural","emoLvl":"0","emoSpd":true,"proLvl":"1","poRh":false,"vclean":"a","nzOn":true,"nzFix":"2","nzMdl":"baseline","vclarity":"2","nzMode":"auto","nzNs":"0.55","nzNw":"0.01","enh":true,"humPace":true,"phLex":true,"rate":"1","bgmOn":true,"bgmLvl":"60","allLangs":false,"pcLimit":"200","lnMode":"auto","maxL":"200","oPos":true,"oCols":true,"encMode":"auto","oDots":true,"oHdr":true,"oNorm":true,"oFix":true,"oScript":true,"oNumDrop":true,"oPre":true,"oLatin":true,"oGlue":true,"oToc":true,"oPause":true,"oSpell":true,"oSpellTL":false,"oSmart":true,"oVg":true,"oVgMode":"safe","ocrMode":"auto","ocrQ":"1","ocrGpu":true,"ocrDsk":true,"ocrLex":true,"ocrDn":false,"fixOn":true,"fixHi":true,"fixPro":true,"fixCite":true,"dictScope":"all","rFont":"vazir","rLh":"2.15","rAlign":"start","rFollow":"out","rFlPos":"center","rSmooth":"1","hlCol":"#f5b932","hlK":"m","hlS":"fill","hlG":"pulse"}, CFG_SEC = '.panel[data-panel="voice"] .grp, .panel[data-panel="voice"] details.acc, .panel[data-panel="text"] .grp, .panel[data-panel="text"] details.acc, .panel[data-panel="view"] .grp', chgQ = 0, cfgN = 0;
   Array.prototype.forEach.call(document.querySelectorAll(CFG_SEC), function(s){
     var h = s.tagName === 'DETAILS' ? s.querySelector('summary .stt b') : s.querySelector('h3'), pn = s.closest('.panel');
     if (!s.id) s.id = 'cs-' + (++cfgN);
@@ -13998,13 +14004,12 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
 
   (function(){   /* r137: صفحهٔ «ناظر هوشمند» */
     var tk = 0;
-    ['svMem', 'svExit', 'svTx', 'svThm', 'svMdl', 'svLvl', 'svPz', 'svHub'].forEach(function(id){
+    ['svMem', 'svExit', 'svTx', 'svThm', 'svMdl', 'svLvl', 'svPz'].forEach(function(id){
       var e = $('#' + id); if (!e) return;
       e.checked = svOn(id);
       e.onchange = function(){
         sset(id, this.checked ? '1' : '0');
         if (id === 'svExit') { if (this.checked) svSes(); else { sset('svSes', '0'); SV.ses = false; } }
-        if (id === 'svHub') svSched();
         svRender();
       };
     });
@@ -14025,30 +14030,28 @@ function changed(){ if (CHH.n) { CHH.p = 1; return; } clearCache(); restartIfPla
       if (OP && OP.addListener) Promise.resolve(OP.addListener('trim', function(e){ svTrim(e && isFinite(e.level) ? +e.level : 0, !!(e && e.freed)); })).catch(function(){});
     } catch (e) {}
     svBoot(); svSes();
-    function svTick(){   /* r246 (F5): بدنهٔ تایمر ۵ثانیه‌ای پیشین بدون تغییر؛ فقط زمان‌بندی به svSched رفت */
-      if (document.hidden && !playing && !ocrBusy) return;
-      svMemTick(); svSes(); svMdlRun();
-      var b = $('#svBox');
-      if (++tk % 2 === 0 && curTab === 'voice' && b && !b.classList.contains('solo-off')) svRender();
+    /* r245 (P15/F5): مهاجرت اول — تیک ۵ثانیه‌ای ناظرهای sv به ناظر واحد؛ hubOn=0 ⇒ همان setInterval پیشین (بازگشت فوری) */
+    var svGate = function(){ return !(document.hidden && !playing && !ocrBusy); }, svLeg = 0,
+        svRen = function(){ var b = $('#svBox'); if (++tk % 2 === 0 && curTab === 'voice' && b && !b.classList.contains('solo-off')) svRender(); },
+        svLegacy = function(){ if (!svGate()) return; svMemTick(); svSes(); svMdlRun(); svRen(); };
+    HUB.reg('svMem', { cat: 'B', name: 'ناظر حافظهٔ فعال', every: 5000, gate: svGate, run: svMemTick, owns: 'سبک‌سازی حافظه' });
+    HUB.reg('svExit', { cat: 'B', name: 'ناظر خروج غیرمنتظره', every: 5000, gate: svGate, run: svSes, owns: 'ثبت مرحله/حافظه' });
+    HUB.reg('svMdl', { cat: 'B', name: 'ناظر یکپارچگی مدل صدا', every: 5000, gate: svGate, run: svMdlRun, owns: 'هش مدل (ثبت‌فقط)' });
+    HUB.reg('svRender', { cat: 'B', name: 'تازه‌سازی گزارش زنده', every: 5000, gate: svGate, run: svRen, owns: 'UI' });
+    [['wdTick', 'نگهبان پخش', 1500, 'بازیابی پخش'], ['kaSync', 'نگه‌داشتن بیدار (OCR/اسکن)', 4000, 'قفل بیدار‌ماندن'], ['hbT', 'ضربان OCR', 1000, 'دیده‌بان رندر OCR'], ['ktNative', 'ناظرهای بومی (AudioFocus، سرویس پیش‌زمینه، قفل بیدار، trim)', 0, 'فوکوس/سرویس/حافظه']].forEach(function(a){ HUB.reg(a[0], { cat: 'A', name: a[1], per: a[2], owns: a[3] }); });
+    [['bgmRevive', 'زنده‌سازی موسیقی (تایمر ۲ث؛ مهاجرت بعدی)', 2000, 'bgm'], ['svTx', 'نگهبان خروجی متن', 0, 'ثبت'], ['svPz', 'ناظر مکث و سکوت', 0, 'gap'], ['svLvl', 'تراز بلندی', 0, 'db'], ['nzOn', 'ناظر نویز', 0, 'ns/nw'], ['hsOn', 'ناظر سلامت صدا', 0, 'ns/nw (ساخت مجدد)'], ['svThm', 'ناظر دمای پخش', 0, 'به‌تعویق کارهای پس‌زمینه'], ['poMt', 'ناظر وزن شعر', 0, 'کسرهٔ اضافه'], ['poEj', 'نرم‌سازی مکث پیوستگی', 0, 'gap'], ['poRest', 'استراحت پایان غزل/صفحه', 0, 'gap, bgm'], ['poAll', 'رفتار شعرخوان برای همهٔ صداهای اعراب‌خوان', 0, 'پروفایل شعر'], ['poDs', 'فرهنگ تلفظ دیتاست', 0, 'واژه‌نامه'], ['poRowForce', 'استخراج سطری اجباری', 0, 'استخراج'], ['spGuardAll', 'محافظت کل متن از املا', 0, 'املا']].forEach(function(a){ HUB.reg(a[0], { cat: 'B', name: a[1], per: a[2], owns: a[3] }); });
+    HUB.reg('manSync700', { cat: 'C', name: 'همگام‌سازی تمام‌صفحهٔ ویرایش دستی (۷۰۰ms فقط تمام‌صفحه؛ کاندید حذف)', per: 700, owns: 'UI' });
+    function hubApply(){
+      var h = sget('hubOn', '1') !== '0';
+      if (h) { clearInterval(svLeg); svLeg = 0; HUB.start(); }
+      else { HUB.stop(); if (!svLeg) svLeg = setInterval(svLegacy, 5000); }
     }
-    var HUB = null, svT = 0;
-    function svSched(){   /* r246 (F5): «ناظر واحد» روشن ⇒ زمان‌بند مشترک؛ خاموش یا هر خطای راه‌اندازی ⇒ همان تایمر پیشین (بازگشت فوری) */
-      try { if (HUB) HUB.unreg('svTick'); } catch (e) {}
-      if (svT) { clearInterval(svT); svT = 0; }
-      if (svOn('svHub')) {
-        try {
-          var dbg = sget('dbgSup', '') === '1';
-          if (!HUB) HUB = supHub({ now: function(){ return performance.now(); }, set: function(f, p){ return setInterval(f, p); }, clear: function(x){ clearInterval(x); }, log: svLog, trace: dbg });
-          if (HUB.reg({ id: 'svTick', every: 5000, run: svTick, budget: 80, onOff: function(){ if (!svT) svT = setInterval(function(){ try { svTick(); } catch (e) {} }, 5000); } })) {   /* r247 (K-02): svTick چهار ناظر مستقل را در بر دارد (حافظه/خروج/مدل/رندر)؛ ۵ خطای پیاپی نباید ناظر حافظه را تا پایان نشست بی‌صدا بکشد ⇒ همان تایمر پیشین (بدون لاگ‌ریزی خطا) */
- if (dbg) window.__sup = HUB; return; }
-        } catch (e) {}
-      }
-      svT = setInterval(svTick, 5000);
-    }
-    svSched();
+    hubApply();
+    var hb = $('#hubOn'); if (hb) { hb.checked = sget('hubOn', '1') !== '0'; hb.onchange = function(){ sset('hubOn', this.checked ? '1' : '0'); hubApply(); svRender(); }; }
+    if (window.__perf) window.__perf.hub = HUB;
   })();
 
-  var CFG_KEY = /^(hsOn$|sv(?:Mem|Mdl|Lvl|Pz|Exit|Tx|Thm|Hub)$|hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|stAuto|stCap|theme|vfAuto|voice$|vstyle$|emoLvl$|emoSpd$|proLvl$|poRh$|poCt$|poMt$|poEj$|poAll$|poDs$|spGuardAll$|nz|harakat)/;
+  var CFG_KEY = /^(hsOn$|hubOn$|sv(?:Mem|Mdl|Lvl|Pz|Exit|Tx|Thm)$|hlCol$|hlK$|hlS$|hlG$|bgm|dictScope|dockHide|dockMini|enh$|fix|fs$|fx$|hLay|hSortS|hTab|humPace|libAuto|maxLV|mfHar|o_|pcLim|phLex|preset|pvz|rate$|rdMode|rfont|stAuto|stCap|theme|vfAuto|voice$|vstyle$|emoLvl$|emoSpd$|proLvl$|poRh$|poCt$|poMt$|poEj$|poAll$|poDs$|spGuardAll$|nz|harakat)/;
 
   /* وقتی برنامه در پس‌زمینه است (مثلاً پخش با صفحهٔ خاموش) انیمیشن‌ها متوقف شوند */
   document.addEventListener('visibilitychange', function(){ document.documentElement.classList.toggle('bg-paused', document.hidden); });
