@@ -112,8 +112,6 @@ class PiperNativePlugin : Plugin() {
         } catch (e: Throwable) {}
         io.execute {   // صداهای Coqui حذف شده‌اند؛ مدل‌های نصب‌شدهٔ قبلی (صدها مگابایت) پاک می‌شوند
             try { for (cid in listOf("fa_IR-negin-coqui", "fa_IR-sahar-coqui")) { voiceDir(cid).deleteRecursively(); File(root(), "$cid.dl").delete(); File(root(), "$cid.tok.dl").delete() } } catch (e: Throwable) {}
-            // kt-r38 (K-01): پوشه‌های موقت نصبِ نیمه‌کار (piper-new-*، بعد از بسته‌شدن ناگهانی در حین نصب) هرگز پاک نمی‌شدند مگر همان صدا دوباره نصب می‌شد؛ هر کدام صدها مگابایت. رشتهٔ io تک‌نخی است ⇒ این جاروب پیش از هر download اجرا می‌شود (نصب هم‌زمان در جریان نیست).
-            try { root().parentFile?.listFiles()?.forEach { if (it.isDirectory && it.name.startsWith("piper-new-")) it.deleteRecursively() } } catch (e: Throwable) {}
         }
     }
 
@@ -455,7 +453,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r38 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r36 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
     }
 
     @PluginMethod
@@ -860,7 +858,6 @@ class PiperNativePlugin : Plugin() {
     }
 
     private val VOICE_BASE = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models"
-    private class HashMismatch(msg: String) : IllegalStateException(msg)   // kt-r37 (N01): کد E_HASH تا JS تلاش مجدد بیهوده نکند
 
     /** نصب صدا: از assets اگر همراه APK باشد، وگرنه دانلود مستقیم و استخراج هم‌زمان؛ سپس بررسی کامل‌بودن */
     @PluginMethod
@@ -890,7 +887,7 @@ class PiperNativePlugin : Plugin() {
                     fetchResumable("$VOICE_BASE/vits-piper-$id.tar.bz2", part, emit)
                     netDone = true
                     if (part.length() < 5_000_000L) throw IllegalStateException("فایل دانلودشده ناقص یا نامعتبر است؛ دوباره امتحان کنید")
-                    if (want.length == 64 && !sha256(part).equals(want, ignoreCase = true)) throw HashMismatch("هش فایل دانلودشده با مرجع نمی‌خواند (مرجع ممکن است کهنه باشد)؛ نصب لغو شد")
+                    if (want.length == 64 && !sha256(part).equals(want, ignoreCase = true)) throw IllegalStateException("هش فایل دانلودشده با مرجع نمی‌خواند؛ نصب لغو شد")
                     total0 = part.length()
                     src = java.io.FileInputStream(part)
                 }
@@ -919,7 +916,7 @@ class PiperNativePlugin : Plugin() {
             } catch (e: Throwable) {
                 tmp.deleteRecursively()
                 if (netDone) part.delete()   // فایل کامل ولی خراب → دفعهٔ بعد از صفر؛ قطعی شبکه → فایل ناقص برای ادامه می‌ماند
-                if (e is HashMismatch) call.reject("نصب ناموفق: ${e.message}", "E_HASH") else call.reject("نصب ناموفق: ${e.message}")   // kt-r37 (N01)
+                call.reject("نصب ناموفق: ${e.message}")
             }
         }
     }
