@@ -36,4 +36,6 @@ node "$D/regress.js" "$F" || E=1
 node "$D/p15-vm-test.js" "$F" > /tmp/p15.out 2>&1 || { echo "FAIL node tools/p15-vm-test.js (rc=$?)"; tail -8 /tmp/p15.out; E=1; }; tail -1 /tmp/p15.out   # P15: شعر/عربی بدون جایگزینی خودکار املا، fixHi در شعر، احساس علمی/حقوقی، «ة»
 node "$D/hub-test.js" "$F" > /tmp/hub1.out 2>&1 || { echo "FAIL node tools/hub-test.js (rc=$?)"; tail -8 /tmp/hub1.out; E=1; }; tail -1 /tmp/hub1.out   # P15/F2: ناظر واحد (ساعت و تایمر ساختگی)
 node "$D/hub-page-test.js" "$F" > /tmp/hub2.out 2>&1 || { echo "FAIL node tools/hub-page-test.js (rc=$?)"; tail -8 /tmp/hub2.out; E=1; }; tail -1 /tmp/hub2.out   # P15/F5: IIFE واقعی صفحه، پرچم hubOn و بازگشت فوری
+node --expose-internals "$D/hub-scopecheck.js" "$F" svPzTx svPzCtx proPD emoSplit poRhSplit poRestAt poemEnd svLoud > /tmp/hub3.out 2>&1; R3=$?   # P15/r248: دید شناسه‌های زیر نگهبان HUB.wrap؛ اگر acorn داخلی node نبود رد می‌شود (SKIP)
+if grep -q "declared@" /tmp/hub3.out; then if [ $R3 -ne 0 ]; then echo "FAIL node tools/hub-scopecheck.js (rc=$R3)"; cat /tmp/hub3.out; E=1; else echo "OK hub-scopecheck: ۸ ناظر دیده می‌شوند"; fi; else echo "SKIP hub-scopecheck (acorn داخلی node در دسترس نیست)"; fi
 exit $E
