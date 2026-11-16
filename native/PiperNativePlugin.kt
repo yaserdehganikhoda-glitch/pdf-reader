@@ -453,7 +453,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r36 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r37 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
     }
 
     @PluginMethod
@@ -871,6 +871,8 @@ class PiperNativePlugin : Plugin() {
             var netDone = false
             // نصب تکراری (مثلاً هم‌زمان با بارگذاری از پوشه): اگر صدا کامل نصب است کاری لازم نیست
             if (okMark(id).exists() && findOnnx(voiceDir(id)) != null) { call.resolve(); return@execute }
+            // kt-r37: پوشه‌های نصب نیمه‌کارِ صداهای دیگر (مثلاً برنامه حین استخراج بسته شد) پاک می‌شوند؛ io تک‌رشته‌ای است ⇒ نصب هم‌زمان نیست
+            try { root().parentFile?.listFiles { f -> f.isDirectory && f.name.startsWith("piper-new-") && f.name != tmp.name }?.forEach { it.deleteRecursively() } } catch (e: Throwable) { }
             try {
                 // بدون کپی موقت: جریان asset مستقیم به bz2 و tar می‌رود (نصف فضا و زمان)؛ پیشرفت از روی بایت‌های خوانده‌شده
                 // اگر صدا همراه APK بود از assets؛ وگرنه (حالت پیش‌فرض) بعد از نصب از اینترنت دانلود می‌شود
