@@ -76,4 +76,18 @@ function mk(store) {
   E = mkB({ hubOn: '0' }); E.adv(E.now + 10000); ok(!E.ctx.HUB.running() && E.I.size === 1 && [...E.I.values()][0].ms === 2000 && E.sync === 5, 'hubOn=0: همان setInterval(2000) پیشین (' + E.sync + ' اجرا در ۱۰ث)');
   const J = mkB({}); J.ctx.HUB.reg('svMem', { every: 5000, grp: 'sv', crit: 1, run: () => {} }); const w0 = [...J.T.values()].length; J.adv(J.now + 100000); ok(w0 === 1, 'bgm و sv با هم: همچنان یک تایمر مشترک');
 }
+
+// د) نگهبان خطای ناظرهای رویدادمحور: هشت تابع واقعاً با H.wrap دوباره‌بسته شده‌اند و ثبت‌نام دارند
+{
+  const want = { svPzTx: 'svPz', svPzCtx: 'svPz', proPD: 'emo', emoSplit: 'emo', poRhSplit: 'poRh', poRestAt: 'poRest', poemEnd: 'poEnd', svLoud: 'svLvl' };
+  const miss = Object.keys(want).filter(n => !new RegExp('\\nif \\(typeof HUB !== \'undefined\'\\) ' + n + ' = HUB\\.wrap\\(\'' + want[n] + '\', ' + n + '[,)]').test(h)); ok(miss.length === 0, 'هر ۸ تابع بلافاصله پس از اعلانشان با H.wrap بسته شده‌اند' + (miss.length ? ' — کم: ' + miss : ''));
+  const E = mk({}); const ids = E.ctx.HUB.list().map(x => x.id); ok(['emo', 'poRh', 'poEnd', 'svPz', 'poRest', 'svLvl'].every(x => ids.includes(x)), 'شناسهٔ هر نگهبان در فهرست ناظرها هست (' + ids.length + ' ثبت)');
+  // تابع واقعی svPzTx با stub: خطای svOn نباید پخش را بشکند
+  const i0 = h.indexOf('function svPzTx(s){'), i1 = h.indexOf('\n}', i0) + 2; const fn = h.slice(i0, i1);
+  const c = { HUB: null, svOn: () => { throw new Error('boom'); }, SV: { pzT: 0 }, elogR() {}, String };
+  vm.createContext(c); vm.runInContext(h.slice(a, b), c); vm.runInContext(fn + '\nvar raw = svPzTx; svPzTx = HUB.wrap("svPz", svPzTx);', c);
+  let threw = false; try { vm.runInContext('raw("a،،b")', c); } catch (e) { threw = true; }
+  ok(threw && vm.runInContext('svPzTx("a،،b")', c) === 'a،،b', 'svPzTx واقعی: بدون نگهبان می‌پرتاب می‌کرد؛ با نگهبان متن اصلی برمی‌گردد');
+  c.svOn = () => true; ok(vm.runInContext('svPzTx("a،،b")', c) === 'a،b', 'بدون خطا: کار اصلی (ادغام مکث تکراری) دست‌نخورده');
+}
 console.log(fail ? 'FAILED ' + fail : 'ALL PASS'); process.exit(fail ? 1 : 0);

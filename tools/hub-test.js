@@ -72,4 +72,21 @@ const names = ['svMem', 'svExit', 'svMdl', 'svRender'];
   const E = env(); E.HUB.reg('wdTick', { cat: 'A', name: 'نگهبان پخش', per: 1500 }); E.HUB.reg('x', { every: 1000, run: () => {} }); const L = E.HUB.list();
   ok(L.find(q => q.id === 'wdTick').sched === false && E.timers.size === 1, 'A ثبت می‌شود ولی زمان‌بندی نمی‌شود'); ok(/A=1/.test(E.HUB.line()) && /1 با زمان‌بندی/.test(E.HUB.line()), 'خط گزارش: ' + E.HUB.line()); ok(E.HUB.own.gap.length >= 3, 'نقشهٔ مالک پارامترها');
 }
+
+// 9) H.wrap — نگهبان خطای ناظرهای رویدادمحور
+{
+  const E = env(); const H = E.HUB; let boom = false, calls = 0;
+  const f = H.wrap('svPz', function (s) { calls++; if (boom) throw new Error('x'); return s + '!'; });
+  const g = H.wrap('poRest', function () { calls++; if (boom) throw new Error('y'); return 7; }, 0);
+  const k = H.wrap('svPzCtx2', function () { if (boom) throw new Error('z'); return [1, 2]; }, function () { return [0, 0]; });
+  const o = { m: 3 }; const th = H.wrap('thisT', function (a) { return this.m + a; }, -1);
+  ok(f('a') === 'a!' && g() === 7 && JSON.stringify(k()) === '[1,2]' && th.call(o, 4) === 7, 'بدون خطا: خروجی و this/آرگومان‌ها بدون تغییر');
+  boom = true;
+  ok(f('a') === 'a' && g() === 0 && JSON.stringify(k()) === '[0,0]', 'در خطا: رفتار خنثی (آرگومان اول / مقدار / تابع) و بدون پرتاب');
+  const before = calls; for (let i = 0; i < 10; i++) { f('a'); g(); }
+  ok(calls - before === 8 && H.list().find(q => q.id === 'svPz').off === 1 && H.list().find(q => q.id === 'poRest').off === 1, 'هر ناظر پس از ۵ خطای پیاپی دقیقاً غیرفعال می‌شود: ۴+۴ فراخوانی دیگر از ۲۰ (' + (calls - before) + ') و ردیف‌ها off=1');
+  boom = false; E.run(E.now + 11 * 60 * 1000); ok(f('a') === 'a!' && H.list().find(q => q.id === 'svPz').off === 0, 'پس از ۱۰ دقیقه تلاش مجدد و بازگشت');
+  ok(H.guarded().length >= 4 && /زیر نگهبان خطا/.test(H.line()) && H.log().some(q => q[2] === 'err'), 'خط گزارش و لاگ نگهبان');
+  let c2 = 0; const w2 = H.wrap('lateId', function () { c2++; throw new Error('q'); }); for (let i = 0; i < 8; i++) w2(); ok(c2 === 5 && H.list().find(q => q.id === 'lateId').off === 1, 'شناسهٔ ثبت‌نشده خودکار ثبت می‌شود و همان محافظ را دارد');
+}
 console.log(fail ? 'FAILED ' + fail : 'ALL PASS'); process.exit(fail ? 1 : 0);
