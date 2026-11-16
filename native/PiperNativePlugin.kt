@@ -453,7 +453,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r37 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r38 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
     }
 
     @PluginMethod
@@ -869,6 +869,7 @@ class PiperNativePlugin : Plugin() {
             val tmp = File(root().parentFile, "piper-new-" + voiceDir(id).name)   // kt-r36 (A09): نصب در پوشهٔ موقت؛ صدای قبلی تا لحظهٔ جایگزینی سالم می‌ماند
             val want = (call.getString("sha256") ?: "").trim()   // kt-r36 (A09): هش مرجع اختیاری (۶۴ هگز) از JS؛ خالی = بدون سنجش
             var netDone = false
+            var srcOpen: java.io.InputStream? = null   // kt-r38 (K-01): اگر پیش از counting.use استثنا رخ دهد، جریان ورودی در catch بسته می‌شود
             // نصب تکراری (مثلاً هم‌زمان با بارگذاری از پوشه): اگر صدا کامل نصب است کاری لازم نیست
             if (okMark(id).exists() && findOnnx(voiceDir(id)) != null) { call.resolve(); return@execute }
             // kt-r37: پوشه‌های نصب نیمه‌کارِ صداهای دیگر (مثلاً برنامه حین استخراج بسته شد) پاک می‌شوند؛ io تک‌رشته‌ای است ⇒ نصب هم‌زمان نیست
@@ -893,6 +894,7 @@ class PiperNativePlugin : Plugin() {
                     total0 = part.length()
                     src = java.io.FileInputStream(part)
                 }
+                srcOpen = src   // kt-r38 (K-01)
                 if (ttsId == id) releaseEngine(id)
                 val dst = tmp
                 dst.deleteRecursively(); dst.mkdirs()
@@ -916,6 +918,7 @@ class PiperNativePlugin : Plugin() {
                 part.delete()
                 call.resolve()
             } catch (e: Throwable) {
+                try { srcOpen?.close() } catch (x: Throwable) { }   // kt-r38 (K-01): بستن مکرر بی‌ضرر است
                 tmp.deleteRecursively()
                 if (netDone) part.delete()   // فایل کامل ولی خراب → دفعهٔ بعد از صفر؛ قطعی شبکه → فایل ناقص برای ادامه می‌ماند
                 call.reject("نصب ناموفق: ${e.message}")
