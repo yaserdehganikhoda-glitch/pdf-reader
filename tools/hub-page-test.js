@@ -55,4 +55,25 @@ function mk(store) {
   ok(need.every(x => ids.includes(x)), 'همهٔ ' + need.length + ' ناظر صفحه/دستهٔ A در فهرست (' + L.length + ' ثبت)');
   ok(L.every(x => x.cat), 'هر ناظر دسته دارد'); ok(L.filter(x => x.sched).length === 4, 'فقط ۴ ناظر B زمان‌بندی مشترک دارند');
 }
+
+// ج) مهاجرت دوم: ناظر زنده‌سازی موسیقی (IIFE واقعی bgm فقط همان دستور ثبت‌نام) با stub
+{
+  const i0 = h.indexOf("HUB.reg('bgmRevive'"), i1 = h.indexOf('} });', i0) + 4; if (i0 < 0 || i1 < i0) { console.log('FAIL ثبت bgmRevive پیدا نشد'); process.exit(1); }
+  const stmt = h.slice(i0, i1);
+  function mkB(store) {
+    let now = 1000, tid = 0; const T = new Map(), I = new Map(); let sync = 0, logs = 0;
+    const ctx = { Date: { now: () => now }, String, sget: (k, d) => (k in store ? store[k] : d), setTimeout: (f, ms) => { const i = ++tid; T.set(i, { f, at: now + ms }); return i; }, clearTimeout: (i) => T.delete(i), setInterval: (f, ms) => { const i = ++tid; I.set(i, { f, ms, at: now + ms }); return i; }, clearInterval: (i) => I.delete(i),
+      bgm: { loaded: true, el: { paused: true }, ctx: { state: 'running' } }, bgmWant: () => true, bgmLog: () => { logs++; }, musicSync: () => { sync++; } };
+    vm.createContext(ctx); vm.runInContext(h.slice(a, b), ctx); vm.runInContext(stmt, ctx);
+    const adv = (to) => { for (;;) { let m = null, mk, isI = false; for (const [k, t] of T) if (!m || t.at < m.at) { m = t; mk = k; isI = false; } for (const [k, t] of I) if (!m || t.at < m.at) { m = t; mk = k; isI = true; } if (!m || m.at > to) { now = to; return; } now = m.at; if (isI) m.at += m.ms; else T.delete(mk); m.f(); } };
+    return { ctx, T, I, adv, get sync() { return sync; }, get logs() { return logs; }, get now() { return now; } };
+  }
+  let E = mkB({}); E.adv(E.now + 10000);
+  ok(E.ctx.HUB.running() && E.I.size === 0 && E.T.size === 1 && E.sync >= 4 && E.sync <= 5, 'bgmRevive: روی HUB (۱ تایمر، بدون setInterval)؛ موسیقی متوقف ⇒ musicSync هر ۲ث (' + E.sync + ' در ۱۰ث)');
+  E = mkB({}); E.ctx.bgm.el.paused = false; E.adv(E.now + 10000); ok(E.sync === 0, 'موسیقی در حال پخش و ctx فعال: هیچ مداخله‌ای');
+  E = mkB({}); E.ctx.bgm.el.paused = false; E.ctx.bgm.ctx.state = 'suspended'; E.adv(E.now + 5000); ok(E.sync >= 2, 'ctx معلق ⇒ زنده‌سازی');
+  E = mkB({}); E.ctx.bgm.loaded = false; E.adv(E.now + 10000); ok(E.sync === 0, 'موسیقی بارگذاری‌نشده: بی‌اثر');
+  E = mkB({ hubOn: '0' }); E.adv(E.now + 10000); ok(!E.ctx.HUB.running() && E.I.size === 1 && [...E.I.values()][0].ms === 2000 && E.sync === 5, 'hubOn=0: همان setInterval(2000) پیشین (' + E.sync + ' اجرا در ۱۰ث)');
+  const J = mkB({}); J.ctx.HUB.reg('svMem', { every: 5000, grp: 'sv', crit: 1, run: () => {} }); const w0 = [...J.T.values()].length; J.adv(J.now + 100000); ok(w0 === 1, 'bgm و sv با هم: همچنان یک تایمر مشترک');
+}
 console.log(fail ? 'FAILED ' + fail : 'ALL PASS'); process.exit(fail ? 1 : 0);
