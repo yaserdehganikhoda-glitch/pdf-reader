@@ -21,6 +21,12 @@ const h=require("fs").readFileSync(process.argv[1],"utf8");let bad=0;
 const m=h.match(/var CFG_DEF = (\{[^}]*\})/);if(m){const k=Object.keys(JSON.parse(m[1]));k.forEach(x=>{if(!h.includes("id=\""+x+"\"")&&!h.includes("sget(\x27"+x+"\x27")&&!h.includes("\x27"+x+"\x27")){console.log("FAIL کلید بی‌مصرف در CFG_DEF:",x);bad=1}});console.log("OK CFG_DEF",k.length,"کلید")}
 if(bad)process.exit(1);console.log("OK پاک‌سازی")
 ' "$F" || E=1
+node -e '
+const g=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));
+const min={hom:56,num:33,ez:50,emo:140,emo_holdout:35};let bad=0,t=0;   /* کف = اندازهٔ r247 (۳۱۴)؛ Golden فقط رشد می‌کند */
+for(const k in min){if(!Array.isArray(g[k])||g[k].length<min[k]){console.log("FAIL golden-fa.json:",k,"کمتر از",min[k]);bad=1}else t+=g[k].length}
+if(bad)process.exit(1);console.log("OK golden-fa.json",t,"آیتم")
+' "$D/golden-fa.json" || E=1
 node "$D/g2p.js" "$F" > /tmp/g2p.out || { echo "FAIL node tools/g2p.js (rc=$?)"; E=1; }; cat /tmp/g2p.out; node -e '
 const r=JSON.parse(require("fs").readFileSync("/tmp/g2p.out","utf8").split("\n")[0]);
 if(r.hom.acc<0.98||r.num.acc<0.98||r.msPerSentence_node>5){console.log("FAIL آستانهٔ Golden/زمان");process.exit(1)}console.log("OK Golden")' || E=1
@@ -33,9 +39,11 @@ node "$D/emopar.js" "$F" > /tmp/emopar.out 2>&1 || { echo "FAIL node tools/emopa
 node "$D/emph.js" "$F" > /tmp/emph.out 2>&1 || { echo "FAIL node tools/emph.js (rc=$?)"; tail -8 /tmp/emph.out; E=1; }; tail -2 /tmp/emph.out
 node "$D/prio.js" "$F" || E=1
 node "$D/regress.js" "$F" || E=1
+node "$D/pron.js" "$F" > /tmp/pron.out 2>&1 || { echo "FAIL node tools/pron.js (rc=$?)"; tail -8 /tmp/pron.out; E=1; }; tail -1 /tmp/pron.out   # P15/r249: تلفظ شعر (POEM_BASE + HOM)
 node "$D/p15-vm-test.js" "$F" > /tmp/p15.out 2>&1 || { echo "FAIL node tools/p15-vm-test.js (rc=$?)"; tail -8 /tmp/p15.out; E=1; }; tail -1 /tmp/p15.out   # P15: شعر/عربی بدون جایگزینی خودکار املا، fixHi در شعر، احساس علمی/حقوقی، «ة»
 node "$D/hub-test.js" "$F" > /tmp/hub1.out 2>&1 || { echo "FAIL node tools/hub-test.js (rc=$?)"; tail -8 /tmp/hub1.out; E=1; }; tail -1 /tmp/hub1.out   # P15/F2: ناظر واحد (ساعت و تایمر ساختگی)
 node "$D/hub-page-test.js" "$F" > /tmp/hub2.out 2>&1 || { echo "FAIL node tools/hub-page-test.js (rc=$?)"; tail -8 /tmp/hub2.out; E=1; }; tail -1 /tmp/hub2.out   # P15/F5: IIFE واقعی صفحه، پرچم hubOn و بازگشت فوری
 node --expose-internals "$D/hub-scopecheck.js" "$F" svPzTx svPzCtx proPD emoSplit poRhSplit poRestAt poemEnd svLoud > /tmp/hub3.out 2>&1; R3=$?   # P15/r248: دید شناسه‌های زیر نگهبان HUB.wrap؛ اگر acorn داخلی node نبود رد می‌شود (SKIP)
 if grep -q "declared@" /tmp/hub3.out; then if [ $R3 -ne 0 ]; then echo "FAIL node tools/hub-scopecheck.js (rc=$R3)"; cat /tmp/hub3.out; E=1; else echo "OK hub-scopecheck: ۸ ناظر دیده می‌شوند"; fi; else echo "SKIP hub-scopecheck (acorn داخلی node در دسترس نیست)"; fi
+if [ $E -eq 0 ]; then echo "GATE OK"; else echo "GATE FAIL"; fi
 exit $E
