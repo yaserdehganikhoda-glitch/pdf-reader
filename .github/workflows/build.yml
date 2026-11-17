@@ -56,6 +56,16 @@ jobs:
         run: npm install --legacy-peer-deps
       - name: Bundle offline web assets (fonts, pdf.js, OCR)
         run: bash native/fetch-offline.sh www
+      - name: Bundle lamejs (رمزگذار MP3) داخل APK — r250/R-08؛ برنامه دیگر هیچ کدی را هنگام اجرا از اینترنت نمی‌گیرد
+        run: |
+          mkdir -p www/lib /tmp/lamejs
+          if [ -s www/lib/lame.min.js ]; then :
+          elif [ -s lib/lame.min.js ]; then cp -f lib/lame.min.js www/lib/lame.min.js
+          else
+            # نسخهٔ سنجاق‌شده؛ npm یکپارچگی بسته را با integrity رجیستری راستی‌آزمایی می‌کند
+            (cd /tmp/lamejs && npm pack lamejs@1.2.1 --silent && tar xzf lamejs-1.2.1.tgz && cp package/lame.min.js "$GITHUB_WORKSPACE/www/lib/lame.min.js") || true
+          fi
+          if [ -s www/lib/lame.min.js ]; then echo "lamejs bundled: $(stat -c %s www/lib/lame.min.js) bytes · sha256 $(sha256sum www/lib/lame.min.js | cut -c1-16)"; else echo "::warning::lib/lame.min.js ساخته نشد؛ ضبط MP3 ممکن نیست (m4a/WAV ذخیره می‌شود)"; fi
       - name: Add extra reading fonts (fonts/ from repo, built by fonts-bot)
         run: |
           mkdir -p www/fonts/extra
