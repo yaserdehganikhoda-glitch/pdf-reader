@@ -3296,7 +3296,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       add(r[9] && !fmiss.length, 'قلم‌های بومی بیشتر (fonts-extra.css)', true, !r[9] ? ' — فایل fonts/fonts-extra.css داخل برنامه نیست' : (fmiss.length ? ' — در فایل تعریف یا بارگذاری نشدند: ' + fmiss.join(' ، ') : ''));
       add(r[1] && r[2] && window.pdfjsLib, 'نمایش PDF (pdf.js)');
       add(r[3] && r[4], 'نگاشت‌ها و فونت‌های کمکی PDF', true);
-      add(r[10], 'رمزگذار MP3 (lib/lame.min.js)', true, ' — فایل داخل برنامه نیست؛ ضبط MP3 فقط با اینترنت (CDN) کار می‌کند، وگرنه m4a/WAV ذخیره می‌شود');
+      add(r[10], 'رمزگذار MP3 (lib/lame.min.js)', true, ' — فایل داخل برنامه نیست؛ ضبط MP3 ممکن نیست و m4a/WAV ذخیره می‌شود (lame.min.js باید هنگام ساخت داخل APK بیاید)');
       add(r[5], 'موتور و مدل‌های OCR (PaddleOCR)' + (r[5] ? '' : (probeBad.length ? ' — پیدا نشد: ' + probeBad.join(' ، ') : '')));
       add(r[6] && dq.on, 'واژه‌نامهٔ املایی (fa_lexicon.js)' + (r[6] && dq.on ? ': ' + nf.format(dq.fileWords) + ' واژه' : ''), true, !r[6] ? ' — فایل داخل برنامه نیست؛ املا فقط با فهرست پایهٔ کوچک کار می‌کند' : ' — فایل هست ولی واژه‌ای از آن خوانده نشد' + (window.__faLexErr ? ' · خطای اجرا: ' + window.__faLexErr : ' (خطای اجرایی ثبت نشد؛ نام متغیر یا قالب؟)'));
       add(npOK, 'موتور صدای بومی');
@@ -9138,7 +9138,7 @@ function jbWrapW(ls, old){
     if (!pre) t = dictIn(t);
     if (fixOn()) {
     t = digitsAscii(t).replace(/(?:https?:\/\/|www\.)\S+|[^\s@]{1,64}@[^\s@]{1,64}\.[^\s@]{1,64}/g, ' ')
-      .replace(/(?:\[\s*\d+(?:\s*[,،\-–]\s*\d+)*\s*\]|\(\s*\d{1,3}\s*\))(?:\s*(?:[,،]|و)?\s*(?:\[\s*\d+(?:\s*[,،\-–]\s*\d+)*\s*\]|\(\s*\d{1,3}\s*\)))*/g, ' ');
+      .replace(/(?:\[\s*\d+(?:\s*[,،\-–]\s*\d+)*\s*\]|\(\s*\d{1,3}\s*\))(?:\s*(?:[,،]|و)?\s*(?:\[\s*\d+(?:\s*[,،\-–]\s*\d+)*\s*\]|\(\s*\d{1,3}\s*\)))*/g, function(m, off, str){ return (m.charAt(0) === '(' && PAREN_LBL.test(str.slice(Math.max(0, off - 24), off))) ? ' ' + m.replace(/[()\[\]]/g, ' ') + ' ' : ' '; });   /* r250 (R-01): «ماده (۵)»، «جدول (۱)»، «فصل (۳)» شمارهٔ برچسب‌اند، ارجاع نیستند ⇒ حذف نشود (عمل تخریبی در شک ⇒ خنثی) */
     t = t.replace(NEG_RE, ' منفی ').replace(/(\d)\s*[%٪]/g, '$1 درصد ').replace(/(\d)\/(\d+)(?=\s*درصد)/g, '$1.$2')
       .replace(/(?<![\d\/.])(\d{1,3})\/(\d{1,2})(?![\d\/])/g, function(m, a, b, off, str){ var A = +a, B = +b; if ((b.length >= 2 && !(A < B && B === 10)) || A >= B || A === 0) return a + '.' + b; return /^\s*(?:%|درصد|کیلو|گرم|متر|سانتی|میلی|لیتر|میلیون|هزار|میلیارد|برابر|درجه|تومان|ریال|دلار|ساعت|دقیقه|km|cm|mm|kg|mg|ml)/.test(str.slice(off + m.length)) ? a + '.' + b : m; })
       .replace(/(?<![\d\/.])(\d{1,2})\/(\d{1,2})(?![\d\/])/g, function(m, a, b){ a = +a; b = +b; return (a >= 1 && b >= 2 && b <= 10 && a < b) ? ' ' + numFa(String(a)) + ' ' + ordFa(b) + ' ' : m; })
@@ -9291,6 +9291,9 @@ function jbWrapW(ls, old){
       .replace(/(?<![\d.\/])(0[1-8]\d{1,2})[\s-](\d{5,8})(?!\d|\.\d)/g, function(_, a, b){ return ' ' + dg(a) + ', ' + dg(b) + ' '; })
       .replace(/(?<![\d.\/])(0[1-8]\d)(\d{8})(?!\d|\.\d)/g, function(_, a, b){ return ' ' + dg(a) + ', ' + dg(b) + ' '; })
       .replace(/(?<![\d.])(\d{4})[\s-](\d{4})[\s-](\d{4})[\s-](\d{4})(?!\d)/g, function(_, a, b, c, d){ return ' ' + [a, b, c, d].map(dg).join(', ') + ' '; })
+      .replace(/(?<![\d.\/])(0[1-8]\d{1,2})\s(\d{4})\s(\d{4})(?!\d|\.\d)/g, function(_, a, b, c){ return ' ' + dg(a) + ', ' + dg(b) + ', ' + dg(c) + ' '; })
+      .replace(/((?:کد[\u200c ]?پستی|تلفن(?:[\u200c ]همراه)?|موبایل|همراه|تماس|فکس|پیامک|شبا|(?:شماره[\u200c ]?)?(?:کارت|حساب))\s*[:،,]?\s*)(\d{4})[\s-](\d{4})(?!\d|\.\d|\s*\d)/g, function(_, k, a, b){ return k + ' ' + dg(a) + ', ' + dg(b) + ' '; })
+      .replace(/((?:کد[\u200c ]?پستی|تلفن|موبایل|همراه|تماس|فکس|شبا|(?:شماره[\u200c ]?)?(?:کارت|حساب))\s*[:،,]?\s*)(\d{8,})(?!\d|\.\d)/g, function(_, k, d){ var g = d.length === 10 ? 5 : 4, o = []; for (var q = 0; q < d.length; q += g) o.push(dg(d.slice(q, q + g))); return k + ' ' + o.join(', ') + ' '; })   /* r250 (R-04): کدپستی/تلفن/کارت رقم‌به‌رقم (فقط با واژهٔ بافتی) */
       .replace(/(?<![A-Za-z])e-?mail(?![A-Za-z])/gi, ' ایمیل ')
       .replace(/(\d)\s*([½⅓⅔¼¾])/g, function(_, d, f){ return d + ' و ' + FRAC[f] + ' '; })
       .replace(/[½⅓⅔¼¾]/g, function(f){ return ' ' + FRAC[f] + ' '; })
@@ -9353,11 +9356,18 @@ function jbWrapW(ls, old){
     t = t.replace(/(?<=(?:متر|مایل|فوت|اینچ|یارد|هکتار))²/g, ' مربع ').replace(/(?<=(?:متر|مایل|فوت|اینچ|یارد|هکتار))³/g, ' مکعب ');   /* واحدهای فارسی (T-07) */
     t = t.replace(/(\d)\s*\$/g, '$1 دلار ').replace(/(\d)\s*€/g, '$1 یورو ');
     t = t.replace(/([\p{L}\d)])²/gu, '$1 به توان دو ').replace(/([\p{L}\d)])³/gu, '$1 به توان سه ');
+    t = t.replace(/([\p{L}\d)])\^\s*\(?\s*([-−]?)(\d+(?:\.\d+)?)\s*\)?/gu, function(_, b, ng, e){ return b + ' به توان ' + (ng ? 'منفی ' : '') + e + ' '; });   /* r250 (R-03): 10^3 ⇒ «ده به توان سه» */
     t = t.replace(/\s*×\s*/g, ' ضربدر ').replace(/\s*÷\s*/g, ' تقسیم بر ').replace(/\s*≠\s*/g, ' نامساوی ')
       .replace(/\s*≤\s*/g, ' کوچک‌تر یا مساوی ').replace(/\s*≥\s*/g, ' بزرگ‌تر یا مساوی ').replace(/√\s*/g, ' جذر ')
       .replace(/(?<=[\p{L}\d)])\s*=\s*(?=[\p{L}\d(√\-])/gu, ' مساوی ')
       .replace(/(?<=[\p{L}\d)])\s+>\s+(?=[\p{L}\d(])/gu, ' بزرگ‌تر از ').replace(/(?<=[\p{L}\d)])\s+<\s+(?=[\p{L}\d(])/gu, ' کوچک‌تر از ')
       .replace(/(?<=[\p{L}\d)])\s*\+\s*(?=[\p{L}\d(])/gu, ' به علاوه ').replace(/(?<=[\p{L}\d])\s*−\s*(?=[\p{L}\d])/gu, ' منهای ');
+    t = t.replace(/(?<=[\p{L}\d)])[ \t]*([<>])[ \t]*(?=\.?\d|[\p{L}(])/gu, function(m, c, off, str){   /* r250 (R-02): p<0.05 با p>0.05 یکسان خوانده می‌شد (علامت حذف می‌شد) */
+      var lf = str.charAt(off - 1), rt = str.charAt(off + m.length);
+      if (/[\p{L}]/u.test(lf) && !/[\d.]/.test(rt)) return m;   /* حرف‌به‌حرف (مثل <b>text) دست نخورد */
+      if (/<\/?[A-Za-z][A-Za-z0-9]*$/.test(str.slice(Math.max(0, off - 16), off))) return m;   /* شبیه برچسب HTML */
+      return c === '<' ? ' کوچک‌تر از ' : ' بزرگ‌تر از ';
+    });
     return t;
   }
   /* شمارهٔ تلفن با پیش‌شمارهٔ +: پیش‌شماره عددی، بقیه رقم‌به‌رقم و گروه‌به‌گروه */
@@ -9369,6 +9379,7 @@ function jbWrapW(ls, old){
   /* عبارت دوتکراری مثل «سازمان ملل, سازمان ملل» (توضیح داخل پرانتز) را یکی کن */
   function dedupe(t){ return t.replace(/(\S{1,60}(?:\s+\S{1,60}){1,7}),\s+\1(?=[,.;:!?]|\s|$)/g, '$1'); }
   function arLike(t){ return t.indexOf('\u0629') >= 0 || (t.match(/[\u0624\u0625\u0623]/g) || []).length >= 2; }   /* r241 (A11): نشانهٔ محافظه‌کارانهٔ عربی (ة، یا ≥۲ از ؤإأ)؛ مثبت کاذب فقط یعنی «ویرایش/احساس کمتر» */
+  var PAREN_LBL = /(?<![\p{L}\u200c])(?:ماده|تبصره|بند|فصل|بخش|جدول|شکل|نمودار|رابطه|معادله|فرمول|مرحله|گام|شماره|ردیف|جزء|قسمت|پیوست|ضمیمه|گزینه|پرسش|سؤال|سوال|اصل|مورد|آیه|سوره|صفحه)[هٔۀة\u0654]?[\s\u200c]*$/u;   /* r250 (R-01): برچسب‌های شمارنده پیش از «(N)» */
   var TTS_PO = 0;   /* r240 (A02): ۱ هنگام ساخت متن گفتارِ مصرع شعر (ttsPo)؛ fixHi (تکرار/کشیدگی/حروف جدا) در شعر اجرا نمی‌شود */
   function ttsText(t, eng, rep, cont){
     eng = eng || engine();
@@ -9908,11 +9919,11 @@ function jbWrapW(ls, old){
       var plain = function(e){
         var m = String((e && e.message) || e);
         if (/دانلود نشده|نصب نشده|آماده نشده|espeak|مدل پیدا نشد|بیش از حد|NATIVE_CANCELLED/.test(m)) throw e;
-        var simple = text.replace(/:+/g, ',').replace(/[^\p{L}\p{N}\s.,;!?'\-]/gu, ' ').replace(/\s+/g, ' ').trim();
+        var simple = text.replace(/:+/g, ',').replace(/[^\p{L}\p{N}\p{M}\u200c\s.,;!?'\-]/gu, ' ').replace(/\s+/g, ' ').trim();
         if (!/[\p{L}\p{N}]/u.test(simple)) throw e;
         return nat(simple, null);
       };
-      if (fb >= 3) { var s3 = text.replace(/:+/g, '،').replace(/[^\p{L}\p{N}\s.,;!?'\-،؛؟]/gu, ' ').replace(/\s+/g, ' ').trim(); if (/[\p{L}\p{N}]/u.test(s3)) return nat(s3, null).catch(plain); }   /* r192: آخرین پله — متن ساده‌شده بدون تکه‌بندی */
+      if (fb >= 3) { var s3 = text.replace(/:+/g, '،').replace(/[^\p{L}\p{N}\p{M}\u200c\s.,;!?'\-،؛؟]/gu, ' ').replace(/\s+/g, ' ').trim(); if (/[\p{L}\p{N}]/u.test(s3)) return nat(s3, null).catch(plain); }   /* r192: آخرین پله — متن ساده‌شده بدون تکه‌بندی */
       return nat(text, parts).catch(plain);
     }
     return Promise.reject(new Error('موتور صدای بومی آماده نشده است؛ برنامه را از روی APK اجرا کنید.'));
@@ -10048,7 +10059,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r249 · 2026-11-17 · hub-v5 · pguard-v3 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1', npBuild = '';
+  var APP_BUILD = 'html-r250 · 2026-11-17 · hub-v5 · pguard-v3 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · p16fix-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -15407,7 +15418,7 @@ calm: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8', '#19b394'],
       if (d.b && d.b.byteLength) outp.push(new Blob([d.b]));
     }
     try {
-      await call({ t: 'i', sr: esr, up: up, br: br, urls: [new URL('lib/lame.min.js', location.href).href, 'https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js'] }, 30000).catch(function(e){ RC.noLib = true; throw e; });
+      await call({ t: 'i', sr: esr, up: up, br: br, urls: [new URL('lib/lame.min.js', location.href).href] }, 30000).catch(function(e){ RC.noLib = true; throw e; });
       for (p = 0; p < seg.parts.length; p++) {
         ab = seg.parts[p] instanceof Blob ? new Uint8Array(await seg.parts[p].arrayBuffer()) : seg.parts[p];
         acc.push(ab); accN += ab.length; ab = null;
