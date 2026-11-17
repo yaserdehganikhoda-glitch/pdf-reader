@@ -1,4 +1,4 @@
-// tools/hub-test.js — آزمون «ناظر واحد» (HUB v2) با ساعت یکنواخت و تایمر ساختگی؛ اجرا: node tools/hub-test.js index.html
+// tools/hub-test.js — آزمون «ناظر واحد» (HUB v2 + hub-v4/r248) با ساعت یکنواخت و تایمر ساختگی؛ اجرا: node tools/hub-test.js index.html
 const fs = require('fs'), vm = require('vm');
 const h = fs.readFileSync(process.argv[2] || 'index.html', 'utf8');
 const a = h.indexOf('/*@@HUB*/'), b = h.indexOf('/*@@/HUB*/'); if (a < 0 || b < a) { console.log('FAIL نشانهٔ HUB'); process.exit(1); }
@@ -88,5 +88,61 @@ const names = ['svMem', 'svExit', 'svMdl', 'svRender'];
   boom = false; E.run(E.now + 11 * 60 * 1000); ok(f('a') === 'a!' && H.list().find(q => q.id === 'svPz').off === 0, 'پس از ۱۰ دقیقه تلاش مجدد و بازگشت');
   ok(H.guarded().length >= 4 && /زیر نگهبان خطا/.test(H.line()) && H.log().some(q => q[2] === 'err'), 'خط گزارش و لاگ نگهبان');
   let c2 = 0; const w2 = H.wrap('lateId', function () { c2++; throw new Error('q'); }); for (let i = 0; i < 8; i++) w2(); ok(c2 === 5 && H.list().find(q => q.id === 'lateId').off === 1, 'شناسهٔ ثبت‌نشده خودکار ثبت می‌شود و همان محافظ را دارد');
+}
+// 10) hub-v4 (r248): شمارندهٔ خطا به‌ازای تابع، ادغام لاگ، بازنشانی نردبان، ادغام reg
+{
+  const E = env(); const H = E.HUB; let bad = 0;
+  const f = H.wrap('emo', function () { bad++; throw new Error('x'); }, null), g = H.wrap('emo', function () { return 1; }, null);
+  for (let i = 0; i < 50; i++) { f(); g(); }
+  ok(bad === 5 && H.list().find(q => q.id === 'emo').off === 1, 'دو تابع هم‌شناسه: خطای دائمی یکی با موفقیت دیگری پنهان نمی‌شود؛ پس از ۵ خطا off (اجرا ' + bad + ')');
+  ok(H.log().length === 3 && H.log()[0][2] === 'err' && H.log()[0][4] === 3 && H.log()[1][2] === 'off', 'ردیف‌های لاگ تکراری ادغام می‌شوند: ۳ ردیف به‌جای ۶ (err×۴ ادغام‌شده، off، err)');
+  E.run(E.now + 11 * 60 * 1000); f(); ok(bad === 6 && H.list().find(q => q.id === 'emo').off === 1, 'پس از تلاش مجدد، یک خطا دوباره غیرفعال می‌کند (مثل پیش)');
+}
+{
+  const E = env(); let k = 0; E.HUB.reg('heal2', { every: 1000, run: () => { if (++k <= 5) throw new Error('t'); } });
+  E.run(E.now + 700000); ok(E.HUB.list()[0].off === 0 && E.HUB.list()[0].nr === 1, 'پس از تلاش مجدد: nr=۱ (هنوز کمتر از ۳۰ دقیقهٔ سالم)');
+  E.run(E.now + 1900000); ok(E.HUB.list()[0].nr === 0, 'پس از ۳۰ دقیقهٔ سالم نردبان تلاش مجدد بازنشانی می‌شود');
+}
+{
+  const E = env(); const H = E.HUB; const f = H.wrap('emo', function () { throw new Error('e'); }, null); f(); f();
+  H.reg('emo', { cat: 'B', name: 'احساس', owns: 'ls' }); const x = H.list().find(q => q.id === 'emo');
+  ok(x.err === 2 && x.name === 'احساس', 'reg روی شناسهٔ موجود: شمارنده‌ها حفظ، توصیف به‌روز');
+}
+// 11) hub-v4: فشار CPU (دیرکرد بیدارباش) و H.calm/H.defer
+function lateFire(E, ms) { const e = [...E.timers.entries()][0]; if (!e) return false; E.now = e[1].at + ms; E.timers.delete(e[0]); e[1].f(); return true; }
+{
+  const E = env(); const H = E.HUB; let play = 1, ui = 0, cr = 0;
+  H.probe({ play: () => play }); H.reg('ui', { every: 1000, run: () => ui++ }); H.reg('cr', { every: 1000, crit: 1, run: () => cr++ });
+  for (let i = 0; i < 6; i++) lateFire(E, 500);
+  ok(H.press() === 2 && H.ctx().play === 1 && H.defer() === true, 'دیرکرد ۵۰۰ms پیاپی ⇒ فشار ۲؛ ctx().play و defer() درست');
+  const u0 = ui, c0 = cr; for (let i = 0; i < 6; i++) lateFire(E, 500);
+  ok(ui === u0 && cr > c0 && H.list().find(q => q.id === 'ui').def > 0, 'هنگام پخش و فشار: ناظر غیربحرانی کنار می‌کشد (def>۰)، بحرانی ادامه دارد');
+  play = 0; E.now += 300; const u1 = ui; for (let i = 0; i < 4; i++) lateFire(E, 0); ok(ui > u1, 'بدون پخش: ناظر غیربحرانی دوباره اجرا می‌شود');
+  for (let i = 0; i < 20; i++) lateFire(E, 0); ok(H.press() === 0, 'با بیدارباش‌های به‌موقع فشار به ۰ برمی‌گردد');
+}
+{
+  const E = env(); const H = E.HUB; H.probe({ play: () => 1 }); H.reg('a', { every: 1000, run: () => {} }); E.ctx.document = { hidden: true };
+  for (let i = 0; i < 6; i++) lateFire(E, 3000); ok(H.press() === 0, 'صفحهٔ پنهان: دیرکرد نادیده (تایمر پس‌زمینه کند است)');
+}
+{
+  const E = env('0'); const H = E.HUB; H.probe({ play: () => 1, ocr: () => 1 }); ok(H.running() === false && H.defer() === false && H.calm() === false, 'hubOn=0: defer() همیشه false (رفتار پیشین)، calm() همچنان واقع‌بین');
+  const F = env(); const G = F.HUB; let ocr = 0, hot = 0, bz = 0; G.probe({ ocr: () => ocr, hot: () => hot, busy: () => bz, play: () => { throw new Error('probe'); } });
+  ok(G.calm() === true, 'پروب خطادار ⇒ ۰ (خنثی)'); ocr = 1; F.now += 300; ok(G.calm() === false, 'OCR ⇒ calm نیست'); ocr = 0; bz = 1; F.now += 300; ok(G.calm() === false, 'ویرایش دستی/ضبط ⇒ calm نیست');
+  bz = 0; hot = 1; F.now += 300; ok(G.calm() === false, 'داغی ⇒ calm نیست'); hot = 0; F.now += 300; ok(G.calm() === true && G.defer() === false, 'همه آرام ⇒ calm و defer نه');
+}
+// 12) hub-v4: تشخیص (health/state/brief)
+{
+  const E = env(); const H = E.HUB; let k = 0; H.reg('p', { name: 'ناظر خراب', every: 1000, run: () => { throw new Error('z'); } });
+  H.reg('q', { cat: 'B', name: 'فهرست‌فقط روشن‌پیش‌فرض', st: () => 0, dflt: 1 }); H.reg('r', { cat: 'B', name: 'فهرست‌فقط خاموش‌پیش‌فرض', st: () => 0, dflt: 0 }); H.reg('s', { cat: 'B', name: 'بی‌st' });
+  E.run(E.now + 8000);
+  const hl = H.health(); ok(hl.length === 1 && hl[0].lv === 'bad' && hl[0].id === 'p', 'health: ناظر غیرفعال‌شده «bad» با علت');
+  ok(H.state('q') === 0 && H.state('s') === null && H.state('nope') === null, 'state: ۰/۱ یا null (نامشخص)');
+  const br = H.brief(x => '#' + x); ok(br.length <= 4 && /فشار پردازنده/.test(br[0]) && br.some(x => /فهرست‌فقط روشن‌پیش‌فرض/.test(x)) && !br.some(x => /خاموش‌پیش‌فرض/.test(x)), 'brief ≤۴ سطر؛ فقط ناظر «پیش‌فرض روشن» که خاموش شده فهرست می‌شود (' + br.length + ' سطر)');
+}
+// 13) r249: دفتر نویسندگان پارامترها و خلاصهٔ گزارش خطا
+{
+  const E = env(); const H = E.HUB; H.reg('bad3', { every: 1000, run: () => { throw new Error('q'); } }); E.run(E.now + 8000);
+  ok(Object.keys(H.ledger).join() === Object.keys(H.own).join() && Object.keys(H.ledger).every(k => Array.isArray(H.ledger[k]) && H.ledger[k].length >= 1), 'H.ledger همان پارامترهای H.own را دارد');
+  const d = H.digest(); ok(/ناظر واحد/.test(d) && /bad3:off/.test(d) && /فشار پردازنده/.test(d) && !/\n/.test(d), 'digest: یک خط با خط وضعیت، فشار و رویدادهای اخیر');
 }
 console.log(fail ? 'FAILED ' + fail : 'ALL PASS'); process.exit(fail ? 1 : 0);

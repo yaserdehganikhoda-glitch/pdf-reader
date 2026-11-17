@@ -90,4 +90,31 @@ function mk(store) {
   ok(threw && vm.runInContext('svPzTx("a،،b")', c) === 'a،،b', 'svPzTx واقعی: بدون نگهبان می‌پرتاب می‌کرد؛ با نگهبان متن اصلی برمی‌گردد');
   c.svOn = () => true; ok(vm.runInContext('svPzTx("a،،b")', c) === 'a،b', 'بدون خطا: کار اصلی (ادغام مکث تکراری) دست‌نخورده');
 }
+// ح) hub-v4 (r248): پروب‌های واقعی صفحه، defer، brief، و پذیرش در مصرف‌کننده‌ها (ایستا)
+{
+  const E = mk({}); const H = E.ctx.HUB; const c = H.ctx();
+  ok(c.play === 1 && c.ocr === 0 && c.hid === 0 && c.busy === 0 && c.hot === 0, 'پروب‌های واقعی صفحه: playing=۱، بقیه ۰ (man/RC/svHot در این stub نیستند ⇒ خنثی)');
+  E.ctx.ocrBusy = true; E.adv(E.now + 300); ok(H.ctx().ocr === 1 && H.calm() === false && H.defer() === true, 'OCR فعال ⇒ calm نیست و defer() درست');
+  const F = mk({ hubOn: '0' }); F.ctx.ocrBusy = true; F.adv(F.now + 300); ok(F.ctx.HUB.defer() === false, 'hubOn=0: defer() false ⇒ شرط‌های پیشین مصرف‌کننده‌ها بی‌تغییر');
+  const G = mk({ nzOn: '0', poRest: '0', poMt: '0' }); const br = G.ctx.HUB.brief(); ok(br.length <= 4 && br.some(x => /ناظر نویز/.test(x) && /استراحت پایان/.test(x)) && !br.some(x => /وزن شعر/.test(x)), 'brief: ناظرهای «پیش‌فرض روشن» خاموش‌شده فهرست می‌شوند، پیش‌فرض‌خاموش‌ها نه (' + br.join(' | ') + ')');
+  ok(mk({}).ctx.HUB.brief().length === 1, 'همه روشن و بی‌خطا: فقط خط فشار پردازنده');
+  const i1 = h.indexOf('function svMdlRun'), j1 = h.indexOf('\n}', i1); ok(h.slice(i1, j1).includes('HUB.defer()'), 'svMdlRun از HUB.defer() استفاده می‌کند');
+  const i2 = h.indexOf('function nsRun'), j2 = h.indexOf('key = nsKey(v.id);', i2); ok(i2 > 0 && h.slice(i2, j2).includes('HUB.defer()') && h.slice(i2, j2).includes('nsHd++ < 40') && h.includes('function nsLater(){ if (nsTry++ < 8)'), 'nsRun با HUB.defer() و شمارندهٔ جدای nsHd به‌تعویق می‌افتد (تا ۱۰ دقیقه)؛ nsLater پیشین بی‌تغییر');
+  ok((h.match(/HUB\.probe\(\{/g) || []).length === 1 && /HUB\.brief\(function/.test(h), 'یک ثبت پروب و مصرف brief در گزارش زنده');
+}
+// خ) r249 (U-07): هر نویسندهٔ دفتر پارامترها در کد واقعاً اعلان دارد و با مستند H.own هم‌خوان است
+{
+  const H = mk({}).ctx.HUB, esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), bad = [], doc = [];
+  Object.keys(H.ledger).forEach((k) => H.ledger[k].forEach((raw) => {
+    const w = raw.startsWith('window.'), n = raw.replace(/^window\./, ''), e = esc(n);
+    const decl = w ? new RegExp('window\\.' + e + '\\s*=').test(h) : new RegExp('(function\\s+' + e + '\\b|\\bvar\\s+' + e + '\\b|\\b' + e + '\\s*=\\s*(function|HUB\\.wrap|\\{)|,\\s*' + e + '\\s*=)').test(h);
+    const refs = (h.match(new RegExp('\\b' + e + '\\b', 'g')) || []).length;
+    if (!decl || refs < 2) bad.push(k + ':' + raw);
+    if (!H.own[k].join(' ').includes(n)) doc.push(k + ':' + raw);
+  }));
+  ok(bad.length === 0, 'همهٔ نویسنده‌های دفتر در کد اعلان و مصرف دارند' + (bad.length ? ' — ناموجود: ' + bad : ''));
+  ok(doc.length === 0, 'مستند H.own با دفتر هم‌خوان است (نام ناموجود/کهنه نیست)' + (doc.length ? ' — کم: ' + doc : ''));
+  ok(!/bgmDuck['"\s,\]]/.test(h.slice(a, b)), 'نام کهنهٔ bgmDuck دیگر در H.own نیست');
+  const i3 = h.indexOf('function logRender'), j3 = h.indexOf('dgItems(cur, X)', i3); ok(i3 > 0 && h.slice(i3, j3).includes('HUB.digest()'), 'گزارش خطا خلاصهٔ ناظر واحد را دارد');
+}
 console.log(fail ? 'FAILED ' + fail : 'ALL PASS'); process.exit(fail ? 1 : 0);
