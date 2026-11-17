@@ -3907,6 +3907,8 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
     var RPL = new RegExp(NB + '(فرایند|کارکرد|تضاد|بعد|صد|امید|قضاوت|باید|روند|تهدید|بازخورد|رشد|عملکرد|مقصد|درد|کلید|برداشت)ه' + Z + '?ای' + NE, 'gu');   /* r173: «برداشته‌ای» ← «برداشت‌های»؛ فقط ریشه‌هایی که «Xه‌ای»شان معنا ندارد (گزارش دستگاه: ۵۳ صفحه) */
     var R4a = new RegExp('(?<=\\p{L}' + CONN + ')[ ]+(?=(?:ها|های|هایی|ترین|تری)' + NE + ')', 'gu');
     var R4b = new RegExp('(?<=\\p{L}' + NONC + ')[ ]+(?=(?:ها|های|هایی)' + NE + ')', 'gu');
+    var R4e = new RegExp(NB + '(\\p{L}{2,}ه)[ ]+(ای|ی)' + NE, 'gu');   /* r251: «پایه ی» ← «پایه‌ی»، «ذره ای» ← «ذره‌ای»؛ فقط وقتی «Xه» در فرهنگ‌واژه باشد (R4c ≥۴حرفی را بدون فرهنگ‌واژه می‌چسباند) */
+    function heSp(m, w, a){ try { return (a === 'ی' && /[اآو]ه$/.test(w)) || !ocrSpell.has(w) ? m : w + Z + a; } catch (e) { return m; } }
     var R4c = new RegExp('(?<=\\p{L}{3}ه)[ ]+(?=ای' + NE + ')', 'gu'),                       /* «حادثه ای» ← «حادثه‌ای» */
         RC = new RegExp(NB + '(در|بر|باز|فرا|فرو|وا|پیش)[ ]+(\\p{L}{2,})' + NE, 'gu');   /* «در یافت» ← «دریافت» (فقط ترکیب‌های فهرست‌شده) */
     var CMPD = new Set('بیشتر کمتر بهتر بدتر مهتر کهتر پیشتر بیشترین کمترین بهترین بدترین مهترین کهترین'.split(' ')),
@@ -3942,12 +3944,14 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
       }
       return o;
     }
-    function exFix(t){   /* r206 (استخراج واژهٔ درست): ۱) «مسئل‌های» ← «مسئله‌ای» (نیم‌فاصله و «ه» جابه‌جا) ۲) «تازهای» ← «تازه‌ای» ۳) «صادقاند» ← «صادق‌اند» ۴) «ال‌هام»/«الزم»/«تحوالت» ← «الهام»/«لازم»/«تحولات»؛ همه فقط با تأیید فرهنگ‌واژه و بر واژهٔ ناشناخته */
-      if (typeof t !== 'string' || !/ال|های|اند/.test(t)) return t;
+    function exFix(t){   /* r251: فاصله/نیم‌فاصله پیش از «های»، «Xهی»، پس از یک/هر/هیچ؛ r206 (استخراج واژهٔ درست): ۱) «مسئل‌های» ← «مسئله‌ای» (نیم‌فاصله و «ه» جابه‌جا) ۲) «تازهای» ← «تازه‌ای» ۳) «صادقاند» ← «صادق‌اند» ۴) «ال‌هام»/«الزم»/«تحوالت» ← «الهام»/«لازم»/«تحولات»؛ همه فقط با تأیید فرهنگ‌واژه و بر واژهٔ ناشناخته */
+      if (typeof t !== 'string' || !/ال|های|اند|هی/.test(t)) return t;
       try {
         if (!EX_PS) EX_PS = new Set(miFix.PRES.split('|'));
-        t = t.replace(/(?<![\p{L}\u200c])(\p{L}{3,})\u200cهای(?![\p{L}\u200c])/gu, function(m, x){ return !KEEP.has(x) && !ocrSpell.known(x) && ocrSpell.has(x + 'ه') ? x + 'ه' + Z + 'ای' : m; })
+        t = t.replace(/(?<![\p{L}\u200c])(\p{L}{2,})([\u200c ])های(?![\p{L}\u200c])/gu, function(m, x, sp){ return (sp === ' ' && x.length < 3) || KEEP.has(x) || ocrSpell.known(x) || !ocrSpell.has(x + 'ه') ? m : x + 'ه' + Z + 'ای'; })   /* r251: «انگیز های» (فاصله) و «غص‌های» (ریشهٔ دوحرفی) هم؛ پیش‌تر فاصله‌دار به «انگیزهای» چسبانده می‌شد */
           .replace(/(?<![\p{L}\u200c])(\p{L}{2,})های(?![\p{L}\u200c])/gu, function(m, x){ return !KEEP.has(m) && !ocrSpell.has(m) && !ocrSpell.known(x) && ocrSpell.has(x + 'ه') ? x + 'ه' + Z + 'ای' : m; })
+          .replace(/(?<![\p{L}\u200c])(یک|هر|هیچ)( )(\p{L}{2,})[\u200c ]?های(?![\p{L}\u200c])/gu, function(m, d, sp, x){ return KEEP.has(x) || !ocrSpell.has(x + 'ه') ? m : d + sp + x + 'ه' + Z + 'ای'; })   /* r251: پس از «یک/هر/هیچ» جمع نمی‌آید: «یک چشم‌های» ← «یک چشمه‌ای» (ریشهٔ شناخته‌شده هم) */
+          .replace(/(?<![\p{L}\u200c])(\p{L}{2,})هی(?![\p{L}\u200c])/gu, function(m, x){ return KEEP.has(m) || /[اآو]$/.test(x) || ocrSpell.has(m) || !ocrSpell.has(x + 'ه') ? m : x + 'ه' + Z + 'ی'; })   /* r251: «پایهی/کرهی/انگیزهی» ← «پایه‌ی…»؛ «ماهی/کوهی/الهی» (واژهٔ فرهنگ‌واژه) و واژه‌های «…اه/…وه» (ه = /h/: راهی، کوتاهی) دست‌نخورده */
           .replace(/(?<![\p{L}\u200c])(\p{L}{3,})اند(?![\p{L}\u200c])/gu, function(m, x){ return KEEP.has(m) || ocrSpell.has(m) || !ocrSpell.has(x) || EX_PS.has(x) || /[اآو]$/.test(x) ? m : x + Z + 'اند'; })
           .replace(/(?<![\p{L}\u200c])(\p{L}*ال)\u200c(\p{L}+)(?![\p{L}\u200c])/gu, function(m, x, y){ var j = x + y, c; if (KEEP.has(j) || (x.length > 2 && ocrSpell.known(x))) return m; c = exLig(j); if (c) return c; return ocrSpell.has(j) ? j : m; })
           .replace(/(?<![\p{L}\u200c])\p{L}{4,}(?![\p{L}\u200c])/gu, function(w){ return w.indexOf('ال') < 0 || KEEP.has(w) || ocrSpell.known(w) ? w : (exLig(w) || w); });
@@ -3964,7 +3968,7 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
       if (a === 'ام' && (function(){ var s1 = off, w4; while (s1 > 0 && /\p{L}/u.test(str.charAt(s1 - 1))) s1--; w4 = str.slice(s1, off) + a; return w4 === 'اتهام' || w4 === 'ازدهام'; })()) return m;   /* r183: واژهٔ مستقل (نه «اته‌ام»/«ازده‌ام») */
       return Z + a; })
         .replace(RPL, function(m, r){ return r + (/[دذرزژو]$/.test(r) ? '' : Z) + 'های'; })
-        .replace(R4a, Z).replace(R4b, '').replace(R4c, Z).replace(R4d, cmpSp).replace(RBI, biSp).replace(RUJ, unkJoin)
+        .replace(R4a, Z).replace(R4b, '').replace(R4c, Z).replace(R4e, heSp).replace(R4d, cmpSp).replace(RBI, biSp).replace(RUJ, unkJoin)
         .replace(RC, function(m, a, b){ return cmpOK(a + b) ? a + b : m; })
         .replace(RTOK, splitSuffix).replace(RTOK, cmpZ)
         .replace(R5a, '$1 ').replace(R5b, '$1 ')
@@ -10059,7 +10063,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r250 · 2026-11-17 · hub-v5 · pguard-v3 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v3 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · p16fix-v1', npBuild = '';
+  var APP_BUILD = 'html-r251 · 2026-11-17 · hub-v5 · pguard-v3 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v4 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · p16fix-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
