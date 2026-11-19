@@ -8,11 +8,21 @@ package ir.sewingstats.app;   // <-- appId پروژه (inject-native.sh جایگ
    مرحلهٔ ۱ (همین فایل): bench از کنسول: await ocrNativeBench(1024, 4, 5) ⇒ px/s را با WASM (≈۱۳۵۰) مقایسه کن.
    مرحلهٔ ۲ (r20، opt-in): ocrNative(1) ⇒ متد rec با مسیر Worker→ترد اصلی→پلاگین؛ دو batch اول با WASM اعتبارسنجی و در صورت اختلاف >۲٪ خودکار خاموش می‌شود. */
 
+/* r255 (java-r255، H1/H2/H3 — پچ P18):
+   (۱) H1: خطای راه‌اندازی ORT یک‌بار با زنجیرهٔ علت و فهرست lib/<abi>/*.so داخل APK ثبت می‌شود و برای همهٔ فراخوانی‌های بعدی همان متن برمی‌گردد (قبلاً بار اول UnsatisfiedLinkError و از بار دوم فقط «Could not initialize class ai.onnxruntime.OrtEnvironment» با getMessage() می‌رسید).
+   (۲) پیام خطا با نام کلاس؛ (۳) متد info({init?,retry?}) ⇒ نسخه، زمان نصب APK، ABI، lib‌ها (با init: هش libonnxruntime.so)، ویژگی‌های CPU (H6)، وضعیت ORT (بدون init به ORT دست نمی‌زند)؛
+   (۴) bench: گرم‌کردن ×wu (پیش‌فرض ۲)، msMed/pxsMed، علت بازگشت XNNPACK به CPU (xw)، پارامتر tws=«عرض‌ها» برای هزینهٔ اولین‌دیدن هر شکل (cold/warm)؛
+   (۵) رویداد JS «life» با چرخهٔ حیات Activity (ساعت یکنواخت+دیواری+تعاملی/Doze/صرفه‌جویی). */
 import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtSession;
 import ai.onnxruntime.TensorInfo;
 import android.content.ComponentCallbacks2;
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.os.Build;
+import android.os.PowerManager;
+import android.os.SystemClock;
 import android.content.res.Configuration;
 import android.util.Base64;
 import com.getcapacitor.JSObject;
@@ -34,6 +44,7 @@ public class OcrNativePlugin extends Plugin {
     private static final String MODEL = "public/ocr/paddle/arabic_PP-OCRv5_mobile_rec.onnx";
     private static final String MODEL8 = "public/ocr/paddle/arabic_PP-OCRv5_mobile_rec_int8.onnx";   // r85: اختیاری؛ فقط با rm=int8 و وجود فایل
     private static final int H = 48;
+    private static final String NAT_VER = "java-r255";   // r255: نسخهٔ این فایل (در info)
     private OrtEnvironment env;
     private static final String DET = "public/ocr/paddle/PP-OCRv5_mobile_det.onnx";
 
@@ -66,7 +77,7 @@ public class OcrNativePlugin extends Plugin {
 
     /* r23: session با شمارندهٔ استفاده؛ تعویض session فقط وقتی قدیمی بیکار است بسته می‌شود (بستن حین run = کرش بومی غیرقابل‌گرفتن) */
     private static final class Sess {
-        OrtSession s; String key, in, ep = "cpu", rm = "fp32", why = ""; int chans = 3, busy = 0; long loadMs; boolean retired = false;
+        OrtSession s; String key, in, ep = "cpu", rm = "fp32", why = "", xw = ""; int chans = 3, busy = 0; long loadMs; boolean retired = false;
     }
     private Sess recS, detS;
 
@@ -101,10 +112,141 @@ public class OcrNativePlugin extends Plugin {
         if (trimCb != null) { try { getContext().getApplicationContext().unregisterComponentCallbacks(trimCb); } catch (Throwable e) { } trimCb = null; }
     }
 
+    /* ---------- r255 (H1): خطای راه‌اندازی ORT ---------- */
+    private static volatile String initErr = null;
+
+    private static String clip(String s, int n) { return s == null ? "" : (s.length() > n ? s.substring(0, n) : s); }
+
+    /* «کلاس: پیام ← علت …» تا ۴ سطح + اولین فریم ریشه */
+    private static String describe(Throwable e) {
+        StringBuilder sb = new StringBuilder();
+        Throwable t = e, root = e;
+        for (int i = 0; t != null && i < 4; i++) {
+            if (i > 0) sb.append(" <- ");
+            sb.append(t.getClass().getSimpleName()).append(": ").append(clip(String.valueOf(t.getMessage()), 300));
+            root = t; t = t.getCause();
+        }
+        StackTraceElement[] st = root.getStackTrace();
+        if (st != null && st.length > 0) sb.append(" @ ").append(st[0]);
+        return sb.toString();
+    }
+
+    /* پیام خطا برای JS: نام کلاس + پیام (خطای راه‌اندازیِ از پیش توصیف‌شده بدون تغییر) */
+    private static String errTxt(Throwable e) {
+        String m = String.valueOf(e.getMessage());
+        if (initErr != null && m.equals(initErr)) return m;
+        return e.getClass().getSimpleName() + ": " + m;
+    }
+
+    /* فهرست lib/<abi>/*.so داخل APK (نام=اندازهٔ بی‌فشرده): کدام libonnxruntime.so بسته‌بندی شده؟ (ناهمخوانی JNI و .so = ریشهٔ محتمل H1) */
+    private String libsInfo(boolean hash) {
+        try {
+            String abi = Build.SUPPORTED_ABIS != null && Build.SUPPORTED_ABIS.length > 0 ? Build.SUPPORTED_ABIS[0] : "";
+            String pre = "lib/" + abi + "/";
+            StringBuilder sb = new StringBuilder("abi=" + abi + " sdk=" + Build.VERSION.SDK_INT + " libs:");
+            try (java.util.zip.ZipFile z = new java.util.zip.ZipFile(getContext().getApplicationInfo().sourceDir)) {
+                java.util.Enumeration<? extends java.util.zip.ZipEntry> en = z.entries();
+                int n = 0;
+                while (en.hasMoreElements() && n < 24) {
+                    java.util.zip.ZipEntry ze = en.nextElement();
+                    String nm = ze.getName();
+                    if (nm.startsWith(pre) && nm.endsWith(".so")) { sb.append(' ').append(nm.substring(pre.length())).append('=').append(ze.getSize()); if (hash && nm.equals(pre + "libonnxruntime.so")) sb.append('#').append(sha16(z, ze)); n++; }
+                }
+            }
+            return sb.toString();
+        } catch (Throwable e) { return "libs?" + clip(String.valueOf(e.getMessage()), 80); }
+    }
+
+    /* SHA-256 (۱۶ هگز اول) — برای مقایسه با «unzip -p <aar> jni/<abi>/libonnxruntime.so | sha256sum | cut -c1-16» و فهمیدن اینکه .so کدام AAR در APK نشسته */
+    private static String sha16(java.util.zip.ZipFile z, java.util.zip.ZipEntry ze) {
+        try (java.io.InputStream in = z.getInputStream(ze)) {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] b = new byte[1 << 16];
+            int n;
+            while ((n = in.read(b)) > 0) md.update(b, 0, n);
+            byte[] h = md.digest();
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < 8; i++) sb.append(String.format("%02x", h[i] & 0xFF));
+            return sb.toString();
+        } catch (Throwable e) { return "?"; }
+    }
+
+    /* r255 (H6): ویژگی‌های CPU از /proc/cpuinfo (asimddp/i8mm/…) و «CPU part»های یکتا (خوشه‌های big.LITTLE) */
+    private static String cpuInfo() {
+        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader("/proc/cpuinfo"))) {
+            String l, feat = "";
+            java.util.LinkedHashSet<String> parts = new java.util.LinkedHashSet<>();
+            int n = 0;
+            while ((l = br.readLine()) != null && n++ < 400) {
+                if (feat.isEmpty() && l.startsWith("Features")) feat = clip(l.substring(l.indexOf(':') + 1).trim(), 300);
+                else if (l.startsWith("CPU part")) parts.add(l.substring(l.indexOf(':') + 1).trim());
+            }
+            return "feat=" + feat + " parts=" + parts;
+        } catch (Throwable e) { return "cpu?" + clip(String.valueOf(e.getMessage()), 60); }
+    }
+
+    private synchronized OrtEnvironment envOrThrow() throws Exception {
+        if (env != null) return env;
+        if (initErr != null) throw new Exception(initErr);
+        try { env = OrtEnvironment.getEnvironment(); return env; }
+        catch (Throwable e) { initErr = "ORT-init " + describe(e) + " | " + libsInfo(true); throw new Exception(initErr); }
+    }
+
+    /* ---------- r255 (H3): چرخهٔ حیات Activity ⇒ رویداد JS «life» {e,t(elapsedRealtime s),w(epoch s),i,d,s} ---------- */
+    private void life(String ev) {
+        try {
+            JSObject o = new JSObject();
+            o.put("e", ev); o.put("t", SystemClock.elapsedRealtime() / 1000); o.put("w", System.currentTimeMillis() / 1000);
+            PowerManager pm = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
+            if (pm != null) {
+                o.put("i", pm.isInteractive() ? 1 : 0);
+                o.put("s", pm.isPowerSaveMode() ? 1 : 0);
+                if (Build.VERSION.SDK_INT >= 23) o.put("d", pm.isDeviceIdleMode() ? 1 : 0);
+            }
+            notifyListeners("life", o);
+        } catch (Throwable x) { }
+    }
+    @Override protected void handleOnPause() { life("pause"); }
+    @Override protected void handleOnResume() { life("resume"); }
+    @Override protected void handleOnStop() { life("stop"); }
+    @Override protected void handleOnStart() { life("start"); }
+
+    /* r255: اطلاعات نسخه/دستگاه. {init?:1, retry?:1} ⇒ {ver, inst(زمان نصب APK، ms), vn, abi, sdk, libs, ort:{ok, ver?, providers?, err?}}؛ بدون init به ORT دست نمی‌زند */
+    @PluginMethod
+    public void info(final PluginCall call) {
+        new Thread(new Runnable() {
+            @Override public void run() {
+                try {
+                    JSObject o = new JSObject();
+                    o.put("ver", NAT_VER);
+                    try {
+                        PackageInfo pi = getContext().getPackageManager().getPackageInfo(getContext().getPackageName(), 0);
+                        o.put("inst", pi.lastUpdateTime); o.put("vn", String.valueOf(pi.versionName));
+                    } catch (Throwable e) { o.put("inst", 0); }
+                    o.put("abi", Build.SUPPORTED_ABIS != null && Build.SUPPORTED_ABIS.length > 0 ? Build.SUPPORTED_ABIS[0] : "");
+                    o.put("sdk", Build.VERSION.SDK_INT);
+                    o.put("libs", libsInfo(call.getInt("init", 0) != 0)); o.put("cpu", cpuInfo());
+                    if (call.getInt("init", 0) != 0) {
+                        if (call.getInt("retry", 0) != 0) initErr = null;
+                        JSObject ort = new JSObject();
+                        try {
+                            OrtEnvironment e = envOrThrow();
+                            ort.put("ok", true);
+                            try { ort.put("ver", String.valueOf(OrtEnvironment.class.getMethod("getVersion").invoke(e))); } catch (Throwable x) { }
+                            try { ort.put("providers", String.valueOf(OrtEnvironment.class.getMethod("getAvailableProviders").invoke(null))); } catch (Throwable x) { }
+                        } catch (Throwable e) { ort.put("ok", false); ort.put("err", clip(String.valueOf(e.getMessage()), 1500)); }
+                        o.put("ort", ort);
+                    } else if (initErr != null) o.put("initErr", clip(initErr, 1500));
+                    call.resolve(o);
+                } catch (Throwable e) { call.reject(errTxt(e)); }
+            }
+        }, "ocr-native-info").start();
+    }
+
     private Sess build(String model, Cfg c, String key) throws Exception {
         long t0 = System.nanoTime();
         Sess x = new Sess();
-        env = OrtEnvironment.getEnvironment();
+        env = envOrThrow();   // r255: خطای راه‌اندازی ثبت‌شده و پایدار (sticky)
         try (OrtSession.SessionOptions o = new OrtSession.SessionOptions()) {
             o.setIntraOpNumThreads(c.ith);
             o.setInterOpNumThreads(1);
@@ -117,7 +259,7 @@ public class OcrNativePlugin extends Plugin {
                     m.put("intra_op_num_threads", String.valueOf(c.th));
                     o.addXnnpack(m);
                     x.ep = "xnnpack";
-                } catch (Throwable e) { x.ep = "cpu"; }
+                } catch (Throwable e) { x.ep = "cpu"; x.xw = clip(describe(e), 200); }   // r255: علت بازگشت XNNPACK→CPU ثبت می‌شود (xw)
             }
             x.s = env.createSession(readAsset(model), o);
         }
@@ -192,7 +334,7 @@ public class OcrNativePlugin extends Plugin {
                             call.resolve(o);
                         }
                     }
-                } catch (Throwable e) { call.reject(String.valueOf(e.getMessage())); }
+                } catch (Throwable e) { call.reject(errTxt(e)); }
                 finally { if (S != null) release(S); }
             }
         }, "ocr-native-det").start();
@@ -202,6 +344,8 @@ public class OcrNativePlugin extends Plugin {
     @PluginMethod
     public void bench(final PluginCall call) {
         final int tw = Math.max(64, call.getInt("tw", 768)), b = Math.max(1, call.getInt("b", 3)), n = Math.max(1, call.getInt("n", 5));
+        final int wu = Math.max(1, Math.min(5, call.getInt("wu", 2)));          // r255: تعداد گرم‌کردن (پیش‌فرض ۲)
+        final String tws = call.getString("tws", "");                          // r255: عرض‌ها برای هزینهٔ اولین‌دیدن شکل، مثلاً "256,384,512"
         final Cfg c = cfg(call, 3);
         new Thread(new Runnable() {
             @Override public void run() {
@@ -212,14 +356,17 @@ public class OcrNativePlugin extends Plugin {
                     java.util.Arrays.fill(d, 0.1f);
                     long[] shape = new long[]{b, S.chans, H, tw};
                     long best = Long.MAX_VALUE, sum = 0;
-                    try (OnnxTensor w = OnnxTensor.createTensor(env, FloatBuffer.wrap(d), shape);
-                         OrtSession.Result wr = S.s.run(Collections.singletonMap(S.in, w))) { /* اجرای گرم‌کننده */ }
+                    long[] ts = new long[n];
+                    for (int wi = 0; wi < wu; wi++) {   /* r255: گرم‌کردن ×wu */
+                        try (OnnxTensor w = OnnxTensor.createTensor(env, FloatBuffer.wrap(d), shape);
+                             OrtSession.Result wr = S.s.run(Collections.singletonMap(S.in, w))) { /* اجرای گرم‌کننده */ }
+                    }
                     for (int i = 0; i < n; i++) {
                         try (OnnxTensor t = OnnxTensor.createTensor(env, FloatBuffer.wrap(d), shape)) {
                             long t0 = System.nanoTime();
                             try (OrtSession.Result r = S.s.run(Collections.singletonMap(S.in, t))) {
                                 long dt = (System.nanoTime() - t0) / 1000000;
-                                sum += dt; if (dt < best) best = dt;
+                                sum += dt; ts[i] = dt; if (dt < best) best = dt;
                             }
                         }
                     }
@@ -227,9 +374,32 @@ public class OcrNativePlugin extends Plugin {
                     JSObject o = new JSObject();
                     o.put("ep", S.ep); o.put("th", c.th); o.put("cfg", c.key()); o.put("chans", S.chans); o.put("loadMs", S.loadMs); o.put("rm", S.rm);
                     o.put("msPerRun", Math.round(avg)); o.put("msBest", best);
+                    long[] sd = ts.clone(); java.util.Arrays.sort(sd);
+                    double med = sd.length % 2 == 1 ? sd[sd.length / 2] : (sd[sd.length / 2 - 1] + sd[sd.length / 2]) / 2.0;   // r255: میانه (مقاوم به اجرای پرت)
+                    o.put("msMed", Math.round(med)); o.put("pxsMed", med > 0 ? Math.round(b * (double) tw * 1000 / med) : 0); o.put("wu", wu);
+                    if (!S.xw.isEmpty()) o.put("xw", S.xw);
                     o.put("pxs", Math.round(b * (double) tw * 1000 / avg));
+                    if (!tws.isEmpty()) {   /* r255 (H2/H4): هزینهٔ «اولین دیدن شکل»: برای هر عرض یک اجرای سرد (شکل نو) و یک اجرای گرم؛ عرض‌ها باید با tw فرق داشته باشند */
+                        String[] ws = tws.split(",");
+                        java.util.ArrayList<Long> wl = new java.util.ArrayList<>(), cold = new java.util.ArrayList<>(), warm = new java.util.ArrayList<>();
+                        for (int q = 0; q < ws.length && q < 8; q++) {
+                            int w2 = Math.max(64, Math.min(2048, Integer.parseInt(ws[q].trim())));
+                            float[] d2 = new float[b * S.chans * H * w2];
+                            java.util.Arrays.fill(d2, 0.1f);
+                            long[] sh2 = new long[]{b, S.chans, H, w2};
+                            long[] tt = new long[2];
+                            for (int r2 = 0; r2 < 2; r2++) {
+                                try (OnnxTensor t2 = OnnxTensor.createTensor(env, FloatBuffer.wrap(d2), sh2)) {
+                                    long t1 = System.nanoTime();
+                                    try (OrtSession.Result rr = S.s.run(Collections.singletonMap(S.in, t2))) { tt[r2] = (System.nanoTime() - t1) / 1000000; }
+                                }
+                            }
+                            wl.add((long) w2); cold.add(tt[0]); warm.add(tt[1]);
+                        }
+                        o.put("tws", new org.json.JSONArray(wl.toString())); o.put("cold", new org.json.JSONArray(cold.toString())); o.put("warm", new org.json.JSONArray(warm.toString()));
+                    }
                     call.resolve(o);
-                } catch (Throwable e) { call.reject(String.valueOf(e.getMessage())); }
+                } catch (Throwable e) { call.reject(errTxt(e)); }
                 finally { if (S != null) release(S); }
             }
         }, "ocr-native-bench").start();
@@ -291,7 +461,7 @@ public class OcrNativePlugin extends Plugin {
                             call.resolve(o);
                         }
                     }
-                } catch (Throwable e) { call.reject(String.valueOf(e.getMessage())); }
+                } catch (Throwable e) { call.reject(errTxt(e)); }
                 finally { if (S != null) release(S); }
             }
         }, "ocr-native-rec").start();

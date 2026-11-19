@@ -14,9 +14,39 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MainActivity extends BridgeActivity {
+    /* r255: powerSave/powerState/rendererPolicy اضافه شد (H3). */
     /* r23: F4 ثابت کرد crossOriginIsolated در WebView اندروید هرگز true نمی‌شود؛ هدرها سودی ندارند ولی COEP=require-corp می‌تواند زیرمنابع بین‌مبدأ بدون CORP را ببندد.
        برای برگرداندن رفتار قدیمی true کن. */
     private static final boolean ISOLATION_HEADERS = false;
+    /* r255 (H3): اولویت پردازهٔ رندر WebView (کش‌شده؛ خواندن/تنظیم فقط روی ترد UI) */
+    private volatile String rpNow = "?", rp0 = "";
+
+    private void rpRefresh(final WebView w) {
+        runOnUiThread(new Runnable() {
+            @Override public void run() {
+                try {
+                    if (Build.VERSION.SDK_INT >= 26) {
+                        rpNow = w.getRendererRequestedPriority() + "," + (w.getRendererPriorityWaivedWhenNotVisible() ? 1 : 0);
+                        if (rp0.isEmpty()) rp0 = rpNow;
+                    } else rpNow = "na";
+                } catch (Throwable e) { rpNow = "e"; }
+            }
+        });
+    }
+
+    private void rpSet(final WebView w, final int mode) {
+        runOnUiThread(new Runnable() {
+            @Override public void run() {
+                try {
+                    if (Build.VERSION.SDK_INT >= 26) {
+                        if (mode == 1) w.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false);
+                        else if (mode == 0 && rp0.indexOf(',') > 0) { String[] p = rp0.split(","); w.setRendererPriorityPolicy(Integer.parseInt(p[0]), "1".equals(p[1])); }
+                    }
+                } catch (Throwable e) { }
+                rpRefresh(w);
+            }
+        });
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -27,6 +57,7 @@ public class MainActivity extends BridgeActivity {
         /* COOP/COEP روی همهٔ پاسخ‌های محلی (https://localhost) ← crossOriginIsolated ← SharedArrayBuffer ← WASM چندنخی.
            بلافاصله بعد از super.onCreate تنظیم می‌شود تا سند اصلی هم هدرها را بگیرد (نه فقط زیرمنابع). */
         WebView wv = getBridge().getWebView();
+        rpRefresh(wv);   // r255 (H3): مقدار اولیهٔ سیاست رندر را کش کن
         /* r18: وضعیت حرارتی سیستم برای حاکم مسیرهای OCR (۰ عادی … ۲ متوسط، ۳+ شدید؛ ۱- = پشتیبانی نمی‌شود) */
         final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wv.addJavascriptInterface(new Object() {
@@ -65,6 +96,26 @@ public class MainActivity extends BridgeActivity {
                     bigCache = big > 0 ? big : f.size();
                 } catch (Throwable e) { bigCache = -1; }
                 return bigCache;
+            }
+            /* r255: صرفه‌جویی باتری (۱ روشن، ۰ خاموش، ۱- نامعلوم) — ورودی «هوشمند» */
+            @JavascriptInterface
+            public int powerSave() {
+                try { return pm.isPowerSaveMode() ? 1 : 0; } catch (Throwable e) { return -1; }
+            }
+            /* r255 (H3): «تعاملی,Doze,صرفه‌جویی» مثلاً «1,0,0» (۱- نامعلوم) */
+            @JavascriptInterface
+            public String powerState() {
+                int i = -1, d = -1, s = -1;
+                try { i = pm.isInteractive() ? 1 : 0; } catch (Throwable e) { }
+                try { d = Build.VERSION.SDK_INT >= 23 ? (pm.isDeviceIdleMode() ? 1 : 0) : -1; } catch (Throwable e) { }
+                try { s = pm.isPowerSaveMode() ? 1 : 0; } catch (Throwable e) { }
+                return i + "," + d + "," + s;
+            }
+            /* r255 (H3): سیاست اولویت پردازهٔ رندر. mode: -1 فقط بخوان؛ 1 ⇒ IMPORTANT و waivedWhenNotVisible=false؛ 0 ⇒ بازگرداندن مقدار اولیه. پاسخ «اولویت,waived» (آخرین مقدار کش‌شده؛ اولویت: 0=WAIVED 1=BOUND 2=IMPORTANT) */
+            @JavascriptInterface
+            public String rendererPolicy(int mode) {
+                if (mode == 1 || mode == 0) rpSet(wv, mode); else rpRefresh(wv);
+                return rpNow;
             }
         }, "NativeThermal");
         if (ISOLATION_HEADERS) {
