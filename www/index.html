@@ -4640,7 +4640,7 @@ var ocrSpell = (function(){
        بیش از یک تجزیه ⇒ بدون تغییر؛ خط اعراب‌دار یا ≥۴۰٪ ناشناخته (عربی/نام/خراب) ⇒ بدون تغییر. هزینه: فقط توکن‌های ناشناخته (≈۳٪). این تابع در Worker هم اجرا می‌شود ⇒ خودبسنده. known(w) = واژهٔ شناخته‌شدهٔ نرمال‌شده */
     var EXC = ['دراز', 'وبا', 'ورا', 'وهم', 'وبر', 'واز', 'تابه', 'بابا', 'بربر', 'دریا'],   /* واژه‌های درستی که شکل «نقشی+نقشی» دارند؛ حتی اگر فرهنگ‌واژه نداشته باشد تقسیم نمی‌شوند */
         PF = ['و', 'از', 'در', 'به', 'با', 'بر', 'تا', 'را'], FB = ['در', 'به', 'از', 'با', 'بر', 'تا', 'را', 'که', 'این', 'آن', 'هم', 'یا'], SF = ['و', 'را', 'که'],
-        AL = '\\u0621-\\u063A\\u0641-\\u064A\\u067E\\u0686\\u0698\\u06A9\\u06AF\\u06CC', CORE = new RegExp('^([^' + AL + ']*)([' + AL + ']+)([^' + AL + ']*)$'), HAR = /[\u064B-\u0652\u0670]/;
+        CORE = /^([^\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC]*)([\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC]+)([^\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC]*)$/, HAR = /[\u064B-\u0652\u0670]/;   /* r256: لیترال (بدون شناسهٔ RegExp در کد Worker) */
     function seg(w){
       var n = w.length, i, j, p, s, m, ok, out = null, cnt = 0;
       if (n < 3 || n > 24 || EXC.indexOf(w) >= 0) return null;
@@ -7236,7 +7236,7 @@ function jbWrapW(ls, old){
     H.dx = function(){ if (P.dx) P.dx.chain = P.chain; return P.dx || null; };
     H.rst = function(d){ if (d === 0 || d === 1) ocrOrder.force = d === 1; P.of = 0; P.o0 = 0; P.rf = 0; P.bt = 0; P.bw = 0; JW.clear(); JP.clear(); return 1; };   /* بازنشانی حافظهٔ جهت‌یابی هنگام استفادهٔ مجدد از Worker گرم */
     H.pinit = function(d){
-      if (!HB) { HB = { t: performance.now(), d: Date.now(), g: [] }; try { setInterval(function(){ var n = performance.now(), w = Date.now(), g = n - HB.t - 1000, h = w - HB.d - 1000; HB.t = n; HB.d = w; if ((g > 8000 || h > 8000) && HB.g.length < 12) HB.g.push([Math.round(n / 1000), Math.round(g), Math.round(h)]); }, 1000); } catch (e) {} }
+      if (!HB) { HB = { t: performance.now(), d: self.Date.now(), g: [] }; try { self.setInterval(function(){ var n = performance.now(), w = self.Date.now(), g = n - HB.t - 1000, h = w - HB.d - 1000; HB.t = n; HB.d = w; if ((g > 8000 || h > 8000) && HB.g.length < 12) HB.g.push([Math.round(n / 1000), Math.round(g), Math.round(h)]); }, 1000); } catch (e) {} }
       P.side = d.side || 1472; P.dsk = d.dsk !== false; P.dn = !!d.dn; P.adp = d.adp !== false; P.d = d;
       P.gs = d.gs !== false; P.jp = !!d.jp; P.p2 = d.p2 != null ? +d.p2 : 0; P.p2v = +d.p2v === 2 ? 2 : 1; P.bin = d.bin !== false; var lq = parseFloat(d.lmp), ln = parseFloat(d.lmn); P.lmp = isNaN(lq) ? 1.0 : lq; P.lmn = isNaN(ln) ? -0.7 : ln; JW.clear(); JP.clear();
       if (typeof d.lex === 'string' || Array.isArray(d.lex)) {         /* r57: '' ← خاموش (LX رها می‌شود)؛ کلید lk عوض شود ← بازسازی */
@@ -10271,7 +10271,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r255 · 2026-11-18 · hub-v5 · pguard-v4 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v6 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · p16fix-v1 · psmart-v1 · pgs-v1 · psci-v1 · pdun-v1 · palh-v1 · whb-v1 · pnat-v1', npBuild = '';
+  var APP_BUILD = 'html-r256 · 2026-11-19 · hub-v5 · pguard-v4 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v6 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · p16fix-v1 · psmart-v1 · pgs-v1 · psci-v1 · pdun-v1 · palh-v1 · whb-v1 · pnat-v1 · pgrd-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
