@@ -218,6 +218,29 @@ jobs:
               [ -f "$j" ] || { echo "== $j : MISSING"; continue; }
               echo "== $j"; echo "  OrtGetApiBase:"; sym "$j"; echo "  elf:"; need "$j"
             done
+            # r256 (P19): نمادهای Ort* که JNI داخل APK لازم دارد ولی libonnxruntime.so داخل APK ندارد (علت «cannot locate symbol»)
+            und() { readelf -Ws --dyn-syms "$1" 2>/dev/null | awk '$7=="UND" && $8 ~ /^Ort/ {sub(/@.*/,"",$8); print $8}' | sort -u; }
+            def() { readelf -Ws --dyn-syms "$1" 2>/dev/null | awk '$7!="UND" && $8 ~ /^Ort/ {sub(/@.*/,"",$8); print $8}' | sort -u; }
+            JNI=/tmp/apkso/lib/arm64-v8a/libonnxruntime4j_jni.so
+            echo "--- نمادهای Ort* لازم برای JNI (APK) ولی گم در libonnxruntime.so داخل APK:"
+            if [ -f "$JNI" ] && [ -f "$APK_ORT" ]; then
+              und "$JNI" > /tmp/jni.und; def "$APK_ORT" > /tmp/apk.def
+              echo "JNI به $(wc -l < /tmp/jni.und) نماد Ort* نیاز دارد؛ libonnxruntime.so داخل APK $(wc -l < /tmp/apk.def) نماد Ort* تعریف می‌کند"
+              comm -23 /tmp/jni.und /tmp/apk.def | sed 's/^/    MISSING: /' | head -20
+              [ -n "$(comm -23 /tmp/jni.und /tmp/apk.def | head -1)" ] || echo "    (نماد گم‌شده‌ای نیست؛ ناهمخوانی از نوع دیگری است)"
+            else
+              echo "    (JNI یا libonnxruntime.so داخل APK پیدا نشد)"
+            fi
+            if [ -f "$JNI" ] && [ -f /tmp/aar/jni/arm64-v8a/libonnxruntime.so ]; then
+              def /tmp/aar/jni/arm64-v8a/libonnxruntime.so > /tmp/aar.def
+              echo "--- اگر libonnxruntime.so ی AAR در APK می‌ماند، نمادهای گم‌شدهٔ JNI:"
+              comm -23 /tmp/jni.und /tmp/aar.def | sed 's/^/    MISSING: /' | head -20
+            fi
+            if [ -f /tmp/apkso/lib/arm64-v8a/libsherpa-onnx-jni.so ] && [ -f "$APK_ORT" ]; then
+              und /tmp/apkso/lib/arm64-v8a/libsherpa-onnx-jni.so > /tmp/sh.und
+              echo "--- نمادهای Ort* لازم برای libsherpa-onnx-jni.so ولی گم در libonnxruntime.so داخل APK:"
+              comm -23 /tmp/sh.und /tmp/apk.def | sed 's/^/    MISSING: /' | head -20
+            fi
             echo "--- gradle (app):"
             grep -n "onnxruntime\|pickFirst\|packagingOptions\|useLegacyPackaging" android/app/build.gradle || echo "(none)"
             echo '```'
