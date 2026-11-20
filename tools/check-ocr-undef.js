@@ -19,7 +19,11 @@ var fns = {};
   for (var k in n) { if (k === 'loc') continue; var c = n[k]; if (Array.isArray(c)) c.forEach(walk); else if (c && typeof c.type === 'string') walk(c); }
 })(ast);
 
-var parts = ['stripKashida', 'ocrPurgeMk', 'ocrLines', 'ocrCluster', 'ocrOrder', 'ocrText'], need = parts.concat(['paddleWGlue', 'wkBoot']), i;
+var parts = ['stripKashida', 'ocrPurgeMk', 'ocrLines', 'ocrCluster', 'ocrOrder', 'ocrText', 'ocrGlueMk'], need, i;
+/* همگام‌سازی خودکار با ocrwSpawn: فهرست توابعی که واقعاً داخل Worker فرستاده می‌شوند از خود index.html خوانده می‌شود (اگر الگو پیدا نشد، همان فهرست بالا) */
+var spawn = /wkRpc\(\[([^\]]+)\]\.map\(String\)\.join/.exec(big);
+if (spawn) { var auto = spawn[1].split(',').map(function (x) { return x.trim(); }).filter(function (x) { return /^[A-Za-z_$][\w$]*$/.test(x); }); if (auto.length) parts = auto; }
+need = parts.concat(['paddleWGlue', 'wkBoot']);
 for (i = 0; i < need.length; i++) if (!fns[need[i]]) { console.error('تابع پیدا نشد (نام عوض شده؟): ' + need[i]); process.exit(2); }
 var src = parts.map(function (n) { return fns[n]; }).join('\n') + '\nvar ocrPurge = ocrPurgeMk();var H = {};(' + fns.paddleWGlue + ')();(' + fns.wkBoot + ')();';
 
