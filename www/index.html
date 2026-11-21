@@ -3783,8 +3783,8 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
     var Z = '\u200c', NB = '(?<![\\p{L}\u200c])', NE = '(?![\\p{L}\u200c])',
         PRES = 'شو|کن|ده|رو|آی|ای|گو|بین|خور|گیر|توان|دان|خواه|باش|دار|نویس|خوان|مان|آور|اور|بر|ساز|یاب|پذیر|ریز|کش|زن|گذار|شناس|فرست|رس|خواب|نشین|پرس|فهم|آموز|گرد|ایست|انداز|افت|افزا|افروز|آفرین|آمیز|آزما|اندیش|کوش|شنو|پرداز|پندار|شمار|خند|پز|پوش|بخش|بند|تاز|تراش|ترس|چین|چسب|خر|خیز|دو|دوز|رقص|رنج|سپار|سوز|شکن|شکف|فروش|فرما|فشار|کار|کوب|گذر|گزین|گشا|گمار|نمای|نواز|پسند|پیچ|پیما|پیوند|بخش|بیز|جو|جنگ|چرخ|خوش|دز|دم|رنج|زی|ستان|سنج|شو|شکن|لرز|مال|مان|نگار|نگر|نشان|هراس|یاب|یاور|بار|بافت?|گریز|چش|ستیز|سرای|جوش|درخش|ربا|نال|فریب|آرای|نام|ارز|کاه|ورز|رسان|پرور|افکن',
         PAST = 'کرد|گفت|رفت|شد|داد|دید|خواست|آمد|برد|خورد|گرفت|بود|داشت|ماند|نوشت|خواند|توانست|دانست|آورد|ساخت|زد|رسید|پرسید|شنید|فهمید|گذاشت|کشید|ریخت|نشست|افتاد|یافت|ایستاد|انداخت|پرداخت|پنداشت|شمرد|خندید|پوشید|پخت|فروخت|گشت|دوید|ترسید|کوشید|پذیرفت|شناخت|فرستاد|خوابید|خرید|چید|دوخت|سوخت|شکست|شکفت|بخشید|بست|جست|رقصید|ماسید|نمود|نماید|فرمود|گذشت|گزید|گمارد|گمارید|یاوید|سپرد|بافت|توان|بایست|شایست|بایستی|گریخت|چشید|ستیزید|سرود|جوشید|درخشید|ربود|نالید|فریفت|آراست|ستود|گشود|گسست|نگریست|تپید|لغزید|لرزید|تابید|گسیخت';
-    var PRES_X = 'انجام|طلب|انگار|نوش|آشام|گذران|تاب|شکاف|پژوه|بال|ماس|کاو|انگیز|اندوز|آمرز|افشان|تپ|تن|رم|رنجان|رویان|زدا|لغز|یاز|گستر|ستا|فهمان|گردان|کشان|ترسان|سوزان|چرخان|پوشان|شناسان|پروران|نمایان|گستران|خوران|دوان|بخشا|بیا|آرا',
-        PAST_X = 'انجامید|اندیشید|زیست|آموخت|نوشید|کاشت|آفرید|افزود|نگاشت|نشاند|بالید|طلبید|پژوهید|زدود|باید|افروخت|انگیخت|اندوخت|آمرزید|ستایید|گسترد|گستراند|پروراند|افشاند|رنجاند|رویاند|تپید|ماسید|لغزید|کاوید|گذراند|پوشاند|ترساند|سوزاند|چرخاند|کشاند|فهماند|گرداند|شناساند|نمایاند|خوراند|رساند|خواند|تنید|رمید|یازید|زدایید';
+    var PRES_X = 'نه|انجام|طلب|انگار|نوش|آشام|گذران|تاب|شکاف|پژوه|بال|ماس|کاو|انگیز|اندوز|آمرز|افشان|تپ|رم|رنجان|رویان|زدا|لغز|یاز|گستر|فهمان|گردان|کشان|ترسان|سوزان|چرخان|پوشان|شناسان|پروران|نمایان|گستران|خوران|دوان|بخشا|بیا',
+        PAST_X = 'ستاید|ستایند|ستایم|آراید|آرایند|آرایم|نهاد|انجامید|اندیشید|زیست|آموخت|نوشید|کاشت|آفرید|افزود|نگاشت|نشاند|بالید|طلبید|پژوهید|زدود|باید|افروخت|انگیخت|اندوخت|آمرزید|ستایید|گسترد|گستراند|پروراند|افشاند|رنجاند|رویاند|تپید|ماسید|لغزید|کاوید|گذراند|پوشاند|ترساند|سوزاند|چرخاند|کشاند|فهماند|گرداند|شناساند|نمایاند|خوراند|رساند|خواند|تنید|رمید|یازید|زدایید';
     var R = new RegExp(NB + '(ن?می)[ ]?(?!(?:دانی|چشم)' + NE + ')(?=(?:' + PRES + '|' + PRES_X + ')(?:م|ی|یم|ییم|ید|ند|یند|د)' + NE + '|(?:' + PAST + '|' + PAST_X + ')(?:م|ی|یم|ید|ند|ه(?:\u200c?(?:ام|ای|ایم|اید|اند))?)?' + NE + ')', 'gu');   /* r258: PRES_X/PAST_X فقط برای miFix (PRES/PAST مشترک دست‌نخورده)؛ «می انجامد/می‌گذراند/می‌گوییم» */   /* r173: «می کرده است» ← «می‌کرده است» (گزارش دستگاه: «می␠فعل» جدا) */
     var f = function(t){ return t.replace(R, '$1' + Z); };
     f.PRES = PRES; f.PAST = PAST;
@@ -10276,7 +10276,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r260 · 2026-11-21 · hub-v5 · pguard-v4 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v6 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · p16fix-v1 · psmart-v1 · pgs-v1 · psci-v1 · pdun-v1 · palh-v1 · whb-v1 · pnat-v1 · pgrd-v1 · pthm-v1 · pdpk-v1', npBuild = '';
+  var APP_BUILD = 'html-r262 · 2026-11-21 · hub-v5 · pguard-v4 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v6 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · p16fix-v1 · psmart-v1 · pgs-v1 · psci-v1 · pdun-v1 · palh-v1 · whb-v1 · pnat-v1 · pgrd-v1 · pthm-v1 · pdpk-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -10978,8 +10978,8 @@ function svTx(c){   /* نگهبان خروجی متن: بازماندهٔ لات
 /* r166 (نگهبان متن، فقط ثبت): شمارندهٔ بازماندهٔ خطاهای شناخته‌شده در جمله‌های نهایی پس از process؛ هیچ متنی تغییر نمی‌کند. سقف ۲۰ شناسهٔ صفحه برای هر شمارنده؛ همان شمارش‌ها در گزارش زنده و «گزارش ناظر تصحیح گفتار» می‌آیند */
 var TG_NAMES = { q: 'گیومهٔ وارونه (اولین گیومه «»»)', c: 'نویسهٔ کنترلی', n: 'رشتهٔ ≥۸رقمی', a: '«ه‌ای» با ریشهٔ مبهم', m: '«می␠فعل» جدا' },
     TG_AMB = /(?<![\p{L}\u200c])(?:فرایند|کارکرد|تضاد|بعد|صد|صدا|امید|قضاوت|باید|روند|تهدید|بازخورد|رشد|عملکرد|مقصد|درد|کلید|ترک|برداشت)ه\u200cای(?![\p{L}\u200c])/gu,
-    TG_CT = /[\u0000-\u0008\u000b\u000c\u000e-\u001e]/, TG_N8 = /[0-9\u06F0-\u06F9\u0660-\u0669]{8}/, TG_MF = /(?<![\p{L}\u200c])ن?می (?=[\u0621-\u06D3]{2,})/gu,
-    TG_MW = /(?<![\p{L}\u200c])(ن?می) ([\u0621-\u06D3]{2,})/gu;
+    TG_CT = /[\u0000-\u0008\u000b\u000c\u000e-\u001e]/, TG_N8 = /[0-9\u06F0-\u06F9\u0660-\u0669]{8}/, TG_MF = /(?<![\p{L}\u200c])ن?می (?!(?:به|را|از|در|بر|با|که|تا|هم|نیز|هر|این|آن|بی|چو|چون)(?![\u0621-\u06D3]))(?=[\u0621-\u06D3]{2,})/gu,
+    TG_MW = /(?<![\p{L}\u200c])(ن?می) (?!(?:به|را|از|در|بر|با|که|تا|هم|نیز|هر|این|آن|بی|چو|چون)(?![\u0621-\u06D3]))([\u0621-\u06D3]{2,})/gu;
 function svTxScan(){
   var tg = { q: 0, c: 0, n: 0, a: 0, m: 0 }, pg = { q: [], c: [], n: [], a: [], m: [] }, sm = {}, i, t, k, qi, x, sig;
   var hit = function(key, c, o){ tg[key] += c; if (pg[key].length < 20 && pg[key].indexOf(o.page) < 0) pg[key].push(o.page); if (!sm[key]) sm[key] = o.text.slice(0, 70); };
@@ -10994,7 +10994,7 @@ function svTxScan(){
     if (TG_CT.test(t)) hit('c', 1, sents[i]);
     if (TG_N8.test(t)) hit('n', 1, sents[i]);
     if (t.indexOf('\u200cای') >= 0 && (x = t.match(TG_AMB))) hit('a', x.length, sents[i]);
-    if (t.indexOf('می ') >= 0 && (x = t.match(TG_MF))) {
+    if (!sents[i].po && t.indexOf('می ') >= 0 && (x = t.match(TG_MF))) {   /* r261: مصراع/بیت (po) و «به/را/از…» پس از «می» شمرده نمی‌شود */
       hit('m', x.length, sents[i]);
       TG_MW.lastIndex = 0;
       while ((mwm = TG_MW.exec(t))) { mws = mwm[1] + ' ' + mwm[2]; mw[mws] = (mw[mws] || 0) + 1; if (!sm.mc) sm.mc = t.slice(Math.max(0, mwm.index - 18), mwm.index + mwm[0].length + 18); }
@@ -12229,7 +12229,8 @@ function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مک
   })();
   pvLook();
   pvApply();
-  var kaOn = null, kaBad = false, kaReady = true, kaAu = null, wlSen = null, wlBusy = false, wlWant = false, kaErr = '';
+  var kaOn = null, kaBad = false, kaReady = true, kaAu = null, wlSen = null, wlBusy = false, wlWant = false, kaErr = '', kaLv = 0, kaFroze = 0;
+  try { kaLv = Math.min(3, Math.max(0, parseInt(localStorage.getItem('ka_lv') || '0', 10) || 0)); } catch (e) {}   /* r262: سطح حلقهٔ صوتی نگهدارنده؛ اگر با ka1 باز هم فریز شد، در بازگشت یک پله بالا می‌رود (حداکثر ۳) */
 function wlSync(want){ wlWant = want;   /* Screen Wake Lock برای نسخهٔ وب (بدون پلاگین بومی)؛ با پنهان‌شدن صفحه خودکار آزاد می‌شود و در بازگشت دوباره گرفته می‌شود */
   try {
     if (!want || document.hidden) { if (wlSen) { var o = wlSen; wlSen = null; o.release().catch(function(){}); } return; }
@@ -12242,10 +12243,12 @@ function wlSync(want){ wlWant = want;   /* Screen Wake Lock برای نسخهٔ 
     try {
       if (on) {
         if (!kaAu) {
-          var n = 8000, u = new Uint8Array(44 + n), dv = new DataView(u.buffer), i, w = function(o, t){ for (var j = 0; j < t.length; j++) u[o + j] = t.charCodeAt(j); };
-          w(0, 'RIFF'); dv.setUint32(4, 36 + n, true); w(8, 'WAVEfmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true); dv.setUint32(24, 8000, true); dv.setUint32(28, 8000, true); dv.setUint16(32, 1, true); dv.setUint16(34, 8, true); w(36, 'data'); dv.setUint32(40, n, true);
-          for (i = 0; i < n; i++) u[44 + i] = 128 + ((i % 200) < 100 ? 1 : 0);
-          kaAu = new Audio('data:audio/wav;base64,' + natU8(u)); kaAu.loop = true; kaAu.volume = 0.02;
+          /* r262: ۱۶بیتی، مقدار ثابت (DC) بسیار کوچک ⇒ شنیده نمی‌شود، ولی توان آن بالاتر از آستانهٔ «در حال پخش» در Chromium (≈ -72 dBFS) است؛
+             پیش‌تر ±۱/۱۲۸ با volume=0.02 ≈ -79 dBFS بود و با ka1 هم ۶۰ ثانیه پس از hidden فریز می‌شد. پس از volume=0.1: سطح۰ ≈ -64، ۱ ≈ -58، ۲ ≈ -52، ۳ ≈ -46 dBFS */
+          var n = 8000, u = new Uint8Array(44 + 2 * n), dv = new DataView(u.buffer), i, amp = [0.0063, 0.0126, 0.025, 0.05][kaLv] || 0.0063, sv = Math.round(amp * 32767), w = function(o, t){ for (var j = 0; j < t.length; j++) u[o + j] = t.charCodeAt(j); };
+          w(0, 'RIFF'); dv.setUint32(4, 36 + 2 * n, true); w(8, 'WAVEfmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true); dv.setUint32(24, 8000, true); dv.setUint32(28, 16000, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); w(36, 'data'); dv.setUint32(40, 2 * n, true);
+          for (i = 0; i < n; i++) dv.setInt16(44 + 2 * i, sv, true);
+          kaAu = new Audio('data:audio/wav;base64,' + natU8(u)); kaAu.loop = true; kaAu.volume = 0.1;
         }
         if (kaAu.paused) { try { var kp = kaAu.play(); if (kp && kp.catch) kp.catch(function(e){ kaErr = String((e && e.name) || e).slice(0, 24); }); } catch (e) { kaErr = 'throw'; } }   /* r259: خطای play() ثبت می‌شود (پیش‌تر بی‌صدا بلعیده می‌شد) */
         if (navigator.mediaSession && !playing) { try { navigator.mediaSession.metadata = new MediaMetadata({ title: 'OCR در حال اجراست', artist: 'خوانندهٔ صوتی PDF' }); navigator.mediaSession.playbackState = 'playing'; } catch (e) {} }
@@ -12255,7 +12258,7 @@ function wlSync(want){ wlWant = want;   /* Screen Wake Lock برای نسخهٔ 
       }
     } catch (e) {}
   }
-  function kaSt(){ try { return (kaAu ? (kaAu.paused ? 'ka0' : 'ka1') : 'ka-') + (kaErr ? ':' + kaErr : '') + '|np' + (NP ? 1 : 0) + (npOK ? 1 : 0) + 'b' + (kaBad ? 1 : 0) + 'o' + (kaOn === null ? '-' : (kaOn ? 1 : 0)); } catch (e) { return 'ka?'; } }   /* r259: ka1 = حلقهٔ صوتی نگهدارنده در حال پخش، ka0 = متوقف، ka- = ساخته نشده؛ پس از «:» خطای play() */
+  function kaSt(){ try { return (kaAu ? (kaAu.paused ? 'ka0' : 'ka1') : 'ka-') + (kaErr ? ':' + kaErr : '') + 'L' + kaLv + '|np' + (NP ? 1 : 0) + (npOK ? 1 : 0) + 'b' + (kaBad ? 1 : 0) + 'o' + (kaOn === null ? '-' : (kaOn ? 1 : 0)); } catch (e) { return 'ka?'; } }   /* r259: ka1 = حلقهٔ صوتی نگهدارنده در حال پخش، ka0 = متوقف، ka- = ساخته نشده؛ پس از «:» خطای play() */
   var kaOffAt = 0;
   function kaSync(){
     var scan = !!(ocrBusy || (man && (man.busy || man.fx)) || (RC && RC.run)), kw = !!(playing || scan);   /* بیدار ماندن صفحه/CPU هم حین پخش و هم حین OCR (اصلی و دستی) */
@@ -12268,7 +12271,9 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
     try { Promise.resolve(NP.keepAwake({ on: kw, cpu: kw })).catch(function(){ kaBad = true; }); } catch (e) { kaBad = true; }
   }
   setInterval(function(){ if (ocrBusy || (man && (man.busy || man.fx)) || (RC && RC.run)) kaSync(); }, 4000);
-  document.addEventListener('visibilitychange', function(){ kaSync(); try { if (ocrBusy && ocrPerf && ocrPerf.vis && ocrPerf.vis.length < 60) ocrPerf.vis.push([ocrPerf.n, document.visibilityState, Math.round(performance.now() / 1000), Math.round(Date.now() / 1000), document.hasFocus() ? 1 : 0, kaSt()]); } catch (e) {} });
+  try { document.addEventListener('freeze', function(){ if (kaAu && !kaAu.paused) kaFroze = 1; }); } catch (e) {}
+  document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible' && kaFroze) { kaFroze = 0; if (kaLv < 3) { kaLv++; try { localStorage.setItem('ka_lv', String(kaLv)); } catch (e) {} try { if (kaAu) kaAu.pause(); } catch (e) {} kaAu = null; } }   /* r262: با ka1 هم فریز شد ⇒ سطح بالاتر برای دفعهٔ بعد */
+    kaSync(); try { if (ocrBusy && ocrPerf && ocrPerf.vis && ocrPerf.vis.length < 60) ocrPerf.vis.push([ocrPerf.n, document.visibilityState, Math.round(performance.now() / 1000), Math.round(Date.now() / 1000), document.hasFocus() ? 1 : 0, kaSt()]); } catch (e) {} });
   /* r254 (H3): رویدادهای چرخهٔ حیات با هر دو ساعت (یکنواخت/دیواری)؛ سقف ۶۰ ردیف؛ فقط حین OCR؛ شنوندهٔ ثابت (نشتی ندارد) */
   ['pagehide', 'pageshow'].forEach(function(ev){ try { window.addEventListener(ev, function(){ try { if (ocrBusy && ocrPerf && ocrPerf.vis && ocrPerf.vis.length < 60) ocrPerf.vis.push([ocrPerf.n, ev, Math.round(performance.now() / 1000), Math.round(Date.now() / 1000), document.visibilityState]); } catch (e) {} }); } catch (e) {} });
   ['freeze', 'resume'].forEach(function(ev){ try { document.addEventListener(ev, function(){ try { if (ocrBusy && ocrPerf && ocrPerf.vis && ocrPerf.vis.length < 60) ocrPerf.vis.push([ocrPerf.n, ev, Math.round(performance.now() / 1000), Math.round(Date.now() / 1000), document.visibilityState, kaSt()]); } catch (e) {} }); } catch (e) {} });
