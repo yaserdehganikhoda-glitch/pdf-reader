@@ -23,8 +23,13 @@ for abi in arm64-v8a armeabi-v7a; do
   NEED="$(readelf --dyn-syms -W "$F" | grep -oE 'OrtGetApiBase@VERS_[0-9.]+' | head -1 | sed 's/.*@//' || true)"
   echo "$abi: sherpa ORT=${PROV:-?} · JNI نیاز=${NEED:-بدون نسخه}"
   [ -n "$NEED" ] && [ "$NEED" != "$PROV" ] || continue
-  patchelf --clear-symbol-version OrtGetApiBase "$F"
-  if readelf --dyn-syms -W "$F" | grep -qE 'OrtGetApiBase@VERS_'; then echo "::error::$abi: نیاز نسخه‌دار برداشته نشد"; exit 1; fi
+  # r257: فقط OrtGetApiBase نه؛ هر نماد Ort* نسخه‌دار در JNI باید بی‌نسخه شود (مثل OrtSessionOptionsAppendExecutionProvider_CPU@VERS_<AAR>)، وگرنه linker اندروید «cannot locate symbol» می‌دهد
+  VSYMS="$(readelf --dyn-syms -W "$F" | awk '$7=="UND" && $8 ~ /^Ort[A-Za-z0-9_]*@VERS_/ {sub(/@.*/,"",$8); print $8}' | sort -u)"
+  [ -n "$VSYMS" ] || continue
+  ARGS=(); for sym in $VSYMS; do ARGS+=(--clear-symbol-version "$sym"); done
+  patchelf "${ARGS[@]}" "$F"
+  echo "  $abi: نسخهٔ این نمادها برداشته شد: $(echo $VSYMS | tr '\n' ' ')"
+  if readelf --dyn-syms -W "$F" | grep -qE 'Ort[A-Za-z0-9_]*@VERS_'; then echo "::error::$abi: نیاز نسخه‌دار برداشته نشد"; exit 1; fi
   cp -f "$F" "$J/$abi/libonnxruntime4j_jni.so"; DONE=$((DONE+1))
 done
 if [ "$DONE" -gt 0 ] && ! grep -q "libonnxruntime4j_jni.so" "$G"; then
