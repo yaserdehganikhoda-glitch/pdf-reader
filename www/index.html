@@ -9424,7 +9424,7 @@ function jbWrapW(ls, old){
     'کشتی:کِشتی L[سوار ناخدا اسکله ناو] R[جنگی تجاری مسافربری باری نجات غرق اقیانوس‌پیما بادبانی]|کُشتی L[مسابقه مسابقات رشته ورزش فدراسیون قهرمان قهرمانی مربی] R[گیر گیری آزاد فرنگی پهلوان]'
   ];
   var HOM = null, HOM_D = /[\u064B-\u065F\u0670\u200c]/g, HOM_TK = /^([^\p{L}\p{M}\u200c]*)([\p{L}\p{M}\u200c]*)([\s\S]*)$/u;
-  function homNorm(w){ return w.replace(HOM_D, ''); }
+  function homNorm(w){ return w.replace(HOM_D, '').replace(/\u06C0/g, '\u0647'); }   /* r264: «چهرهٔ/مسابقهٔ» (کسرهٔ اضافهٔ خودکار) = همان «چهره/مسابقه» برای نشانه‌های بافتی؛ وگرنه ezAuto نشانهٔ همنگاشت مجاور را می‌شکست */
   function homInit(){
     HOM = {};
     var cu = function(str){
@@ -9492,12 +9492,12 @@ function jbWrapW(ls, old){
       if (!W[i] || /[\u064B-\u065F\u0670]/.test(c0)) continue;   /* اعرابِ از پیش‌گذاشته‌شده دست نمی‌خورد */
       key = W[i]; ent = HOM[key]; suf = 0;
       if (!ent && (sm = /^(.{2,}?)(ها|های|هایی)$/.exec(key)) && HOM[sm[1]]) { ent = HOM[sm[1]]; suf = sm[2] === 'ها' ? 2 : 1; }
-      if (ent) P[i] = { ent: ent, suf: suf, lead: m[1], trail: m[3], ez: c0.length !== core.length ? '\u0650' : '', sfx: suf ? (/(\u200c?(?:ها|های|هایی))$/.exec(c0) || ['', ''])[1] : '' };
+      if (ent) P[i] = { ent: ent, suf: suf, lead: m[1], trail: m[3], hz: !suf && /\u06C0$/.test(c0), ez: c0.length !== core.length ? '\u0650' : '', sfx: suf ? (/(\u200c?(?:ها|های|هایی))$/.exec(c0) || ['', ''])[1] : '' };
     }
     for (i = 0; i < n; i++) {
       if (!P[i]) continue;
       var p = P[i], sel = homPick(p.ent, W, B, i, p.suf);
-      if (sel) ws[i] = p.lead + sel.v + p.sfx + p.ez + p.trail;
+      if (sel) ws[i] = p.lead + (p.hz ? sel.v.replace(/\u0647(?=[\u064B-\u065F]*$)/, '\u06C0') : sel.v) + p.sfx + p.ez + p.trail;
     }
     return ws.join(' ');
   }
