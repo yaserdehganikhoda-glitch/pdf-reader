@@ -1,6 +1,13 @@
 package ir.sewingstats.app;   // <-- appId پروژهٔ خودت (inject-native.sh خودش جایگزین می‌کند)
 
+import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -20,6 +27,28 @@ public class MainActivity extends BridgeActivity {
     private static final boolean ISOLATION_HEADERS = false;
     /* r255 (H3): اولویت پردازهٔ رندر WebView (کش‌شده؛ خواندن/تنظیم فقط روی ترد UI) */
     private volatile String rpNow = "?", rp0 = "";
+
+    /* r263: OCR با صفحهٔ خاموش/تاریک.
+       kvOn: JS (حین OCR) درخواست کرده WebView «پنهان» حساب نشود. هنگام pause/stop شدن Activity هر ~۱٫۵ ثانیه به WebView اعلام می‌شود «پنجره آشکار است»
+       تا Chromium صفحه را hidden و پس از ~۶۰ ثانیه frozen نکند (در گزارش‌ها: hidden ← دقیقاً ۶۰ ثانیه بعد freeze، حتی با حلقهٔ صوتی). */
+    private volatile boolean kvOn = false, kvStopped = false;
+    private volatile int kvN = 0;
+    private final Handler kvH = new Handler(Looper.getMainLooper());
+    private final Runnable kvR = new Runnable() {
+        @Override public void run() {
+            try {
+                if (!kvOn) return;
+                WebView w = getBridge().getWebView();
+                if (w != null) { w.dispatchWindowVisibilityChanged(View.VISIBLE); kvN++; }
+            } catch (Throwable e) { }
+            if (kvOn && kvStopped) kvH.postDelayed(this, 1500);
+        }
+    };
+
+    private void kvPulse() {
+        kvH.removeCallbacks(kvR);
+        kvH.postDelayed(kvR, 250);
+    }
 
     private void rpRefresh(final WebView w) {
         runOnUiThread(new Runnable() {
@@ -117,7 +146,44 @@ public class MainActivity extends BridgeActivity {
                 if (mode == 1 || mode == 0) rpSet(wv, mode); else rpRefresh(wv);
                 return rpNow;
             }
+            /* r263: ۰ = عادی؛ ۱ = صفحه خودکار خاموش نشود (FLAG_KEEP_SCREEN_ON)؛ ۲ = ۱ + کمترین روشنایی (حالت «صفحهٔ سیاه» OCR) */
+            @JavascriptInterface
+            public int keepScreen(final int mode) {
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        try {
+                            Window win = getWindow();
+                            WindowManager.LayoutParams lp = win.getAttributes();
+                            if (mode >= 1) win.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                            else win.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                            lp.screenBrightness = mode >= 2 ? 0.0f : -1f;
+                            win.setAttributes(lp);
+                        } catch (Throwable e) { }
+                    }
+                });
+                return mode;
+            }
+            /* r263: ۱ ⇒ حین توقف Activity به WebView «پنجره آشکار است» اعلام شود (فریز نشدن JS با صفحهٔ خاموش)؛ ۰ ⇒ غیرفعال */
+            @JavascriptInterface
+            public int keepVisible(int on) {
+                kvOn = on != 0;
+                if (!kvOn) kvH.removeCallbacks(kvR);
+                else if (kvStopped) kvPulse();
+                return kvOn ? 1 : 0;
+            }
+            /* r263: شمار اعلان‌های «آشکار است» که واقعاً فرستاده شده (برای گزارش) */
+            @JavascriptInterface
+            public int kvCount() { return kvN; }
         }, "NativeThermal");
+        getApplication().registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+            @Override public void onActivityCreated(Activity a, Bundle b) { }
+            @Override public void onActivityStarted(Activity a) { if (a == MainActivity.this) kvStopped = false; }
+            @Override public void onActivityResumed(Activity a) { if (a == MainActivity.this) kvStopped = false; }
+            @Override public void onActivityPaused(Activity a) { if (a == MainActivity.this) { kvStopped = true; if (kvOn) kvPulse(); } }
+            @Override public void onActivityStopped(Activity a) { if (a == MainActivity.this) { kvStopped = true; if (kvOn) kvPulse(); } }
+            @Override public void onActivitySaveInstanceState(Activity a, Bundle b) { }
+            @Override public void onActivityDestroyed(Activity a) { if (a == MainActivity.this) { kvOn = false; kvH.removeCallbacks(kvR); } }
+        });
         if (ISOLATION_HEADERS) {
             wv.setWebViewClient(new BridgeWebViewClient(getBridge()) {
                 @Override
