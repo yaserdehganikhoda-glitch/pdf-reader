@@ -9297,6 +9297,7 @@ function jbWrapW(ls, old){
       if (/های$/.test(k)) return k.length >= 5;
       return /[\u0627\u0648]\u06CC$/.test(k) && k.length >= 4 && (!!HEAD[k] || !!HEAD[k.slice(0, -1)] || has(k.slice(0, -1)));
     }
+    function homKey(k){ if (!HOM) homInit(); var h = homNorm(k), sm = /^(.{2,}?)(?:ها|های|هایی)$/.exec(h); return !!(HOM[h] || (sm && HOM[sm[1]])); }
     return function(t){
       if (typeof t !== 'string' || t.length < 5) return t;
       var dn = (t.match(/[\u064B-\u0652\u0670]/g) || []).length; if (dn && dn / t.length > 0.05) return t;   /* سند اعراب‌دار: نویسنده خودش تصمیم گرفته */
@@ -9309,7 +9310,7 @@ function jbWrapW(ls, old){
       for (i = 0; i < n - 1; i++) {
         a = T[i]; b = T[i + 1]; c = T[i + 2];
         if (a.c !== 'N' || a.k.length < 2 || a.k === b.k || !/^ +$/.test(t.slice(a.e, b.s))) continue;
-        if (TITLE[a.k] || poss(a.k) || ORD_PRE.test(a.k)) continue;
+        if (TITLE[a.k] || poss(a.k) || ORD_PRE.test(a.k) || homKey(a.k)) continue;   /* r264: همنگاشت (گل/مرد/پر…) را فقط ماژول بافتی (homApply) اعراب می‌گذارد؛ کسرهٔ اضافهٔ خودکار شکل «گُلِ» را می‌ساخت و Golden/hom (توکن دقیق) را می‌شکست */
         var pv = i > 0 && /^ +$/.test(t.slice(T[i - 1].e, a.s)) ? T[i - 1] : null;
         if (MEAS[a.k] && pv && (pv.c === 'NUM' || /^(?:یک|چند|چندین)$/.test(pv.k))) continue;
         var f = form(a.w, a.k); if (!f) continue;
