@@ -376,6 +376,40 @@ class PiperNativePlugin : Plugin() {
         } catch (e: Throwable) { MediaBridge.svcLog(context, "wl-renew-ex", e) }
     }
 
+    /* kt-r39 (LK-01، صفحهٔ قفل): ریشهٔ WebView (renderer) در حالت پیش‌فرض با پنهان‌شدن صفحه «waived» می‌شود (RENDERER_PRIORITY_IMPORTANT با waivedWhenNotVisible=true)؛
+       قفل صفحه ⇒ فرایند renderer اولویت/CPU پس‌زمینه می‌گیرد (یا فریز می‌شود) و کل زنجیرهٔ JS (ساخت جملهٔ بعد، playerQueue، بازیابی خطا، دکمه‌های کارت قفل) می‌ایستد، با بازشدن قفل ادامه می‌یابد.
+       تا وقتی خوانش در جریان است (قفل بیدارباش یا اعلان رسانه فعال) waive غیرفعال می‌شود؛ پس از پایان به پیش‌فرض سیستم برمی‌گردد. API 26+؛ بدون هزینهٔ CPU (فقط اولویت). */
+    @Volatile private var uiBg = false        // Activity متوقف است (قفل/خانه)؛ فقط برای لاگ و تشخیص
+    @Volatile private var webPrioOn = false   // true = waive خاموش (renderer مهم می‌ماند)
+
+    private fun webPrioSync() {
+        if (android.os.Build.VERSION.SDK_INT < 26) return
+        val want = wl?.isHeld == true || MediaBridge.active
+        if (want == webPrioOn) return
+        try {
+            activity?.runOnUiThread {
+                try {
+                    val wv = bridge?.webView ?: return@runOnUiThread
+                    wv.setRendererPriorityPolicy(android.webkit.WebView.RENDERER_PRIORITY_IMPORTANT, !want)   // !want = waivedWhenNotVisible (پیش‌فرض سیستم = true)
+                    webPrioOn = want
+                    MediaBridge.svcLog(context, "web-prio", null, if (want) "important,no-waive" else "default")
+                } catch (e: Throwable) { MediaBridge.svcLog(context, "web-prio-ex", e) }
+            }
+        } catch (e: Throwable) { MediaBridge.svcLog(context, "web-prio-ex2", e) }
+    }
+
+    /** ثبت گذار چرخهٔ عمر در حلقهٔ svc (diag().svc) تا رابطهٔ «قفل شد ⇄ پخش ایستاد» با شواهد دیده شود */
+    private fun lcLog(ev: String) {
+        try {
+            val act = synchronized(plLock) { plActive }
+            MediaBridge.svcLog(context, "lc-$ev", null, "pl=" + act + " play=" + MediaBridge.playing + " wl=" + (wl?.isHeld == true) + " af=" + afOn + " prio=" + webPrioOn + " u=" + underruns)
+        } catch (e: Throwable) {}
+    }
+    override fun handleOnStart() { uiBg = false; lcLog("start") }
+    override fun handleOnResume() { uiBg = false; lcLog("resume") }
+    override fun handleOnPause() { lcLog("pause") }
+    override fun handleOnStop() { uiBg = true; lcLog("stop") }
+
     @PluginMethod
     fun keepAwake(call: PluginCall) {
         val on = call.getBoolean("on", false) ?: false
@@ -401,6 +435,7 @@ class PiperNativePlugin : Plugin() {
                 PlayerService.startFgs(context, si)
             } else if (!MediaBridge.active) PlayerService.stopSafe(context)
         } catch (e: Throwable) { MediaBridge.svcLog(context, "keepAwake-fgs", e) /* بدون اعلان یا مجوز: پخش بدون سرویس ادامه دارد */ }
+        webPrioSync()   // kt-r39 (LK-01)
         call.resolve()
     }
 
@@ -437,7 +472,7 @@ class PiperNativePlugin : Plugin() {
         mediaApply(call)
         MediaBridge.active = true
         MediaBridge.cb = { a, p -> notifyListeners("mediaAction", JSObject().put("action", a).put("pos", p)) }
-        mediaPush(); call.resolve()
+        mediaPush(); webPrioSync(); call.resolve()   // kt-r39 (LK-01)
     }
     @PluginMethod
     fun mediaUpdate(call: PluginCall) {
@@ -448,12 +483,13 @@ class PiperNativePlugin : Plugin() {
     fun mediaStop(call: PluginCall) {
         MediaBridge.active = false; MediaBridge.playing = false; MediaBridge.cb = null; MediaBridge.cover = null
         PlayerService.stopSafe(context)
+        webPrioSync()   // kt-r39 (LK-01)
         call.resolve()
     }
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r38 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r39 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
     }
 
     @PluginMethod
@@ -2122,7 +2158,7 @@ class PiperNativePlugin : Plugin() {
                         nx = takeNext()
                     }
                     if (nx == null) {
-                        if (closeIfIdle(gen)) { emitPl("playerEnd", item.h); return }
+                        if (closeIfIdle(gen)) { MediaBridge.svcLog(context, "pl-idle-end", null, "bg=" + uiBg + " u=" + underruns); emitPl("playerEnd", item.h); return }   // kt-r39
                         nx = takeNext()
                     }
                     if (nx != null) { try { t.play() } catch (e: Throwable) {}; hpAt = android.os.SystemClock.elapsedRealtime() }
@@ -2157,6 +2193,7 @@ class PiperNativePlugin : Plugin() {
         } catch (e: Throwable) {
             if (gen == plGen) {
                 synchronized(plLock) { plActive = false }
+                MediaBridge.svcLog(context, "pl-err", null, (e.message ?: "player").take(40) + " bg=" + uiBg + " u=" + underruns)   // kt-r39
                 emitPl("playerError", cur.h, -1.0, e.message ?: "player")
             }
         } finally {
