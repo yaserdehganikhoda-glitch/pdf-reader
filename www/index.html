@@ -6392,13 +6392,13 @@ function jbWrapW(ls, old){
     if (rt != null) { ocrPerfK('render', rt); try { o.rtop.push({ pg: pn, ms: Math.round(rt) }); o.rtop.sort(function(a, b){ return b.ms - a.ms; }); o.rtop.length = Math.min(3, o.rtop.length); } catch (e) {} }
     if (rw != null) ocrPerfK('rwait', rw);   /* r18: زمان انتظار مسیر برای رندر صفحه (گرسنگی مسیر) */
     if (m.orientN) { o.c.orient++; o.orP = (o.orP || 0) + m.orientN; } if (m.tileN) o.c.tile++; o.c.beam += m.beamN || 0; o.p2n = (o.p2n || 0) + (m.p2n || 0); o.p2w = (o.p2w || 0) + (m.p2w || 0); o.bn = (o.bn || 0) + (m.binN || 0); o.bw = (o.bw || 0) + (m.binW || 0); (m.lexS || []).forEach(function(x){ var u = o.us || (o.us = {}); if (u[x] || Object.keys(u).length < 80) u[x] = (u[x] || 0) + 1; }); o.c.lines += m.lines || 0; if (m.whb && m.whb.length) { var wv = o.whb || (o.whb = []); m.whb.forEach(function(x){ if (wv.length < 40) wv.push(x); }); } o.gsN = (o.gsN || 0) + (m.gsN || 0); (m.gsS || []).forEach(function(x){ var g = o.gs || (o.gs = {}); if (g[x] || Object.keys(g).length < 60) g[x] = (g[x] || 0) + 1; });
-    (o.qa || (o.qa = [])).push(rr.q || 0); (o.q10 || (o.q10 = [])).push(rr.q10 || 0); o.ldN = (o.ldN || 0) + (rr.ld || 0); o.lw = (o.lw || 0) + (m.lexW || 0); o.lf = (o.lf || 0) + (m.lexF || 0); o.lu = (o.lu || 0) + (m.lexU || 0);   /* r65: شاخص‌های دقت */
+    (o.qa || (o.qa = [])).push(rr.q || 0); (o.q10 || (o.q10 = [])).push(rr.q10 || 0); o.ldN = (o.ldN || 0) + (rr.ld || 0); o.lw = (o.lw || 0) + (m.lexW || 0); o.lf = (o.lf || 0) + (m.lexF || 0); o.lu = (o.lu || 0) + (m.lexU || 0); o.la = (o.la || 0) + (m.lexA || 0);   /* r65: شاخص‌های دقت؛ r262: la = شمار اصلاح‌های «ا←آ» */
   }
   function ocrPerfJson(){
     var o = ocrPerf, n = o.n || 1, r = { ver: APP_BUILD, dict: (function(){ try { return window.dictStatus(); } catch (e) { return { on: false, err: String((e && e.message) || e).slice(0, 60) }; } })(), ep: o.ep, q: ($('#ocrQ') || {}).value || '', pages: o.n, ppm: o.n > 1 && o.t1 > o.t0 ? +(((o.n - 1) * 60000) / (o.t1 - o.t0)).toFixed(2) : null, pctOrient: Math.round(100 * o.c.orient / n), pctTile: Math.round(100 * o.c.tile / n), pctBeamLines: o.c.lines ? Math.round(100 * o.c.beam / o.c.lines) : 0, ms: {}, note: 'recDecode شامل beam؛ orient شامل det/rec عبورهای اضافه؛ hp = MB heap جاوااسکریپت Worker (در WebView ممکن نیست)؛ hpMain = heap ترد اصلی؛ rwait = انتظار مسیر برای رندر؛ renderTop = ۳ رندر کندتر؛ th = وضعیت حرارتی (۲+ = تروتل)؛ natChk = اعتبارسنجی WASM بومی (داخل total)؛ iv = فاصلهٔ پایان صفحهٔ قبل تا شروع صفحهٔ بعد در یک مسیر؛ post = پس‌پردازش ترد اصلی؛ pinit = ms راه‌اندازی Worker؛ timeouts[]: hid = ms پنهان، vis، th/hr = دما/headroom، hp = heap، st/lt = شمار استال/longtask، ln = مسیرها، pl = پخش' };
     Object.keys(o.k).forEach(function(x){ var a = o.k[x].slice().sort(function(p, q){ return p - q; }), c = a.length, sm = 0; a.forEach(function(v){ sm += v; }); r.ms[x] = { n: c, p50: a[c >> 1], p95: a[Math.min(c - 1, Math.floor(c * 0.95))], avg: Math.round(sm / c * 10) / 10, avgT: c >= 5 ? Math.round((sm - a[c - 1]) / (c - 1) * 10) / 10 : undefined }; });   /* avgT: میانگین بدون بزرگ‌ترین مقدار */
     r.timeouts = o.to || []; r.pinit = o.pi || [];
-    try { var qa = o.qa || [], q1 = o.q10 || [], sm = function(a){ var t = 0; a.forEach(function(v){ t += v; }); return a.length ? t / a.length : 0; }; r.acc = { qAvg: +sm(qa).toFixed(1), qMin: qa.length ? Math.min.apply(null, qa) : 0, q10Avg: +sm(q1).toFixed(1), lowLines: o.ldN || 0, lowPct: o.c.lines ? +(100 * (o.ldN || 0) / o.c.lines).toFixed(1) : 0, lexWords: o.lw || 0, lexFixedPct: o.lw ? +(100 * (o.lf || 0) / o.lw).toFixed(1) : 0, lexUnknownPct: o.lw ? +(100 * (o.lu || 0) / o.lw).toFixed(1) : 0, p2n: o.p2n || 0, p2w: o.p2w || 0, binN: o.bn || 0, binW: o.bw || 0, lm: (sget('ocrLmP', '') || '1.0') + '/' + (sget('ocrLmN', '') || '-0.7'), orP: o.orP || 0, gsN: o.gsN || 0, gsS: Object.keys(o.gs || {}).slice(0, 20), unk: Object.keys(o.us || {}).sort(function(a, b){ return o.us[b] - o.us[a]; }).slice(0, 40).map(function(k){ return k + ':' + o.us[k]; }) }; } catch (e) {}
+    try { var qa = o.qa || [], q1 = o.q10 || [], sm = function(a){ var t = 0; a.forEach(function(v){ t += v; }); return a.length ? t / a.length : 0; }; r.acc = { qAvg: +sm(qa).toFixed(1), qMin: qa.length ? Math.min.apply(null, qa) : 0, q10Avg: +sm(q1).toFixed(1), lowLines: o.ldN || 0, lowPct: o.c.lines ? +(100 * (o.ldN || 0) / o.c.lines).toFixed(1) : 0, lexWords: o.lw || 0, lexFixedPct: o.lw ? +(100 * (o.lf || 0) / o.lw).toFixed(1) : 0, lexAlef: o.la || 0, lexUnknownPct: o.lw ? +(100 * (o.lu || 0) / o.lw).toFixed(1) : 0, p2n: o.p2n || 0, p2w: o.p2w || 0, binN: o.bn || 0, binW: o.bw || 0, lm: (sget('ocrLmP', '') || '1.0') + '/' + (sget('ocrLmN', '') || '-0.7'), orP: o.orP || 0, gsN: o.gsN || 0, gsS: Object.keys(o.gs || {}).slice(0, 20), unk: Object.keys(o.us || {}).sort(function(a, b){ return o.us[b] - o.us[a]; }).slice(0, 40).map(function(k){ return k + ':' + o.us[k]; }) }; } catch (e) {}
     try {                                                              /* r53: ppmClean = بدون استال‌های ≥۲۰ثانیه (بزرگ‌ترین بین گپ ضربان و رندر کند) */
       var sg = 0, sr = 0, sb = 0, ex2;
       (o.stalls || []).forEach(function(z){ if (!z.hid && z.gap >= 20000) { if (z.cur && z.cur.length) sb += z.gap; else sg += z.gap; } });   /* r254: استالِ ضربان ترد اصلی وقتی مسیرها مشغول بودند هم‌پوشان با محاسبهٔ Worker است ⇒ از ساعت دیواری کم نمی‌شود (قبلاً ppmClean را ≈۹× بزرگ‌نمایی می‌کرد) */
@@ -6412,7 +6412,7 @@ function jbWrapW(ls, old){
     r.gpuDx = { wgpu: !!navigator.gpu, coi: !!window.crossOriginIsolated, sab: typeof SharedArrayBuffer !== 'undefined', gpuBox: !!($('#ocrGpu') || {}).checked, gpuBad: !!sget('ocrGpuBad') };
     try {   /* r254: تعریف‌ها (برای ممیزی)، ساعت دیواری، «هوشمند» */
       r.sPgWall = o.n > 1 && o.t1 > o.t0 ? +(((o.t1 - o.t0) / (o.n - 1)) / 1000).toFixed(2) : null;
-      r.defs = { vis: '[صفحه، رویداد، performance.now()/1000 از آغاز بارگذاری صفحه، Date.now()/1000، visibilityState، و برای hidden/visible/freeze/resume عنصر آخر ka1|ka0|ka-[:خطای play()]|np{NP موجود}{npOK}b{kaBad}o{keepAwake بومی روشن؟} = وضعیت حلقهٔ صوتی نگهدارنده و keepAwake بومی]؛ رویدادهای «nat:*» از Activity بومی: [صفحه، nat:رویداد، elapsedRealtime(s؛ شامل خواب عمیق)، Date(s)، i/d/s = تعاملی/Doze/صرفه‌جویی]؛ pw: ps=صرفه‌جویی باتری، st=تعاملی,Doze,صرفه‌جویی، rp=اولویت,waived پردازهٔ رندر (0=WAIVED 1=BOUND 2=IMPORTANT)', stalls: 'گپ ضربان ترد اصلی (setInterval هر 1s) منهای 1s؛ gap=ساعت یکنواخت، wg=ساعت دیواری؛ cur=صفحه‌های در حال پردازش مسیرها؛ hid=صفحه پنهان', ppm: 'صفحه/دقیقه ساعت دیواری بین اتمام اولین و آخرین صفحه', ppmClean: 'ppm منهای رندر ≥20s و استال ضربانِ ≥20s فقط وقتی مسیرها بیکار بودند (cur خالی)', iv: 'بیکاریِ مسیر بین پایان یک صفحه و شروع صفحهٔ بعد', sPgWall: '(t1-t0)/(n-1) ثانیه', pxs: 'Σعرض rec ÷ recInfer', gsN: 'تعداد چسبیدگی ترمیم‌شده در Worker', whb: '[ثانیهٔ عمر Worker، گپ ضربان Worker با ساعت یکنواخت (ms)، گپ با ساعت دیواری (ms)] فقط برای گپ ≥8s؛ اگر ضربان ترد اصلی گپ دارد ولی Worker ندارد ⇒ مشکل ترد اصلی؛ اگر هر دو ⇒ کل پردازهٔ رندر کند/متوقف', dictDup: 'توکن‌های فایل که چیزی به فرهنگ‌واژه نیفزودند (تکراریِ پس از نرمال‌سازی)' };
+      r.defs = { vis: '[صفحه، رویداد، performance.now()/1000 از آغاز بارگذاری صفحه، Date.now()/1000، visibilityState، و برای hidden/visible/freeze/resume عنصر آخر ka1|ka0|ka-[:خطای play()]|L{سطح حلقه ۰–۳}|np{NP موجود}{npOK}b{kaBad}o{keepAwake بومی روشن؟}|s{حالت صفحه ۰ عادی/۱ روشن‌بماند/۲ سیاه}v{keepVisible}n{شمار اعلان‌های «آشکار است» بومی} = وضعیت حلقهٔ صوتی، keepAwake بومی و لایهٔ صفحهٔ خاموش]؛ رویدادهای «nat:*» از Activity بومی: [صفحه، nat:رویداد، elapsedRealtime(s؛ شامل خواب عمیق)، Date(s)، i/d/s = تعاملی/Doze/صرفه‌جویی]؛ pw: ps=صرفه‌جویی باتری، st=تعاملی,Doze,صرفه‌جویی، rp=اولویت,waived پردازهٔ رندر (0=WAIVED 1=BOUND 2=IMPORTANT)', stalls: 'گپ ضربان ترد اصلی (setInterval هر 1s) منهای 1s؛ gap=ساعت یکنواخت، wg=ساعت دیواری؛ cur=صفحه‌های در حال پردازش مسیرها؛ hid=صفحه پنهان', ppm: 'صفحه/دقیقه ساعت دیواری بین اتمام اولین و آخرین صفحه', ppmClean: 'ppm منهای رندر ≥20s و استال ضربانِ ≥20s فقط وقتی مسیرها بیکار بودند (cur خالی)', iv: 'بیکاریِ مسیر بین پایان یک صفحه و شروع صفحهٔ بعد', sPgWall: '(t1-t0)/(n-1) ثانیه', pxs: 'Σعرض rec ÷ recInfer', gsN: 'تعداد چسبیدگی ترمیم‌شده در Worker', whb: '[ثانیهٔ عمر Worker، گپ ضربان Worker با ساعت یکنواخت (ms)، گپ با ساعت دیواری (ms)] فقط برای گپ ≥8s؛ اگر ضربان ترد اصلی گپ دارد ولی Worker ندارد ⇒ مشکل ترد اصلی؛ اگر هر دو ⇒ کل پردازهٔ رندر کند/متوقف', dictDup: 'توکن‌های فایل که چیزی به فرهنگ‌واژه نیفزودند (تکراریِ پس از نرمال‌سازی)' };
       r.smart = smartDiag(); r.qEff = ocrQEff(); r.whb = o.whb || []; r.pw = natPw(); r.natInfo = natInfoGet(); r.natInst = natInst();
     } catch (e) {}
     return JSON.stringify(r, null, 1);
@@ -6645,7 +6645,7 @@ function jbWrapW(ls, old){
       if (L < 3 || L > 24 || !PL.test(w.join(''))) return cs.slice(a, b).join('');
       if (TM) TM.lexW = (TM.lexW || 0) + 1;
       if (lkn(w.slice().reverse().join(''), 0)) return w.join('');
-      if (w[L - 1] === '\u0627') { v = w.slice(); v[L - 1] = '\u0622'; if (lkn(v.slice().reverse().join(''), 0)) { if (TM) TM.lexF = (TM.lexF || 0) + 1; return v.join(''); } }   /* r258: «انان/امده/انکه/اگاهی/ایینه» ← «آنان/آمده/آنکه/آگاهی/آیینه»: «آ»ی آغازی که OCR «ا» خوانده؛ فقط واژهٔ ناشناخته و فقط اگر شکل «آ» در دیکشنری باشد */
+      if (w[L - 1] === '\u0627') { v = w.slice(); v[L - 1] = '\u0622'; if (lkn(v.slice().reverse().join(''), 0)) { if (TM) { TM.lexF = (TM.lexF || 0) + 1; TM.lexA = (TM.lexA || 0) + 1; } return v.join(''); } }   /* r258: «انان/امده/انکه/اگاهی/ایینه» ← «آنان/آمده/آنکه/آگاهی/آیینه»: «آ»ی آغازی که OCR «ا» خوانده؛ فقط واژهٔ ناشناخته و فقط اگر شکل «آ» در دیکشنری باشد */
       for (k = 0; k < L; k++) if (al[a + k] && ap[a + k] >= 0.08 && pc[a + k] < 0.85 && PL.test(nmS(al[a + k]))) wk.push(k);
       wk.sort(function(x, y){ return pc[a + x] - pc[a + y]; }); wk = wk.slice(0, 4); m = wk.length;
       for (mask = 1; mask < (1 << m); mask++) {
@@ -10276,7 +10276,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r262 · 2026-11-21 · hub-v5 · pguard-v4 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v6 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · p16fix-v1 · psmart-v1 · pgs-v1 · psci-v1 · pdun-v1 · palh-v1 · whb-v1 · pnat-v1 · pgrd-v1 · pthm-v1 · pdpk-v1', npBuild = '';
+  var APP_BUILD = 'html-r263 · 2026-11-21 · hub-v5 · pguard-v4 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v6 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · p16fix-v1 · psmart-v1 · pgs-v1 · psci-v1 · pdun-v1 · palh-v1 · whb-v1 · pnat-v1 · pgrd-v1 · pthm-v1 · pdpk-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -12258,12 +12258,44 @@ function wlSync(want){ wlWant = want;   /* Screen Wake Lock برای نسخهٔ 
       }
     } catch (e) {}
   }
-  function kaSt(){ try { return (kaAu ? (kaAu.paused ? 'ka0' : 'ka1') : 'ka-') + (kaErr ? ':' + kaErr : '') + 'L' + kaLv + '|np' + (NP ? 1 : 0) + (npOK ? 1 : 0) + 'b' + (kaBad ? 1 : 0) + 'o' + (kaOn === null ? '-' : (kaOn ? 1 : 0)); } catch (e) { return 'ka?'; } }   /* r259: ka1 = حلقهٔ صوتی نگهدارنده در حال پخش، ka0 = متوقف، ka- = ساخته نشده؛ پس از «:» خطای play() */
+  function kaSt(){ try { return (kaAu ? (kaAu.paused ? 'ka0' : 'ka1') : 'ka-') + (kaErr ? ':' + kaErr : '') + '|L' + kaLv + '|np' + (NP ? 1 : 0) + (npOK ? 1 : 0) + 'b' + (kaBad ? 1 : 0) + 'o' + (kaOn === null ? '-' : (kaOn ? 1 : 0)) + '|s' + kaScr + 'v' + kaKv + 'n' + (ntCall('kvCount') || 0); } catch (e) { return 'ka?'; } }   /* r259: ka1 = حلقهٔ صوتی نگهدارنده در حال پخش، ka0 = متوقف، ka- = ساخته نشده؛ پس از «:» خطای play() */
   var kaOffAt = 0;
+  /* ===== r263: لایهٔ قطعی «OCR با صفحهٔ خاموش/تاریک» =====
+     الف) حین OCR صفحه خودکار خاموش نشود (FLAG_KEEP_SCREEN_ON) ← صفحه hidden/frozen نمی‌شود؛
+     ب) دکمهٔ «صفحهٔ سیاه»: کمترین روشنایی + پوشش سیاه، صفحه از دید سیستم «روشن» می‌ماند (روی AMOLED تقریباً خاموش)؛
+     ج) keepVisible: اگر کاربر دکمهٔ قفل را زد، به WebView اعلام می‌شود پنجره آشکار است (آزمایشی؛ شمارنده در گزارش). */
+  var kaScr = -1, kaKv = -1, blkOn = false, blkEl = null, blkSub = null, blkBtn = null, blkTap = 0;
+  function ntCall(fn, a){ try { var T = window.NativeThermal; if (!T || typeof T[fn] !== 'function') return null; return a === undefined ? T[fn]() : T[fn](a); } catch (e) { return null; } }
+  function blkMake(){
+    if (blkEl || !document.body) return;
+    blkEl = document.createElement('div'); blkEl.id = 'ocrBlk';
+    blkEl.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;z-index:2147483000;background:#000;color:#383838;display:none;flex-direction:column;align-items:center;justify-content:center;font:12px/1.9 sans-serif;text-align:center;padding:24px;direction:rtl;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent';
+    blkEl.appendChild(document.createTextNode('OCR در حال اجراست — برای بازگشت دو بار لمس کنید'));
+    blkSub = document.createElement('div'); blkEl.appendChild(blkSub);
+    blkEl.addEventListener('click', function(){ var t = Date.now(); if (t - blkTap < 700) { blkTap = 0; blkSet(false); } else blkTap = t; });
+    document.body.appendChild(blkEl);
+    blkBtn = document.createElement('button'); blkBtn.id = 'ocrBlkBtn'; blkBtn.type = 'button'; blkBtn.textContent = '🌑 صفحهٔ سیاه (OCR)';
+    blkBtn.style.cssText = 'position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 76px);z-index:2147482000;display:none;padding:8px 12px;border-radius:18px;border:1px solid rgba(128,128,128,.5);background:rgba(20,20,20,.85);color:#ddd;font:12px sans-serif';
+    blkBtn.addEventListener('click', function(){ blkSet(true); });
+    document.body.appendChild(blkBtn);
+  }
+  function kaScan(){ return !!(ocrBusy || (man && (man.busy || man.fx)) || (RC && RC.run)); }
+  function blkSet(on){ blkMake(); blkOn = !!on; if (blkEl) blkEl.style.display = blkOn ? 'flex' : 'none'; scrSync(kaScan()); }
+  function scrSync(scan){
+    try {
+      if (!scan && blkOn) { blkOn = false; if (blkEl) blkEl.style.display = 'none'; }
+      var want = scan ? (blkOn ? 2 : 1) : 0, kv = scan ? 1 : 0;
+      if (kaScr === -1 && want === 0) kaScr = 0; else if (want !== kaScr) { kaScr = want; ntCall('keepScreen', want); }
+      if (kaKv === -1 && kv === 0) kaKv = 0; else if (kv !== kaKv) { kaKv = kv; ntCall('keepVisible', kv); }
+      if (scan) blkMake();
+      if (blkBtn) blkBtn.style.display = (scan && !blkOn && !document.hidden) ? 'block' : 'none';
+      if (blkOn && blkSub) { var st = document.getElementById('ocrStat'); blkSub.textContent = st ? st.textContent : ''; }
+    } catch (e) {}
+  }
   function kaSync(){
     var scan = !!(ocrBusy || (man && (man.busy || man.fx)) || (RC && RC.run)), kw = !!(playing || scan);   /* بیدار ماندن صفحه/CPU هم حین پخش و هم حین OCR (اصلی و دستی) */
     wlSync(kw && (kaBad || !npOK || !NP));
-document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام OCR انیمیشن/بلور متوقف (گرما) */
+document.documentElement.classList.toggle('ocr-run', scan); scrSync(scan);   /* r83: هنگام OCR انیمیشن/بلور متوقف (گرما) */
     kaFall(scan && !playing && (document.hidden || kaBad || !npOK || !NP));   /* r83: حلقهٔ صوتی فقط وقتی صفحه پنهان است یا پلاگین keepAwake نیست */
     if (kaBad || !npOK || !NP || (kaOn === null && !kw) || kaOn === kw) { if (kw) kaOffAt = 0; return; }
     if (!kw && kaOn) { if (!kaOffAt) { kaOffAt = Date.now(); setTimeout(kaSync, 3100); } if (Date.now() - kaOffAt < 3000) return; }
@@ -12272,7 +12304,7 @@ document.documentElement.classList.toggle('ocr-run', scan);   /* r83: هنگام
   }
   setInterval(function(){ if (ocrBusy || (man && (man.busy || man.fx)) || (RC && RC.run)) kaSync(); }, 4000);
   try { document.addEventListener('freeze', function(){ if (kaAu && !kaAu.paused) kaFroze = 1; }); } catch (e) {}
-  document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible' && kaFroze) { kaFroze = 0; if (kaLv < 3) { kaLv++; try { localStorage.setItem('ka_lv', String(kaLv)); } catch (e) {} try { if (kaAu) kaAu.pause(); } catch (e) {} kaAu = null; } }   /* r262: با ka1 هم فریز شد ⇒ سطح بالاتر برای دفعهٔ بعد */
+  document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible' && kaFroze) { kaFroze = 0; if (kaLv < 3) { kaLv++; try { localStorage.setItem('ka_lv', String(kaLv)); } catch (e) {} try { kaFall(false); } catch (e) {} kaAu = null; } }   /* r262: با ka1 هم فریز شد ⇒ سطح بالاتر برای دفعهٔ بعد */
     kaSync(); try { if (ocrBusy && ocrPerf && ocrPerf.vis && ocrPerf.vis.length < 60) ocrPerf.vis.push([ocrPerf.n, document.visibilityState, Math.round(performance.now() / 1000), Math.round(Date.now() / 1000), document.hasFocus() ? 1 : 0, kaSt()]); } catch (e) {} });
   /* r254 (H3): رویدادهای چرخهٔ حیات با هر دو ساعت (یکنواخت/دیواری)؛ سقف ۶۰ ردیف؛ فقط حین OCR؛ شنوندهٔ ثابت (نشتی ندارد) */
   ['pagehide', 'pageshow'].forEach(function(ev){ try { window.addEventListener(ev, function(){ try { if (ocrBusy && ocrPerf && ocrPerf.vis && ocrPerf.vis.length < 60) ocrPerf.vis.push([ocrPerf.n, ev, Math.round(performance.now() / 1000), Math.round(Date.now() / 1000), document.visibilityState]); } catch (e) {} }); } catch (e) {} });
