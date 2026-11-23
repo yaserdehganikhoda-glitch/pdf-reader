@@ -3820,7 +3820,7 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
       var L = w.length, i, a, r, h;
       if (DENY.has(w)) return w;
       if (L >= 6 && w.startsWith('بی') && !ocrSpell.has(w) && K(w.slice(2))) return 'بی' + Z + w.slice(2);                                   /* بیتوجه ← بی‌توجه (known پیشوند «بی» را بدون نیم‌فاصله می‌پذیرد) */
-      if (!ocrSpell.has(w)) for (i = 0; i < CL.length; i++) { a = CL[i]; if (w.endsWith(a) && w[L - a.length - 1] === 'ه') { h = w.slice(0, -a.length); if (h.length >= 3 && K(h) && !(a === 'ای' && K(w.slice(0, -3)))) return h + Z + a; } }   /* خانهام ← خانه‌ام، ستارهای ← ستاره‌ای (نامهای دوپهلوست ← بدون تغییر) */
+      if (!ocrSpell.has(w)) for (i = 0; i < CL.length; i++) { a = CL[i]; if (w.endsWith(a) && w[L - a.length - 1] === 'ه') { h = w.slice(0, -a.length); if (h.length >= 3 && K(h) && !(a === 'ای' && K(w.slice(0, -3)))) return h + (a === 'ای' ? ' ' : Z) + a; } }   /* خانهام ← خانه‌ام، ستارهای ← ستاره‌ای (نامهای دوپهلوست ← بدون تغییر) */
       if (K(w)) return w;
       for (i = 0; i < FUT.length; i++) { a = FUT[i]; if (L > a.length + 1 && w.startsWith(a) && K(w.slice(a.length))) return a + ' ' + w.slice(a.length); }   /* خواهدشد ← خواهد شد */
       for (i = 0; i < MOD.length; i++) { a = MOD[i]; if (L > a.length + 2 && w.startsWith(a) && K(w.slice(a.length))) return a + ' ' + w.slice(a.length); }   /* بایدبرود ← باید برود */
@@ -3860,8 +3860,8 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
       var m;
       if (KEEP.has(w)) return w;
       if ((m = RHH.exec(w))) return m[1] + Z + m[2];                                                   /* ۱ */
-      if ((m = RPT.exec(w)) || (m = RPS.exec(w))) return m[1] + 'ه' + Z + m[2];                        /* ۳، ۴ */
-      if ((m = RHA.exec(w))) { if (/های$/.test(w) && HE.has(m[1] + 'ه')) return m[1] + 'ه' + Z + 'ای'; if (m[1].length >= 5 && /نام$/.test(m[1])) return m[1] + 'ه' + Z + 'ای'; if (/های$/.test(w) && m[1].length >= 3 && !KEEP.has(w)) { try { if (ocrSpell.has(m[1] + 'ه') && !ocrSpell.has(m[1]) && !ocrSpell.has(w)) return m[1] + 'ه' + Z + 'ای'; } catch (e) {} } }   /* ۲ (فرهنگ‌واژه: «Xه» واژه است و خود «X» نه) */
+      if ((m = RPT.exec(w)) || (m = RPS.exec(w))) return m[1] + 'ه' + (m[2] === 'ای' ? ' ' : Z) + m[2];                        /* ۳، ۴ */
+      if ((m = RHA.exec(w))) { if (/های$/.test(w) && HE.has(m[1] + 'ه')) return m[1] + 'ه ای'; if (m[1].length >= 5 && /نام$/.test(m[1])) return m[1] + 'ه ای'; if (/های$/.test(w) && m[1].length >= 3 && !KEEP.has(w)) { try { if (ocrSpell.has(m[1] + 'ه') && !ocrSpell.has(m[1]) && !ocrSpell.has(w)) return m[1] + 'ه ای'; } catch (e) {} } }   /* ۲ (فرهنگ‌واژه: «Xه» واژه است و خود «X» نه) */
       if ((m = RHS.exec(w)) && HE.has(m[1])) return m[1] + Z + m[2];                                  /* ۲: خانهام ← خانه‌ام */
       return w;
     }
@@ -3940,11 +3940,11 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
     var KEEP = new Set(['تاکنون', 'بهمن', 'برهم', 'درهم', 'تاو', 'باو', 'تاتو', 'درجا', 'برجا']);
     var R2 = new RegExp('(?<=\\p{L}[دت]ه)\\u200c?(است|بود|بوده|شد|شده|نیست|نبود|نبوده|نشد|نشده|باشد|باشند|خواهد|خواهند)' + NE, 'gu');
     var R2c = new RegExp('(?<=\\p{L}[دت]ه)\\u200c?(ام|ای|ایم|اید|اند)' + NE, 'gu');
-    var RPL = new RegExp(NB + '(فرایند|کارکرد|تضاد|بعد|صد|امید|قضاوت|باید|روند|تهدید|بازخورد|رشد|عملکرد|مقصد|درد|کلید|برداشت)ه' + Z + '?ای' + NE, 'gu');   /* r173: «برداشته‌ای» ← «برداشت‌های»؛ فقط ریشه‌هایی که «Xه‌ای»شان معنا ندارد (گزارش دستگاه: ۵۳ صفحه) */
+    var RPL = new RegExp(NB + '(فرایند|کارکرد|تضاد|بعد|صد|امید|قضاوت|باید|روند|تهدید|بازخورد|رشد|عملکرد|مقصد|درد|کلید|برداشت)ه[' + Z + ' ]?ای' + NE, 'gu');   /* r173: «برداشته‌ای» ← «برداشت‌های»؛ فقط ریشه‌هایی که «Xه‌ای»شان معنا ندارد (گزارش دستگاه: ۵۳ صفحه) */
     var R4a = new RegExp('(?<=\\p{L}' + CONN + ')[ ]+(?=(?:ها|های|هایی|ترین|تری)' + NE + ')', 'gu');
     var R4b = new RegExp('(?<=\\p{L}' + NONC + ')[ ]+(?=(?:ها|های|هایی)' + NE + ')', 'gu');
     var R4e = new RegExp(NB + '(\\p{L}{2,}ه)[ ]+(ای|ی)' + NE, 'gu');   /* r251: «پایه ی» ← «پایه‌ی»، «ذره ای» ← «ذره‌ای»؛ فقط وقتی «Xه» در فرهنگ‌واژه باشد (R4c ≥۴حرفی را بدون فرهنگ‌واژه می‌چسباند) */
-    function heSp(m, w, a){ try { return (a === 'ی' && /[اآو]ه$/.test(w)) || !ocrSpell.has(w) ? m : w + Z + a; } catch (e) { return m; } }
+    function heSp(m, w, a){ try { return (a === 'ی' && /[اآو]ه$/.test(w)) || !ocrSpell.has(w) ? m : w + (a === 'ای' ? ' ' : Z) + a; } catch (e) { return m; } }
     var R4c = new RegExp('(?<=\\p{L}{3}ه)[ ]+(?=ای' + NE + ')', 'gu'),                       /* «حادثه ای» ← «حادثه‌ای» */
         RC = new RegExp(NB + '(در|بر|باز|فرا|فرو|وا|پیش)[ ]+(\\p{L}{2,})' + NE, 'gu');   /* «در یافت» ← «دریافت» (فقط ترکیب‌های فهرست‌شده) */
     var CMPD = new Set('بیشتر کمتر بهتر بدتر مهتر کهتر پیشتر بیشترین کمترین بهترین بدترین مهترین کهترین'.split(' ')),
@@ -3984,9 +3984,9 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
       if (typeof t !== 'string' || !/ال|های|اند|هی/.test(t)) return t;
       try {
         if (!EX_PS) EX_PS = new Set(miFix.PRES.split('|'));
-        t = t.replace(/(?<![\p{L}\u200c])(\p{L}{2,})([\u200c ])های(?![\p{L}\u200c])/gu, function(m, x, sp){ return (sp === ' ' && x.length < 3) || KEEP.has(x) || !ocrSpell.heArt(x) ? m : x + 'ه' + Z + 'ای'; })   /* r251: «انگیز های» (فاصله) و «غص‌های» (ریشهٔ دوحرفی) هم؛ پیش‌تر فاصله‌دار به «انگیزهای» چسبانده می‌شد */
-          .replace(/(?<![\p{L}\u200c])(\p{L}{2,})های(?![\p{L}\u200c])/gu, function(m, x){ return !KEEP.has(m) && !KEEP.has(x) && (!ocrSpell.has(m) || ocrSpell.zw(m)) && ocrSpell.heArt(x) ? x + 'ه' + Z + 'ای' : m; })
-          .replace(/(?<![\p{L}\u200c])(یک|هر|هیچ)( )(\p{L}{2,})[\u200c ]?های(?![\p{L}\u200c])/gu, function(m, d, sp, x){ return KEEP.has(x) || !ocrSpell.has(x + 'ه') ? m : d + sp + x + 'ه' + Z + 'ای'; })   /* r251: پس از «یک/هر/هیچ» جمع نمی‌آید: «یک چشم‌های» ← «یک چشمه‌ای» (ریشهٔ شناخته‌شده هم) */
+        t = t.replace(/(?<![\p{L}\u200c])(\p{L}{2,})([\u200c ])های(?![\p{L}\u200c])/gu, function(m, x, sp){ return (sp === ' ' && x.length < 3) || KEEP.has(x) || !ocrSpell.heArt(x) ? m : x + 'ه ای'; })   /* r251: «انگیز های» (فاصله) و «غص‌های» (ریشهٔ دوحرفی) هم؛ پیش‌تر فاصله‌دار به «انگیزهای» چسبانده می‌شد */
+          .replace(/(?<![\p{L}\u200c])(\p{L}{2,})های(?![\p{L}\u200c])/gu, function(m, x){ return !KEEP.has(m) && !KEEP.has(x) && (!ocrSpell.has(m) || ocrSpell.zw(m)) && ocrSpell.heArt(x) ? x + 'ه ای' : m; })
+          .replace(/(?<![\p{L}\u200c])(یک|هر|هیچ)( )(\p{L}{2,})[\u200c ]?های(?![\p{L}\u200c])/gu, function(m, d, sp, x){ return KEEP.has(x) || !ocrSpell.has(x + 'ه') ? m : d + sp + x + 'ه ای'; })   /* r251: پس از «یک/هر/هیچ» جمع نمی‌آید: «یک چشم‌های» ← «یک چشمه‌ای» (ریشهٔ شناخته‌شده هم) */
           .replace(/(?<![\p{L}\u200c])(\p{L}{2,})هی(?![\p{L}\u200c])/gu, function(m, x){ return KEEP.has(m) || /[اآو]$/.test(x) || ocrSpell.has(m) || !ocrSpell.has(x + 'ه') ? m : x + 'ه' + Z + 'ی'; })   /* r251: «پایهی/کرهی/انگیزهی» ← «پایه‌ی…»؛ «ماهی/کوهی/الهی» (واژهٔ فرهنگ‌واژه) و واژه‌های «…اه/…وه» (ه = /h/: راهی، کوتاهی) دست‌نخورده */
           .replace(/(?<![\p{L}\u200c])(\p{L}{3,})اند(?![\p{L}\u200c])/gu, function(m, x){ return KEEP.has(m) || (ocrSpell.has(m) && !(/ه$/.test(x) && ocrSpell.zw(m))) || !(ocrSpell.has(x) || (x.length >= 5 && /[^او]ی$/.test(x) && ocrSpell.known(x))) || EX_PS.has(x) || /[اآو]$|[او]ی$/.test(x) ? m : x + Z + 'اند'; })   /* r252 (H7): «بینشیاند» ← «بینشی‌اند»؛ «…ایاند/…ویاند» (نمایاند، دویاند) فعل‌اند و دست‌نخورده */
           .replace(/(?<![\p{L}\u200c])(\p{L}*ال)\u200c(\p{L}+)(?![\p{L}\u200c])/gu, function(m, x, y){ var j = x + y, c; if (KEEP.has(j) || (x.length > 2 && ocrSpell.known(x))) return m; c = exLig(j); if (c) return c; return ocrSpell.has(j) ? j : m; })
@@ -4002,9 +4002,9 @@ window.ocrLaneReset = function(){ sset('ocrLaneCap', ''); sset('ocrLaneBest', ''
         .replace(R2, ' $1').replace(R2c, function(m, a, off, str){   /* r166 (ناظر پاک‌سازی): «‌ه‌ای» پس از ...دِه/تِه فقط وقتی نیم‌فاصله می‌گیرد که جمع نباشد؛ ریشهٔ کوتاه‌تر شناخته (رویداد) و شکل «ه»دار ناشناخته (رویداده) = جمع «رویدادهای» (همان محافظ K(w.slice(0,-3)) شاخهٔ CL) */
       if (a === 'ای') { var s0 = off, w3; while (s0 > 0 && /\p{L}/u.test(str.charAt(s0 - 1))) s0--; w3 = str.slice(s0, off); if (w3.length >= 4 && ocrSpell.known(w3.slice(0, -1)) && !ocrSpell.known(w3)) return m; if (/^(?:شکست|نشست|بافت|سوخت|دید|کرد|برد|گشت|خواست)ه$/.test(w3)) return m; }   /* r259: شکست‌های/نشست‌های/بافت‌های/دید‌های/کردهای(قوم)… جمعِ اسمی‌اند، نه «Xه‌ای» */
       if (a === 'ام' && (function(){ var s1 = off, w4; while (s1 > 0 && /\p{L}/u.test(str.charAt(s1 - 1))) s1--; w4 = str.slice(s1, off) + a; return w4 === 'اتهام' || w4 === 'ازدهام'; })()) return m;   /* r183: واژهٔ مستقل (نه «اته‌ام»/«ازده‌ام») */
-      return Z + a; })
+      return (a === 'ای' ? ' ' : Z) + a; })
         .replace(RPL, function(m, r){ return r + (/[دذرزژو]$/.test(r) ? '' : Z) + 'های'; })
-        .replace(R4a, Z).replace(R4b, '').replace(R4c, Z).replace(R4e, heSp).replace(R4d, cmpSp).replace(RBI, biSp).replace(RUJ, unkJoin)
+        .replace(R4a, Z).replace(R4b, '').replace(R4c, ' ').replace(R4e, heSp).replace(R4d, cmpSp).replace(RBI, biSp).replace(RUJ, unkJoin)
         .replace(RC, function(m, a, b){ return cmpOK(a + b) ? a + b : m; })
         .replace(RTOK, splitSuffix).replace(RTOK, cmpZ)
         .replace(R5a, '$1 ').replace(R5b, '$1 ')
@@ -4046,7 +4046,7 @@ var ocrSpell = (function(){
 
   var GW = (typeof window !== 'undefined') ? window : self, UW = new Set(), PLW = /^[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC]+$/;
   function faText(){ var w = GW.FA_WORDS || GW.FA_LEXICON || GW.FA_DICT || GW.fa_words || ''; if (!w) { try { if (typeof FA_WORDS !== 'undefined') w = FA_WORDS; else if (typeof FA_DICT !== 'undefined') w = FA_DICT; else if (typeof fa_words !== 'undefined') w = fa_words; else if (typeof FA_LEXICON !== 'undefined') w = FA_LEXICON; } catch (e) {} } if (w instanceof Set) return Array.from(w).join(' '); if (w instanceof Map) return Array.from(w.keys()).join(' '); if (Array.isArray(w)) return w.join(' '); if (w && typeof w === 'object') return Object.keys(w).join(' '); return String(w); }   /* fa_words.js: رشته (فاصله/خط‌جدید/ویرگول)، آرایه یا شیء؛ نبودنش خطا نیست */
-  function addFw(x){ x = normCh(x).replace(/[\u064B-\u0652\u0670]/g, ''); if (!x) return; if (x.indexOf('\u200c') >= 0) { x.split('\u200c').forEach(function(p){ if (p.length >= 3) { if (!D.has(p)) PO.add(p); D.add(p); } }); if (x.replace(/\u200c/g, '').length >= 4) { var g0 = x.replace(/\u200c/g, ''); if (!D.has(g0)) { PO.add(g0); if (g0.length >= 5) ZWM.set(g0, x); } D.add(g0); ZWS.add(g0); } var hm = /^(.+?)ه\u200cای$/.exec(x), pm = hm ? null : /^(.+)\u200cها(ی)?$/.exec(x); if (hm) ZWE.add(hm[1]); else if (pm) ZWP.add(pm[1]); } else if (x.length >= 2) { D.add(x); ZWM.delete(x); PO.delete(x); } }   /* r253: PO = واژه‌ای که فقط «پارهٔ» ترکیب نیم‌فاصله‌دار آمده؛ ZWE/ZWP = ریشه‌هایی که «Xه‌ای» / «X‌ها(ی)» در فایل شاهد دارند */   /* r173: ZWM = شکل چسبیده ← شکل نیم‌فاصله‌دار فایل (فقط وقتی شکل چسبیده واژهٔ مستقل فایل نیست) */
+  function addFw(x){ x = normCh(x).replace(/[\u064B-\u0652\u0670]/g, ''); if (!x) return; if (x.indexOf('\u200c') >= 0) { x.split('\u200c').forEach(function(p){ if (p.length >= 3) { if (!D.has(p)) PO.add(p); D.add(p); } }); if (x.replace(/\u200c/g, '').length >= 4) { var g0 = x.replace(/\u200c/g, ''); if (!D.has(g0)) { PO.add(g0); if (g0.length >= 5) ZWM.set(g0, x.replace(/ه\u200cای$/, 'ه ای')); } D.add(g0); ZWS.add(g0); } var hm = /^(.+?)ه\u200cای$/.exec(x), pm = hm ? null : /^(.+)\u200cها(ی)?$/.exec(x); if (hm) ZWE.add(hm[1]); else if (pm) ZWP.add(pm[1]); } else if (x.length >= 2) { D.add(x); ZWM.delete(x); PO.delete(x); } }   /* r253: PO = واژه‌ای که فقط «پارهٔ» ترکیب نیم‌فاصله‌دار آمده؛ ZWE/ZWP = ریشه‌هایی که «Xه‌ای» / «X‌ها(ی)» در فایل شاهد دارند */   /* r173: ZWM = شکل چسبیده ← شکل نیم‌فاصله‌دار فایل (فقط وقتی شکل چسبیده واژهٔ مستقل فایل نیست) */
   function build(){
     D = new Set(); ZWS = new Set(); ZWM = new Map(); PO = new Set(); ZWE = new Set(); ZWP = new Set();
     var add = function(w){ if (w) { w = normCh(w); D.add(w); PO.delete(w); } };
