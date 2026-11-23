@@ -10444,7 +10444,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r263 · 2026-11-21 · hub-v5 · pguard-v4 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v6 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · p16fix-v1 · psmart-v1 · pgs-v1 · psci-v1 · pdun-v1 · palh-v1 · whb-v1 · pnat-v1 · pgrd-v1 · pthm-v1 · pdpk-v1', npBuild = '';
+  var APP_BUILD = 'html-r264 · 2026-11-23 · hub-v5 · pguard-v4 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v6 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · p16fix-v1 · psmart-v1 · pgs-v1 · psci-v1 · pdun-v1 · palh-v1 · whb-v1 · pnat-v1 · pgrd-v1 · pthm-v1 · pdpk-v1 · plock-v1', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -11565,6 +11565,7 @@ var rawBlob = {}, sTab = {}, markMap = {};   /* markMap: مرز واقعی شر�
     start(idx);
   }
   function wdTick(){
+    if (playing && document.hidden) { try { if (kaRdOn() && (!kaAu || kaAu.paused)) kaSync(); } catch (e) {} }   /* r264 (plock-v1): حلقهٔ نگهدارنده با صفحهٔ پنهان زنده بماند */
     if (!playing || wdPhase === 'idle') return;
     var now = Date.now();
     if (now < wdGrace) return;
@@ -12407,16 +12408,19 @@ function wlSync(want){ wlWant = want;   /* Screen Wake Lock برای نسخهٔ 
     navigator.wakeLock.request('screen').then(function(l){ wlBusy = false; wlSen = l; l.addEventListener('release', function(){ if (wlSen === l) wlSen = null; }); if (!wlWant) { wlSen = null; l.release().catch(function(){}); } }, function(){ wlBusy = false; });
   } catch (e) { wlBusy = false; }
 }
-  function kaFall(on){                                              /* صدای تقریباً بی‌صدا: پردازش (OCR) با صفحهٔ خاموش یا در پس‌زمینه از تعلیق جلوگیری می‌شود */
+  var kaAuN = 0;
+  function kaFall(on, rd){                                          /* صدای تقریباً بی‌صدا: پردازش (OCR) با صفحهٔ خاموش یا در پس‌زمینه از تعلیق جلوگیری می‌شود */
     try {
       if (on) {
+        var nn = rd ? 56000 : 8000;   /* r264 (plock-v1): خوانش بومی ⇒ ۷ثانیه (≥۵ث ⇒ فوکوس ماندگار GAIN، نه MAY_DUCK که گوینده را ۳۰٪ می‌کرد)؛ OCR همان ۱ثانیه */
+        if (kaAu && kaAuN !== nn) { try { kaAu.pause(); } catch (e) {} kaAu = null; }
         if (!kaAu) {
           /* r262: ۱۶بیتی، مقدار ثابت (DC) بسیار کوچک ⇒ شنیده نمی‌شود، ولی توان آن بالاتر از آستانهٔ «در حال پخش» در Chromium (≈ -72 dBFS) است؛
              پیش‌تر ±۱/۱۲۸ با volume=0.02 ≈ -79 dBFS بود و با ka1 هم ۶۰ ثانیه پس از hidden فریز می‌شد. پس از volume=0.1: سطح۰ ≈ -64، ۱ ≈ -58، ۲ ≈ -52، ۳ ≈ -46 dBFS */
-          var n = 8000, u = new Uint8Array(44 + 2 * n), dv = new DataView(u.buffer), i, amp = [0.0063, 0.0126, 0.025, 0.05][kaLv] || 0.0063, sv = Math.round(amp * 32767), w = function(o, t){ for (var j = 0; j < t.length; j++) u[o + j] = t.charCodeAt(j); };
+          var n = nn, u = new Uint8Array(44 + 2 * n), dv = new DataView(u.buffer), i, amp = [0.0063, 0.0126, 0.025, 0.05][kaLv] || 0.0063, sv = Math.round(amp * 32767), w = function(o, t){ for (var j = 0; j < t.length; j++) u[o + j] = t.charCodeAt(j); };
           w(0, 'RIFF'); dv.setUint32(4, 36 + 2 * n, true); w(8, 'WAVEfmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true); dv.setUint32(24, 8000, true); dv.setUint32(28, 16000, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); w(36, 'data'); dv.setUint32(40, 2 * n, true);
           for (i = 0; i < n; i++) dv.setInt16(44 + 2 * i, sv, true);
-          kaAu = new Audio('data:audio/wav;base64,' + natU8(u)); kaAu.loop = true; kaAu.volume = 0.1;
+          kaAu = new Audio('data:audio/wav;base64,' + natU8(u)); kaAu.loop = true; kaAu.volume = 0.1; kaAuN = nn;
         }
         if (kaAu.paused) { try { var kp = kaAu.play(); if (kp && kp.catch) kp.catch(function(e){ kaErr = String((e && e.name) || e).slice(0, 24); }); } catch (e) { kaErr = 'throw'; } }   /* r259: خطای play() ثبت می‌شود (پیش‌تر بی‌صدا بلعیده می‌شد) */
         if (navigator.mediaSession && !playing) { try { navigator.mediaSession.metadata = new MediaMetadata({ title: 'OCR در حال اجراست', artist: 'خوانندهٔ صوتی PDF' }); navigator.mediaSession.playbackState = 'playing'; } catch (e) {} }
@@ -12428,6 +12432,9 @@ function wlSync(want){ wlWant = want;   /* Screen Wake Lock برای نسخهٔ 
   }
   function kaSt(){ try { return (kaAu ? (kaAu.paused ? 'ka0' : 'ka1') : 'ka-') + (kaErr ? ':' + kaErr : '') + '|L' + kaLv + '|np' + (NP ? 1 : 0) + (npOK ? 1 : 0) + 'b' + (kaBad ? 1 : 0) + 'o' + (kaOn === null ? '-' : (kaOn ? 1 : 0)) + '|s' + kaScr + 'v' + kaKv + 'n' + (ntCall('kvCount') || 0); } catch (e) { return 'ka?'; } }   /* r259: ka1 = حلقهٔ صوتی نگهدارنده در حال پخش، ka0 = متوقف، ka- = ساخته نشده؛ پس از «:» خطای play() */
   var kaOffAt = 0;
+  /* r264 (plock-v1): خوانش بومی (AudioTrack) + صفحهٔ پنهان/قفل ⇒ هیچ صدایی داخل WebView نیست و Chromium صفحه را پس از ~۶۰ث فریز می‌کند؛ کل زنجیرهٔ خوانش (npEnded ← gap ← advance، wdTick، دکمه‌های کارت قفل) JS است و می‌ایستد.
+     همان حلقهٔ صوتی نگهدارندهٔ OCR (kaFall، سطح kaLv) تا برگشت به پیش‌زمینه روشن می‌ماند. خاموش‌کردن: localStorage kaRd=0 */
+  function kaRdOn(){ try { return !!(playing && npPlay && document.hidden && sget('kaRd', '') !== '0'); } catch (e) { return false; } }
   /* ===== r263: لایهٔ قطعی «OCR با صفحهٔ خاموش/تاریک» =====
      الف) حین OCR صفحه خودکار خاموش نشود (FLAG_KEEP_SCREEN_ON) ← صفحه hidden/frozen نمی‌شود؛
      ب) دکمهٔ «صفحهٔ سیاه»: کمترین روشنایی + پوشش سیاه، صفحه از دید سیستم «روشن» می‌ماند (روی AMOLED تقریباً خاموش)؛
@@ -12464,7 +12471,8 @@ function wlSync(want){ wlWant = want;   /* Screen Wake Lock برای نسخهٔ 
     var scan = !!(ocrBusy || (man && (man.busy || man.fx)) || (RC && RC.run)), kw = !!(playing || scan);   /* بیدار ماندن صفحه/CPU هم حین پخش و هم حین OCR (اصلی و دستی) */
     wlSync(kw && (kaBad || !npOK || !NP));
 document.documentElement.classList.toggle('ocr-run', scan); scrSync(scan);   /* r83: هنگام OCR انیمیشن/بلور متوقف (گرما) */
-    kaFall(scan && !playing && (document.hidden || kaBad || !npOK || !NP));   /* r83: حلقهٔ صوتی فقط وقتی صفحه پنهان است یا پلاگین keepAwake نیست */
+    var rdk = kaRdOn();
+    kaFall(rdk || (scan && !playing && (document.hidden || kaBad || !npOK || !NP)), rdk);   /* r83: حلقهٔ صوتی فقط وقتی صفحه پنهان است یا پلاگین keepAwake نیست؛ r264: یا خوانش بومی با صفحهٔ پنهان */
     if (kaBad || !npOK || !NP || (kaOn === null && !kw) || kaOn === kw) { if (kw) kaOffAt = 0; return; }
     if (!kw && kaOn) { if (!kaOffAt) { kaOffAt = Date.now(); setTimeout(kaSync, 3100); } if (Date.now() - kaOffAt < 3000) return; }
     kaOffAt = 0; kaOn = kw;
@@ -12477,6 +12485,13 @@ document.documentElement.classList.toggle('ocr-run', scan); scrSync(scan);   /* 
   /* r254 (H3): رویدادهای چرخهٔ حیات با هر دو ساعت (یکنواخت/دیواری)؛ سقف ۶۰ ردیف؛ فقط حین OCR؛ شنوندهٔ ثابت (نشتی ندارد) */
   ['pagehide', 'pageshow'].forEach(function(ev){ try { window.addEventListener(ev, function(){ try { if (ocrBusy && ocrPerf && ocrPerf.vis && ocrPerf.vis.length < 60) ocrPerf.vis.push([ocrPerf.n, ev, Math.round(performance.now() / 1000), Math.round(Date.now() / 1000), document.visibilityState]); } catch (e) {} }); } catch (e) {} });
   ['freeze', 'resume'].forEach(function(ev){ try { document.addEventListener(ev, function(){ try { if (ocrBusy && ocrPerf && ocrPerf.vis && ocrPerf.vis.length < 60) ocrPerf.vis.push([ocrPerf.n, ev, Math.round(performance.now() / 1000), Math.round(Date.now() / 1000), document.visibilityState, kaSt()]); } catch (e) {} }); } catch (e) {} });
+  /* r264 (plock-v1): ثبت پنهان/آشکار/freeze/resume حین خوانش در «گزارش خطا ‹ audio-health»؛ با این لاگ فریز صفحهٔ قفل و اثر حلقهٔ نگهدارنده دیده می‌شود (ka1 = حلقه روشن، dt = مدت پنهان‌بودن) */
+  (function(){
+    var hAt = 0;
+    function rdLog(ev){ try { if (!playing || !npPlay) return; hsLog('lock:' + ev + ' vs=' + document.visibilityState + ' ' + kaSt() + ' ph=' + wdPhase + ' i=' + idx + (hAt && ev !== 'hidden' ? ' dt=' + Math.round((Date.now() - hAt) / 1000) + 's' : '')); } catch (e) {} }
+    document.addEventListener('visibilitychange', function(){ if (document.hidden) hAt = Date.now(); rdLog(document.hidden ? 'hidden' : 'visible'); });
+    ['freeze', 'resume'].forEach(function(ev){ try { document.addEventListener(ev, function(){ rdLog(ev); }); } catch (e) {} });
+  })();
   function ui(){ mnSync();
     kaSync(); manPbSync();
     var has = sents.length > 0 && canSpeak();
