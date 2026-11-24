@@ -6441,7 +6441,7 @@ function jbWrapW(ls, old){
     r.gpuDx = { wgpu: !!navigator.gpu, coi: !!window.crossOriginIsolated, sab: typeof SharedArrayBuffer !== 'undefined', gpuBox: !!($('#ocrGpu') || {}).checked, gpuBad: !!sget('ocrGpuBad') };
     try {   /* r254: تعریف‌ها (برای ممیزی)، ساعت دیواری، «هوشمند» */
       r.sPgWall = o.n > 1 && o.t1 > o.t0 ? +(((o.t1 - o.t0) / (o.n - 1)) / 1000).toFixed(2) : null;
-      r.defs = { vis: '[صفحه، رویداد، performance.now()/1000 از آغاز بارگذاری صفحه، Date.now()/1000، visibilityState، و برای hidden/visible/freeze/resume عنصر آخر ka1|ka0|ka-[:خطای play()]|L{سطح حلقه ۰–۳}|np{NP موجود}{npOK}b{kaBad}o{keepAwake بومی روشن؟}|s{حالت صفحه ۰ عادی/۱ روشن‌بماند/۲ سیاه}v{keepVisible}n{شمار اعلان‌های «آشکار است» بومی} = وضعیت حلقهٔ صوتی، keepAwake بومی و لایهٔ صفحهٔ خاموش]؛ رویدادهای «nat:*» از Activity بومی: [صفحه، nat:رویداد، elapsedRealtime(s؛ شامل خواب عمیق)، Date(s)، i/d/s = تعاملی/Doze/صرفه‌جویی]؛ pw: ps=صرفه‌جویی باتری، st=تعاملی,Doze,صرفه‌جویی، rp=اولویت,waived پردازهٔ رندر (0=WAIVED 1=BOUND 2=IMPORTANT)', stalls: 'گپ ضربان ترد اصلی (setInterval هر 1s) منهای 1s؛ gap=ساعت یکنواخت، wg=ساعت دیواری؛ cur=صفحه‌های در حال پردازش مسیرها؛ hid=صفحه پنهان', ppm: 'صفحه/دقیقه ساعت دیواری بین اتمام اولین و آخرین صفحه', ppmClean: 'ppm منهای رندر ≥20s و استال ضربانِ ≥20s فقط وقتی مسیرها بیکار بودند (cur خالی)', iv: 'بیکاریِ مسیر بین پایان یک صفحه و شروع صفحهٔ بعد', sPgWall: '(t1-t0)/(n-1) ثانیه', pxs: 'Σعرض rec ÷ recInfer', gsN: 'تعداد چسبیدگی ترمیم‌شده در Worker', whb: '[ثانیهٔ عمر Worker، گپ ضربان Worker با ساعت یکنواخت (ms)، گپ با ساعت دیواری (ms)] فقط برای گپ ≥8s؛ اگر ضربان ترد اصلی گپ دارد ولی Worker ندارد ⇒ مشکل ترد اصلی؛ اگر هر دو ⇒ کل پردازهٔ رندر کند/متوقف', dictDup: 'توکن‌های فایل که چیزی به فرهنگ‌واژه نیفزودند (تکراریِ پس از نرمال‌سازی)' };
+      r.defs = { vis: '[صفحه، رویداد، performance.now()/1000 از آغاز بارگذاری صفحه، Date.now()/1000، visibilityState، و برای hidden/visible/freeze/resume عنصر آخر ka1|ka0|ka-[:خطای play()]|L{سطح حلقه ۰–۳}|np{NP موجود}{npOK}b{kaBad}o{keepAwake بومی روشن؟}|s{حالت صفحه ۰ عادی/۱ روشن‌بماند/۲ سیاه}v{keepVisible}n{شمار اعلان‌های «آشکار است» بومی}h{۱ = نگهداشت پس از توقف فعال} = وضعیت حلقهٔ صوتی، keepAwake بومی و لایهٔ صفحهٔ خاموش]؛ رویدادهای «nat:*» از Activity بومی: [صفحه، nat:رویداد، elapsedRealtime(s؛ شامل خواب عمیق)، Date(s)، i/d/s = تعاملی/Doze/صرفه‌جویی]؛ pw: ps=صرفه‌جویی باتری، st=تعاملی,Doze,صرفه‌جویی، rp=اولویت,waived پردازهٔ رندر (0=WAIVED 1=BOUND 2=IMPORTANT)', stalls: 'گپ ضربان ترد اصلی (setInterval هر 1s) منهای 1s؛ gap=ساعت یکنواخت، wg=ساعت دیواری؛ cur=صفحه‌های در حال پردازش مسیرها؛ hid=صفحه پنهان', ppm: 'صفحه/دقیقه ساعت دیواری بین اتمام اولین و آخرین صفحه', ppmClean: 'ppm منهای رندر ≥20s و استال ضربانِ ≥20s فقط وقتی مسیرها بیکار بودند (cur خالی)', iv: 'بیکاریِ مسیر بین پایان یک صفحه و شروع صفحهٔ بعد', sPgWall: '(t1-t0)/(n-1) ثانیه', pxs: 'Σعرض rec ÷ recInfer', gsN: 'تعداد چسبیدگی ترمیم‌شده در Worker', whb: '[ثانیهٔ عمر Worker، گپ ضربان Worker با ساعت یکنواخت (ms)، گپ با ساعت دیواری (ms)] فقط برای گپ ≥8s؛ اگر ضربان ترد اصلی گپ دارد ولی Worker ندارد ⇒ مشکل ترد اصلی؛ اگر هر دو ⇒ کل پردازهٔ رندر کند/متوقف', dictDup: 'توکن‌های فایل که چیزی به فرهنگ‌واژه نیفزودند (تکراریِ پس از نرمال‌سازی)' };
       r.smart = smartDiag(); r.qEff = ocrQEff(); r.whb = o.whb || []; r.pw = natPw(); r.natInfo = natInfoGet(); r.natInst = natInst();
     } catch (e) {}
     return JSON.stringify(r, null, 1);
@@ -10444,7 +10444,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r264 · 2026-11-23 · hub-v5 · pguard-v4 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v6 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · p16fix-v1 · psmart-v1 · pgs-v1 · psci-v1 · pdun-v1 · palh-v1 · whb-v1 · pnat-v1 · pgrd-v1 · pthm-v1 · pdpk-v1 · plock-v1', npBuild = '';
+  var APP_BUILD = 'html-r265 · 2026-11-24 · hub-v5 · pguard-v4 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v6 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · p16fix-v1 · psmart-v1 · pgs-v1 · psci-v1 · pdun-v1 · palh-v1 · whb-v1 · pnat-v1 · pgrd-v1 · pthm-v1 · pdpk-v1 · plock-v1 · plock-v2', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
@@ -12398,7 +12398,7 @@ function pauseMs(i, nr){   /* nr: بدون اثر سرعت پخش (برای مک
   })();
   pvLook();
   pvApply();
-  var kaOn = null, kaBad = false, kaReady = true, kaAu = null, wlSen = null, wlBusy = false, wlWant = false, kaErr = '', kaLv = 0, kaFroze = 0;
+  var kaOn = null, kaBad = false, kaReady = true, kaAu = null, wlSen = null, wlBusy = false, wlWant = false, kaErr = '', kaLv = 0, kaFroze = 0, kaPzAt = 0, kaPzT = 0, KA_PZ_MS = 600000;   /* r265 (plock-v2): لحظهٔ آغاز توقف، تایمر پایان نگهداشت، و طول نگهداشت (هم‌اندازهٔ PAUSE_HOLD_MS بومی؛ هر دو را با هم عوض کنید) */
   try { kaLv = Math.min(3, Math.max(0, parseInt(localStorage.getItem('ka_lv') || '0', 10) || 0)); } catch (e) {}   /* r262: سطح حلقهٔ صوتی نگهدارنده؛ اگر با ka1 باز هم فریز شد، در بازگشت یک پله بالا می‌رود (حداکثر ۳) */
 function wlSync(want){ wlWant = want;   /* Screen Wake Lock برای نسخهٔ وب (بدون پلاگین بومی)؛ با پنهان‌شدن صفحه خودکار آزاد می‌شود و در بازگشت دوباره گرفته می‌شود */
   try {
@@ -12430,11 +12430,23 @@ function wlSync(want){ wlWant = want;   /* Screen Wake Lock برای نسخهٔ 
       }
     } catch (e) {}
   }
-  function kaSt(){ try { return (kaAu ? (kaAu.paused ? 'ka0' : 'ka1') : 'ka-') + (kaErr ? ':' + kaErr : '') + '|L' + kaLv + '|np' + (NP ? 1 : 0) + (npOK ? 1 : 0) + 'b' + (kaBad ? 1 : 0) + 'o' + (kaOn === null ? '-' : (kaOn ? 1 : 0)) + '|s' + kaScr + 'v' + kaKv + 'n' + (ntCall('kvCount') || 0); } catch (e) { return 'ka?'; } }   /* r259: ka1 = حلقهٔ صوتی نگهدارنده در حال پخش، ka0 = متوقف، ka- = ساخته نشده؛ پس از «:» خطای play() */
+  function kaSt(){ try { return (kaAu ? (kaAu.paused ? 'ka0' : 'ka1') : 'ka-') + (kaErr ? ':' + kaErr : '') + '|L' + kaLv + '|np' + (NP ? 1 : 0) + (npOK ? 1 : 0) + 'b' + (kaBad ? 1 : 0) + 'o' + (kaOn === null ? '-' : (kaOn ? 1 : 0)) + '|s' + kaScr + 'v' + kaKv + 'n' + (ntCall('kvCount') || 0) + 'h' + (kaHold() ? 1 : 0); } catch (e) { return 'ka?'; } }   /* r259: ka1 = حلقهٔ صوتی نگهدارنده در حال پخش، ka0 = متوقف، ka- = ساخته نشده؛ پس از «:» خطای play() */
   var kaOffAt = 0;
   /* r264 (plock-v1): خوانش بومی (AudioTrack) + صفحهٔ پنهان/قفل ⇒ هیچ صدایی داخل WebView نیست و Chromium صفحه را پس از ~۶۰ث فریز می‌کند؛ کل زنجیرهٔ خوانش (npEnded ← gap ← advance، wdTick، دکمه‌های کارت قفل) JS است و می‌ایستد.
      همان حلقهٔ صوتی نگهدارندهٔ OCR (kaFall، سطح kaLv) تا برگشت به پیش‌زمینه روشن می‌ماند. خاموش‌کردن: localStorage kaRd=0 */
   function kaRdOn(){ try { return !!(playing && npPlay && document.hidden && sget('kaRd', '') !== '0'); } catch (e) { return false; } }
+  /* r265 (plock-v2): پس از «توقف» با اعلان رسانه‌ای زنده، صفحهٔ پنهان/قفل بی‌صدا می‌ماند و WebView ~۶۰ثانیه بعد فریز می‌شود؛ دکمهٔ «پخش» ویجت قفل به JS فریزشده می‌رسد و تا باز شدن برنامه اجرا نمی‌شود.
+     حلقهٔ صوتی در MainActivity (r263) حتی با ka1 جلوی فریز را نگرفته؛ پس برای همین بازهٔ نگهداشت (≤ KA_PZ_MS پس از توقف) از همان keepVisible بومی که OCR دارد استفاده می‌شود (نبض ۱٫۵ثانیه‌ای فقط وقتی Activity متوقف است؛ بدون پردازش تازه).
+     با keepVisible صفحه «آشکار» حساب می‌شود؛ برای گرما (انیمیشن drift پس‌زمینه) کلاس ocr-run فقط وقتی پنجره فوکوس ندارد (قفل/پس‌زمینه) روشن می‌شود. مسیر «در حال پخش» دست‌نخورده است. خاموش‌کردن: localStorage kaPz=0 */
+  function kaHold(){ try { return !!(!playing && mnOn && npPlay && kaPzAt && Date.now() - kaPzAt < KA_PZ_MS && sget('kaPz', '') !== '0'); } catch (e) { return false; } }
+  function kaPzTrack(){
+    try {
+      if (playing) kaPzAt = 0; else if (!kaPzAt) kaPzAt = Date.now();
+      if (kaHold()) { if (!kaPzT) kaPzT = setTimeout(function(){ kaPzT = 0; kaSync(); }, Math.max(1000, KA_PZ_MS - (Date.now() - kaPzAt)) + 200); }
+      else if (kaPzT) { clearTimeout(kaPzT); kaPzT = 0; }
+    } catch (e) {}
+  }
+  ['blur', 'focus'].forEach(function(ev){ try { window.addEventListener(ev, function(){ if (kaHold()) { try { kaSync(); } catch (x) {} } }); } catch (e) {} });   /* قفل/پس‌زمینه ⇒ بی‌فوکوس ⇒ ocr-run (توقف انیمیشن، ازجمله drift پس‌زمینه)؛ داخل برنامه (فوکوس) ظاهر دست‌نخورده می‌ماند؛ شنوندهٔ ثابت، بدون نشتی */
   /* ===== r263: لایهٔ قطعی «OCR با صفحهٔ خاموش/تاریک» =====
      الف) حین OCR صفحه خودکار خاموش نشود (FLAG_KEEP_SCREEN_ON) ← صفحه hidden/frozen نمی‌شود؛
      ب) دکمهٔ «صفحهٔ سیاه»: کمترین روشنایی + پوشش سیاه، صفحه از دید سیستم «روشن» می‌ماند (روی AMOLED تقریباً خاموش)؛
@@ -12459,7 +12471,7 @@ function wlSync(want){ wlWant = want;   /* Screen Wake Lock برای نسخهٔ 
   function scrSync(scan){
     try {
       if (!scan && blkOn) { blkOn = false; if (blkEl) blkEl.style.display = 'none'; }
-      var want = scan ? (blkOn ? 2 : 1) : 0, kv = scan ? 1 : 0;
+      var want = scan ? (blkOn ? 2 : 1) : 0, kv = (scan || kaHold()) ? 1 : 0;   /* r265 (plock-v2): kv فقط؛ روشن‌ماندن صفحه (want) همچنان فقط برای OCR */
       if (kaScr === -1 && want === 0) kaScr = 0; else if (want !== kaScr) { kaScr = want; ntCall('keepScreen', want); }
       if (kaKv === -1 && kv === 0) kaKv = 0; else if (kv !== kaKv) { kaKv = kv; ntCall('keepVisible', kv); }
       if (scan) blkMake();
@@ -12470,7 +12482,7 @@ function wlSync(want){ wlWant = want;   /* Screen Wake Lock برای نسخهٔ 
   function kaSync(){
     var scan = !!(ocrBusy || (man && (man.busy || man.fx)) || (RC && RC.run)), kw = !!(playing || scan);   /* بیدار ماندن صفحه/CPU هم حین پخش و هم حین OCR (اصلی و دستی) */
     wlSync(kw && (kaBad || !npOK || !NP));
-document.documentElement.classList.toggle('ocr-run', scan); scrSync(scan);   /* r83: هنگام OCR انیمیشن/بلور متوقف (گرما) */
+kaPzTrack(); document.documentElement.classList.toggle('ocr-run', scan || (kaHold() && !document.hasFocus())); scrSync(scan);   /* r83: هنگام OCR انیمیشن/بلور متوقف (گرما) */
     var rdk = kaRdOn();
     kaFall(rdk || (scan && !playing && (document.hidden || kaBad || !npOK || !NP)), rdk);   /* r83: حلقهٔ صوتی فقط وقتی صفحه پنهان است یا پلاگین keepAwake نیست؛ r264: یا خوانش بومی با صفحهٔ پنهان */
     if (kaBad || !npOK || !NP || (kaOn === null && !kw) || kaOn === kw) { if (kw) kaOffAt = 0; return; }
@@ -12488,7 +12500,7 @@ document.documentElement.classList.toggle('ocr-run', scan); scrSync(scan);   /* 
   /* r264 (plock-v1): ثبت پنهان/آشکار/freeze/resume حین خوانش در «گزارش خطا ‹ audio-health»؛ با این لاگ فریز صفحهٔ قفل و اثر حلقهٔ نگهدارنده دیده می‌شود (ka1 = حلقه روشن، dt = مدت پنهان‌بودن) */
   (function(){
     var hAt = 0;
-    function rdLog(ev){ try { if (!playing || !npPlay) return; hsLog('lock:' + ev + ' vs=' + document.visibilityState + ' ' + kaSt() + ' ph=' + wdPhase + ' i=' + idx + (hAt && ev !== 'hidden' ? ' dt=' + Math.round((Date.now() - hAt) / 1000) + 's' : '')); } catch (e) {} }
+    function rdLog(ev){ try { if (!(playing || mnOn) || !npPlay) return;   /* r265: حالت «متوقف با اعلان» هم ثبت شود */ hsLog('lock:' + ev + ' vs=' + document.visibilityState + ' ' + kaSt() + ' ph=' + wdPhase + ' i=' + idx + (hAt && ev !== 'hidden' ? ' dt=' + Math.round((Date.now() - hAt) / 1000) + 's' : '')); } catch (e) {} }
     document.addEventListener('visibilitychange', function(){ if (document.hidden) hAt = Date.now(); rdLog(document.hidden ? 'hidden' : 'visible'); });
     ['freeze', 'resume'].forEach(function(ev){ try { document.addEventListener(ev, function(){ rdLog(ev); }); } catch (e) {} });
   })();
@@ -12564,11 +12576,12 @@ document.documentElement.classList.toggle('ocr-run', scan); scrSync(scan);   /* 
   function mnStop(){
     clearTimeout(mnT); mnK = ''; mnCoverSent = null;
     if (!mnOn) return;
-    mnOn = false; mnPl = 0; mnHold = 0; mnKB = '';
+    mnOn = false; mnPl = 0; mnHold = 0; mnKB = ''; try { kaSync(); } catch (e) {}   /* r265: پایان اعلان ⇒ نگهداشت/keepVisible فوری آزاد شود */
     try { if (NP && NP.mediaStop) Promise.resolve(NP.mediaStop()).catch(function(){}); } catch (e) {}
   }
   function mnAct(e){
     var a = e && e.action;
+    try { if (a && a !== 'seek' && a !== 'speed') hsLog('lock:act ' + a + ' vs=' + document.visibilityState + ' pl=' + (playing ? 1 : 0) + ' ' + kaSt()); } catch (x) {}   /* r265 (plock-v2): لحظهٔ رسیدن دکمهٔ ویجت به JS */
     if (a === 'play') { if (!playing) start(); }
     else if (a === 'pause') { if (playing) pause(); }
     else if (a === 'next') { seekTo(poStep(1)); mnSync(); }
