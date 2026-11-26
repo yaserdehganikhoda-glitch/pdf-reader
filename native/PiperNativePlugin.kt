@@ -406,6 +406,51 @@ class PiperNativePlugin : Plugin() {
         } catch (e: Throwable) { MediaBridge.svcLog(context, "web-prio-ex2", e) }
     }
 
+    /** kt-r41 (LK-02، صفحهٔ قفل): دکمهٔ ویجت/اعلان ⇒ پیش از رساندن mediaAction به WebView «پنجره آشکار است» اعلام می‌شود (همان فراخوانی MainActivity.kvR)،
+     *  تا صفحهٔ پنهان/فریزشده بیدار شود و رویداد بی‌تأخیر اجرا شود؛ بدون پردازش تازه و بدون پل جدید در مسیر صدا. فقط اجرا و ثبت؛ شکست بی‌اثر است. */
+    private fun wakeWeb(a: String) {
+        try {
+            activity?.runOnUiThread {
+                try {
+                    bridge?.webView?.dispatchWindowVisibilityChanged(android.view.View.VISIBLE)
+                } catch (e: Throwable) { MediaBridge.svcLog(context, "wake-web-ex", e) }
+            }
+            if (a != "seek") MediaBridge.svcLog(context, "wake-web", null, "a=" + a)
+        } catch (e: Throwable) {}
+    }
+
+    /* kt-r42 (LK-03، صفحهٔ قفل): نبض «پنجره آشکار است» متعلق به خود پلاگین، مستقل از JS.
+       زنجیرهٔ خوانش (playerEnd ← advance ← playerPlay/playerQueue) همه JS است؛ اگر WebView با قفل‌شدن پنهان/فریز شود صف بومی خالی می‌شود، playerEnd در صف می‌ماند و صدا قطع می‌شود.
+       keepVisible فعلی را JS روشن می‌کند (ممکن است روشن نشده/اثرنکرده باشد)؛ این حلقه هر ۱٫۵ث، تا وقتی Activity متوقف است و پخش بومی/اعلانِ تازه‌پخش‌شده زنده است (تا ۱۰ دقیقه پس از آخرین پخش)، همان فراخوانی را می‌زند.
+       فقط وقتی Activity متوقف است (uiBg) اجرا می‌شود؛ هزینه: یک رویداد سبک روی ترد UI؛ بدون پردازش تازه و بدون پل در مسیر صدا. حلقه خودش پایان می‌یابد. */
+    private val wkH = android.os.Handler(android.os.Looper.getMainLooper())
+    @Volatile private var wkOn = false
+    @Volatile private var wkLive = 0L
+    @Volatile private var wkN = 0
+    private val wkR = object : Runnable {
+        override fun run() {
+            var again = false
+            try {
+                val now = android.os.SystemClock.elapsedRealtime()
+                val live = uiBg && (synchronized(plLock) { plActive } || MediaBridge.playing)
+                if (live) wkLive = now
+                if (live || (uiBg && MediaBridge.active && now - wkLive < 10 * 60 * 1000L)) {
+                    bridge?.webView?.dispatchWindowVisibilityChanged(android.view.View.VISIBLE)
+                    wkN++
+                    again = true
+                }
+            } catch (e: Throwable) {}
+            if (again) wkH.postDelayed(this, 1500)
+            else { wkOn = false; if (wkN > 0) MediaBridge.svcLog(context, "wk-end", null, "n=" + wkN); wkN = 0 }
+        }
+    }
+    private fun wkStart() {
+        if (wkOn || !uiBg) return
+        wkOn = true; wkLive = android.os.SystemClock.elapsedRealtime()
+        MediaBridge.svcLog(context, "wk-start", null, "pl=" + (if (MediaBridge.playing) 1 else 0) + " act=" + (if (MediaBridge.active) 1 else 0))
+        wkH.postDelayed(wkR, 250)
+    }
+
     /** ثبت گذار چرخهٔ عمر در حلقهٔ svc (diag().svc) تا رابطهٔ «قفل شد ⇄ پخش ایستاد» با شواهد دیده شود */
     private fun lcLog(ev: String) {
         try {
@@ -416,7 +461,7 @@ class PiperNativePlugin : Plugin() {
     override fun handleOnStart() { uiBg = false; lcLog("start") }
     override fun handleOnResume() { uiBg = false; lcLog("resume") }
     override fun handleOnPause() { lcLog("pause") }
-    override fun handleOnStop() { uiBg = true; lcLog("stop") }
+    override fun handleOnStop() { uiBg = true; lcLog("stop"); wkStart() }   // kt-r42
 
     @PluginMethod
     fun keepAwake(call: PluginCall) {
@@ -479,13 +524,13 @@ class PiperNativePlugin : Plugin() {
     fun mediaStart(call: PluginCall) {
         mediaApply(call)
         MediaBridge.active = true
-        MediaBridge.cb = { a, p -> notifyListeners("mediaAction", JSObject().put("action", a).put("pos", p)) }
-        mediaPush(); webPrioSync(); call.resolve()   // kt-r40 (LK-01)
+        MediaBridge.cb = { a, p -> wakeWeb(a); notifyListeners("mediaAction", JSObject().put("action", a).put("pos", p)) }   // kt-r41 (LK-02): پیش از رساندن رویداد صفحه بیدار شود
+        mediaPush(); webPrioSync(); wkStart(); call.resolve()   // kt-r40 (LK-01)، kt-r42
     }
     @PluginMethod
     fun mediaUpdate(call: PluginCall) {
         if (!MediaBridge.active) { call.reject("NO_MEDIA"); return }
-        mediaApply(call); mediaPush(); wlRenew(); call.resolve()
+        mediaApply(call); mediaPush(); wlRenew(); wkStart(); call.resolve()   // kt-r42
     }
     @PluginMethod
     fun mediaStop(call: PluginCall) {
@@ -497,7 +542,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r40 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r42 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
     }
 
     @PluginMethod
@@ -2225,6 +2270,7 @@ class PiperNativePlugin : Plugin() {
         val g = gen
         ensureNoisyReceiver()
         afRequest()
+        wkStart()   // kt-r42
         plEx.execute { runPlayer(g, PlItem(h, pcm, 0)) }
         call.resolve()
     }
