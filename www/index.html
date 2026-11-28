@@ -3194,7 +3194,7 @@ on('playerResume', function(){ if (mnAF && !playing && sents.length) { mnAF = 0;
       });
     }
   }
-  $('#logShow').onclick = function(){ var b = $('#logBox'); b.hidden = !b.hidden; if (!b.hidden) logRender(); };
+  $('#logShow').onclick = function(){ var b = $('#logBox'); b.hidden = !b.hidden; if (!b.hidden) { try { var pr = NP && NP.phLog && NP.phLog({ on: true }); if (pr && pr.catch) pr.catch(function(){}); } catch (e) {} logRender(); } };   /* r267 (A07): با باز شدن گزارش، لاگ سقف‌دار فونم در بومی روشن می‌شود؛ تکه‌های بعدی در diag.ph می‌آیند */
   $('#logOk').onclick = function(){ logOk = !logOk; this.textContent = logOk ? 'فقط مشکلات' : 'نمایش موارد سالم'; logRender(); };
   $('#logCopy').onclick = function(){
     var ta = $('#logText'); ta.select();
@@ -9014,6 +9014,7 @@ function jbWrapW(ls, old){
         [/\(\s*ع\s*\)/g, ' علیه السلام '], [/\(\s*ص\s*\)/g, ' صلی الله علیه و آله '], [/\(\s*س\s*\)/g, ' سلام الله علیها '],
         [/\(\s*ره\s*\)/g, ' رحمة الله علیه '], [/\(\s*رض\s*\)/g, ' رضی الله عنه '],
         [/(?<=[\d۰-۹][\s\u00a0])ش(?=[\s).،:؛]|$)/g, ' شمسی '], [new RegExp(L0 + 'ه\\s*\\.\\s*ش\\.?' + L1, 'gu'), ' هجری شمسی '], [new RegExp(L0 + 'ه\\s*\\.\\s*ق\\.?' + L1, 'gu'), ' هجری قمری '],
+        [new RegExp('(?<=(?:ماده|مواد|تبصره|بند)\\s*[\\d۰-۹]+(?:\\s*(?:و|،|,|تا)\\s*[\\d۰-۹]+)*\\s*)ق\\s*\\.\\s*م\\.?' + L1, 'gu'), ' قانون مدنی '], [new RegExp(L0 + 'ق\\s*\\.\\s*م\\.?(?=\\s*(?:ماده|مواد|تبصره|بند)(?![\\p{L}]))', 'gu'), ' قانون مدنی '],   /* r267 (A04): نشانهٔ حقوقی بلافاصله کنار «ق.م»؛ در شک (بدون نشانه، یا «۵۰۰ ق.م») همان «قبل از میلاد» */
         [new RegExp(L0 + 'ق\\s*\\.\\s*م\\.?' + L1, 'gu'), ' قبل از میلاد '], [new RegExp(L0 + 'ق\\s*\\.\\s*ظ\\.?' + L1, 'gu'), ' قبل از ظهر '],
         [new RegExp(L0 + 'ب\\s*\\.\\s*ظ\\.?' + L1, 'gu'), ' بعد از ظهر '], [new RegExp(L0 + 'ر\\s*\\.\\s*ک\\.?' + L1, 'gu'), ' رجوع کنید به '],
         [new RegExp(L0 + 'ج\\s*\\.\\s*ا\\s*\\.\\s*ا\\.?' + L1, 'gu'), ' جمهوری اسلامی ایران '], [/\bDr\.?(?=\s)/g, 'دکتر'],
@@ -9297,6 +9298,12 @@ function jbWrapW(ls, old){
       if (/های$/.test(k)) return k.length >= 5;
       return /[\u0627\u0648]\u06CC$/.test(k) && k.length >= 4 && (!!HEAD[k] || !!HEAD[k.slice(0, -1)] || has(k.slice(0, -1)));
     }
+    function poss3(k){   /* r267 (A03): واژه با ضمیر متصل سوم‌شخص «ـش/ـشان» (کتابش، خانه‌اش، شناسنامه‌هایشان)؛ «دانش/ورزش» نباید بخورد */
+      var m = /^(.{2,}?)(?:شان|ش)$/.exec(k); if (!m) return false;
+      var pl = /(?:\u200c|)(?:ها|های|هایی)$/.test(m[1]);
+      var b0 = m[1].replace(/\u200c?ا$/, '').replace(/\u200c?(?:ها|های|هایی)$/, '');
+      return b0.length >= 2 && (pl || !!(POSSN[b0] || head(b0) || has(b0)));
+    }
     function homKey(k){ if (!HOM) homInit(); var h = homNorm(k), sm = /^(.{2,}?)(?:ها|های|هایی)$/.exec(h); return !!(HOM[h] || (sm && HOM[sm[1]])); }
     return function(t){
       if (typeof t !== 'string' || t.length < 5) return t;
@@ -9333,6 +9340,7 @@ function jbWrapW(ls, old){
             ok = !(cop && !strong && !w2c);
             if (ok && cv && !strong && LVRX.test(cn.k.replace(/^ن?می\u200c/, ''))) ok = false;   /* «دولت اعلام کرد»، «مردم آب خوردند»: مفعول/جزء فعل مرکب */
             if (ok && !strong && w2c && AGENT[a.k] && (cv || (cn && cn.k === 'را'))) ok = false;
+            if (ok && !strong && role(a.k) && poss3(b.k) && cn && (cn.k === 'را' || cn.c === 'V')) ok = false;   /* r267 (A03): «معلم کتابش را…»، «دانش‌آموزان شناسنامه‌هایشان را…»: ضمیر سوم‌شخص به نهاد برمی‌گردد؛ در شک بدون کسره (افزایشی ← خنثی) */
             if (ok && !strong && AGENT[a.k] && !w2c && !PROPER[b.k] && has(b.k)) ok = false;   /* «استاد دانشگاه درس را…»: واژهٔ عام پس از نهاد/سازمان ← مفعول محتمل */   /* «بیمارستان گزارش را…»: فاعل + مفعول، نه مضاف/مضاف‌الیه */
           }
         } else if (b.c === 'P' && hd && !tq) {
@@ -9503,13 +9511,19 @@ function jbWrapW(ls, old){
     return ws.join(' ');
   }
   /* اعراب پیش از TTS (T-13): در صدای ناپشتیبان همه حذف می‌شود. در gyro/ganji: سند اعراب‌دار (نسبت علامت به حرف > ۰٫۱۵) فَ ُ ِ ّ ْ را نگه می‌دارد؛ در متن کم‌اعراب فقط کسرهٔ پایانِ واژه (اضافهٔ صریح «آبیِ زیبا») می‌ماند؛ تنوین، تطویل و علامت‌های یتیم همیشه حذف می‌شوند */
+  function homMark(w){ if (!HOM) homInit(); var h = homNorm(w), sm = /^(.{2,}?)(?:ها|های|هایی)$/.exec(h); return !!(HOM[h] || (sm && HOM[sm[1]])); }   /* r267 (A02): واژه از کلیدهای همنگاره است؟ */
   function stripHar(t){
     if (!harOn()) return t.replace(/[\u0640\u064B-\u065F\u0670]/g, '');
     var n = (t.match(/[\u064B-\u065F\u0670]/g) || []).length, l = (t.match(/[\u0621-\u064A\u0671-\u06D3]/g) || []).length;
     if (!n) return t.replace(/\u0640/g, '');
     t = t.replace(/[\u0640\u064B-\u064D\u0653-\u065F\u0670]/g, '').replace(/(?<![\u0621-\u06D3\u064E-\u0652\uE100-\uF8FF])[\u064E-\u0652]/g, '');
     if (n / Math.max(1, l) > 0.15) return t;
-    return t.replace(/[\u064E\u064F\u0651\u0652]/g, '').replace(/\u0650(?![\s\u200c]|$)/g, '');
+    /* r267 (A02): در متن کم‌اعراب، علامتِ صریح فقط روی همنگاره‌ها («کُرد»، «مُرد»، «گُل»…) می‌ماند؛ بقیه مثل قبل (کسرهٔ پایانیِ اضافه تنها در پایان واژه) */
+    return t.replace(/[\u0621-\u06D3\u200c]+/g, function(w, off, str){
+      if (/[\u064E\u064F\u0651\u0652]/.test(w) && homMark(w)) return w;
+      var nx = str.charAt(off + w.length), w2 = w.replace(/[\u064E\u064F\u0651\u0652]/g, '').replace(/\u0650(?![\u200c]|$)/g, '');
+      return (nx !== '' && !/[\s\u200c]/.test(nx)) ? w2.replace(/\u0650$/, '') : w2;
+    });
   }
   function ttsBase(t, eng, cont, pre){
     eng = eng || engine();
@@ -9586,6 +9600,7 @@ function jbWrapW(ls, old){
   }
   var RE_REP = /(?<![\p{L}\u200c])([\p{L}\u200c]{2,})((?:\s+\1)+)(?![\p{L}\u200c])/gu;
   var STOPW = /^(?:که|را|از|در|به|با|این|آن|تا|برای|است|بود|می|هم|نیز|یا|اما|ولی|پس|چون|اگر|بر|بی|the|of|to|and|in|is)$/;
+  var CHANT = /^(?:الله|اللاه|اللّه|علی|حسین|حسن|محمد|حق|هو|یا|حیدر|مدد|آمین|اللهم|لبیک|صلوات|زهرا|مهدی)$/;   /* r267 (A01): ذکر و شعار با تکرار عمدی؛ حذف واژه عملی تخریبی است و در شک نباید خودکار باشد */
   var RE_ROM = /^(?=[IVXLC])C{0,2}(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})$/;
   function romanVal(s){
     if (!RE_ROM.test(s)) return 0;
@@ -9716,9 +9731,13 @@ function jbWrapW(ls, old){
       .replace(/((?:[vV]|ورژن|نسخه)\s?)(\d+)\.(\d+)(?![\d.])/g, '$1$2 نقطه $3')
       .replace(/([A-Za-z]{2,}\s)(\d{1,3})\.(\d{1,3})(?![\d.])/g, '$1$2 نقطه $3')
       .replace(/(?<![\p{L}])ج\s*(\d+)(?=\s*[,،]?\s*ص(?![\p{L}]))/gu, 'جلد $1')
+      .replace(/(?<![\p{L}])(صص?\s*\.?\s*\d+(?:\s*[-–]\s*\d+)?\s*[,،]?\s*)ج\s*\.?\s*(\d+)(?![\d])/gu, '$1جلد $2')   /* r267 (A06): «ص ۱۲ ج ۳» (ترتیب معکوس) */
       .replace(/([!?؟])\1+/g, '$1');
+    t = t.replace(/(?<=[\p{L}])\u200c[ \t]+(?=(?:ها(?:ی(?:ش|ت|م|مان|تان|شان|ی)?)?|ی|ای|ام|ات|اش|مان|تان|شان|تر|ترین)(?![\p{L}]))/gu, '\u200c')   /* r267 (A05): نیم‌فاصله+فاصله (نویز OCR) پیش از پسوند ← پیوند؛ جای دیگر فقط نیم‌فاصلهٔ سرگردان حذف می‌شود (واژهٔ مستقل به هم نمی‌چسبد) */
+      .replace(/(?<=[\p{L}])\u200c[ \t]+(?=[\p{L}])/gu, ' ').replace(/(?<=[\p{L}])[ \t]+\u200c(?=[\p{L}])/gu, '\u200c');
     t = t.replace(new RegExp('(?<![\\p{L}])(ن?می)\\s+(?=' + NUM_ID + '{2,}(?:م|ی|د|یم|ید|ند)(?![\\p{L}]))', 'gu'), '$1\u200c')
-      .replace(/(?<=[\p{L}])[ \t]+(ها|های|هایی)(?![\p{L}])/gu, '\u200c$1');
+      .replace(/(?<=[\p{L}])[ \t]+(ها|های|هایی)(?![\p{L}])/gu, '\u200c$1')
+      .replace(/(?<=[\p{L}\u200c]ها)[ \t\u200c]+ی(?![\p{L}])/gu, 'ی');   /* r267 (A05): «ها ی» ← «های» (پس از چسباندن «ها») */
     return t;
   }
   function initialsFix(t){
@@ -9795,6 +9814,7 @@ function jbWrapW(ls, old){
         t = t.replace(RE_ISO, function(m){ if (isSeqL(m)) return m; bump('iso'); return m.replace(/\s/g, ''); });   /* r154: فهرست حروف «ب ج د» واژه نمی‌شود */
         t = fxr(t, /([\u0621-\u0646\u0648-\u064A\u066E-\u06D3])\1{2,}/g, 'elong', function(_, c){ return c; });
         t = t.replace(RE_REP, function(m, w, r){
+          if (CHANT.test(w.replace(/\u200c/g, ''))) return m;   /* r267 (A01) */
           if (r.trim().split(/\s+/).length === 1 && !STOPW.test(w)) return m;
           bump('rep'); return w;
         });
@@ -10444,7 +10464,7 @@ function chunkAt(i, lim){
     return { start: i, end: e, rb: rb, text: t.join(' '), mid: !!sents[e].cont, parts: P, pm: sp ? pm : null };   /* g: مکث پس از هر جمله (ثانیه) همان مکث انسانی میان تکه‌هاست */   /* parts: هر جمله جدا برای ساخت و حافظهٔ نهان بومی؛ pm[k] = نمایهٔ جملهٔ part k (فقط وقتی تأکید شکسته شده، وگرنه null) */
   }
   /* نشانهٔ نسخه (APP_BUILD): فقط در «پیشرفته» (perf) نشان داده می‌شود و کنارش نسخهٔ پلاگین Kotlin است؛ HTML داخل APK است، پس برای دیدن تغییر باید APK دوباره ساخته و نصب شود */
-  var APP_BUILD = 'html-r266 · 2026-11-25 · hub-v5 · pguard-v4 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v6 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · p16fix-v1 · psmart-v1 · pgs-v1 · psci-v1 · pdun-v1 · palh-v1 · whb-v1 · pnat-v1 · pgrd-v1 · pthm-v1 · pdpk-v1 · plock-v1 · plock-v2 · plock-v3', npBuild = '';
+  var APP_BUILD = 'html-r267 · 2026-11-28 · hub-v5 · pguard-v4 · pdbg-v1 · pmeter-v8 · pds-v1 · penj-v1 · pall-v1 · prhy-v1 · pgap-v1 · pbase-v4 · pvar-v1 · spell-v6 · errbox-v1 · hsfb-v1 · bnd-v1 · poem-v4 · pcol-v3 · prest-v2 · pdict-v1 · p16fix-v1 · psmart-v1 · pgs-v1 · psci-v1 · pdun-v1 · palh-v1 · whb-v1 · pnat-v1 · pgrd-v1 · pthm-v1 · pdpk-v1 · plock-v1 · plock-v2 · plock-v3 · pfix-v2', npBuild = '';
   var bNew = false;
   try { if (localStorage.getItem('errlogBuild') !== APP_BUILD) { bNew = true; localStorage.setItem('errlogBuild', APP_BUILD); window.__elog.add('build', 'شروع بیلد ' + APP_BUILD); } } catch (e) {}   /* جداکنندهٔ بیلد در گزارش خطا */
   /* r50: بررسی بارگذاری واژه‌نامه (fa_lexicon.js) — یک خط در «گزارش خطا»: پس از هر بیلد تازه، و همیشه اگر خالی باشد */
