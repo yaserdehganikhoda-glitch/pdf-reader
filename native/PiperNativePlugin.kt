@@ -264,7 +264,33 @@ class PiperNativePlugin : Plugin() {
     fun diag(call: PluginCall) {
         call.resolve(JSObject().put("underruns", underruns).put("sampleRate", sampleRate).put("sdk", android.os.Build.VERSION.SDK_INT).put("bufMs", bufMs).put("bufGrow", bufGrow).put("stInline", stInline).put("stPre", stPre).put("stMsMax", stMsMax).put("underStart", underStart)
             .put("abi", android.os.Build.SUPPORTED_ABIS.joinToString(",")).put("model", android.os.Build.MODEL).put("nd", NeuralDenoise.status(context)).put("ndm", NeuralDenoise.available(context))
-            .put("svc", MediaBridge.svcDump()).put("svcFile", MediaBridge.svcFile(context)).put("esp", espCmpGet()))
+            .put("svc", MediaBridge.svcDump()).put("svcFile", MediaBridge.svcFile(context)).put("esp", espCmpGet()).put("phOn", phLogOn).put("ph", phTail(40)))
+    }
+
+    // kt-r43 (A07): حلقهٔ سقف‌دار «متن ⇒ فونم» هر تکه برای عیب‌یابی خطای تلفظ (آوانگار espeak یا خود مدل؟). پیش‌فرض خاموش؛ phLog({on:true}) روشنش می‌کند (JS هنگام باز شدن گزارش)، خاموش‌کردن پاکش می‌کند. سقف ۲۰۰ ردیف؛ هزینه: یک خواندن @Volatile در هر تکه وقتی خاموش است.
+    @Volatile private var phLogOn = false
+    private val phRing = java.util.ArrayDeque<String>()
+    private fun phLogAdd(text: String, ph: Array<IntArray>) {
+        if (!phLogOn) return
+        try {
+            val sb = StringBuilder()
+            for (s in ph) { for (c in s) sb.appendCodePoint(c); sb.append('|') }
+            val line = text.take(120) + " ⇒ " + sb.toString().take(480)
+            synchronized(phRing) { phRing.addLast(line); while (phRing.size > 200) phRing.removeFirst() }
+        } catch (e: Throwable) {}
+    }
+    private fun phTail(n: Int): org.json.JSONArray {
+        val a = org.json.JSONArray()
+        synchronized(phRing) { val sk = maxOf(0, phRing.size - n); var i = 0; for (x in phRing) { if (i++ >= sk) a.put(x) } }
+        return a
+    }
+    @PluginMethod
+    fun phLog(call: PluginCall) {
+        if (call.hasOption("on")) {
+            phLogOn = call.getBoolean("on", false) == true
+            if (!phLogOn) synchronized(phRing) { phRing.clear() }
+        }
+        call.resolve(JSObject().put("on", phLogOn).put("n", synchronized(phRing) { phRing.size }).put("items", phTail(200)))
     }
     private val cpu = Executors.newSingleThreadExecutor()    // ساخت صدا (پشت‌سرهم)
     private var tts: OfflineTts? = null
@@ -542,7 +568,7 @@ class PiperNativePlugin : Plugin() {
 
     @PluginMethod
     fun ping(call: PluginCall) {
-        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r42 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
+        call.resolve(JSObject().put("ok", true).put("player", true).put("build", "kt-r43 · sherpa-" + ENGINE_VER + " · phon-" + phonTag()).put("media", true).put("ndm", NeuralDenoise.available(context)))
     }
 
     @PluginMethod
@@ -1396,6 +1422,7 @@ class PiperNativePlugin : Plugin() {
             val ph = Phonemizer.phonemize(text, ttsVoice).filter { it.isNotEmpty() }.toTypedArray()
             if (ph.isEmpty()) throw IllegalStateException("آوانگاری espeak برای این متن چیزی نداد")
             if (ep != epoch.get()) throw IllegalStateException("NATIVE_CANCELLED")
+            phLogAdd(text, ph)   // kt-r43 (A07)
             val gc = GenerationConfig(silenceScale = 0.2f, speed = sp, sid = 0)
             setPhonemeCodepoints(gc, ph)
             eng.generateWithConfigAndCallback("", gc, cb)
